@@ -1,14 +1,14 @@
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Save, Loader2, ChevronRight, Menu } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import type { Project } from '@shared/schema';
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Save, Loader2, ChevronRight, Menu } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import type { Project } from "@shared/schema";
 
 interface ProjectHeaderProps {
   project?: Project;
   breadcrumb?: string[];
   wordCount: number;
-  saveStatus: 'saved' | 'saving' | 'unsaved';
+  saveStatus: "saved" | "saving" | "unsaved";
   lastSaveTime: Date | null;
   onBack: () => void;
   onManualSave: () => void;
@@ -50,8 +50,11 @@ export function ProjectHeader({
 
           <div className="flex items-center gap-2 min-w-0 text-sm">
             {/* Project title */}
-            <span className="font-semibold truncate" data-testid="text-project-title">
-              {project?.title || 'Untitled Project'}
+            <span
+              className="font-semibold truncate"
+              data-testid="text-project-title"
+            >
+              {project?.title || "Untitled Project"}
             </span>
 
             {/* Breadcrumb trail */}
@@ -60,8 +63,12 @@ export function ProjectHeader({
                 <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 {breadcrumb.map((crumb, index) => (
                   <div key={index} className="flex items-center gap-2">
-                    <span 
-                      className={index === breadcrumb.length - 1 ? 'font-medium' : 'text-muted-foreground'}
+                    <span
+                      className={
+                        index === breadcrumb.length - 1
+                          ? "font-medium"
+                          : "text-muted-foreground"
+                      }
                       data-testid={`text-breadcrumb-${index}`}
                     >
                       {crumb}
@@ -79,24 +86,35 @@ export function ProjectHeader({
         {/* Right: Stats and save button */}
         <div className="flex items-center gap-4 flex-shrink-0">
           {/* Word count */}
-          <div className="text-sm text-muted-foreground" data-testid="text-word-count">
+          <div
+            className="text-sm text-muted-foreground"
+            data-testid="text-word-count"
+          >
             {wordCount.toLocaleString()} words
           </div>
 
           {/* Save status */}
           <div className="flex items-center gap-2">
-            {saveStatus === 'saving' && (
-              <Badge variant="secondary" className="gap-1" data-testid="badge-save-status">
+            {saveStatus === "saving" && (
+              <Badge
+                variant="secondary"
+                className="gap-1"
+                data-testid="badge-save-status"
+              >
                 <Loader2 className="h-3 w-3 animate-spin" />
                 Saving...
               </Badge>
             )}
-            {saveStatus === 'saved' && lastSaveTime && (
-              <Badge variant="secondary" className="gap-1" data-testid="badge-save-status">
+            {saveStatus === "saved" && lastSaveTime && (
+              <Badge
+                variant="secondary"
+                className="gap-1"
+                data-testid="badge-save-status"
+              >
                 Saved {formatDistanceToNow(lastSaveTime, { addSuffix: true })}
               </Badge>
             )}
-            {saveStatus === 'unsaved' && (
+            {saveStatus === "unsaved" && (
               <Badge variant="destructive" data-testid="badge-save-status">
                 Unsaved changes
               </Badge>
@@ -107,7 +125,7 @@ export function ProjectHeader({
           <Button
             size="sm"
             onClick={onManualSave}
-            disabled={isSaving || saveStatus === 'saved'}
+            disabled={isSaving || saveStatus === "saved"}
             data-testid="button-manual-save"
           >
             {isSaving ? (

@@ -7,12 +7,31 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, Plus, Pencil, Trash2, Search } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -22,28 +41,32 @@ export default function BannedPhrasesManagement() {
   const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+
   // Dialog state
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPhrase, setEditingPhrase] = useState<BannedPhrase | null>(null);
   const [formData, setFormData] = useState({
-    category: 'forbidden',
-    phrase: '',
+    category: "forbidden",
+    phrase: "",
     isActive: true,
   });
 
   // Fetch banned phrases
   const { data: phrases, isLoading } = useQuery<BannedPhrase[]>({
-    queryKey: ['/api/admin/banned-phrases'],
+    queryKey: ["/api/admin/banned-phrases"],
     enabled: !!user && !authLoading,
   });
 
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const response = await apiRequest('POST', '/api/admin/banned-phrases', data);
+      const response = await apiRequest(
+        "POST",
+        "/api/admin/banned-phrases",
+        data,
+      );
       return response.json();
     },
     onSuccess: () => {
@@ -51,7 +74,9 @@ export default function BannedPhrasesManagement() {
         title: "Phrase Added",
         description: "The banned phrase has been successfully added.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/banned-phrases'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/admin/banned-phrases"],
+      });
       closeDialog();
     },
     onError: () => {
@@ -65,8 +90,18 @@ export default function BannedPhrasesManagement() {
 
   // Update mutation
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<typeof formData> }) => {
-      const response = await apiRequest('PATCH', `/api/admin/banned-phrases/${id}`, data);
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<typeof formData>;
+    }) => {
+      const response = await apiRequest(
+        "PATCH",
+        `/api/admin/banned-phrases/${id}`,
+        data,
+      );
       return response.json();
     },
     onSuccess: () => {
@@ -74,7 +109,9 @@ export default function BannedPhrasesManagement() {
         title: "Phrase Updated",
         description: "The banned phrase has been successfully updated.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/banned-phrases'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/admin/banned-phrases"],
+      });
       closeDialog();
     },
     onError: () => {
@@ -89,14 +126,16 @@ export default function BannedPhrasesManagement() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest('DELETE', `/api/admin/banned-phrases/${id}`);
+      await apiRequest("DELETE", `/api/admin/banned-phrases/${id}`);
     },
     onSuccess: () => {
       toast({
         title: "Phrase Deleted",
         description: "The banned phrase has been successfully deleted.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/banned-phrases'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/admin/banned-phrases"],
+      });
     },
     onError: () => {
       toast({
@@ -110,11 +149,17 @@ export default function BannedPhrasesManagement() {
   // Toggle active status
   const toggleActiveMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-      const response = await apiRequest('PATCH', `/api/admin/banned-phrases/${id}`, { isActive });
+      const response = await apiRequest(
+        "PATCH",
+        `/api/admin/banned-phrases/${id}`,
+        { isActive },
+      );
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/banned-phrases'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/admin/banned-phrases"],
+      });
     },
     onError: () => {
       toast({
@@ -128,8 +173,8 @@ export default function BannedPhrasesManagement() {
   const openCreateDialog = () => {
     setEditingPhrase(null);
     setFormData({
-      category: 'forbidden',
-      phrase: '',
+      category: "forbidden",
+      phrase: "",
       isActive: true,
     });
     setIsDialogOpen(true);
@@ -149,8 +194,8 @@ export default function BannedPhrasesManagement() {
     setIsDialogOpen(false);
     setEditingPhrase(null);
     setFormData({
-      category: 'forbidden',
-      phrase: '',
+      category: "forbidden",
+      phrase: "",
       isActive: true,
     });
   };
@@ -173,25 +218,29 @@ export default function BannedPhrasesManagement() {
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this banned phrase?')) {
+    if (window.confirm("Are you sure you want to delete this banned phrase?")) {
       deleteMutation.mutate(id);
     }
   };
 
   // Filter phrases
-  const filteredPhrases = phrases?.filter(phrase => {
-    const matchesSearch = phrase.phrase.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || phrase.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  }) || [];
+  const filteredPhrases =
+    phrases?.filter((phrase) => {
+      const matchesSearch = phrase.phrase
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      const matchesCategory =
+        selectedCategory === "all" || phrase.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    }) || [];
 
   // Stats
   const stats = {
     total: phrases?.length || 0,
-    active: phrases?.filter(p => p.isActive).length || 0,
-    inactive: phrases?.filter(p => !p.isActive).length || 0,
-    forbidden: phrases?.filter(p => p.category === 'forbidden').length || 0,
-    transition: phrases?.filter(p => p.category === 'transition').length || 0,
+    active: phrases?.filter((p) => p.isActive).length || 0,
+    inactive: phrases?.filter((p) => !p.isActive).length || 0,
+    forbidden: phrases?.filter((p) => p.category === "forbidden").length || 0,
+    transition: phrases?.filter((p) => p.category === "transition").length || 0,
   };
 
   if (authLoading) return null;
@@ -207,7 +256,7 @@ export default function BannedPhrasesManagement() {
             </AlertDescription>
           </Alert>
           <Button
-            onClick={() => setLocation('/')}
+            onClick={() => setLocation("/")}
             variant="outline"
             className="mt-4"
             data-testid="button-back-home"
@@ -226,7 +275,7 @@ export default function BannedPhrasesManagement() {
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
         <div className="mb-6">
           <Button
-            onClick={() => setLocation('/')}
+            onClick={() => setLocation("/")}
             variant="ghost"
             size="sm"
             className="mb-4"
@@ -235,10 +284,12 @@ export default function BannedPhrasesManagement() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-          
+
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold" data-testid="heading-title">Banned Phrases Management</h1>
+              <h1 className="text-3xl font-bold" data-testid="heading-title">
+                Banned Phrases Management
+              </h1>
               <p className="text-muted-foreground mt-1">
                 Manage AI writing style guidelines and banned clichés
               </p>
@@ -255,31 +306,47 @@ export default function BannedPhrasesManagement() {
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Total Phrases</CardDescription>
-              <CardTitle className="text-2xl" data-testid="stat-total">{stats.total}</CardTitle>
+              <CardTitle className="text-2xl" data-testid="stat-total">
+                {stats.total}
+              </CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Active</CardDescription>
-              <CardTitle className="text-2xl text-green-600" data-testid="stat-active">{stats.active}</CardTitle>
+              <CardTitle
+                className="text-2xl text-green-600"
+                data-testid="stat-active"
+              >
+                {stats.active}
+              </CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Inactive</CardDescription>
-              <CardTitle className="text-2xl text-muted-foreground" data-testid="stat-inactive">{stats.inactive}</CardTitle>
+              <CardTitle
+                className="text-2xl text-muted-foreground"
+                data-testid="stat-inactive"
+              >
+                {stats.inactive}
+              </CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Forbidden</CardDescription>
-              <CardTitle className="text-2xl" data-testid="stat-forbidden">{stats.forbidden}</CardTitle>
+              <CardTitle className="text-2xl" data-testid="stat-forbidden">
+                {stats.forbidden}
+              </CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Transitions</CardDescription>
-              <CardTitle className="text-2xl" data-testid="stat-transition">{stats.transition}</CardTitle>
+              <CardTitle className="text-2xl" data-testid="stat-transition">
+                {stats.transition}
+              </CardTitle>
             </CardHeader>
           </Card>
         </div>
@@ -318,7 +385,9 @@ export default function BannedPhrasesManagement() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading...</div>
+              <div className="text-center py-8 text-muted-foreground">
+                Loading...
+              </div>
             ) : filteredPhrases.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 No phrases found.
@@ -334,17 +403,26 @@ export default function BannedPhrasesManagement() {
                     <div className="flex items-center gap-4 flex-1">
                       <Switch
                         checked={phrase.isActive ?? true}
-                        onCheckedChange={(checked) => 
-                          toggleActiveMutation.mutate({ id: phrase.id, isActive: checked })
+                        onCheckedChange={(checked) =>
+                          toggleActiveMutation.mutate({
+                            id: phrase.id,
+                            isActive: checked,
+                          })
                         }
                         data-testid={`switch-active-${phrase.id}`}
                       />
                       <div className="flex-1">
-                        <div className="font-medium" data-testid={`text-phrase-${phrase.id}`}>
+                        <div
+                          className="font-medium"
+                          data-testid={`text-phrase-${phrase.id}`}
+                        >
                           {phrase.phrase}
                         </div>
                         <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline" data-testid={`badge-category-${phrase.id}`}>
+                          <Badge
+                            variant="outline"
+                            data-testid={`badge-category-${phrase.id}`}
+                          >
                             {phrase.category}
                           </Badge>
                           {!phrase.isActive && (
@@ -383,22 +461,24 @@ export default function BannedPhrasesManagement() {
           <DialogContent data-testid="dialog-phrase-form">
             <DialogHeader>
               <DialogTitle data-testid="dialog-title">
-                {editingPhrase ? 'Edit Banned Phrase' : 'Add Banned Phrase'}
+                {editingPhrase ? "Edit Banned Phrase" : "Add Banned Phrase"}
               </DialogTitle>
               <DialogDescription>
-                {editingPhrase 
-                  ? 'Update the banned phrase details below.'
-                  : 'Add a new phrase to avoid in AI-generated content.'}
+                {editingPhrase
+                  ? "Update the banned phrase details below."
+                  : "Add a new phrase to avoid in AI-generated content."}
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="phrase">Phrase</Label>
                 <Input
                   id="phrase"
                   value={formData.phrase}
-                  onChange={(e) => setFormData({ ...formData, phrase: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phrase: e.target.value })
+                  }
                   placeholder="e.g., delve into"
                   data-testid="input-phrase"
                 />
@@ -408,9 +488,14 @@ export default function BannedPhrasesManagement() {
                 <Label htmlFor="category">Category</Label>
                 <Select
                   value={formData.category}
-                  onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, category: value })
+                  }
                 >
-                  <SelectTrigger id="category" data-testid="select-category-form">
+                  <SelectTrigger
+                    id="category"
+                    data-testid="select-category-form"
+                  >
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -424,10 +509,14 @@ export default function BannedPhrasesManagement() {
                 <Switch
                   id="is-active"
                   checked={formData.isActive}
-                  onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, isActive: checked })
+                  }
                   data-testid="switch-is-active"
                 />
-                <Label htmlFor="is-active">Active (will be used in AI prompts)</Label>
+                <Label htmlFor="is-active">
+                  Active (will be used in AI prompts)
+                </Label>
               </div>
             </div>
 
@@ -444,7 +533,7 @@ export default function BannedPhrasesManagement() {
                 disabled={createMutation.isPending || updateMutation.isPending}
                 data-testid="button-save"
               >
-                {editingPhrase ? 'Update' : 'Create'}
+                {editingPhrase ? "Update" : "Create"}
               </Button>
             </DialogFooter>
           </DialogContent>

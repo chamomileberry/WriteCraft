@@ -1,11 +1,13 @@
 # WriteCraft Production Deployment Guide
 
 ## Overview
+
 This document outlines the production deployment configuration, monitoring, security, and operational procedures for WriteCraft.
 
 ## Environment Variables
 
 ### Required Production Secrets
+
 These must be configured in your deployment environment:
 
 ```bash
@@ -45,11 +47,13 @@ WriteCraft is configured with increased Node.js heap memory to prevent out-of-me
 This is set in `dev.sh` and should also be configured in your deployment environment variables.
 
 **When to increase memory**:
+
 - If you see "JavaScript heap out of memory" errors during startup
 - If you re-enable Sentry profiling integration
 - If you upgrade to a Reserved VM deployment (can support larger heap sizes)
 
 **Troubleshooting deployment memory issues**:
+
 1. Sentry profiling is already disabled by default (see `server/instrument.mjs`)
 2. NODE_OPTIONS is set to 1GB in dev.sh
 3. If still failing, increase to `--max-old-space-size=2048` (2GB)
@@ -60,6 +64,7 @@ This is set in `dev.sh` and should also be configured in your deployment environ
 WriteCraft automatically enables enhanced security features in production:
 
 #### Enabled Automatically in Production (NODE_ENV=production):
+
 - ✅ **Intrusion Detection System (IDS)**: Monitors and blocks malicious requests
 - ✅ **IP Blacklisting**: Blocks known malicious IP addresses
 - ✅ **SQL Injection Detection**: Scans all inputs for SQL injection patterns
@@ -70,14 +75,15 @@ WriteCraft automatically enables enhanced security features in production:
 - ✅ **Row-Level Security**: Database-level access control
 
 #### Development vs Production Differences:
-| Feature | Development | Production |
-|---------|-------------|------------|
-| IDS | Disabled | ✅ Active |
-| IP Blocking | Disabled | ✅ Active |
-| Injection Detection | Disabled | ✅ Active |
-| Rate Limit | 10,000/15min | 1,000/15min |
-| Sentry Error Tracking | Sample 100% | Sample 10% |
-| Performance Profiling | Sample 100% | Sample 10% |
+
+| Feature               | Development  | Production  |
+| --------------------- | ------------ | ----------- |
+| IDS                   | Disabled     | ✅ Active   |
+| IP Blocking           | Disabled     | ✅ Active   |
+| Injection Detection   | Disabled     | ✅ Active   |
+| Rate Limit            | 10,000/15min | 1,000/15min |
+| Sentry Error Tracking | Sample 100%  | Sample 10%  |
+| Performance Profiling | Sample 100%  | Sample 10%  |
 
 ## Error Tracking & Monitoring
 
@@ -86,6 +92,7 @@ WriteCraft automatically enables enhanced security features in production:
 Sentry is integrated for comprehensive error tracking and performance monitoring.
 
 #### Setup Steps:
+
 1. Create a Sentry account at https://sentry.io
 2. Create a new project (select "Node.js/Express")
 3. Copy your DSN from project settings
@@ -94,6 +101,7 @@ Sentry is integrated for comprehensive error tracking and performance monitoring
 6. **Test your setup**: Visit `https://your-app.replit.app/api/sentry/test-capture` to send a test event
 
 #### Features Enabled:
+
 - **Error Capture**: All uncaught exceptions and rejections
 - **Performance Monitoring**: 10% sample rate in production (100% in development)
 - **Profiling**: ⚠️ DISABLED to reduce memory consumption during deployment
@@ -104,31 +112,37 @@ Sentry is integrated for comprehensive error tracking and performance monitoring
 - **Sensitive Data Filtering**: API keys, tokens, passwords automatically redacted
 
 #### Test Endpoints (Public):
+
 These endpoints are publicly accessible for Sentry setup testing:
+
 - `/api/sentry/check-config` - Verify Sentry DSN configuration
 - `/api/sentry/test-capture` - Manually capture a test event (returns event ID)
 - `/api/sentry/debug` - Trigger a test error (returns 500)
 
 #### Using Sentry in Code:
+
 ```typescript
-import { captureSentryException, captureSentryMessage } from './lib/sentryHelpers';
+import {
+  captureSentryException,
+  captureSentryMessage,
+} from "./lib/sentryHelpers";
 
 // Capture exceptions with context
 try {
   await riskyOperation();
 } catch (error) {
   captureSentryException(error, {
-    operation: 'AI_GENERATION',
+    operation: "AI_GENERATION",
     userId: user.id,
-    modelUsed: 'haiku'
+    modelUsed: "haiku",
   });
   throw error;
 }
 
 // Capture important events
-captureSentryMessage('Large AI request detected', 'warning', {
+captureSentryMessage("Large AI request detected", "warning", {
   tokenCount: 50000,
-  userId: user.id
+  userId: user.id,
 });
 ```
 
@@ -137,6 +151,7 @@ captureSentryMessage('Large AI request detected', 'warning', {
 **Recommended Service**: UptimeRobot (Free tier: 50 monitors, 5-minute checks)
 
 #### Setup Steps:
+
 1. Create account at https://uptimerobot.com
 2. Add monitors for:
    - Main app: `https://your-app.replit.app` (HTTP)
@@ -148,6 +163,7 @@ captureSentryMessage('Large AI request detected', 'warning', {
    - Alert after 2 consecutive failures (10 minutes of downtime)
 
 #### Health Check Endpoints:
+
 ```bash
 # Basic health
 GET /api/health
@@ -173,17 +189,19 @@ Response: {
 ### Neon PostgreSQL (Production Database)
 
 #### Connection Pooling:
+
 WriteCraft uses Neon's serverless driver (`@neondatabase/serverless`) with optimized pooling:
 
 ```typescript
 // Default configuration (server/db.ts)
 const pool = neon(DATABASE_URL, {
-  poolQueryViaFetch: true,  // Use fetch for better performance
-  fetchConnectionCache: true // Cache connections
+  poolQueryViaFetch: true, // Use fetch for better performance
+  fetchConnectionCache: true, // Cache connections
 });
 ```
 
 #### Recommended Neon Settings:
+
 - **Compute Size**: Scale tier based on traffic (Start with 0.25 CU, scale to 2 CU for production)
 - **Auto-suspend**: 5 minutes of inactivity
 - **Connection Pooling**: Always enabled
@@ -192,11 +210,13 @@ const pool = neon(DATABASE_URL, {
 ### Backup Strategy
 
 #### Automatic Backups (Neon):
+
 - **Frequency**: Continuous WAL archiving
 - **Retention**: 7 days (configurable up to 30 days)
 - **Point-in-Time Recovery**: Restore to any point in time within retention window
 
 #### Manual Backup Procedures:
+
 ```bash
 # Database export (using pg_dump via Neon console or CLI)
 # 1. Access Neon console: https://console.neon.tech
@@ -211,6 +231,7 @@ const pool = neon(DATABASE_URL, {
 ```
 
 #### Application Data Exports:
+
 - User-initiated exports available through UI (characters, notebooks, projects)
 - Admin exports for full database dumps
 - Object storage backups for uploaded files (GCS versioning enabled)
@@ -218,7 +239,9 @@ const pool = neon(DATABASE_URL, {
 ## Performance Optimization
 
 ### Database Indexes
+
 All critical queries are indexed. Current indexes:
+
 - User lookups: `users.id`, `users.email`
 - Session management: `sessions.sid`, `sessions.expire`
 - AI usage tracking: `ai_usage_logs.userId`, `ai_usage_logs.createdAt`
@@ -226,6 +249,7 @@ All critical queries are indexed. Current indexes:
 - Full-text search: GIN indexes on `tsvector` columns
 
 ### Caching Strategy
+
 - **Entity Detection Cache**: In-memory cache with 10-minute TTL, user+message hash keys
 - **Session Store**: Redis (if available) or PostgreSQL with automatic cleanup
 - **Static Assets**: CDN recommended (Cloudflare, Fastly)
@@ -233,6 +257,7 @@ All critical queries are indexed. Current indexes:
 ### CDN Setup (Recommended)
 
 #### Cloudflare (Free Tier):
+
 1. Add your domain to Cloudflare
 2. Update DNS to point to Cloudflare nameservers
 3. Enable "Proxy" (orange cloud) for your domain
@@ -242,7 +267,9 @@ All critical queries are indexed. Current indexes:
    - Bypass cache: `/api/*`, `/auth/*`
 
 #### Without CDN:
+
 Static assets are served with cache headers:
+
 ```
 Cache-Control: public, max-age=31536000, immutable
 ```
@@ -250,17 +277,20 @@ Cache-Control: public, max-age=31536000, immutable
 ## Load Testing
 
 ### Tools
+
 - **autocannon**: Installed for HTTP load testing
 - **k6**: Alternative for complex scenarios (optional)
 
 ### Running Load Tests
 
 #### Install autocannon:
+
 ```bash
 npm install -g autocannon
 ```
 
 #### Test AI Chat Endpoint:
+
 ```bash
 # Low traffic (50 concurrent, 30 seconds)
 autocannon -c 50 -d 30 \
@@ -280,6 +310,7 @@ autocannon -c 200 -d 60 \
 ```
 
 #### Test Character Generation:
+
 ```bash
 autocannon -c 100 -d 30 \
   -H "Cookie: connect.sid=YOUR_SESSION_COOKIE" \
@@ -290,6 +321,7 @@ autocannon -c 100 -d 30 \
 ```
 
 #### Baseline Performance Targets:
+
 - **p50 latency**: < 200ms (API endpoints)
 - **p95 latency**: < 1000ms (API endpoints)
 - **p99 latency**: < 3000ms (AI generation endpoints)
@@ -299,9 +331,11 @@ autocannon -c 100 -d 30 \
 ## Feature Flags
 
 ### Configuration
+
 Feature flags allow gradual rollout of new features and emergency kill switches.
 
 #### Database Schema:
+
 ```sql
 CREATE TABLE feature_flags (
   id UUID PRIMARY KEY,
@@ -315,6 +349,7 @@ CREATE TABLE feature_flags (
 ```
 
 #### Usage in Code:
+
 ```typescript
 // Server-side
 import { isFeatureEnabled } from './lib/featureFlags';
@@ -331,6 +366,7 @@ if (isEnabled) {
 ```
 
 ### Current Feature Flags:
+
 - `extended_thinking`: Extended AI reasoning (Professional/Team only)
 - `polish_feature`: AI Polish feature (Professional/Team only)
 - `canvas_mode`: Canvas whiteboard (All tiers)
@@ -340,29 +376,33 @@ if (isEnabled) {
 
 ### Error Severity Levels
 
-| Level | Response Time | Examples |
-|-------|--------------|----------|
-| **P0 - Critical** | 15 minutes | Database down, auth broken, data loss |
-| **P1 - High** | 1 hour | AI endpoints failing, payment processing broken |
-| **P2 - Medium** | 4 hours | Feature degradation, non-critical errors |
-| **P3 - Low** | Next business day | UI bugs, minor issues |
+| Level             | Response Time     | Examples                                        |
+| ----------------- | ----------------- | ----------------------------------------------- |
+| **P0 - Critical** | 15 minutes        | Database down, auth broken, data loss           |
+| **P1 - High**     | 1 hour            | AI endpoints failing, payment processing broken |
+| **P2 - Medium**   | 4 hours           | Feature degradation, non-critical errors        |
+| **P3 - Low**      | Next business day | UI bugs, minor issues                           |
 
 ### Incident Response Procedures
 
 #### P0 - Critical Outage:
+
 1. **Immediate**:
+
    - Check Sentry for error spike
    - Check UptimeRobot alerts
    - Verify database connectivity: `psql $DATABASE_URL -c "SELECT 1"`
    - Check Replit deployment status
 
 2. **Diagnosis** (5 minutes):
+
    - Review recent deployments (last 2 hours)
    - Check error logs in Sentry
    - Verify environment variables are set
    - Check Neon database status
 
 3. **Mitigation** (10 minutes):
+
    - If recent deployment caused issue: Rollback via Replit deployments
    - If database issue: Check Neon status, restart if needed
    - If API key issue: Rotate keys via admin panel
@@ -374,12 +414,15 @@ if (isEnabled) {
    - Document incident in postmortem
 
 #### P1 - High Priority:
+
 1. **Initial Response** (15 minutes):
+
    - Identify affected feature from Sentry tags
    - Check recent code changes to that feature
    - Review error frequency and user impact
 
 2. **Investigation** (30 minutes):
+
    - Reproduce issue in staging if possible
    - Check for API quota limits (Anthropic, Stripe)
    - Review feature flag status
@@ -393,6 +436,7 @@ if (isEnabled) {
 ### Rollback Procedures
 
 #### Code Rollback (Replit):
+
 ```bash
 # Via Replit UI:
 # 1. Go to deployments page
@@ -404,6 +448,7 @@ replit deploy --rollback
 ```
 
 #### Database Rollback (Neon):
+
 ```bash
 # Point-in-Time Recovery:
 # 1. Go to Neon console
@@ -417,6 +462,7 @@ replit deploy --rollback
 ```
 
 #### Feature Flag Kill Switch:
+
 ```sql
 -- Disable feature immediately
 UPDATE feature_flags SET enabled = false WHERE flag_key = 'problematic_feature';
@@ -424,16 +470,17 @@ UPDATE feature_flags SET enabled = false WHERE flag_key = 'problematic_feature';
 
 ### Escalation Contacts
 
-| Role | Contact | Escalation Level |
-|------|---------|------------------|
-| On-Call Engineer | [Email/Phone] | First response |
-| Tech Lead | [Email/Phone] | P0/P1 incidents |
-| Database Admin | [Email/Phone] | Database issues |
-| Security Team | [Email/Phone] | Security incidents |
+| Role             | Contact       | Escalation Level   |
+| ---------------- | ------------- | ------------------ |
+| On-Call Engineer | [Email/Phone] | First response     |
+| Tech Lead        | [Email/Phone] | P0/P1 incidents    |
+| Database Admin   | [Email/Phone] | Database issues    |
+| Security Team    | [Email/Phone] | Security incidents |
 
 ## Deployment Checklist
 
 ### Pre-Deployment:
+
 - [ ] All tests passing
 - [ ] Database migrations tested
 - [ ] Environment variables verified
@@ -442,6 +489,7 @@ UPDATE feature_flags SET enabled = false WHERE flag_key = 'problematic_feature';
 - [ ] Backup recent database state
 
 ### During Deployment:
+
 - [ ] Deploy to staging first
 - [ ] Run smoke tests
 - [ ] Monitor error rates in Sentry
@@ -449,6 +497,7 @@ UPDATE feature_flags SET enabled = false WHERE flag_key = 'problematic_feature';
 - [ ] Verify feature flags working
 
 ### Post-Deployment:
+
 - [ ] Monitor for 30 minutes
 - [ ] Check error rates < 0.1%
 - [ ] Verify critical user flows work
@@ -466,6 +515,7 @@ UPDATE feature_flags SET enabled = false WHERE flag_key = 'problematic_feature';
 ## Performance Metrics
 
 ### Key Metrics to Monitor:
+
 1. **Error Rate**: < 0.1% (Sentry)
 2. **Response Time**: p95 < 1s (Sentry Performance)
 3. **Database Connections**: < 80% of pool (Neon Console)
@@ -473,6 +523,7 @@ UPDATE feature_flags SET enabled = false WHERE flag_key = 'problematic_feature';
 5. **Uptime**: > 99.9% (UptimeRobot)
 
 ### Alerts to Configure:
+
 - Error rate > 1% for 5 minutes
 - p95 response time > 3s for 10 minutes
 - Database connections > 90%
@@ -482,6 +533,7 @@ UPDATE feature_flags SET enabled = false WHERE flag_key = 'problematic_feature';
 ## Security Checklist
 
 ### Regular Security Tasks:
+
 - [ ] Review Sentry security alerts weekly
 - [ ] Rotate API keys quarterly
 - [ ] Review user access logs monthly
@@ -490,6 +542,7 @@ UPDATE feature_flags SET enabled = false WHERE flag_key = 'problematic_feature';
 - [ ] Penetration testing annually
 
 ### Immediate Response (Security Incident):
+
 1. Identify scope of breach
 2. Disable compromised credentials
 3. Force password reset for affected users

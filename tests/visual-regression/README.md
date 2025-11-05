@@ -9,22 +9,26 @@ This document outlines the visual regression testing strategy for the family tre
 ## Current Protection Status ✅
 
 ### 1. Unit Tests (Implemented)
+
 - **Location**: `tests/junction-positioning.spec.ts`
 - **Coverage**: 14 comprehensive tests covering all utility functions
 - **Status**: All tests passing ✅
 - **Protection**: Mathematical correctness of positioning calculations
 
 ### 2. Shared Utility Module (Implemented)
+
 - **Location**: `client/src/lib/junction-positioning.ts`
 - **Purpose**: Single source of truth for all junction positioning logic
 - **Protection**: Prevents duplicate positioning code and logic drift
 
 ### 3. Runtime Validation (Implemented)
+
 - **Location**: Built into `junction-positioning.ts` utilities
 - **Behavior**: Development mode validation guards catch positioning errors
 - **Protection**: Early detection of incorrect configurations
 
 ### 4. Documentation (Implemented)
+
 - **Location**: Inline comments in `FamilyTreeEditor.tsx` and `junction-positioning.ts`
 - **Purpose**: Explains the math, edge cases, and critical requirements
 - **Protection**: Knowledge preservation for future developers
@@ -34,6 +38,7 @@ This document outlines the visual regression testing strategy for the family tre
 ### What's Missing
 
 Visual regression tests would verify the **rendered output** in a real browser, catching:
+
 - Rendering bugs not caught by unit tests
 - CSS/styling issues affecting junction appearance
 - React Flow edge routing problems
@@ -43,6 +48,7 @@ Visual regression tests would verify the **rendered output** in a real browser, 
 ### Why Visual Tests Matter
 
 Unit tests verify the math is correct, but they can't catch:
+
 - A CSS change that makes junctions invisible
 - React Flow edge renderer changes
 - Incorrect z-index causing overlap issues
@@ -63,32 +69,32 @@ npx playwright install
 Create `playwright.config.ts`:
 
 ```typescript
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  testDir: './tests/visual-regression',
+  testDir: "./tests/visual-regression",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
-  
+  reporter: "html",
+
   use: {
-    baseURL: 'http://localhost:5000',
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
+    baseURL: "http://localhost:5000",
+    trace: "on-first-retry",
+    screenshot: "only-on-failure",
   },
 
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
     },
   ],
 
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5000',
+    command: "npm run dev",
+    url: "http://localhost:5000",
     reuseExistingServer: !process.env.CI,
   },
 });
@@ -99,12 +105,14 @@ export default defineConfig({
 The following examples illustrate the **approach** for visual regression testing. These are **conceptual examples** that would need to be adapted based on the actual family tree UI implementation:
 
 **Key Challenge**: The current family tree editor uses a complex workflow involving:
+
 - Drag-and-drop from character gallery
 - Real-time edge connections
 - Dynamic junction creation
 - React Flow internal state management
 
 **Required Steps Before Implementation**:
+
 1. Create a test data seeding endpoint (`POST /api/test/seed-family-tree`)
 2. Add test-specific queries to load pre-configured family trees
 3. Document exact UI interaction patterns for creating relationships
@@ -113,22 +121,23 @@ The following examples illustrate the **approach** for visual regression testing
 **Conceptual Test Examples**:
 
 ```typescript
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('Family Tree Junction Visual Regression', () => {
-  
+test.describe("Family Tree Junction Visual Regression", () => {
   test.beforeEach(async ({ page }) => {
     // Would need: Authentication handling
     // Would need: Test user setup
     // Would need: Notebook creation
-    await page.goto('/notebooks/test-notebook-id/family-tree/test-tree-id');
-    
+    await page.goto("/notebooks/test-notebook-id/family-tree/test-tree-id");
+
     // Wait for React Flow to render
-    await page.waitForSelector('.react-flow');
-    await page.waitForLoadState('networkidle');
+    await page.waitForSelector(".react-flow");
+    await page.waitForLoadState("networkidle");
   });
 
-  test('should render horizontal marriage line between aligned parents', async ({ page }) => {
+  test("should render horizontal marriage line between aligned parents", async ({
+    page,
+  }) => {
     // ACTUAL IMPLEMENTATION REQUIRED:
     // 1. Seed test data via API with two parents of different heights
     // 2. Or use actual UI to:
@@ -137,76 +146,82 @@ test.describe('Family Tree Junction Visual Regression', () => {
     //    - Add second member
     //    - Create relationship by dragging connection between nodes
     //    - Select "Spouse" relationship type
-    
+
     // Once family tree is set up, capture visual state
-    const reactFlow = page.locator('.react-flow');
-    await expect(reactFlow).toHaveScreenshot('horizontal-marriage-line.png', {
+    const reactFlow = page.locator(".react-flow");
+    await expect(reactFlow).toHaveScreenshot("horizontal-marriage-line.png", {
       maxDiffPixels: 10,
     });
   });
 
-  test('should render centered vertical child line from junction', async ({ page }) => {
+  test("should render centered vertical child line from junction", async ({
+    page,
+  }) => {
     // ACTUAL IMPLEMENTATION REQUIRED:
     // 1. Create pre-configured family tree via test seed endpoint
     // 2. Verify junction node exists: page.locator('[data-id*="junction-"]')
     // 3. Verify child edge connects to junction center
-    
-    const junctionEdges = page.locator('.react-flow__edges');
-    await expect(junctionEdges).toHaveScreenshot('centered-child-line.png', {
+
+    const junctionEdges = page.locator(".react-flow__edges");
+    await expect(junctionEdges).toHaveScreenshot("centered-child-line.png", {
       maxDiffPixels: 10,
     });
   });
 
-  test('should maintain alignment during drag', async ({ page }) => {
+  test("should maintain alignment during drag", async ({ page }) => {
     // ACTUAL IMPLEMENTATION REQUIRED:
     // 1. Load family tree with married couple via seed endpoint
     // 2. Find parent node: const parent = page.locator('[data-id="member-id-1"]')
     // 3. Perform drag: await parent.dragTo(...)
     // 4. Verify spouse node moved in sync
-    
-    const reactFlow = page.locator('.react-flow');
-    await expect(reactFlow).toHaveScreenshot('drag-alignment.png', {
+
+    const reactFlow = page.locator(".react-flow");
+    await expect(reactFlow).toHaveScreenshot("drag-alignment.png", {
       maxDiffPixels: 10,
     });
   });
 
-  test('should align couples during auto-layout', async ({ page }) => {
+  test("should align couples during auto-layout", async ({ page }) => {
     // ACTUAL IMPLEMENTATION REQUIRED:
     // 1. Create misaligned couple via manual positioning
     // 2. Click auto-layout: page.click('[data-testid="button-toggle-layout"]')
     // 3. Wait for layout completion: await page.waitForTimeout(500)
     // 4. Verify vertical center alignment
-    
+
     // Trigger auto-layout (button exists with data-testid="button-toggle-layout")
     await page.click('[data-testid="button-toggle-layout"]');
     await page.waitForTimeout(500); // Wait for layout animation
-    
-    const reactFlow = page.locator('.react-flow');
-    await expect(reactFlow).toHaveScreenshot('auto-layout-alignment.png', {
+
+    const reactFlow = page.locator(".react-flow");
+    await expect(reactFlow).toHaveScreenshot("auto-layout-alignment.png", {
       maxDiffPixels: 50,
     });
   });
 
-  test('should match baseline rendering with test fixtures', async ({ page }) => {
+  test("should match baseline rendering with test fixtures", async ({
+    page,
+  }) => {
     // RECOMMENDED APPROACH:
     // 1. Create test fixture endpoint: GET /api/test/family-tree-fixtures/standard
     // 2. Load fixture data into family tree
     // 3. Compare against committed baseline screenshot
-    
+
     // Example using test data injection (requires backend support):
-    const response = await page.request.get('/api/test/family-tree-fixtures/standard');
+    const response = await page.request.get(
+      "/api/test/family-tree-fixtures/standard",
+    );
     const fixtureData = await response.json();
-    
+
     // Load fixture into editor (implementation needed)
     await page.evaluate((data) => {
       // Would need exposed test API to load data
       window.__loadTestFamilyTree?.(data);
     }, fixtureData);
-    
-    await page.waitForLoadState('networkidle');
-    
-    const reactFlow = page.locator('.react-flow');
-    await expect(reactFlow).toHaveScreenshot('baseline-family-tree.png', {
+
+    await page.waitForLoadState("networkidle");
+
+    const reactFlow = page.locator(".react-flow");
+    await expect(reactFlow).toHaveScreenshot("baseline-family-tree.png", {
       maxDiffPixels: 20,
     });
   });
@@ -269,36 +284,36 @@ Make executable: `chmod +x test-visual.sh`
 ```yaml
 name: Visual Regression Tests
 
-on: 
+on:
   pull_request:
     paths:
-      - 'client/src/components/FamilyTreeEditor.tsx'
-      - 'client/src/lib/junction-positioning.ts'
-      - 'client/src/components/JunctionNode.tsx'
-      - 'client/src/components/JunctionEdge.tsx'
-      - 'client/src/lib/dagre-layout.ts'
+      - "client/src/components/FamilyTreeEditor.tsx"
+      - "client/src/lib/junction-positioning.ts"
+      - "client/src/components/JunctionNode.tsx"
+      - "client/src/components/JunctionEdge.tsx"
+      - "client/src/lib/dagre-layout.ts"
 
 jobs:
   visual-regression:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - uses: actions/setup-node@v3
         with:
-          node-version: '20'
-      
+          node-version: "20"
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
-      
+
       - name: Run visual regression tests
         run: npx playwright test tests/visual-regression
         env:
           CI: true
-      
+
       - name: Upload test results on failure
         if: failure()
         uses: actions/upload-artifact@v3
@@ -308,7 +323,7 @@ jobs:
             test-results/
             playwright-report/
           retention-days: 30
-      
+
       - name: Upload baseline screenshots if updated
         if: success()
         uses: actions/upload-artifact@v3
@@ -387,11 +402,13 @@ When a visual test fails:
 
 1. **View the diff**: Playwright generates diff images in `test-results/`
 2. **Check the comparison**:
+
    - `*-actual.png`: What was rendered
    - `*-expected.png`: Baseline screenshot
    - `*-diff.png`: Highlighted differences
 
 3. **Determine if change is expected**:
+
    - If intentional: Update snapshots with `npx playwright test --update-snapshots`
    - If bug: Fix the code and re-run tests with `npx playwright test`
 
@@ -403,26 +420,31 @@ When a visual test fails:
 ## Best Practices
 
 ### 1. Stable Test Data
+
 - Use fixed IDs for test nodes
 - Don't rely on timestamps or random data
 - Create deterministic test scenarios
 
 ### 2. Visual Stability
+
 - Wait for animations to complete
 - Ensure fonts are loaded
 - Account for anti-aliasing differences
 
 ### 3. Diff Tolerance
+
 - Set `maxDiffPixels` appropriately
 - Tighter tolerance for critical visual elements
 - Looser tolerance for decorative elements
 
 ### 4. Screenshot Scope
+
 - Capture specific elements, not entire pages
 - Focus on the junction/edge area being tested
 - Reduce flakiness from irrelevant page changes
 
 ### 5. Test Maintenance
+
 - Review and update baselines regularly
 - Document why baselines changed
 - Keep test scenarios simple and focused
@@ -432,11 +454,13 @@ When a visual test fails:
 The visual regression tests complement the existing unit tests:
 
 1. **Unit Tests** (`tests/junction-positioning.spec.ts`):
+
    - Verify mathematical correctness
    - Fast execution (milliseconds)
    - Run on every commit
 
 2. **Visual Tests** (Playwright):
+
    - Verify rendered appearance
    - Slower execution (seconds)
    - Run before releases or on PR merge
@@ -449,6 +473,7 @@ The visual regression tests complement the existing unit tests:
 ## Future Enhancements
 
 ### 1. Cross-Browser Testing
+
 Add more browsers to `playwright.config.ts`:
 
 ```typescript
@@ -460,37 +485,42 @@ projects: [
 ```
 
 ### 2. Responsive Testing
+
 Test different viewport sizes:
 
 ```typescript
-test('should render correctly on mobile', async ({ page }) => {
+test("should render correctly on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 667 });
   // ... test mobile layout
 });
 ```
 
 ### 3. Accessibility Testing
+
 Add a11y checks to visual tests:
 
 ```typescript
-import { injectAxe, checkA11y } from 'axe-playwright';
+import { injectAxe, checkA11y } from "axe-playwright";
 
-test('should meet accessibility standards', async ({ page }) => {
+test("should meet accessibility standards", async ({ page }) => {
   await injectAxe(page);
-  await checkA11y(page, '.react-flow');
+  await checkA11y(page, ".react-flow");
 });
 ```
 
 ### 4. Performance Monitoring
+
 Track rendering performance:
 
 ```typescript
-test('should render family tree within performance budget', async ({ page }) => {
+test("should render family tree within performance budget", async ({
+  page,
+}) => {
   const startTime = Date.now();
-  await page.goto('/family-tree/large-tree-id');
-  await page.waitForSelector('.react-flow__edge');
+  await page.goto("/family-tree/large-tree-id");
+  await page.waitForSelector(".react-flow__edge");
   const loadTime = Date.now() - startTime;
-  
+
   expect(loadTime).toBeLessThan(2000); // 2 second budget
 });
 ```
@@ -505,14 +535,14 @@ Create backend endpoints for test data:
 
 ```typescript
 // server/routes.ts - Test endpoints (only available in development/test)
-if (process.env.NODE_ENV !== 'production') {
-  app.post('/api/test/seed-family-tree', async (req, res) => {
+if (process.env.NODE_ENV !== "production") {
+  app.post("/api/test/seed-family-tree", async (req, res) => {
     const { treeId, members, relationships } = req.body;
     // Insert test data directly into database
     // Return created tree with all IDs
   });
-  
-  app.get('/api/test/family-tree-fixtures/:name', async (req, res) => {
+
+  app.get("/api/test/family-tree-fixtures/:name", async (req, res) => {
     // Return predefined test fixtures (couples with different heights, etc.)
   });
 }
@@ -524,9 +554,12 @@ Create reusable Playwright helpers:
 
 ```typescript
 // tests/helpers/family-tree-helpers.ts
-export async function createTestFamilyTree(page: Page, fixture: FamilyTreeFixture) {
-  const response = await page.request.post('/api/test/seed-family-tree', {
-    data: fixture
+export async function createTestFamilyTree(
+  page: Page,
+  fixture: FamilyTreeFixture,
+) {
+  const response = await page.request.post("/api/test/seed-family-tree", {
+    data: fixture,
   });
   return await response.json();
 }
@@ -548,17 +581,17 @@ Create standardized test fixtures:
 // tests/fixtures/family-trees.ts
 export const MARRIED_COUPLE_DIFFERENT_HEIGHTS = {
   members: [
-    { id: 'm1', characterId: 'c1', position: { x: 100, y: 100 } },
-    { id: 'm2', characterId: 'c2', position: { x: 400, y: 100 } },
+    { id: "m1", characterId: "c1", position: { x: 100, y: 100 } },
+    { id: "m2", characterId: "c2", position: { x: 400, y: 100 } },
   ],
   relationships: [
-    { 
-      type: 'spouse',
-      member1Id: 'm1',
-      member2Id: 'm2',
-      hasChildren: true
-    }
-  ]
+    {
+      type: "spouse",
+      member1Id: "m1",
+      member2Id: "m2",
+      hasChildren: true,
+    },
+  ],
 };
 ```
 
@@ -569,10 +602,10 @@ Add test authentication:
 ```typescript
 // tests/helpers/auth.ts
 export async function authenticateTestUser(page: Page) {
-  await page.goto('/');
+  await page.goto("/");
   // Use test-specific auth mechanism
   await page.evaluate(() => {
-    localStorage.setItem('test-user-id', 'test-user-123');
+    localStorage.setItem("test-user-id", "test-user-123");
   });
 }
 ```
@@ -584,18 +617,21 @@ The junction positioning system has **robust mathematical protection** but **no 
 ### ✅ Implemented Protection Layers
 
 1. **Unit Tests** (`tests/junction-positioning.spec.ts`)
+
    - 14 comprehensive tests
    - All positioning math validated
    - Regression protection for calculations
    - **Limitation**: Cannot catch rendering issues
 
 2. **Shared Utility Module** (`client/src/lib/junction-positioning.ts`)
+
    - Single source of truth for positioning
    - Used in 3 critical locations
    - Comprehensive inline documentation
    - **Limitation**: Doesn't prevent CSS/rendering bugs
 
 3. **Runtime Validation** (dev mode guards)
+
    - Automatic validation in development
    - Early error detection
    - Console warnings for issues
@@ -618,9 +654,10 @@ The junction positioning system has **robust mathematical protection** but **no 
 The junction positioning system has **strong protection against mathematical regressions** through unit tests, shared utilities, and runtime validation. However, **visual regressions** (CSS changes, React Flow rendering issues, browser incompatibilities) can only be caught with browser-based testing.
 
 **Current State**: Production-ready positioning logic with comprehensive unit test coverage ✅  
-**Future Enhancement**: Add Playwright visual tests when browser-based verification is needed ⏳  
+**Future Enhancement**: Add Playwright visual tests when browser-based verification is needed ⏳
 
 **Recommendation**: The existing protection layers are sufficient for most development workflows. Implement visual regression testing when:
+
 - Making significant changes to React Flow integration
 - Modifying CSS affecting family tree layout
 - Supporting new browsers or viewport sizes

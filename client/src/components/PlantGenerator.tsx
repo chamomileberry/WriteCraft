@@ -1,11 +1,22 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControls";
 import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Leaf, Copy, Save, Shuffle, Loader2 } from "lucide-react";
 import { GENRE_CATEGORIES } from "@shared/genres";
 import { useGenerator } from "@/hooks/useGenerator";
@@ -32,9 +43,50 @@ interface Plant {
 }
 
 const PLANT_TYPE_CATEGORIES = {
-  "Basic Types": ["annual", "perennial", "bulb", "tree", "shrub", "bush", "flower", "herb", "vegetable", "fruit"],
-  "Specialized": ["aquatic plant", "bamboo", "cactus", "succulent", "climber", "conifer", "fern", "houseplant", "orchid", "ornamental grass", "palm", "rose"],
-  "Advanced": ["fungi", "nut", "seed", "creeper", "moss", "flowering plant", "gymnosperm", "angiosperm", "legume", "spice", "grass", "heather", "hedge", "alpine", "carnivorous", "lichen"]
+  "Basic Types": [
+    "annual",
+    "perennial",
+    "bulb",
+    "tree",
+    "shrub",
+    "bush",
+    "flower",
+    "herb",
+    "vegetable",
+    "fruit",
+  ],
+  Specialized: [
+    "aquatic plant",
+    "bamboo",
+    "cactus",
+    "succulent",
+    "climber",
+    "conifer",
+    "fern",
+    "houseplant",
+    "orchid",
+    "ornamental grass",
+    "palm",
+    "rose",
+  ],
+  Advanced: [
+    "fungi",
+    "nut",
+    "seed",
+    "creeper",
+    "moss",
+    "flowering plant",
+    "gymnosperm",
+    "angiosperm",
+    "legume",
+    "spice",
+    "grass",
+    "heather",
+    "hedge",
+    "alpine",
+    "carnivorous",
+    "lichen",
+  ],
 };
 
 export default function PlantGenerator() {
@@ -43,18 +95,19 @@ export default function PlantGenerator() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { notebookId, validateNotebook } = useRequireNotebook({
-    errorMessage: 'Please create or select a notebook before generating plants.'
+    errorMessage:
+      "Please create or select a notebook before generating plants.",
   });
 
   const generator = useGenerator<Plant>({
-    generateEndpoint: '/api/plants/generate',
+    generateEndpoint: "/api/plants/generate",
     getGenerateParams: () => ({
-      genre: (genre && genre !== 'any') ? genre : undefined,
-      type: (plantType && plantType !== 'any') ? plantType : undefined,
-      notebookId: notebookId || undefined
+      genre: genre && genre !== "any" ? genre : undefined,
+      type: plantType && plantType !== "any" ? plantType : undefined,
+      notebookId: notebookId || undefined,
     }),
-    itemTypeName: 'plant',
-    userId: 'demo-user',
+    itemTypeName: "plant",
+    userId: "demo-user",
     notebookId: notebookId || undefined,
     validateBeforeGenerate: validateNotebook,
     formatForClipboard: (plant) => `**${plant.name}**
@@ -63,7 +116,7 @@ Type: ${capitalizeWords(plant.type)}
 
 ${plant.description}
 
-Characteristics: ${plant.characteristics.join(', ')}
+Characteristics: ${plant.characteristics.join(", ")}
 
 Habitat: ${plant.habitat}
 
@@ -72,15 +125,16 @@ ${plant.careInstructions}
 
 Blooming Season: ${plant.bloomingSeason}
 Hardiness Zone: ${plant.hardinessZone}`,
-    invalidateOnSave: [['/api/saved-items']],
+    invalidateOnSave: [["/api/saved-items"]],
   });
 
   const currentPlant = generator.result;
 
   const capitalizeWords = (str: string): string => {
-    return str.split(' ').map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ');
+    return str
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   };
 
   return (
@@ -94,11 +148,13 @@ Hardiness Zone: ${plant.hardinessZone}`,
         </CardHeader>
         <CardContent>
           <GeneratorNotebookControls />
-          
+
           <div className="space-y-4 mt-6">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Genre (Optional)</label>
+                <label className="block text-sm font-medium mb-2">
+                  Genre (Optional)
+                </label>
                 <SearchableSelect
                   value={genre}
                   onValueChange={setGenre}
@@ -114,7 +170,9 @@ Hardiness Zone: ${plant.hardinessZone}`,
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Plant Type (Optional)</label>
+                <label className="block text-sm font-medium mb-2">
+                  Plant Type (Optional)
+                </label>
                 <SearchableSelect
                   value={plantType}
                   onValueChange={setPlantType}
@@ -132,7 +190,7 @@ Hardiness Zone: ${plant.hardinessZone}`,
           </div>
 
           <div className="flex justify-end pt-4">
-            <Button 
+            <Button
               onClick={generator.generate}
               disabled={generator.isGenerating}
               data-testid="button-generate-plant"
@@ -157,7 +215,8 @@ Hardiness Zone: ${plant.hardinessZone}`,
               <div>
                 <CardTitle className="text-2xl">{currentPlant.name}</CardTitle>
                 <CardDescription className="text-base mt-1">
-                  <em>{currentPlant.scientificName}</em> • {capitalizeWords(currentPlant.type)}
+                  <em>{currentPlant.scientificName}</em> •{" "}
+                  {capitalizeWords(currentPlant.type)}
                 </CardDescription>
               </div>
               <div className="flex gap-2">
@@ -167,16 +226,16 @@ Hardiness Zone: ${plant.hardinessZone}`,
                   onPolished={(polished) => {
                     generator.setResult({
                       ...currentPlant,
-                      description: polished
+                      description: polished,
                     });
                   }}
                 />
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={generator.copyToClipboard}
                         data-testid="button-copy-plant"
                       >
@@ -190,11 +249,13 @@ Hardiness Zone: ${plant.hardinessZone}`,
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={generator.saveToCollection}
-                        disabled={generator.isSaving || !currentPlant?.id || !notebookId}
+                        disabled={
+                          generator.isSaving || !currentPlant?.id || !notebookId
+                        }
                         data-testid="button-save-plant"
                       >
                         {generator.isSaving ? (
@@ -213,7 +274,9 @@ Hardiness Zone: ${plant.hardinessZone}`,
           <CardContent className="space-y-6">
             <div>
               <h4 className="font-semibold mb-2">Description</h4>
-              <p className="text-muted-foreground">{currentPlant.description}</p>
+              <p className="text-muted-foreground">
+                {currentPlant.description}
+              </p>
             </div>
 
             <Separator />
@@ -222,7 +285,9 @@ Hardiness Zone: ${plant.hardinessZone}`,
               <h4 className="font-semibold mb-2">Characteristics</h4>
               <div className="flex flex-wrap gap-2">
                 {currentPlant.characteristics.map((char, idx) => (
-                  <Badge key={idx} variant="secondary">{char}</Badge>
+                  <Badge key={idx} variant="secondary">
+                    {char}
+                  </Badge>
                 ))}
               </div>
             </div>
@@ -236,7 +301,9 @@ Hardiness Zone: ${plant.hardinessZone}`,
               </div>
               <div>
                 <h4 className="font-semibold mb-2">Blooming Season</h4>
-                <p className="text-muted-foreground">{currentPlant.bloomingSeason}</p>
+                <p className="text-muted-foreground">
+                  {currentPlant.bloomingSeason}
+                </p>
               </div>
             </div>
 
@@ -244,12 +311,16 @@ Hardiness Zone: ${plant.hardinessZone}`,
 
             <div>
               <h4 className="font-semibold mb-2">Care Instructions</h4>
-              <p className="text-muted-foreground">{currentPlant.careInstructions}</p>
+              <p className="text-muted-foreground">
+                {currentPlant.careInstructions}
+              </p>
             </div>
 
             <div>
               <h4 className="font-semibold mb-2">Hardiness Zone</h4>
-              <p className="text-muted-foreground">{currentPlant.hardinessZone}</p>
+              <p className="text-muted-foreground">
+                {currentPlant.hardinessZone}
+              </p>
             </div>
           </CardContent>
         </Card>

@@ -1,18 +1,24 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
-import { 
-  Users, 
-  UserPlus, 
-  Mail, 
-  Trash2, 
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import {
+  Users,
+  UserPlus,
+  Mail,
+  Trash2,
   Settings as SettingsIcon,
   Clock,
   CheckCircle,
@@ -23,15 +29,15 @@ import {
   Eye,
   MessageSquare,
   BarChart3,
-  FileText
-} from 'lucide-react';
+  FileText,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -40,12 +46,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { formatDistanceToNow } from 'date-fns';
-import Header from '@/components/Header';
-import { useLocation } from 'wouter';
+} from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatDistanceToNow } from "date-fns";
+import Header from "@/components/Header";
+import { useLocation } from "wouter";
 
 interface TeamMember {
   id: string;
@@ -108,55 +114,67 @@ export default function TeamManagement() {
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
 
   // Invite form state
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<'admin' | 'member'>('member');
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<"admin" | "member">("member");
   const [canEdit, setCanEdit] = useState(true);
   const [canComment, setCanComment] = useState(true);
   const [canInvite, setCanInvite] = useState(false);
 
   // Fetch team members
-  const { data: members = [], isLoading: loadingMembers } = useQuery<TeamMember[]>({
-    queryKey: ['/api/team/members'],
+  const { data: members = [], isLoading: loadingMembers } = useQuery<
+    TeamMember[]
+  >({
+    queryKey: ["/api/team/members"],
   });
 
   // Fetch pending invitations
-  const { data: invitations = [], isLoading: loadingInvitations } = useQuery<TeamInvitation[]>({
-    queryKey: ['/api/team/invitations'],
+  const { data: invitations = [], isLoading: loadingInvitations } = useQuery<
+    TeamInvitation[]
+  >({
+    queryKey: ["/api/team/invitations"],
   });
 
   // Fetch team activity
-  const { data: activity = [], isLoading: loadingActivity } = useQuery<TeamActivity[]>({
-    queryKey: ['/api/team/activity'],
+  const { data: activity = [], isLoading: loadingActivity } = useQuery<
+    TeamActivity[]
+  >({
+    queryKey: ["/api/team/activity"],
   });
 
   // Fetch team usage
   const { data: usageData } = useQuery<{ usage: number }>({
-    queryKey: ['/api/team/usage'],
+    queryKey: ["/api/team/usage"],
   });
 
   // Invite member mutation
   const inviteMutation = useMutation({
-    mutationFn: async (data: { email: string; role: 'admin' | 'member'; canEdit: boolean; canComment: boolean; canInvite: boolean }) => {
-      return await apiRequest('POST', '/api/team/invite', data);
+    mutationFn: async (data: {
+      email: string;
+      role: "admin" | "member";
+      canEdit: boolean;
+      canComment: boolean;
+      canInvite: boolean;
+    }) => {
+      return await apiRequest("POST", "/api/team/invite", data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/team/invitations'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/team/invitations"] });
       toast({
-        title: 'Invitation sent',
+        title: "Invitation sent",
         description: `An invitation has been sent to ${inviteEmail}`,
       });
       setInviteDialogOpen(false);
-      setInviteEmail('');
-      setInviteRole('member');
+      setInviteEmail("");
+      setInviteRole("member");
       setCanEdit(true);
       setCanComment(true);
       setCanInvite(false);
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to send invitation',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to send invitation",
+        variant: "destructive",
       });
     },
   });
@@ -164,45 +182,55 @@ export default function TeamManagement() {
   // Remove member mutation
   const removeMemberMutation = useMutation({
     mutationFn: async (userId: string) => {
-      return await apiRequest('DELETE', `/api/team/members/${userId}`, {});
+      return await apiRequest("DELETE", `/api/team/members/${userId}`, {});
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/team/members'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/team/activity'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/team/members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/team/activity"] });
       toast({
-        title: 'Member removed',
-        description: 'The team member has been removed successfully',
+        title: "Member removed",
+        description: "The team member has been removed successfully",
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to remove member',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to remove member",
+        variant: "destructive",
       });
     },
   });
 
   // Update member role mutation
   const updateMemberMutation = useMutation({
-    mutationFn: async (data: { userId: string; role: string; canEdit: boolean; canComment: boolean; canInvite: boolean }) => {
-      return await apiRequest('PATCH', `/api/team/members/${data.userId}`, data);
+    mutationFn: async (data: {
+      userId: string;
+      role: string;
+      canEdit: boolean;
+      canComment: boolean;
+      canInvite: boolean;
+    }) => {
+      return await apiRequest(
+        "PATCH",
+        `/api/team/members/${data.userId}`,
+        data,
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/team/members'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/team/activity'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/team/members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/team/activity"] });
       toast({
-        title: 'Member updated',
-        description: 'Member role and permissions updated successfully',
+        title: "Member updated",
+        description: "Member role and permissions updated successfully",
       });
       setEditMemberDialogOpen(false);
       setSelectedMember(null);
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update member',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to update member",
+        variant: "destructive",
       });
     },
   });
@@ -210,28 +238,32 @@ export default function TeamManagement() {
   // Revoke invitation mutation
   const revokeInvitationMutation = useMutation({
     mutationFn: async (invitationId: string) => {
-      return await apiRequest('DELETE', `/api/team/invitations/${invitationId}`, {});
+      return await apiRequest(
+        "DELETE",
+        `/api/team/invitations/${invitationId}`,
+        {},
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/team/invitations'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/team/activity'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/team/invitations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/team/activity"] });
       toast({
-        title: 'Invitation revoked',
-        description: 'The invitation has been revoked successfully',
+        title: "Invitation revoked",
+        description: "The invitation has been revoked successfully",
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to revoke invitation',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to revoke invitation",
+        variant: "destructive",
       });
     },
   });
 
   const handleInviteMember = () => {
     if (!inviteEmail) return;
-    
+
     inviteMutation.mutate({
       email: inviteEmail,
       role: inviteRole,
@@ -243,7 +275,7 @@ export default function TeamManagement() {
 
   const handleUpdateMember = () => {
     if (!selectedMember) return;
-    
+
     updateMemberMutation.mutate({
       userId: selectedMember.userId,
       role: inviteRole,
@@ -255,7 +287,7 @@ export default function TeamManagement() {
 
   const openEditDialog = (member: TeamMember) => {
     setSelectedMember(member);
-    setInviteRole(member.role as 'admin' | 'member');
+    setInviteRole(member.role as "admin" | "member");
     setCanEdit(member.canEdit);
     setCanComment(member.canComment);
     setCanInvite(member.canInvite);
@@ -264,13 +296,13 @@ export default function TeamManagement() {
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'member_joined':
+      case "member_joined":
         return <UserPlus className="h-4 w-4" />;
-      case 'member_removed':
+      case "member_removed":
         return <Trash2 className="h-4 w-4" />;
-      case 'role_changed':
+      case "role_changed":
         return <Shield className="h-4 w-4" />;
-      case 'member_invited':
+      case "member_invited":
         return <Mail className="h-4 w-4" />;
       default:
         return <Clock className="h-4 w-4" />;
@@ -279,21 +311,21 @@ export default function TeamManagement() {
 
   const getActivityMessage = (activity: TeamActivity) => {
     const userName = activity.user.firstName || activity.user.email;
-    
+
     switch (activity.activityType) {
-      case 'member_joined':
+      case "member_joined":
         return `${userName} joined the team`;
-      case 'member_removed':
+      case "member_removed":
         return `${userName} removed a team member`;
-      case 'role_changed':
+      case "role_changed":
         return `${userName} changed a member's role`;
-      case 'member_invited':
+      case "member_invited":
         return `${userName} invited ${activity.metadata?.email} to the team`;
-      case 'invitation_revoked':
+      case "invitation_revoked":
         return `${userName} revoked an invitation`;
-      case 'content_created':
+      case "content_created":
         return `${userName} created ${activity.resourceType}: ${activity.resourceName}`;
-      case 'content_edited':
+      case "content_edited":
         return `${userName} edited ${activity.resourceType}: ${activity.resourceName}`;
       default:
         return `${userName} performed an action`;
@@ -306,14 +338,14 @@ export default function TeamManagement() {
   };
 
   const handleNavigate = (view: string) => {
-    if (view === 'notebook') {
-      setLocation('/notebook');
-    } else if (view === 'projects') {
-      setLocation('/projects');
-    } else if (view === 'generators') {
-      setLocation('/generators');
-    } else if (view === 'guides') {
-      setLocation('/guides');
+    if (view === "notebook") {
+      setLocation("/notebook");
+    } else if (view === "projects") {
+      setLocation("/projects");
+    } else if (view === "generators") {
+      setLocation("/generators");
+    } else if (view === "guides") {
+      setLocation("/guides");
     }
   };
 
@@ -324,7 +356,7 @@ export default function TeamManagement() {
         searchQuery={searchQuery}
         onNavigate={handleNavigate}
       />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex items-start justify-between gap-4">
@@ -334,21 +366,22 @@ export default function TeamManagement() {
                 Team Management
               </h1>
               <p className="text-muted-foreground mt-2">
-                Manage your team members, invitations, and collaboration settings
+                Manage your team members, invitations, and collaboration
+                settings
               </p>
             </div>
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => setLocation('/team/analytics')}
+              <Button
+                variant="outline"
+                onClick={() => setLocation("/team/analytics")}
                 data-testid="button-view-analytics"
               >
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Analytics
               </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setLocation('/team/audit-logs')}
+              <Button
+                variant="outline"
+                onClick={() => setLocation("/team/audit-logs")}
                 data-testid="button-view-audit-logs"
               >
                 <FileText className="h-4 w-4 mr-2" />
@@ -381,9 +414,14 @@ export default function TeamManagement() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle>Team Members</CardTitle>
-                    <CardDescription>Manage roles and permissions for your team</CardDescription>
+                    <CardDescription>
+                      Manage roles and permissions for your team
+                    </CardDescription>
                   </div>
-                  <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+                  <Dialog
+                    open={inviteDialogOpen}
+                    onOpenChange={setInviteDialogOpen}
+                  >
                     <DialogTrigger asChild>
                       <Button data-testid="button-invite-member">
                         <UserPlus className="h-4 w-4 mr-2" />
@@ -397,7 +435,7 @@ export default function TeamManagement() {
                           Send an invitation to join your team
                         </DialogDescription>
                       </DialogHeader>
-                      
+
                       <div className="space-y-4 py-4">
                         <div className="space-y-2">
                           <Label htmlFor="email">Email Address</Label>
@@ -413,8 +451,16 @@ export default function TeamManagement() {
 
                         <div className="space-y-2">
                           <Label htmlFor="role">Role</Label>
-                          <Select value={inviteRole} onValueChange={(value: 'admin' | 'member') => setInviteRole(value)}>
-                            <SelectTrigger id="role" data-testid="select-invite-role">
+                          <Select
+                            value={inviteRole}
+                            onValueChange={(value: "admin" | "member") =>
+                              setInviteRole(value)
+                            }
+                          >
+                            <SelectTrigger
+                              id="role"
+                              data-testid="select-invite-role"
+                            >
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -426,13 +472,17 @@ export default function TeamManagement() {
 
                         <div className="space-y-3">
                           <Label>Permissions</Label>
-                          
+
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <Edit className="h-4 w-4 text-muted-foreground" />
                               <span className="text-sm">Can edit content</span>
                             </div>
-                            <Switch checked={canEdit} onCheckedChange={setCanEdit} data-testid="switch-can-edit" />
+                            <Switch
+                              checked={canEdit}
+                              onCheckedChange={setCanEdit}
+                              data-testid="switch-can-edit"
+                            />
                           </div>
 
                           <div className="flex items-center justify-between">
@@ -440,15 +490,25 @@ export default function TeamManagement() {
                               <MessageSquare className="h-4 w-4 text-muted-foreground" />
                               <span className="text-sm">Can comment</span>
                             </div>
-                            <Switch checked={canComment} onCheckedChange={setCanComment} data-testid="switch-can-comment" />
+                            <Switch
+                              checked={canComment}
+                              onCheckedChange={setCanComment}
+                              data-testid="switch-can-comment"
+                            />
                           </div>
 
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <UserPlus className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm">Can invite members</span>
+                              <span className="text-sm">
+                                Can invite members
+                              </span>
                             </div>
-                            <Switch checked={canInvite} onCheckedChange={setCanInvite} data-testid="switch-can-invite" />
+                            <Switch
+                              checked={canInvite}
+                              onCheckedChange={setCanInvite}
+                              data-testid="switch-can-invite"
+                            />
                           </div>
                         </div>
                       </div>
@@ -459,7 +519,9 @@ export default function TeamManagement() {
                           disabled={!inviteEmail || inviteMutation.isPending}
                           data-testid="button-send-invitation"
                         >
-                          {inviteMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                          {inviteMutation.isPending && (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          )}
                           Send Invitation
                         </Button>
                       </DialogFooter>
@@ -479,30 +541,59 @@ export default function TeamManagement() {
                 ) : (
                   <div className="space-y-4">
                     {members.map((member) => {
-                      const initials = `${member.user.firstName?.[0] || ''}${member.user.lastName?.[0] || ''}`.toUpperCase() || member.user.email[0].toUpperCase();
-                      
+                      const initials =
+                        `${member.user.firstName?.[0] || ""}${member.user.lastName?.[0] || ""}`.toUpperCase() ||
+                        member.user.email[0].toUpperCase();
+
                       return (
-                        <div key={member.id} className="flex items-center justify-between p-4 rounded-lg border bg-card">
+                        <div
+                          key={member.id}
+                          className="flex items-center justify-between p-4 rounded-lg border bg-card"
+                        >
                           <div className="flex items-center gap-4">
                             <Avatar>
-                              <AvatarImage src={member.user.profileImageUrl || undefined} />
+                              <AvatarImage
+                                src={member.user.profileImageUrl || undefined}
+                              />
                               <AvatarFallback>{initials}</AvatarFallback>
                             </Avatar>
                             <div>
                               <div className="font-medium">
-                                {member.user.firstName && member.user.lastName 
+                                {member.user.firstName && member.user.lastName
                                   ? `${member.user.firstName} ${member.user.lastName}`
-                                  : member.user.email
-                                }
+                                  : member.user.email}
                               </div>
-                              <div className="text-sm text-muted-foreground">{member.user.email}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {member.user.email}
+                              </div>
                               <div className="flex items-center gap-2 mt-1">
-                                <Badge variant={member.role === 'admin' ? 'default' : 'secondary'}>
+                                <Badge
+                                  variant={
+                                    member.role === "admin"
+                                      ? "default"
+                                      : "secondary"
+                                  }
+                                >
                                   {member.role}
                                 </Badge>
-                                {member.canEdit && <Badge variant="outline"><Edit className="h-3 w-3 mr-1" />Edit</Badge>}
-                                {member.canComment && <Badge variant="outline"><MessageSquare className="h-3 w-3 mr-1" />Comment</Badge>}
-                                {member.canInvite && <Badge variant="outline"><UserPlus className="h-3 w-3 mr-1" />Invite</Badge>}
+                                {member.canEdit && (
+                                  <Badge variant="outline">
+                                    <Edit className="h-3 w-3 mr-1" />
+                                    Edit
+                                  </Badge>
+                                )}
+                                {member.canComment && (
+                                  <Badge variant="outline">
+                                    <MessageSquare className="h-3 w-3 mr-1" />
+                                    Comment
+                                  </Badge>
+                                )}
+                                {member.canInvite && (
+                                  <Badge variant="outline">
+                                    <UserPlus className="h-3 w-3 mr-1" />
+                                    Invite
+                                  </Badge>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -519,7 +610,11 @@ export default function TeamManagement() {
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                if (confirm('Are you sure you want to remove this member?')) {
+                                if (
+                                  confirm(
+                                    "Are you sure you want to remove this member?",
+                                  )
+                                ) {
                                   removeMemberMutation.mutate(member.userId);
                                 }
                               }}
@@ -542,11 +637,16 @@ export default function TeamManagement() {
               <Card>
                 <CardHeader>
                   <CardTitle>Team Usage</CardTitle>
-                  <CardDescription>Combined AI generation usage for all team members today</CardDescription>
+                  <CardDescription>
+                    Combined AI generation usage for all team members today
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-primary">
-                    {usageData.usage} <span className="text-base font-normal text-muted-foreground">generations</span>
+                    {usageData.usage}{" "}
+                    <span className="text-base font-normal text-muted-foreground">
+                      generations
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -558,7 +658,9 @@ export default function TeamManagement() {
             <Card>
               <CardHeader>
                 <CardTitle>Pending Invitations</CardTitle>
-                <CardDescription>Manage invitations sent to potential team members</CardDescription>
+                <CardDescription>
+                  Manage invitations sent to potential team members
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {loadingInvitations ? (
@@ -572,21 +674,47 @@ export default function TeamManagement() {
                 ) : (
                   <div className="space-y-4">
                     {invitations.map((invitation) => (
-                      <div key={invitation.id} className="flex items-center justify-between p-4 rounded-lg border bg-card">
+                      <div
+                        key={invitation.id}
+                        className="flex items-center justify-between p-4 rounded-lg border bg-card"
+                      >
                         <div className="flex items-center gap-4">
                           <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                             <Mail className="h-5 w-5 text-primary" />
                           </div>
                           <div>
-                            <div className="font-medium">{invitation.email}</div>
+                            <div className="font-medium">
+                              {invitation.email}
+                            </div>
                             <div className="text-sm text-muted-foreground">
-                              Invited {formatDistanceToNow(new Date(invitation.createdAt), { addSuffix: true })}
+                              Invited{" "}
+                              {formatDistanceToNow(
+                                new Date(invitation.createdAt),
+                                { addSuffix: true },
+                              )}
                             </div>
                             <div className="flex items-center gap-2 mt-1">
-                              <Badge variant="secondary">{invitation.role}</Badge>
-                              {invitation.canEdit && <Badge variant="outline"><Edit className="h-3 w-3 mr-1" />Edit</Badge>}
-                              {invitation.canComment && <Badge variant="outline"><MessageSquare className="h-3 w-3 mr-1" />Comment</Badge>}
-                              {invitation.canInvite && <Badge variant="outline"><UserPlus className="h-3 w-3 mr-1" />Invite</Badge>}
+                              <Badge variant="secondary">
+                                {invitation.role}
+                              </Badge>
+                              {invitation.canEdit && (
+                                <Badge variant="outline">
+                                  <Edit className="h-3 w-3 mr-1" />
+                                  Edit
+                                </Badge>
+                              )}
+                              {invitation.canComment && (
+                                <Badge variant="outline">
+                                  <MessageSquare className="h-3 w-3 mr-1" />
+                                  Comment
+                                </Badge>
+                              )}
+                              {invitation.canInvite && (
+                                <Badge variant="outline">
+                                  <UserPlus className="h-3 w-3 mr-1" />
+                                  Invite
+                                </Badge>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -594,7 +722,11 @@ export default function TeamManagement() {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            if (confirm('Are you sure you want to revoke this invitation?')) {
+                            if (
+                              confirm(
+                                "Are you sure you want to revoke this invitation?",
+                              )
+                            ) {
                               revokeInvitationMutation.mutate(invitation.id);
                             }
                           }}
@@ -617,7 +749,9 @@ export default function TeamManagement() {
             <Card>
               <CardHeader>
                 <CardTitle>Team Activity Feed</CardTitle>
-                <CardDescription>Recent actions by team members</CardDescription>
+                <CardDescription>
+                  Recent actions by team members
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {loadingActivity ? (
@@ -631,21 +765,34 @@ export default function TeamManagement() {
                 ) : (
                   <div className="space-y-4">
                     {activity.map((item) => {
-                      const initials = `${item.user.firstName?.[0] || ''}${item.user.lastName?.[0] || ''}`.toUpperCase() || item.user.email[0].toUpperCase();
-                      
+                      const initials =
+                        `${item.user.firstName?.[0] || ""}${item.user.lastName?.[0] || ""}`.toUpperCase() ||
+                        item.user.email[0].toUpperCase();
+
                       return (
-                        <div key={item.id} className="flex items-start gap-4 p-4 rounded-lg border bg-card">
+                        <div
+                          key={item.id}
+                          className="flex items-start gap-4 p-4 rounded-lg border bg-card"
+                        >
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={item.user.profileImageUrl || undefined} />
-                            <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                            <AvatarImage
+                              src={item.user.profileImageUrl || undefined}
+                            />
+                            <AvatarFallback className="text-xs">
+                              {initials}
+                            </AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               {getActivityIcon(item.activityType)}
-                              <span className="text-sm">{getActivityMessage(item)}</span>
+                              <span className="text-sm">
+                                {getActivityMessage(item)}
+                              </span>
                             </div>
                             <div className="text-xs text-muted-foreground mt-1">
-                              {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
+                              {formatDistanceToNow(new Date(item.createdAt), {
+                                addSuffix: true,
+                              })}
                             </div>
                           </div>
                         </div>
@@ -660,7 +807,10 @@ export default function TeamManagement() {
       </div>
 
       {/* Edit Member Dialog */}
-      <Dialog open={editMemberDialogOpen} onOpenChange={setEditMemberDialogOpen}>
+      <Dialog
+        open={editMemberDialogOpen}
+        onOpenChange={setEditMemberDialogOpen}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Member</DialogTitle>
@@ -668,30 +818,40 @@ export default function TeamManagement() {
               Update role and permissions for this team member
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedMember && (
             <div className="space-y-4 py-4">
               <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
                 <Avatar>
-                  <AvatarImage src={selectedMember.user.profileImageUrl || undefined} />
+                  <AvatarImage
+                    src={selectedMember.user.profileImageUrl || undefined}
+                  />
                   <AvatarFallback>
-                    {`${selectedMember.user.firstName?.[0] || ''}${selectedMember.user.lastName?.[0] || ''}`.toUpperCase() || selectedMember.user.email[0].toUpperCase()}
+                    {`${selectedMember.user.firstName?.[0] || ""}${selectedMember.user.lastName?.[0] || ""}`.toUpperCase() ||
+                      selectedMember.user.email[0].toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <div className="font-medium">
-                    {selectedMember.user.firstName && selectedMember.user.lastName 
+                    {selectedMember.user.firstName &&
+                    selectedMember.user.lastName
                       ? `${selectedMember.user.firstName} ${selectedMember.user.lastName}`
-                      : selectedMember.user.email
-                    }
+                      : selectedMember.user.email}
                   </div>
-                  <div className="text-sm text-muted-foreground">{selectedMember.user.email}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {selectedMember.user.email}
+                  </div>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="edit-role">Role</Label>
-                <Select value={inviteRole} onValueChange={(value: 'admin' | 'member') => setInviteRole(value)}>
+                <Select
+                  value={inviteRole}
+                  onValueChange={(value: "admin" | "member") =>
+                    setInviteRole(value)
+                  }
+                >
                   <SelectTrigger id="edit-role" data-testid="select-edit-role">
                     <SelectValue />
                   </SelectTrigger>
@@ -704,13 +864,17 @@ export default function TeamManagement() {
 
               <div className="space-y-3">
                 <Label>Permissions</Label>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Edit className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">Can edit content</span>
                   </div>
-                  <Switch checked={canEdit} onCheckedChange={setCanEdit} data-testid="switch-edit-can-edit" />
+                  <Switch
+                    checked={canEdit}
+                    onCheckedChange={setCanEdit}
+                    data-testid="switch-edit-can-edit"
+                  />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -718,7 +882,11 @@ export default function TeamManagement() {
                     <MessageSquare className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">Can comment</span>
                   </div>
-                  <Switch checked={canComment} onCheckedChange={setCanComment} data-testid="switch-edit-can-comment" />
+                  <Switch
+                    checked={canComment}
+                    onCheckedChange={setCanComment}
+                    data-testid="switch-edit-can-comment"
+                  />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -726,7 +894,11 @@ export default function TeamManagement() {
                     <UserPlus className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">Can invite members</span>
                   </div>
-                  <Switch checked={canInvite} onCheckedChange={setCanInvite} data-testid="switch-edit-can-invite" />
+                  <Switch
+                    checked={canInvite}
+                    onCheckedChange={setCanInvite}
+                    data-testid="switch-edit-can-invite"
+                  />
                 </div>
               </div>
             </div>
@@ -738,7 +910,9 @@ export default function TeamManagement() {
               disabled={updateMemberMutation.isPending}
               data-testid="button-update-member"
             >
-              {updateMemberMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {updateMemberMutation.isPending && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
               Update Member
             </Button>
           </DialogFooter>

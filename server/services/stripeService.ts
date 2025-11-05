@@ -1,34 +1,35 @@
-import Stripe from 'stripe';
-import { db } from '../db';
-import { userSubscriptions, users } from '@shared/schema';
-import { eq } from 'drizzle-orm';
-import type { SubscriptionTier } from '@shared/types/subscription';
-import { billingAlertsService } from './billingAlertsService';
-import { discountCodeService } from './discountCodeService';
-import { emailService } from './emailService';
+import Stripe from "stripe";
+import { db } from "../db";
+import { userSubscriptions, users } from "@shared/schema";
+import { eq } from "drizzle-orm";
+import type { SubscriptionTier } from "@shared/types/subscription";
+import { billingAlertsService } from "./billingAlertsService";
+import { discountCodeService } from "./discountCodeService";
+import { emailService } from "./emailService";
 
 if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+  throw new Error("Missing required Stripe secret: STRIPE_SECRET_KEY");
 }
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2025-09-30.clover',
+  apiVersion: "2025-09-30.clover",
 });
 
 // Stripe Price IDs for each tier and billing cycle
 // You'll need to create these in Stripe Dashboard and set them as environment variables
 export const STRIPE_PRICE_IDS = {
   author: {
-    monthly: process.env.STRIPE_PRICE_ID_AUTHOR_MONTHLY || 'price_author_monthly',
-    annual: process.env.STRIPE_PRICE_ID_AUTHOR_ANNUAL || 'price_author_annual',
+    monthly:
+      process.env.STRIPE_PRICE_ID_AUTHOR_MONTHLY || "price_author_monthly",
+    annual: process.env.STRIPE_PRICE_ID_AUTHOR_ANNUAL || "price_author_annual",
   },
   professional: {
-    monthly: process.env.STRIPE_PRICE_ID_PRO_MONTHLY || 'price_pro_monthly',
-    annual: process.env.STRIPE_PRICE_ID_PRO_ANNUAL || 'price_pro_annual',
+    monthly: process.env.STRIPE_PRICE_ID_PRO_MONTHLY || "price_pro_monthly",
+    annual: process.env.STRIPE_PRICE_ID_PRO_ANNUAL || "price_pro_annual",
   },
   team: {
-    monthly: process.env.STRIPE_PRICE_ID_TEAM_MONTHLY || 'price_team_monthly',
-    annual: process.env.STRIPE_PRICE_ID_TEAM_ANNUAL || 'price_team_annual',
+    monthly: process.env.STRIPE_PRICE_ID_TEAM_MONTHLY || "price_team_monthly",
+    annual: process.env.STRIPE_PRICE_ID_TEAM_ANNUAL || "price_team_annual",
   },
 };
 
@@ -39,8 +40,8 @@ export class StripeService {
   async createCheckoutSession(params: {
     userId: string;
     email: string;
-    tier: Exclude<SubscriptionTier, 'free'>;
-    billingCycle: 'monthly' | 'annual';
+    tier: Exclude<SubscriptionTier, "free">;
+    billingCycle: "monthly" | "annual";
     discountCode?: string;
   }) {
     const priceId = STRIPE_PRICE_IDS[params.tier][params.billingCycle];
@@ -51,18 +52,18 @@ export class StripeService {
       const validation = await discountCodeService.validateDiscountCode(
         params.discountCode,
         params.userId,
-        params.tier as 'professional' | 'team'
+        params.tier as "professional" | "team",
       );
 
       if (!validation.valid) {
-        throw new Error(validation.error || 'Invalid discount code');
+        throw new Error(validation.error || "Invalid discount code");
       }
 
       discountCodeData = validation.discountCode;
     }
 
     const sessionConfig: Stripe.Checkout.SessionCreateParams = {
-      mode: 'subscription',
+      mode: "subscription",
       customer_email: params.email,
       line_items: [
         {
@@ -70,8 +71,8 @@ export class StripeService {
           quantity: 1,
         },
       ],
-      success_url: `${process.env.BASE_URL || 'http://localhost:5000'}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.BASE_URL || 'http://localhost:5000'}/pricing`,
+      success_url: `${process.env.BASE_URL || "http://localhost:5000"}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.BASE_URL || "http://localhost:5000"}/pricing`,
       metadata: {
         userId: params.userId,
         tier: params.tier,
@@ -89,20 +90,23 @@ export class StripeService {
 
     // Apply discount code
     if (discountCodeData) {
-      if (discountCodeData.type === 'percentage' && discountCodeData.stripeCouponId) {
+      if (
+        discountCodeData.type === "percentage" &&
+        discountCodeData.stripeCouponId
+      ) {
         // Use Stripe coupon for percentage discounts
         sessionConfig.discounts = [
           {
             coupon: discountCodeData.stripeCouponId,
           },
         ];
-      } else if (discountCodeData.type === 'fixed') {
+      } else if (discountCodeData.type === "fixed") {
         // For fixed discounts, we'll apply them as a one-time discount
         // by creating a temporary coupon
         const tempCoupon = await stripe.coupons.create({
           amount_off: discountCodeData.value,
-          currency: 'usd',
-          duration: 'once',
+          currency: "usd",
+          duration: "once",
           name: `Discount Code: ${discountCodeData.code}`,
         });
         sessionConfig.discounts = [
@@ -124,7 +128,7 @@ export class StripeService {
   async createPortalSession(customerId: string) {
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${process.env.BASE_URL || 'http://localhost:5000'}/settings/billing`,
+      return_url: `${process.env.BASE_URL || "http://localhost:5000"}/settings/billing`,
     });
 
     return session;
@@ -139,7 +143,7 @@ export class StripeService {
       limit,
     });
 
-    return invoices.data.map(invoice => ({
+    return invoices.data.map((invoice) => ({
       id: invoice.id,
       number: invoice.number,
       status: invoice.status,
@@ -149,7 +153,7 @@ export class StripeService {
       created: new Date(invoice.created * 1000).toISOString(),
       pdfUrl: invoice.invoice_pdf,
       hostedUrl: invoice.hosted_invoice_url,
-      description: invoice.lines.data[0]?.description || 'Subscription',
+      description: invoice.lines.data[0]?.description || "Subscription",
     }));
   }
 
@@ -169,24 +173,32 @@ export class StripeService {
 
     try {
       switch (event.type) {
-        case 'checkout.session.completed':
-          await this.handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+        case "checkout.session.completed":
+          await this.handleCheckoutCompleted(
+            event.data.object as Stripe.Checkout.Session,
+          );
           break;
 
-        case 'customer.subscription.updated':
-          await this.handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
+        case "customer.subscription.updated":
+          await this.handleSubscriptionUpdated(
+            event.data.object as Stripe.Subscription,
+          );
           break;
 
-        case 'customer.subscription.deleted':
-          await this.handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+        case "customer.subscription.deleted":
+          await this.handleSubscriptionDeleted(
+            event.data.object as Stripe.Subscription,
+          );
           break;
 
-        case 'invoice.payment_failed':
+        case "invoice.payment_failed":
           await this.handlePaymentFailed(event.data.object as Stripe.Invoice);
           break;
 
-        case 'customer.subscription.trial_will_end':
-          await this.handleTrialWillEnd(event.data.object as Stripe.Subscription);
+        case "customer.subscription.trial_will_end":
+          await this.handleTrialWillEnd(
+            event.data.object as Stripe.Subscription,
+          );
           break;
 
         default:
@@ -207,12 +219,20 @@ export class StripeService {
     const discountCodeId = session.metadata?.discountCodeId;
 
     // Get subscription details from Stripe
-    const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+    const subscription = await stripe.subscriptions.retrieve(
+      session.subscription as string,
+    );
 
     // Get user email for logging
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
 
-    console.log(`[Stripe] Checkout completed for user ${userId} (${user?.email}), tier: ${tier}`);
+    console.log(
+      `[Stripe] Checkout completed for user ${userId} (${user?.email}), tier: ${tier}`,
+    );
 
     // Create or update user subscription in database
     const [userSub] = await db
@@ -220,28 +240,44 @@ export class StripeService {
       .values({
         userId,
         tier,
-        status: subscription.status === 'trialing' ? 'trialing' : 'active',
+        status: subscription.status === "trialing" ? "trialing" : "active",
         stripeCustomerId: session.customer as string,
         stripeSubscriptionId: subscription.id,
         stripePriceId: subscription.items.data[0].price.id,
-        currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
-        currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
-        trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
-        trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+        currentPeriodStart: new Date(
+          (subscription as any).current_period_start * 1000,
+        ),
+        currentPeriodEnd: new Date(
+          (subscription as any).current_period_end * 1000,
+        ),
+        trialStart: subscription.trial_start
+          ? new Date(subscription.trial_start * 1000)
+          : null,
+        trialEnd: subscription.trial_end
+          ? new Date(subscription.trial_end * 1000)
+          : null,
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
       })
       .onConflictDoUpdate({
         target: userSubscriptions.userId,
         set: {
           tier,
-          status: subscription.status === 'trialing' ? 'trialing' : 'active',
+          status: subscription.status === "trialing" ? "trialing" : "active",
           stripeCustomerId: session.customer as string,
           stripeSubscriptionId: subscription.id,
           stripePriceId: subscription.items.data[0].price.id,
-          currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
-          currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
-          trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
-          trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+          currentPeriodStart: new Date(
+            (subscription as any).current_period_start * 1000,
+          ),
+          currentPeriodEnd: new Date(
+            (subscription as any).current_period_end * 1000,
+          ),
+          trialStart: subscription.trial_start
+            ? new Date(subscription.trial_start * 1000)
+            : null,
+          trialEnd: subscription.trial_end
+            ? new Date(subscription.trial_end * 1000)
+            : null,
           cancelAtPeriodEnd: subscription.cancel_at_period_end,
           updatedAt: new Date(),
         },
@@ -256,9 +292,9 @@ export class StripeService {
       const amount = subscription.items.data[0].price.unit_amount
         ? `$${(subscription.items.data[0].price.unit_amount / 100).toFixed(2)}`
         : undefined;
-      
+
       await emailService.sendSubscriptionActivated(user.email, {
-        userName: user.name || user.email.split('@')[0],
+        userName: user.name || user.email.split("@")[0],
         planName: tierName,
         amount,
         periodEnd: new Date((subscription as any).current_period_end * 1000),
@@ -271,17 +307,19 @@ export class StripeService {
       try {
         // Calculate discount amount from Stripe session
         const totalDiscount = session.total_details?.amount_discount || 0;
-        
+
         await discountCodeService.applyDiscountCode(
           discountCodeId,
           userId,
           userSub.id,
-          totalDiscount
+          totalDiscount,
         );
 
-        console.log(`[Stripe] Recorded discount code usage for user ${userId}, saved: $${(totalDiscount / 100).toFixed(2)}`);
+        console.log(
+          `[Stripe] Recorded discount code usage for user ${userId}, saved: $${(totalDiscount / 100).toFixed(2)}`,
+        );
       } catch (error) {
-        console.error('[Stripe] Error recording discount code usage:', error);
+        console.error("[Stripe] Error recording discount code usage:", error);
         // Don't fail checkout if discount recording fails
       }
     }
@@ -294,19 +332,23 @@ export class StripeService {
     const userId = subscription.metadata.userId;
     const tier = subscription.metadata.tier as SubscriptionTier;
 
-    console.log(`[Stripe] Subscription updated for user ${userId}, status: ${subscription.status}`);
+    console.log(
+      `[Stripe] Subscription updated for user ${userId}, status: ${subscription.status}`,
+    );
 
     // Map Stripe status to our status
-    let status: 'active' | 'past_due' | 'canceled' | 'trialing' = 'active';
-    if (subscription.status === 'past_due') status = 'past_due';
-    else if (subscription.status === 'canceled') status = 'canceled';
-    else if (subscription.status === 'trialing') status = 'trialing';
+    let status: "active" | "past_due" | "canceled" | "trialing" = "active";
+    if (subscription.status === "past_due") status = "past_due";
+    else if (subscription.status === "canceled") status = "canceled";
+    else if (subscription.status === "trialing") status = "trialing";
 
     // Sync pause state from Stripe
-    const isPaused = subscription.pause_collection !== null && subscription.pause_collection !== undefined;
+    const isPaused =
+      subscription.pause_collection !== null &&
+      subscription.pause_collection !== undefined;
     const pausedAt = isPaused ? new Date() : null;
-    const resumesAt = subscription.pause_collection?.resumes_at 
-      ? new Date(subscription.pause_collection.resumes_at * 1000) 
+    const resumesAt = subscription.pause_collection?.resumes_at
+      ? new Date(subscription.pause_collection.resumes_at * 1000)
       : null;
 
     await db
@@ -315,8 +357,12 @@ export class StripeService {
         tier,
         status,
         stripePriceId: subscription.items.data[0].price.id,
-        currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
-        currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
+        currentPeriodStart: new Date(
+          (subscription as any).current_period_start * 1000,
+        ),
+        currentPeriodEnd: new Date(
+          (subscription as any).current_period_end * 1000,
+        ),
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
         pausedAt,
         resumesAt,
@@ -335,15 +381,21 @@ export class StripeService {
         .limit(1);
 
       if (userSub) {
-        const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-        
+        const [user] = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, userId))
+          .limit(1);
+
         if (user?.email) {
           const tierName = tier.charAt(0).toUpperCase() + tier.slice(1);
-          
+
           await emailService.sendSubscriptionReactivated(user.email, {
-            userName: user.name || user.email.split('@')[0],
+            userName: user.name || user.email.split("@")[0],
             planName: tierName,
-            periodEnd: new Date((subscription as any).current_period_end * 1000),
+            periodEnd: new Date(
+              (subscription as any).current_period_end * 1000,
+            ),
           });
         }
       }
@@ -362,8 +414,8 @@ export class StripeService {
     await db
       .update(userSubscriptions)
       .set({
-        tier: 'free',
-        status: 'canceled',
+        tier: "free",
+        status: "canceled",
         cancelAtPeriodEnd: false,
         updatedAt: new Date(),
       })
@@ -396,7 +448,7 @@ export class StripeService {
     await db
       .update(userSubscriptions)
       .set({
-        status: 'past_due',
+        status: "past_due",
         updatedAt: new Date(),
       })
       .where(eq(userSubscriptions.stripeSubscriptionId, subscriptionId));
@@ -407,20 +459,27 @@ export class StripeService {
       invoice.id,
       subscriptionId,
       invoice.amount_due,
-      invoice.currency
+      invoice.currency,
     );
 
-    console.log(`[Stripe] Payment failure alert created for user ${subscription.userId}`);
+    console.log(
+      `[Stripe] Payment failure alert created for user ${subscription.userId}`,
+    );
 
     // Send payment failed email
-    const [user] = await db.select().from(users).where(eq(users.id, subscription.userId)).limit(1);
-    
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, subscription.userId))
+      .limit(1);
+
     if (user?.email) {
       const amount = `$${(invoice.amount_due / 100).toFixed(2)}`;
-      const failureReason = (invoice as any).last_payment_error?.message || undefined;
-      
+      const failureReason =
+        (invoice as any).last_payment_error?.message || undefined;
+
       await emailService.sendPaymentFailed(user.email, {
-        userName: user.name || user.email.split('@')[0],
+        userName: user.name || user.email.split("@")[0],
         amount,
         failureReason,
         invoiceUrl: invoice.hosted_invoice_url || undefined,
@@ -432,7 +491,9 @@ export class StripeService {
    * Handle trial ending soon (3 days before)
    */
   private async handleTrialWillEnd(subscription: Stripe.Subscription) {
-    console.log(`[Stripe] Trial ending soon for subscription ${subscription.id}`);
+    console.log(
+      `[Stripe] Trial ending soon for subscription ${subscription.id}`,
+    );
 
     // Get user from subscription (metadata might not be set by Stripe webhook)
     const [userSubscription] = await db
@@ -442,7 +503,9 @@ export class StripeService {
       .limit(1);
 
     if (!userSubscription) {
-      console.error(`[Stripe] User subscription not found for ${subscription.id}`);
+      console.error(
+        `[Stripe] User subscription not found for ${subscription.id}`,
+      );
       return;
     }
 
@@ -455,10 +518,12 @@ export class StripeService {
     await billingAlertsService.createTrialExpiringAlert(
       userSubscription.userId,
       subscription.id,
-      Math.max(1, daysRemaining) // Ensure at least 1 day
+      Math.max(1, daysRemaining), // Ensure at least 1 day
     );
 
-    console.log(`[Stripe] Trial expiring alert created for user ${userSubscription.userId}, ${daysRemaining} days remaining`);
+    console.log(
+      `[Stripe] Trial expiring alert created for user ${userSubscription.userId}, ${daysRemaining} days remaining`,
+    );
   }
 
   /**
@@ -492,7 +557,7 @@ export class StripeService {
       .update(userSubscriptions)
       .set({
         cancelAtPeriodEnd: false,
-        status: 'active',
+        status: "active",
         updatedAt: new Date(),
       })
       .where(eq(userSubscriptions.stripeSubscriptionId, subscriptionId));
@@ -517,23 +582,29 @@ export class StripeService {
     discountCode?: string;
   }) {
     try {
-      const subscription = await stripe.subscriptions.retrieve(params.subscriptionId);
-      
+      const subscription = await stripe.subscriptions.retrieve(
+        params.subscriptionId,
+      );
+
       // Get discount code ID if provided
       let discounts: any[] | undefined;
       if (params.discountCode) {
-        const { DiscountCodeService } = await import('./discountCodeService');
+        const { DiscountCodeService } = await import("./discountCodeService");
         const discountCodeService = new DiscountCodeService();
-        const discount = await discountCodeService.getDiscountCodeByCode(params.discountCode);
-        
+        const discount = await discountCodeService.getDiscountCodeByCode(
+          params.discountCode,
+        );
+
         if (discount && discount.active && discount.stripeCouponId) {
           discounts = [{ coupon: discount.stripeCouponId }];
-        } else if (discount && discount.active && discount.type === 'fixed') {
+        } else if (discount && discount.active && discount.type === "fixed") {
           // Fixed discounts are handled via metadata in checkout, so just note that it will be applied
-          console.log(`[Stripe] Fixed discount ${params.discountCode} will be applied at checkout`);
+          console.log(
+            `[Stripe] Fixed discount ${params.discountCode} will be applied at checkout`,
+          );
         }
       }
-      
+
       // Get the upcoming invoice with the proposed changes
       const upcomingInvoice = await stripe.invoices.retrieveUpcoming({
         customer: subscription.customer as string,
@@ -545,22 +616,22 @@ export class StripeService {
           },
         ],
         ...(discounts && { discounts }),
-        subscription_proration_behavior: 'always_invoice',
+        subscription_proration_behavior: "always_invoice",
         subscription_proration_date: Math.floor(Date.now() / 1000),
       });
 
       // Calculate proration details
       const prorationLineItems = upcomingInvoice.lines.data.filter(
-        line => line.proration
+        (line) => line.proration,
       );
 
       const immediateCharge = upcomingInvoice.amount_due;
       const subtotal = upcomingInvoice.subtotal;
       const credits = prorationLineItems
-        .filter(line => line.amount < 0)
+        .filter((line) => line.amount < 0)
         .reduce((sum, line) => sum + Math.abs(line.amount), 0);
       const newCharges = prorationLineItems
-        .filter(line => line.amount > 0)
+        .filter((line) => line.amount > 0)
         .reduce((sum, line) => sum + line.amount, 0);
 
       return {
@@ -571,14 +642,14 @@ export class StripeService {
         nextBillingDate: new Date(subscription.current_period_end * 1000),
         nextBillingAmount: upcomingInvoice.total / 100,
         currency: upcomingInvoice.currency,
-        lineItems: upcomingInvoice.lines.data.map(line => ({
-          description: line.description || '',
+        lineItems: upcomingInvoice.lines.data.map((line) => ({
+          description: line.description || "",
           amount: line.amount / 100,
           isProration: line.proration || false,
         })),
       };
     } catch (error) {
-      console.error('[Stripe] Error previewing subscription change:', error);
+      console.error("[Stripe] Error previewing subscription change:", error);
       throw error;
     }
   }
@@ -593,16 +664,21 @@ export class StripeService {
   }) {
     try {
       const pauseCollection: any = {
-        behavior: 'void' as const, // Don't invoice during pause
+        behavior: "void" as const, // Don't invoice during pause
       };
 
       if (params.resumeAt) {
-        pauseCollection.resumes_at = Math.floor(params.resumeAt.getTime() / 1000);
+        pauseCollection.resumes_at = Math.floor(
+          params.resumeAt.getTime() / 1000,
+        );
       }
 
-      const subscription = await stripe.subscriptions.update(params.subscriptionId, {
-        pause_collection: pauseCollection,
-      });
+      const subscription = await stripe.subscriptions.update(
+        params.subscriptionId,
+        {
+          pause_collection: pauseCollection,
+        },
+      );
 
       // Update database
       await db
@@ -613,12 +689,14 @@ export class StripeService {
           pauseReason: params.reason || null,
           updatedAt: new Date(),
         })
-        .where(eq(userSubscriptions.stripeSubscriptionId, params.subscriptionId));
+        .where(
+          eq(userSubscriptions.stripeSubscriptionId, params.subscriptionId),
+        );
 
       console.log(`[Stripe] Subscription ${params.subscriptionId} paused`);
       return subscription;
     } catch (error) {
-      console.error('[Stripe] Error pausing subscription:', error);
+      console.error("[Stripe] Error pausing subscription:", error);
       throw error;
     }
   }
@@ -646,7 +724,7 @@ export class StripeService {
       console.log(`[Stripe] Subscription ${subscriptionId} resumed`);
       return subscription;
     } catch (error) {
-      console.error('[Stripe] Error resuming subscription:', error);
+      console.error("[Stripe] Error resuming subscription:", error);
       throw error;
     }
   }
@@ -663,20 +741,22 @@ export class StripeService {
         .where(eq(userSubscriptions.stripeSubscriptionId, subscriptionId))
         .limit(1);
 
-      const isPaused = subscription.pause_collection !== null && subscription.pause_collection !== undefined;
-      
+      const isPaused =
+        subscription.pause_collection !== null &&
+        subscription.pause_collection !== undefined;
+
       return {
         isPaused,
         pausedAt: dbSubscription[0]?.pausedAt || null,
         resumesAt: dbSubscription[0]?.resumesAt || null,
         pauseReason: dbSubscription[0]?.pauseReason || null,
         stripeResumesBehavior: subscription.pause_collection?.behavior || null,
-        stripeResumesAt: subscription.pause_collection?.resumes_at 
-          ? new Date(subscription.pause_collection.resumes_at * 1000) 
+        stripeResumesAt: subscription.pause_collection?.resumes_at
+          ? new Date(subscription.pause_collection.resumes_at * 1000)
           : null,
       };
     } catch (error) {
-      console.error('[Stripe] Error getting pause status:', error);
+      console.error("[Stripe] Error getting pause status:", error);
       throw error;
     }
   }

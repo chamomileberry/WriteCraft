@@ -1,4 +1,3 @@
-
 # WriteCraft User Guide
 
 ## Getting Started
@@ -15,6 +14,7 @@
 **Notebooks** are containers for organizing your worldbuilding content. Think of them as separate universes or story settings.
 
 **Best Practices:**
+
 - Create one notebook per story/series
 - Use descriptive names (e.g., "The Crimson Saga", "Cyberpunk 2184")
 - Keep related content in the same notebook
@@ -24,6 +24,7 @@
 **Projects** are where you write your actual manuscripts. Projects are separate from notebooks.
 
 **Key Features:**
+
 - Hierarchical structure (folders and pages/sections)
 - Rich text editor with formatting
 - Auto-save
@@ -116,6 +117,7 @@ The Writing Assistant is your AI writing coach:
    - **Questions**: Generate questions about your text
 
 **Example Uses:**
+
 - "How can I improve the pacing in this scene?"
 - "What's a better way to describe this character's motivation?"
 - "Analyze this dialogue for authenticity"
@@ -174,6 +176,7 @@ Access educational resources:
 4. Search for specific topics
 
 **Categories:**
+
 - Plot Structure
 - Character Development
 - Dialogue

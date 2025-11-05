@@ -8,15 +8,36 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, AlertCircle, User, FileText, Image as ImageIcon, Trash2, Check } from "lucide-react";
+import {
+  ArrowLeft,
+  AlertCircle,
+  User,
+  FileText,
+  Image as ImageIcon,
+  Trash2,
+  Check,
+} from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface IssuesData {
@@ -39,7 +60,7 @@ interface DuplicatesData {
   };
 }
 
-type IssueType = 'familyName' | 'description' | 'imageUrl';
+type IssueType = "familyName" | "description" | "imageUrl";
 
 export default function CharacterConsolidatePage() {
   const [, setLocation] = useLocation();
@@ -47,32 +68,51 @@ export default function CharacterConsolidatePage() {
   const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [searchQuery, setSearchQuery] = useState('');
-  
+  const [searchQuery, setSearchQuery] = useState("");
+
   // Quick Fix Modal state
-  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
+  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(
+    null,
+  );
   const [issueType, setIssueType] = useState<IssueType | null>(null);
-  const [fixValue, setFixValue] = useState('');
-  
+  const [fixValue, setFixValue] = useState("");
+
   // Delete All confirmation state
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
 
   // Fetch issues
   const { data: issuesData, isLoading: issuesLoading } = useQuery<IssuesData>({
-    queryKey: [`/api/admin/characters/issues?notebookId=${activeNotebookId}`, activeNotebookId],
+    queryKey: [
+      `/api/admin/characters/issues?notebookId=${activeNotebookId}`,
+      activeNotebookId,
+    ],
     enabled: !!activeNotebookId && !!user && !authLoading,
   });
 
   // Fetch duplicates
-  const { data: duplicatesData, isLoading: duplicatesLoading } = useQuery<DuplicatesData>({
-    queryKey: [`/api/admin/characters/duplicates?notebookId=${activeNotebookId}`, activeNotebookId],
-    enabled: !!activeNotebookId && !!user && !authLoading,
-  });
+  const { data: duplicatesData, isLoading: duplicatesLoading } =
+    useQuery<DuplicatesData>({
+      queryKey: [
+        `/api/admin/characters/duplicates?notebookId=${activeNotebookId}`,
+        activeNotebookId,
+      ],
+      enabled: !!activeNotebookId && !!user && !authLoading,
+    });
 
   // Update character mutation
   const updateMutation = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Character> }) => {
-      const response = await apiRequest('PATCH', `/api/characters/${id}?notebookId=${activeNotebookId}`, updates);
+    mutationFn: async ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: Partial<Character>;
+    }) => {
+      const response = await apiRequest(
+        "PATCH",
+        `/api/characters/${id}?notebookId=${activeNotebookId}`,
+        updates,
+      );
       return response.json();
     },
     onSuccess: () => {
@@ -80,12 +120,26 @@ export default function CharacterConsolidatePage() {
         title: "Character Updated",
         description: "The character has been successfully updated.",
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/admin/characters/issues?notebookId=${activeNotebookId}`, activeNotebookId] });
-      queryClient.invalidateQueries({ queryKey: [`/api/admin/characters/duplicates?notebookId=${activeNotebookId}`, activeNotebookId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/characters', activeNotebookId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', user?.id, activeNotebookId] });
+      queryClient.invalidateQueries({
+        queryKey: [
+          `/api/admin/characters/issues?notebookId=${activeNotebookId}`,
+          activeNotebookId,
+        ],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [
+          `/api/admin/characters/duplicates?notebookId=${activeNotebookId}`,
+          activeNotebookId,
+        ],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/characters", activeNotebookId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/saved-items", user?.id, activeNotebookId],
+      });
       setSelectedCharacter(null);
-      setFixValue('');
+      setFixValue("");
     },
     onError: () => {
       toast({
@@ -99,17 +153,34 @@ export default function CharacterConsolidatePage() {
   // Delete character mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest('DELETE', `/api/characters/${id}?notebookId=${activeNotebookId}`);
+      await apiRequest(
+        "DELETE",
+        `/api/characters/${id}?notebookId=${activeNotebookId}`,
+      );
     },
     onSuccess: () => {
       toast({
         title: "Character Deleted",
         description: "The character has been successfully deleted.",
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/admin/characters/duplicates?notebookId=${activeNotebookId}`, activeNotebookId] });
-      queryClient.invalidateQueries({ queryKey: [`/api/admin/characters/issues?notebookId=${activeNotebookId}`, activeNotebookId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/characters', activeNotebookId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', user?.id, activeNotebookId] });
+      queryClient.invalidateQueries({
+        queryKey: [
+          `/api/admin/characters/duplicates?notebookId=${activeNotebookId}`,
+          activeNotebookId,
+        ],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [
+          `/api/admin/characters/issues?notebookId=${activeNotebookId}`,
+          activeNotebookId,
+        ],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/characters", activeNotebookId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/saved-items", user?.id, activeNotebookId],
+      });
     },
     onError: () => {
       toast({
@@ -123,18 +194,35 @@ export default function CharacterConsolidatePage() {
   // Bulk delete all characters with issues mutation
   const bulkDeleteMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('DELETE', `/api/admin/characters/bulk-delete-issues?notebookId=${activeNotebookId}`);
+      const response = await apiRequest(
+        "DELETE",
+        `/api/admin/characters/bulk-delete-issues?notebookId=${activeNotebookId}`,
+      );
       return response.json();
     },
     onSuccess: (data) => {
       toast({
         title: "Characters Deleted",
-        description: `Successfully deleted ${data.deletedCount} character${data.deletedCount !== 1 ? 's' : ''} with data issues.`,
+        description: `Successfully deleted ${data.deletedCount} character${data.deletedCount !== 1 ? "s" : ""} with data issues.`,
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/admin/characters/issues?notebookId=${activeNotebookId}`, activeNotebookId] });
-      queryClient.invalidateQueries({ queryKey: [`/api/admin/characters/duplicates?notebookId=${activeNotebookId}`, activeNotebookId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/characters', activeNotebookId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items', user?.id, activeNotebookId] });
+      queryClient.invalidateQueries({
+        queryKey: [
+          `/api/admin/characters/issues?notebookId=${activeNotebookId}`,
+          activeNotebookId,
+        ],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [
+          `/api/admin/characters/duplicates?notebookId=${activeNotebookId}`,
+          activeNotebookId,
+        ],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/characters", activeNotebookId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/saved-items", user?.id, activeNotebookId],
+      });
       setShowDeleteAllDialog(false);
     },
     onError: () => {
@@ -150,13 +238,16 @@ export default function CharacterConsolidatePage() {
   const handleQuickFix = (character: Character, type: IssueType) => {
     setSelectedCharacter(character);
     setIssueType(type);
-    
-    const initialValue = 
-      type === 'familyName' ? (character.familyName || '') :
-      type === 'description' ? (character.description || '') :
-      type === 'imageUrl' ? (character.imageUrl || '') :
-      '';
-    
+
+    const initialValue =
+      type === "familyName"
+        ? character.familyName || ""
+        : type === "description"
+          ? character.description || ""
+          : type === "imageUrl"
+            ? character.imageUrl || ""
+            : "";
+
     setFixValue(initialValue);
   };
 
@@ -164,43 +255,53 @@ export default function CharacterConsolidatePage() {
     if (!selectedCharacter || !issueType || !fixValue.trim()) return;
 
     const updates: Partial<Character> = {
-      [issueType]: fixValue.trim()
+      [issueType]: fixValue.trim(),
     };
 
     updateMutation.mutate({ id: selectedCharacter.id, updates });
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this character? This action cannot be undone.')) {
+    if (
+      confirm(
+        "Are you sure you want to delete this character? This action cannot be undone.",
+      )
+    ) {
       deleteMutation.mutate(id);
     }
   };
 
   const handleNavigate = (toolId: string) => {
-    if (toolId === 'notebook') {
-      setLocation('/notebook');
-    } else if (toolId === 'projects') {
-      setLocation('/projects');
-    } else if (toolId === 'generators') {
-      setLocation('/generators');
-    } else if (toolId === 'guides') {
-      setLocation('/guides');
+    if (toolId === "notebook") {
+      setLocation("/notebook");
+    } else if (toolId === "projects") {
+      setLocation("/projects");
+    } else if (toolId === "generators") {
+      setLocation("/generators");
+    } else if (toolId === "guides") {
+      setLocation("/guides");
     }
   };
 
-  const CharacterCard = ({ character, issueType }: { character: Character; issueType?: IssueType }) => (
+  const CharacterCard = ({
+    character,
+    issueType,
+  }: {
+    character: Character;
+    issueType?: IssueType;
+  }) => (
     <Card className="hover-elevate">
       <CardContent className="p-4">
         <div className="flex items-start gap-4">
           <Avatar className="h-12 w-12">
             <AvatarImage src={character.imageUrl || undefined} />
             <AvatarFallback>
-              {character.givenName?.[0] || character.familyName?.[0] || '?'}
+              {character.givenName?.[0] || character.familyName?.[0] || "?"}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold truncate">
-              {character.givenName || 'Unnamed'} {character.familyName || ''}
+              {character.givenName || "Unnamed"} {character.familyName || ""}
             </h3>
             {character.description && (
               <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
@@ -236,7 +337,8 @@ export default function CharacterConsolidatePage() {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Please select a notebook first to view character consolidation options.
+              Please select a notebook first to view character consolidation
+              options.
             </AlertDescription>
           </Alert>
         </div>
@@ -252,11 +354,11 @@ export default function CharacterConsolidatePage() {
         onNavigate={handleNavigate}
         onCreateNew={() => {}}
       />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Button 
-          variant="ghost" 
-          onClick={() => setLocation('/notebook')}
+        <Button
+          variant="ghost"
+          onClick={() => setLocation("/notebook")}
           className="mb-6"
           data-testid="button-back-to-notebook"
         >
@@ -265,7 +367,9 @@ export default function CharacterConsolidatePage() {
         </Button>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Character Data Consolidation</h1>
+          <h1 className="text-3xl font-bold mb-2">
+            Character Data Consolidation
+          </h1>
           <p className="text-muted-foreground">
             Fix incomplete character data and identify potential duplicates
           </p>
@@ -275,37 +379,58 @@ export default function CharacterConsolidatePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Missing Family Names</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Missing Family Names
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold" data-testid="stat-missing-family-name">
+              <div
+                className="text-2xl font-bold"
+                data-testid="stat-missing-family-name"
+              >
                 {issuesData?.stats.missingFamilyNameCount || 0}
               </div>
-              <p className="text-xs text-muted-foreground">characters need family names</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Missing Descriptions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold" data-testid="stat-missing-description">
-                {issuesData?.stats.missingDescriptionCount || 0}
-              </div>
-              <p className="text-xs text-muted-foreground">characters need descriptions</p>
+              <p className="text-xs text-muted-foreground">
+                characters need family names
+              </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Potential Duplicates</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Missing Descriptions
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold" data-testid="stat-duplicate-groups">
+              <div
+                className="text-2xl font-bold"
+                data-testid="stat-missing-description"
+              >
+                {issuesData?.stats.missingDescriptionCount || 0}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                characters need descriptions
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium">
+                Potential Duplicates
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div
+                className="text-2xl font-bold"
+                data-testid="stat-duplicate-groups"
+              >
                 {duplicatesData?.stats.totalGroups || 0}
               </div>
-              <p className="text-xs text-muted-foreground">duplicate groups found</p>
+              <p className="text-xs text-muted-foreground">
+                duplicate groups found
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -356,14 +481,16 @@ export default function CharacterConsolidatePage() {
                   <div>
                     <div className="flex items-center gap-2 mb-4">
                       <User className="h-5 w-5 text-muted-foreground" />
-                      <h2 className="text-xl font-semibold">Missing Family Names</h2>
+                      <h2 className="text-xl font-semibold">
+                        Missing Family Names
+                      </h2>
                       <Badge>{issuesData.missingFamilyName.length}</Badge>
                     </div>
                     <div className="space-y-3">
                       {issuesData.missingFamilyName.map((character) => (
-                        <CharacterCard 
-                          key={character.id} 
-                          character={character} 
+                        <CharacterCard
+                          key={character.id}
+                          character={character}
                           issueType="familyName"
                         />
                       ))}
@@ -376,14 +503,16 @@ export default function CharacterConsolidatePage() {
                   <div>
                     <div className="flex items-center gap-2 mb-4">
                       <FileText className="h-5 w-5 text-muted-foreground" />
-                      <h2 className="text-xl font-semibold">Missing Descriptions</h2>
+                      <h2 className="text-xl font-semibold">
+                        Missing Descriptions
+                      </h2>
                       <Badge>{issuesData.missingDescription.length}</Badge>
                     </div>
                     <div className="space-y-3">
                       {issuesData.missingDescription.map((character) => (
-                        <CharacterCard 
-                          key={character.id} 
-                          character={character} 
+                        <CharacterCard
+                          key={character.id}
+                          character={character}
                           issueType="description"
                         />
                       ))}
@@ -401,9 +530,9 @@ export default function CharacterConsolidatePage() {
                     </div>
                     <div className="space-y-3">
                       {issuesData.missingImage.map((character) => (
-                        <CharacterCard 
-                          key={character.id} 
-                          character={character} 
+                        <CharacterCard
+                          key={character.id}
+                          character={character}
                           issueType="imageUrl"
                         />
                       ))}
@@ -415,7 +544,8 @@ export default function CharacterConsolidatePage() {
                   <Alert>
                     <Check className="h-4 w-4" />
                     <AlertDescription>
-                      No data issues found! All characters have complete information.
+                      No data issues found! All characters have complete
+                      information.
                     </AlertDescription>
                   </Alert>
                 )}
@@ -434,10 +564,13 @@ export default function CharacterConsolidatePage() {
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                           Potential Duplicates: "{group[0]?.givenName}"
-                          <Badge variant="secondary">{group.length} characters</Badge>
+                          <Badge variant="secondary">
+                            {group.length} characters
+                          </Badge>
                         </CardTitle>
                         <CardDescription>
-                          These characters have the same given name. Review and delete duplicates if needed.
+                          These characters have the same given name. Review and
+                          delete duplicates if needed.
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-3">
@@ -446,14 +579,17 @@ export default function CharacterConsolidatePage() {
                             <CardContent className="p-4">
                               <div className="flex items-start gap-4">
                                 <Avatar className="h-12 w-12">
-                                  <AvatarImage src={character.imageUrl || undefined} />
+                                  <AvatarImage
+                                    src={character.imageUrl || undefined}
+                                  />
                                   <AvatarFallback>
-                                    {character.givenName?.[0] || '?'}
+                                    {character.givenName?.[0] || "?"}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1 min-w-0">
                                   <h3 className="font-semibold">
-                                    {character.givenName || 'Unnamed'} {character.familyName || ''}
+                                    {character.givenName || "Unnamed"}{" "}
+                                    {character.familyName || ""}
                                   </h3>
                                   {character.description && (
                                     <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
@@ -462,18 +598,30 @@ export default function CharacterConsolidatePage() {
                                   )}
                                   <div className="flex gap-2 mt-2 text-xs text-muted-foreground">
                                     {character.importSource && (
-                                      <Badge variant="outline" className="text-xs">
+                                      <Badge
+                                        variant="outline"
+                                        className="text-xs"
+                                      >
                                         Source: {character.importSource}
                                       </Badge>
                                     )}
-                                    <span>Created: {new Date(character.createdAt || '').toLocaleDateString()}</span>
+                                    <span>
+                                      Created:{" "}
+                                      {new Date(
+                                        character.createdAt || "",
+                                      ).toLocaleDateString()}
+                                    </span>
                                   </div>
                                 </div>
                                 <div className="flex gap-2">
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setLocation(`/editor/character/${character.id}?notebookId=${activeNotebookId}`)}
+                                    onClick={() =>
+                                      setLocation(
+                                        `/editor/character/${character.id}?notebookId=${activeNotebookId}`,
+                                      )
+                                    }
                                     data-testid={`button-view-${character.id}`}
                                   >
                                     View
@@ -498,7 +646,8 @@ export default function CharacterConsolidatePage() {
                   <Alert>
                     <Check className="h-4 w-4" />
                     <AlertDescription>
-                      No potential duplicates found! All character names are unique.
+                      No potential duplicates found! All character names are
+                      unique.
                     </AlertDescription>
                   </Alert>
                 )}
@@ -509,25 +658,33 @@ export default function CharacterConsolidatePage() {
       </div>
 
       {/* Quick Fix Dialog */}
-      <Dialog open={!!selectedCharacter} onOpenChange={() => setSelectedCharacter(null)}>
+      <Dialog
+        open={!!selectedCharacter}
+        onOpenChange={() => setSelectedCharacter(null)}
+      >
         <DialogContent data-testid="dialog-quick-fix">
           <DialogHeader>
-            <DialogTitle>Quick Fix - {selectedCharacter?.givenName || 'Character'}</DialogTitle>
+            <DialogTitle>
+              Quick Fix - {selectedCharacter?.givenName || "Character"}
+            </DialogTitle>
             <DialogDescription>
-              {issueType === 'familyName' && 'Add a family name for this character'}
-              {issueType === 'description' && 'Add a description for this character'}
-              {issueType === 'imageUrl' && 'Add an image URL for this character'}
+              {issueType === "familyName" &&
+                "Add a family name for this character"}
+              {issueType === "description" &&
+                "Add a description for this character"}
+              {issueType === "imageUrl" &&
+                "Add an image URL for this character"}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="fix-value">
-                {issueType === 'familyName' && 'Family Name'}
-                {issueType === 'description' && 'Description'}
-                {issueType === 'imageUrl' && 'Image URL'}
+                {issueType === "familyName" && "Family Name"}
+                {issueType === "description" && "Description"}
+                {issueType === "imageUrl" && "Image URL"}
               </Label>
-              {issueType === 'description' ? (
+              {issueType === "description" ? (
                 <Textarea
                   id="fix-value"
                   value={fixValue}
@@ -542,8 +699,11 @@ export default function CharacterConsolidatePage() {
                   value={fixValue}
                   onChange={(e) => setFixValue(e.target.value)}
                   placeholder={
-                    issueType === 'familyName' ? 'Enter family name...' : 
-                    issueType === 'imageUrl' ? 'Enter image URL...' : ''
+                    issueType === "familyName"
+                      ? "Enter family name..."
+                      : issueType === "imageUrl"
+                        ? "Enter image URL..."
+                        : ""
                   }
                   data-testid="input-fix-value"
                 />
@@ -564,7 +724,7 @@ export default function CharacterConsolidatePage() {
               disabled={!fixValue.trim() || updateMutation.isPending}
               data-testid="button-save-fix"
             >
-              {updateMutation.isPending ? 'Saving...' : 'Save'}
+              {updateMutation.isPending ? "Saving..." : "Save"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -576,25 +736,46 @@ export default function CharacterConsolidatePage() {
           <DialogHeader>
             <DialogTitle>Delete All Characters with Issues?</DialogTitle>
             <DialogDescription>
-              This will permanently delete all {issuesData?.stats.totalIssues || 0} character{issuesData?.stats.totalIssues !== 1 ? 's' : ''} that have missing family names, descriptions, or images.
-              This action cannot be undone.
+              This will permanently delete all{" "}
+              {issuesData?.stats.totalIssues || 0} character
+              {issuesData?.stats.totalIssues !== 1 ? "s" : ""} that have missing
+              family names, descriptions, or images. This action cannot be
+              undone.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-2 py-4">
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 <strong>Warning:</strong> This will delete:
                 <ul className="mt-2 space-y-1 list-disc list-inside">
-                  {issuesData && issuesData.stats.missingFamilyNameCount > 0 && (
-                    <li>{issuesData.stats.missingFamilyNameCount} character{issuesData.stats.missingFamilyNameCount !== 1 ? 's' : ''} with missing family names</li>
-                  )}
-                  {issuesData && issuesData.stats.missingDescriptionCount > 0 && (
-                    <li>{issuesData.stats.missingDescriptionCount} character{issuesData.stats.missingDescriptionCount !== 1 ? 's' : ''} with missing descriptions</li>
-                  )}
+                  {issuesData &&
+                    issuesData.stats.missingFamilyNameCount > 0 && (
+                      <li>
+                        {issuesData.stats.missingFamilyNameCount} character
+                        {issuesData.stats.missingFamilyNameCount !== 1
+                          ? "s"
+                          : ""}{" "}
+                        with missing family names
+                      </li>
+                    )}
+                  {issuesData &&
+                    issuesData.stats.missingDescriptionCount > 0 && (
+                      <li>
+                        {issuesData.stats.missingDescriptionCount} character
+                        {issuesData.stats.missingDescriptionCount !== 1
+                          ? "s"
+                          : ""}{" "}
+                        with missing descriptions
+                      </li>
+                    )}
                   {issuesData && issuesData.stats.missingImageCount > 0 && (
-                    <li>{issuesData.stats.missingImageCount} character{issuesData.stats.missingImageCount !== 1 ? 's' : ''} with missing images</li>
+                    <li>
+                      {issuesData.stats.missingImageCount} character
+                      {issuesData.stats.missingImageCount !== 1 ? "s" : ""} with
+                      missing images
+                    </li>
                   )}
                 </ul>
               </AlertDescription>
@@ -616,7 +797,7 @@ export default function CharacterConsolidatePage() {
               disabled={bulkDeleteMutation.isPending}
               data-testid="button-confirm-delete-all"
             >
-              {bulkDeleteMutation.isPending ? 'Deleting...' : 'Delete All'}
+              {bulkDeleteMutation.isPending ? "Deleting..." : "Delete All"}
             </Button>
           </DialogFooter>
         </DialogContent>

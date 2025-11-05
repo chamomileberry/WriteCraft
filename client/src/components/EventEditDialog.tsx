@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { z } from 'zod';
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { z } from "zod";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -19,26 +19,31 @@ import {
   FormLabel,
   FormMessage,
   FormDescription,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import type { TimelineEvent, Character } from '@shared/schema';
-import { insertTimelineEventSchema } from '@shared/schema';
-import { Loader2, X, Check } from 'lucide-react';
-import { EVENT_TYPE_CONFIGS, getEventTypeIcon, getEventTypeColor, type EventType } from '@/lib/eventTypeConfig';
-import * as LucideIcons from 'lucide-react';
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import type { TimelineEvent, Character } from "@shared/schema";
+import { insertTimelineEventSchema } from "@shared/schema";
+import { Loader2, X, Check } from "lucide-react";
+import {
+  EVENT_TYPE_CONFIGS,
+  getEventTypeIcon,
+  getEventTypeColor,
+  type EventType,
+} from "@/lib/eventTypeConfig";
+import * as LucideIcons from "lucide-react";
 
 // Extend the insert schema to omit fields managed separately
 const eventFormSchema = insertTimelineEventSchema.omit({
@@ -69,10 +74,15 @@ export function EventEditDialog({
   const isEditing = !!event;
 
   // Fetch characters from the notebook
-  const { data: characters = [], isLoading: isLoadingCharacters } = useQuery<Character[]>({
-    queryKey: ['/api/characters', notebookId],
+  const { data: characters = [], isLoading: isLoadingCharacters } = useQuery<
+    Character[]
+  >({
+    queryKey: ["/api/characters", notebookId],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/characters?notebookId=${notebookId}`);
+      const response = await apiRequest(
+        "GET",
+        `/api/characters?notebookId=${notebookId}`,
+      );
       return response.json();
     },
     enabled: !!notebookId && open,
@@ -81,12 +91,12 @@ export function EventEditDialog({
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventFormSchema),
     defaultValues: {
-      title: '',
+      title: "",
       description: null,
-      startDate: '',
+      startDate: "",
       endDate: null,
       eventType: null,
-      importance: 'moderate',
+      importance: "moderate",
       category: null,
       color: null,
       icon: null,
@@ -100,12 +110,15 @@ export function EventEditDialog({
   useEffect(() => {
     if (event) {
       form.reset({
-        title: event.title || '',
+        title: event.title || "",
         description: event.description || null,
-        startDate: event.startDate || '',
+        startDate: event.startDate || "",
         endDate: event.endDate || null,
         eventType: event.eventType || null,
-        importance: (event.importance || 'moderate') as 'major' | 'moderate' | 'minor',
+        importance: (event.importance || "moderate") as
+          | "major"
+          | "moderate"
+          | "minor",
         category: event.category || null,
         color: event.color || null,
         icon: event.icon || null,
@@ -115,12 +128,12 @@ export function EventEditDialog({
       });
     } else {
       form.reset({
-        title: '',
+        title: "",
         description: null,
-        startDate: '',
+        startDate: "",
         endDate: null,
         eventType: null,
-        importance: 'moderate',
+        importance: "moderate",
         category: null,
         color: null,
         icon: null,
@@ -132,14 +145,14 @@ export function EventEditDialog({
   }, [event, form]);
 
   // Watch eventType to auto-fill icon and color
-  const watchedEventType = form.watch('eventType');
+  const watchedEventType = form.watch("eventType");
   useEffect(() => {
     if (watchedEventType && !isEditing) {
       // Only auto-fill for new events, not when editing existing ones
       const config = EVENT_TYPE_CONFIGS[watchedEventType as EventType];
       if (config) {
-        form.setValue('icon', config.icon);
-        form.setValue('color', config.color);
+        form.setValue("icon", config.icon);
+        form.setValue("color", config.color);
       }
     }
   }, [watchedEventType, isEditing, form]);
@@ -147,28 +160,30 @@ export function EventEditDialog({
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: EventFormData) => {
-      const response = await apiRequest('POST', '/api/timeline-events', {
+      const response = await apiRequest("POST", "/api/timeline-events", {
         timelineId,
         notebookId,
         ...data,
       });
-      if (!response.ok) throw new Error('Failed to create event');
+      if (!response.ok) throw new Error("Failed to create event");
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/timeline-events', timelineId, notebookId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/timeline-events", timelineId, notebookId],
+      });
       toast({
-        title: 'Success',
-        description: 'Event created successfully',
+        title: "Success",
+        description: "Event created successfully",
       });
       onOpenChange(false);
       form.reset();
     },
     onError: () => {
       toast({
-        title: 'Error',
-        description: 'Failed to create event',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to create event",
+        variant: "destructive",
       });
     },
   });
@@ -176,28 +191,34 @@ export function EventEditDialog({
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async (data: EventFormData) => {
-      if (!event) throw new Error('No event to update');
-      const response = await apiRequest('PATCH', `/api/timeline-events/${event.id}`, {
-        timelineId,
-        notebookId,
-        ...data,
-      });
-      if (!response.ok) throw new Error('Failed to update event');
+      if (!event) throw new Error("No event to update");
+      const response = await apiRequest(
+        "PATCH",
+        `/api/timeline-events/${event.id}`,
+        {
+          timelineId,
+          notebookId,
+          ...data,
+        },
+      );
+      if (!response.ok) throw new Error("Failed to update event");
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/timeline-events', timelineId, notebookId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/timeline-events", timelineId, notebookId],
+      });
       toast({
-        title: 'Success',
-        description: 'Event updated successfully',
+        title: "Success",
+        description: "Event updated successfully",
       });
       onOpenChange(false);
     },
     onError: () => {
       toast({
-        title: 'Error',
-        description: 'Failed to update event',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to update event",
+        variant: "destructive",
       });
     },
   });
@@ -214,13 +235,16 @@ export function EventEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" onOpenAutoFocus={(e) => e.preventDefault()}>
+      <DialogContent
+        className="max-w-2xl max-h-[90vh] overflow-y-auto"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Edit Event' : 'Create Event'}</DialogTitle>
+          <DialogTitle>{isEditing ? "Edit Event" : "Create Event"}</DialogTitle>
           <DialogDescription>
             {isEditing
-              ? 'Update the event details below'
-              : 'Add a new event to your timeline'}
+              ? "Update the event details below"
+              : "Add a new event to your timeline"}
           </DialogDescription>
         </DialogHeader>
 
@@ -233,7 +257,11 @@ export function EventEditDialog({
                 <FormItem>
                   <FormLabel>Title *</FormLabel>
                   <FormControl>
-                    <Input placeholder="Event title" {...field} data-testid="input-event-title" />
+                    <Input
+                      placeholder="Event title"
+                      {...field}
+                      data-testid="input-event-title"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -250,7 +278,7 @@ export function EventEditDialog({
                     <Textarea
                       placeholder="Event description"
                       {...field}
-                      value={field.value || ''}
+                      value={field.value || ""}
                       data-testid="input-event-description"
                     />
                   </FormControl>
@@ -288,7 +316,7 @@ export function EventEditDialog({
                       <Input
                         placeholder="Optional for range events"
                         {...field}
-                        value={field.value || ''}
+                        value={field.value || ""}
                         data-testid="input-event-end-date"
                       />
                     </FormControl>
@@ -305,13 +333,20 @@ export function EventEditDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Event Type</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || undefined}>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value || undefined}
+                    >
                       <FormControl>
                         <SelectTrigger data-testid="select-event-type">
                           <SelectValue placeholder="Select type" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent position="popper" className="z-[300]" sideOffset={5}>
+                      <SelectContent
+                        position="popper"
+                        className="z-[300]"
+                        sideOffset={5}
+                      >
                         <SelectItem value="battle">Battle</SelectItem>
                         <SelectItem value="discovery">Discovery</SelectItem>
                         <SelectItem value="birth">Birth</SelectItem>
@@ -334,13 +369,20 @@ export function EventEditDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Importance</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || undefined}>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value || undefined}
+                    >
                       <FormControl>
                         <SelectTrigger data-testid="select-event-importance">
                           <SelectValue placeholder="Select importance" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent position="popper" className="z-[300]" sideOffset={5}>
+                      <SelectContent
+                        position="popper"
+                        className="z-[300]"
+                        sideOffset={5}
+                      >
                         <SelectItem value="major">Major</SelectItem>
                         <SelectItem value="moderate">Moderate</SelectItem>
                         <SelectItem value="minor">Minor</SelectItem>
@@ -362,7 +404,7 @@ export function EventEditDialog({
                     <Input
                       placeholder="e.g., Plot, Character Arc, World Events"
                       {...field}
-                      value={field.value || ''}
+                      value={field.value || ""}
                       data-testid="input-event-category"
                     />
                   </FormControl>
@@ -377,14 +419,19 @@ export function EventEditDialog({
                 name="icon"
                 render={({ field }) => {
                   // Ensure the currently selected icon is included in the options
-                  const iconOptions = Object.entries(EVENT_TYPE_CONFIGS).map(([type, config]) => ({
-                    value: config.icon,
-                    label: config.label,
-                    component: config.iconComponent,
-                  }));
+                  const iconOptions = Object.entries(EVENT_TYPE_CONFIGS).map(
+                    ([type, config]) => ({
+                      value: config.icon,
+                      label: config.label,
+                      component: config.iconComponent,
+                    }),
+                  );
 
                   // If the field has a value that's not in the preset options, add it
-                  if (field.value && !iconOptions.some(opt => opt.value === field.value)) {
+                  if (
+                    field.value &&
+                    !iconOptions.some((opt) => opt.value === field.value)
+                  ) {
                     const IconComponent = (LucideIcons as any)[field.value];
                     if (IconComponent) {
                       iconOptions.push({
@@ -401,23 +448,35 @@ export function EventEditDialog({
                       <FormDescription className="text-xs">
                         Auto-filled from event type
                       </FormDescription>
-                      <Select onValueChange={field.onChange} value={field.value || undefined}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value || undefined}
+                      >
                         <FormControl>
                           <SelectTrigger data-testid="select-event-icon">
                             <SelectValue placeholder="Select icon">
-                              {field.value && (() => {
-                                const IconComponent = (LucideIcons as any)[field.value];
-                                return IconComponent ? (
-                                  <div className="flex items-center gap-2">
-                                    <IconComponent className="w-4 h-4" />
-                                    <span>{field.value}</span>
-                                  </div>
-                                ) : field.value;
-                              })()}
+                              {field.value &&
+                                (() => {
+                                  const IconComponent = (LucideIcons as any)[
+                                    field.value
+                                  ];
+                                  return IconComponent ? (
+                                    <div className="flex items-center gap-2">
+                                      <IconComponent className="w-4 h-4" />
+                                      <span>{field.value}</span>
+                                    </div>
+                                  ) : (
+                                    field.value
+                                  );
+                                })()}
                             </SelectValue>
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent position="popper" className="z-[300]" sideOffset={5}>
+                        <SelectContent
+                          position="popper"
+                          className="z-[300]"
+                          sideOffset={5}
+                        >
                           {iconOptions.map((option) => (
                             <SelectItem key={option.value} value={option.value}>
                               <div className="flex items-center gap-2">
@@ -443,7 +502,10 @@ export function EventEditDialog({
                     <FormDescription className="text-xs">
                       Auto-filled from event type
                     </FormDescription>
-                    <Select onValueChange={field.onChange} value={field.value || undefined}>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value || undefined}
+                    >
                       <FormControl>
                         <SelectTrigger data-testid="select-event-color">
                           <SelectValue placeholder="Select color">
@@ -459,9 +521,22 @@ export function EventEditDialog({
                           </SelectValue>
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent position="popper" className="z-[300]" sideOffset={5}>
-                        {Array.from(new Set(Object.values(EVENT_TYPE_CONFIGS).map(config => config.color))).map((color) => {
-                          const typeName = Object.entries(EVENT_TYPE_CONFIGS).find(([_, config]) => config.color === color)?.[1].label || color;
+                      <SelectContent
+                        position="popper"
+                        className="z-[300]"
+                        sideOffset={5}
+                      >
+                        {Array.from(
+                          new Set(
+                            Object.values(EVENT_TYPE_CONFIGS).map(
+                              (config) => config.color,
+                            ),
+                          ),
+                        ).map((color) => {
+                          const typeName =
+                            Object.entries(EVENT_TYPE_CONFIGS).find(
+                              ([_, config]) => config.color === color,
+                            )?.[1].label || color;
                           return (
                             <SelectItem key={color} value={color}>
                               <div className="flex items-center gap-2">
@@ -497,13 +572,18 @@ export function EventEditDialog({
                       {field.value && field.value.length > 0 && (
                         <div className="flex flex-wrap gap-2">
                           {field.value.map((charId: string) => {
-                            const character = characters.find((c: Character) => c.id === charId);
+                            const character = characters.find(
+                              (c: Character) => c.id === charId,
+                            );
                             if (!character) return null;
-                            
-                            const initials = character.givenName && character.familyName
-                              ? `${character.givenName[0]}${character.familyName[0]}`
-                              : character.givenName?.[0] || character.familyName?.[0] || '?';
-                            
+
+                            const initials =
+                              character.givenName && character.familyName
+                                ? `${character.givenName[0]}${character.familyName[0]}`
+                                : character.givenName?.[0] ||
+                                  character.familyName?.[0] ||
+                                  "?";
+
                             return (
                               <Badge
                                 key={charId}
@@ -512,8 +592,12 @@ export function EventEditDialog({
                                 data-testid={`badge-selected-character-${charId}`}
                               >
                                 <Avatar className="h-5 w-5">
-                                  <AvatarImage src={character.imageUrl || undefined} />
-                                  <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                                  <AvatarImage
+                                    src={character.imageUrl || undefined}
+                                  />
+                                  <AvatarFallback className="text-xs">
+                                    {initials}
+                                  </AvatarFallback>
                                 </Avatar>
                                 <span>
                                   {character.givenName} {character.familyName}
@@ -524,7 +608,10 @@ export function EventEditDialog({
                                   size="icon"
                                   className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
                                   onClick={() => {
-                                    const newValue = field.value?.filter((id: string) => id !== charId) || [];
+                                    const newValue =
+                                      field.value?.filter(
+                                        (id: string) => id !== charId,
+                                      ) || [];
                                     field.onChange(newValue);
                                   }}
                                   data-testid={`button-remove-character-${charId}`}
@@ -548,25 +635,49 @@ export function EventEditDialog({
                         value=""
                       >
                         <SelectTrigger data-testid="select-character">
-                          <SelectValue placeholder={isLoadingCharacters ? "Loading characters..." : "Add a character"} />
+                          <SelectValue
+                            placeholder={
+                              isLoadingCharacters
+                                ? "Loading characters..."
+                                : "Add a character"
+                            }
+                          />
                         </SelectTrigger>
-                        <SelectContent position="popper" className="z-[300]" sideOffset={5}>
+                        <SelectContent
+                          position="popper"
+                          className="z-[300]"
+                          sideOffset={5}
+                        >
                           {characters
-                            .filter((char: Character) => !(field.value || []).includes(char.id))
+                            .filter(
+                              (char: Character) =>
+                                !(field.value || []).includes(char.id),
+                            )
                             .map((character: Character) => {
-                              const initials = character.givenName && character.familyName
-                                ? `${character.givenName[0]}${character.familyName[0]}`
-                                : character.givenName?.[0] || character.familyName?.[0] || '?';
-                              
+                              const initials =
+                                character.givenName && character.familyName
+                                  ? `${character.givenName[0]}${character.familyName[0]}`
+                                  : character.givenName?.[0] ||
+                                    character.familyName?.[0] ||
+                                    "?";
+
                               return (
-                                <SelectItem key={character.id} value={character.id}>
+                                <SelectItem
+                                  key={character.id}
+                                  value={character.id}
+                                >
                                   <div className="flex items-center gap-2">
                                     <Avatar className="h-6 w-6">
-                                      <AvatarImage src={character.imageUrl || undefined} />
-                                      <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                                      <AvatarImage
+                                        src={character.imageUrl || undefined}
+                                      />
+                                      <AvatarFallback className="text-xs">
+                                        {initials}
+                                      </AvatarFallback>
                                     </Avatar>
                                     <span>
-                                      {character.givenName} {character.familyName}
+                                      {character.givenName}{" "}
+                                      {character.familyName}
                                     </span>
                                   </div>
                                 </SelectItem>
@@ -602,7 +713,7 @@ export function EventEditDialog({
                 data-testid="button-save-event"
               >
                 {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                {isEditing ? 'Update Event' : 'Create Event'}
+                {isEditing ? "Update Event" : "Create Event"}
               </Button>
             </DialogFooter>
           </form>

@@ -1,5 +1,5 @@
-import ToolCard from '../ToolCard';
-import { Users, BookOpen, Zap } from 'lucide-react';
+import ToolCard from "../ToolCard";
+import { Users, BookOpen, Zap } from "lucide-react";
 
 export default function ToolCardExample() {
   return (
@@ -13,12 +13,12 @@ export default function ToolCardExample() {
           "Randomized personality traits",
           "Background generator",
           "Motivation builder",
-          "Relationship dynamics"
+          "Relationship dynamics",
         ]}
-        onUse={() => console.log('Character generator used')}
+        onUse={() => console.log("Character generator used")}
         isPopular={true}
       />
-      
+
       <ToolCard
         title="Plot Generator"
         description="Generate compelling plot structures and story arcs for any genre."
@@ -28,11 +28,11 @@ export default function ToolCardExample() {
           "Customizable plot structure",
           "Conflict scenarios",
           "Plot twist ideas",
-          "Character arcs"
+          "Character arcs",
         ]}
-        onUse={() => console.log('Plot generator used')}
+        onUse={() => console.log("Plot generator used")}
       />
-      
+
       <ToolCard
         title="Writing Prompts"
         description="Spark creativity with genre-specific prompts and story starters."
@@ -42,9 +42,9 @@ export default function ToolCardExample() {
           "Genre-specific prompts",
           "Difficulty levels",
           "Daily challenges",
-          "Custom themes"
+          "Custom themes",
         ]}
-        onUse={() => console.log('Writing prompts used')}
+        onUse={() => console.log("Writing prompts used")}
         isPopular={true}
       />
     </div>

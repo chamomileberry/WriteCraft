@@ -7,7 +7,11 @@ interface ContentHeroProps {
   altText?: string;
 }
 
-export function ContentHero({ imageUrl, imageCaption, altText = "Content image" }: ContentHeroProps) {
+export function ContentHero({
+  imageUrl,
+  imageCaption,
+  altText = "Content image",
+}: ContentHeroProps) {
   if (!imageUrl) {
     return null;
   }
@@ -23,7 +27,10 @@ export function ContentHero({ imageUrl, imageCaption, altText = "Content image" 
         />
       </AspectRatio>
       {imageCaption && (
-        <div className="p-4 text-sm text-muted-foreground" data-testid="content-hero-caption">
+        <div
+          className="p-4 text-sm text-muted-foreground"
+          data-testid="content-hero-caption"
+        >
           {imageCaption}
         </div>
       )}

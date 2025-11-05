@@ -156,7 +156,7 @@ export default function MapStudio() {
   // ===== TOOLBAR STATE =====
   const [selectedTool, setSelectedTool] = useState<MapTool>("pencil");
   const [brushSize, setBrushSize] = useState(20);
-  const [brushColor, setBrushColor] = useState(TERRAIN_COLORS.land);
+  const [brushColor, setBrushColor] = useState(TERRAIN_COLORS["land"]);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDrawing, setIsDrawing] = useState(false);
@@ -513,13 +513,13 @@ export default function MapStudio() {
 
     // Auto-select appropriate colors for terrain tools
     if (tool === 'mountain') {
-      setBrushColor(TERRAIN_COLORS.mountain);
+      setBrushColor(TERRAIN_COLORS["mountain"]);
     } else if (tool === 'forest') {
-      setBrushColor(TERRAIN_COLORS.forest);
+      setBrushColor(TERRAIN_COLORS["forest"]);
     } else if (tool === 'water') {
-      setBrushColor(TERRAIN_COLORS.water);
+      setBrushColor(TERRAIN_COLORS["water"]);
     } else if (tool === 'pencil') {
-      setBrushColor(TERRAIN_COLORS.land);
+      setBrushColor(TERRAIN_COLORS["land"]);
     }
   };
 
@@ -694,12 +694,15 @@ export default function MapStudio() {
     if (!ctx) return;
 
     const state = history[newIndex];
-    ctx.putImageData(state.imageData, 0, 0);
-    setIcons(state.icons);
-    setLabels(state.labels);
-    setBorders(state.borders);
+    if (state) {
+        ctx.putImageData(state.imageData, 0, 0);
+        setIcons(state.icons);
+        setLabels(state.labels);
+        setBorders(state.borders);
+    }
+    // Call redraw to update the canvas, assuming it's a valid function in scope.
     redraw();
-  }, [canUndo, historyIndex, history]);
+  }, [canUndo, historyIndex, history, redraw]);
 
   const handleRedo = useCallback(() => {
     if (!canRedo) return;
@@ -714,12 +717,12 @@ export default function MapStudio() {
     if (!ctx) return;
 
     const state = history[newIndex];
+    if (state) {
     ctx.putImageData(state.imageData, 0, 0);
     setIcons(state.icons);
     setLabels(state.labels);
     setBorders(state.borders);
-    redraw();
-  }, [canRedo, historyIndex, history]);
+  }, [canRedo, historyIndex, history];
 
   // Initialize offscreen canvas for drawing operations
   useEffect(() => {
@@ -729,7 +732,8 @@ export default function MapStudio() {
     const offscreenCtx = offscreenCanvas.getContext('2d');
     if (offscreenCtx) {
       // Fill with ocean blue background
-      offscreenCtx.fillStyle = TERRAIN_COLORS.deepWater;
+      const fillStyleColor = TERRAIN_COLORS["deepWater"] || "#000000";
+      offscreenCtx.fillStyle = fillStyleColor;
       offscreenCtx.fillRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
       offscreenCanvasRef.current = offscreenCanvas;
 
@@ -938,22 +942,22 @@ export default function MapStudio() {
             break;
           case 'p':
             setSelectedTool('pencil');
-            setBrushColor(TERRAIN_COLORS.land);
+            setBrushColor(TERRAIN_COLORS["land"]);
             break;
           case 'e':
             setSelectedTool('eraser');
             break;
           case 'm':
             setSelectedTool('mountain');
-            setBrushColor(TERRAIN_COLORS.mountain);
+            setBrushColor(TERRAIN_COLORS["mountain"]);
             break;
           case 'f':
             setSelectedTool('forest');
-            setBrushColor(TERRAIN_COLORS.forest);
+            setBrushColor(TERRAIN_COLORS["forest"]);
             break;
           case 'w':
             setSelectedTool('water');
-            setBrushColor(TERRAIN_COLORS.water);
+            setBrushColor(TERRAIN_COLORS["water"]);
             break;
           case 'i':
             setSelectedTool('icon');
@@ -1061,7 +1065,7 @@ export default function MapStudio() {
 
       if (selectedTool === 'eraser') {
         // Eraser reveals the background
-        ctx.fillStyle = TERRAIN_COLORS.deepWater;
+        ctx.fillStyle = TERRAIN_COLORS["deepWater"];
       } else {
         ctx.fillStyle = brushColor;
       }
@@ -1514,3 +1518,15 @@ export default function MapStudio() {
     </>
   );
 }
+      function redraw() {
+          throw new Error("Function not implemented.");
+      }
+
+      function redraw() {
+          throw new Error("Function not implemented.");
+      }
+
+      function redraw() {
+          throw new Error("Function not implemented.");
+      }
+)}

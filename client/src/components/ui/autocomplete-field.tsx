@@ -23,22 +23,32 @@ import {
 // Helper function to get correct API endpoint for content type
 function getApiEndpoint(contentType: string): string {
   switch (contentType) {
-    case 'family-tree': return 'family-trees';
-    case 'ceremony': return 'ceremonies';
-    case 'policy': return 'policies';
-    case 'species': return 'species'; // species is already plural
-    default: return `${contentType}s`;
+    case "family-tree":
+      return "family-trees";
+    case "ceremony":
+      return "ceremonies";
+    case "policy":
+      return "policies";
+    case "species":
+      return "species"; // species is already plural
+    default:
+      return `${contentType}s`;
   }
 }
 
 // Helper function to get correct plural form for display
 function getPluralForm(contentType: string): string {
   switch (contentType) {
-    case 'species': return 'species'; // species is already plural
-    case 'family-tree': return 'family trees';
-    case 'ceremony': return 'ceremonies';
-    case 'policy': return 'policies';
-    default: return `${contentType}s`;
+    case "species":
+      return "species"; // species is already plural
+    case "family-tree":
+      return "family trees";
+    case "ceremony":
+      return "ceremonies";
+    case "policy":
+      return "policies";
+    default:
+      return `${contentType}s`;
   }
 }
 
@@ -52,7 +62,27 @@ interface AutocompleteFieldProps {
   value?: string | string[];
   onChange: (value: string | string[]) => void;
   placeholder?: string;
-  contentType: "location" | "character" | "religion" | "tradition" | "language" | "organization" | "species" | "culture" | "location-type" | "family-tree" | "timeline" | "ceremony" | "map" | "music" | "dance" | "law" | "policy" | "potion" | "profession" | "condition";
+  contentType:
+    | "location"
+    | "character"
+    | "religion"
+    | "tradition"
+    | "language"
+    | "organization"
+    | "species"
+    | "culture"
+    | "location-type"
+    | "family-tree"
+    | "timeline"
+    | "ceremony"
+    | "map"
+    | "music"
+    | "dance"
+    | "law"
+    | "policy"
+    | "potion"
+    | "profession"
+    | "condition";
   multiple?: boolean;
   disabled?: boolean;
   className?: string;
@@ -61,7 +91,8 @@ interface AutocompleteFieldProps {
 
 // Helper function to check if a string is a UUID
 function isUUID(str: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   return uuidRegex.test(str);
 }
 
@@ -81,9 +112,15 @@ export function AutocompleteField({
   const { activeNotebookId } = useNotebookStore();
 
   // Convert value to array for consistent handling
-  const currentValues = multiple 
-    ? Array.isArray(value) ? value : (value ? [value] : [])
-    : (value ? [value as string] : []);
+  const currentValues = multiple
+    ? Array.isArray(value)
+      ? value
+      : value
+        ? [value]
+        : []
+    : value
+      ? [value as string]
+      : [];
 
   // Search existing items (skip for static options like location-type)
   const apiEndpoint = getApiEndpoint(contentType);
@@ -92,73 +129,111 @@ export function AutocompleteField({
     queryFn: async () => {
       // Handle static options like location-type
       if (contentType === "location-type" && options) {
-        const filteredOptions = searchValue.trim() 
-          ? options.filter(option => option.label.toLowerCase().includes(searchValue.toLowerCase()))
+        const filteredOptions = searchValue.trim()
+          ? options.filter((option) =>
+              option.label.toLowerCase().includes(searchValue.toLowerCase()),
+            )
           : options;
-        return filteredOptions.map(option => ({
+        return filteredOptions.map((option) => ({
           id: option.value,
           name: option.label,
           type: "location type",
         }));
       }
-      
+
       // Build URL with search and notebookId parameters
       const params = new URLSearchParams();
       if (searchValue.trim()) {
-        params.append('search', searchValue.trim());
+        params.append("search", searchValue.trim());
       }
       if (activeNotebookId) {
-        params.append('notebookId', activeNotebookId);
+        params.append("notebookId", activeNotebookId);
       }
-      const queryString = params.toString() ? `?${params.toString()}` : '';
-      
+      const queryString = params.toString() ? `?${params.toString()}` : "";
+
       const response = await fetch(`/api/${apiEndpoint}${queryString}`, {
-        credentials: 'include' // Use session cookies for authentication
+        credentials: "include", // Use session cookies for authentication
       });
       if (!response.ok) return [];
       const data = await response.json();
       return data.map((item: any) => ({
         id: item.id,
-        name: contentType === 'character' 
-          ? `${item.givenName || ''}${item.familyName ? ' ' + item.familyName : ''}`.trim() || item.nickname || 'Unnamed Character'
-          : item.name,
-        type: item.locationType || item.occupation || item.religionType || item.traditionType || item.languageFamily || item.organizationType || item.speciesType || item.cultureType || item.treeType || item.timelineType || item.significance || item.mapType || item.musicalStyle || item.danceStyle || item.lawType || item.policyType || item.potionType || item.conditionType || contentType,
+        name:
+          contentType === "character"
+            ? `${item.givenName || ""}${item.familyName ? " " + item.familyName : ""}`.trim() ||
+              item.nickname ||
+              "Unnamed Character"
+            : item.name,
+        type:
+          item.locationType ||
+          item.occupation ||
+          item.religionType ||
+          item.traditionType ||
+          item.languageFamily ||
+          item.organizationType ||
+          item.speciesType ||
+          item.cultureType ||
+          item.treeType ||
+          item.timelineType ||
+          item.significance ||
+          item.mapType ||
+          item.musicalStyle ||
+          item.danceStyle ||
+          item.lawType ||
+          item.policyType ||
+          item.potionType ||
+          item.conditionType ||
+          contentType,
       }));
     },
     enabled: true,
   });
 
   // Query to resolve IDs to names for display (for professions and species with UUID values)
-  const currentValueIds = currentValues.filter(val => isUUID(val));
+  const currentValueIds = currentValues.filter((val) => isUUID(val));
   const { data: resolvedNames = {} } = useQuery({
     queryKey: [`/api/${apiEndpoint}/resolve`, currentValueIds],
     queryFn: async () => {
-      if (currentValueIds.length === 0 || (contentType !== 'profession' && contentType !== 'species' && contentType !== 'condition')) return {};
-      
+      if (
+        currentValueIds.length === 0 ||
+        (contentType !== "profession" &&
+          contentType !== "species" &&
+          contentType !== "condition")
+      )
+        return {};
+
       const nameMap: { [id: string]: string } = {};
-      
+
       // Fetch details for each UUID
       for (const id of currentValueIds) {
         try {
           // Only add notebookId for conditions, and only when activeNotebookId exists
-          const queryParam = (contentType === 'condition' && activeNotebookId) 
-            ? `?notebookId=${activeNotebookId}` 
-            : '';
-          const response = await fetch(`/api/${apiEndpoint}/${id}${queryParam}`, {
-            credentials: 'include'
-          });
+          const queryParam =
+            contentType === "condition" && activeNotebookId
+              ? `?notebookId=${activeNotebookId}`
+              : "";
+          const response = await fetch(
+            `/api/${apiEndpoint}/${id}${queryParam}`,
+            {
+              credentials: "include",
+            },
+          );
           if (response.ok) {
             const item = await response.json();
             nameMap[id] = item.name;
           }
         } catch (error) {
-          console.warn('Failed to resolve ID to name:', id, error);
+          console.warn("Failed to resolve ID to name:", id, error);
         }
       }
-      
+
       return nameMap;
     },
-    enabled: currentValueIds.length > 0 && (contentType === 'profession' || contentType === 'species' || contentType === 'condition'),
+    enabled:
+      currentValueIds.length > 0 &&
+      (contentType === "profession" ||
+        contentType === "species" ||
+        contentType === "condition"),
   });
 
   // Create new item mutation
@@ -168,65 +243,158 @@ export function AutocompleteField({
       if (contentType === "location-type") {
         return { id: name, name, type: "location type" };
       }
-      
+
       let payload: any = { name, genre: "Fantasy" };
-      
+
       switch (contentType) {
         case "location":
-          payload = { ...payload, locationType: "other", description: `Auto-created location: ${name}` };
+          payload = {
+            ...payload,
+            locationType: "other",
+            description: `Auto-created location: ${name}`,
+          };
           break;
         case "character":
           payload = { ...payload, age: 25, occupation: "Unknown" };
           break;
         case "religion":
-          payload = { ...payload, religionType: "other", domain: "Unknown", description: `Auto-created religion: ${name}` };
+          payload = {
+            ...payload,
+            religionType: "other",
+            domain: "Unknown",
+            description: `Auto-created religion: ${name}`,
+          };
           break;
         case "tradition":
-          payload = { ...payload, traditionType: "cultural", significance: "Unknown", description: `Auto-created tradition: ${name}` };
+          payload = {
+            ...payload,
+            traditionType: "cultural",
+            significance: "Unknown",
+            description: `Auto-created tradition: ${name}`,
+          };
           break;
         case "language":
-          payload = { ...payload, languageFamily: "Unknown", speakers: "Unknown", complexity: "Medium", description: `Auto-created language: ${name}` };
+          payload = {
+            ...payload,
+            languageFamily: "Unknown",
+            speakers: "Unknown",
+            complexity: "Medium",
+            description: `Auto-created language: ${name}`,
+          };
           break;
         case "organization":
-          payload = { ...payload, organizationType: "guild", purpose: "General organization", influence: "local", description: `Auto-created organization: ${name}` };
+          payload = {
+            ...payload,
+            organizationType: "guild",
+            purpose: "General organization",
+            influence: "local",
+            description: `Auto-created organization: ${name}`,
+          };
           break;
         case "species":
-          payload = { ...payload, classification: "humanoid", habitat: "Various", intelligence: "Sentient", physicalDescription: `Auto-created species: ${name}`, behavior: "Neutral", diet: "Varied" };
+          payload = {
+            ...payload,
+            classification: "humanoid",
+            habitat: "Various",
+            intelligence: "Sentient",
+            physicalDescription: `Auto-created species: ${name}`,
+            behavior: "Neutral",
+            diet: "Varied",
+          };
           break;
         case "culture":
-          payload = { ...payload, cultureType: "regional", influence: "moderate", description: `Auto-created culture: ${name}` };
+          payload = {
+            ...payload,
+            cultureType: "regional",
+            influence: "moderate",
+            description: `Auto-created culture: ${name}`,
+          };
           break;
         case "family-tree":
-          payload = { ...payload, treeType: "lineage", rootPerson: "Unknown", currentStatus: "active", description: `Auto-created family tree: ${name}` };
+          payload = {
+            ...payload,
+            treeType: "lineage",
+            rootPerson: "Unknown",
+            currentStatus: "active",
+            description: `Auto-created family tree: ${name}`,
+          };
           break;
         case "timeline":
-          payload = { ...payload, timelineType: "historical", timeScale: "years", scope: "general", description: `Auto-created timeline: ${name}` };
+          payload = {
+            ...payload,
+            timelineType: "historical",
+            timeScale: "years",
+            scope: "general",
+            description: `Auto-created timeline: ${name}`,
+          };
           break;
         case "ceremony":
-          payload = { ...payload, significance: "cultural", participants: "community", frequency: "annual", description: `Auto-created ceremony: ${name}` };
+          payload = {
+            ...payload,
+            significance: "cultural",
+            participants: "community",
+            frequency: "annual",
+            description: `Auto-created ceremony: ${name}`,
+          };
           break;
         case "map":
-          payload = { ...payload, mapType: "regional", scale: "medium", style: "realistic", description: `Auto-created map: ${name}` };
+          payload = {
+            ...payload,
+            mapType: "regional",
+            scale: "medium",
+            style: "realistic",
+            description: `Auto-created map: ${name}`,
+          };
           break;
         case "music":
-          payload = { ...payload, difficulty: "intermediate", length: "3-5 minutes", musicalStyle: "traditional", description: `Auto-created music: ${name}` };
+          payload = {
+            ...payload,
+            difficulty: "intermediate",
+            length: "3-5 minutes",
+            musicalStyle: "traditional",
+            description: `Auto-created music: ${name}`,
+          };
           break;
         case "dance":
-          payload = { ...payload, difficulty: "beginner", duration: "5-10 minutes", danceStyle: "folk", description: `Auto-created dance: ${name}` };
+          payload = {
+            ...payload,
+            difficulty: "beginner",
+            duration: "5-10 minutes",
+            danceStyle: "folk",
+            description: `Auto-created dance: ${name}`,
+          };
           break;
         case "law":
-          payload = { ...payload, lawType: "civil", jurisdiction: "local", enforcement: "moderate", description: `Auto-created law: ${name}` };
+          payload = {
+            ...payload,
+            lawType: "civil",
+            jurisdiction: "local",
+            enforcement: "moderate",
+            description: `Auto-created law: ${name}`,
+          };
           break;
         case "policy":
-          payload = { ...payload, policyType: "administrative", scope: "local", authority: "government", description: `Auto-created policy: ${name}` };
+          payload = {
+            ...payload,
+            policyType: "administrative",
+            scope: "local",
+            authority: "government",
+            description: `Auto-created policy: ${name}`,
+          };
           break;
         case "potion":
-          payload = { ...payload, potionType: "healing", rarity: "common", effects: ["healing"], description: `Auto-created potion: ${name}` };
+          payload = {
+            ...payload,
+            potionType: "healing",
+            rarity: "common",
+            effects: ["healing"],
+            description: `Auto-created potion: ${name}`,
+          };
           break;
         case "profession":
-          payload = { 
-            ...payload, 
-            professionType: "general", 
+          payload = {
+            ...payload,
+            professionType: "general",
             description: `Auto-created profession: ${name}`,
             skillsRequired: [],
             responsibilities: "Various duties related to " + name.toLowerCase(),
@@ -237,67 +405,77 @@ export function AutocompleteField({
             mentalDemands: "Moderate",
             commonTools: [],
             relatedProfessions: [],
-            seasonalWork: false
+            seasonalWork: false,
           };
           break;
         case "condition":
-          payload = { 
-            ...payload, 
-            conditionType: "disease", 
+          payload = {
+            ...payload,
+            conditionType: "disease",
             description: `Auto-created condition: ${name}`,
             severity: "moderate",
             symptoms: [],
             treatment: "Unknown",
             duration: "varies",
-            contagious: false
+            contagious: false,
           };
           break;
         default:
-          payload = { ...payload, description: `Auto-created ${contentType}: ${name}` };
+          payload = {
+            ...payload,
+            description: `Auto-created ${contentType}: ${name}`,
+          };
       }
-      
+
       // Add notebookId to payload - required for all content creation
       if (activeNotebookId) {
         payload.notebookId = activeNotebookId;
       }
-      
+
       // Send POST request with credentials for authentication
       const response = await fetch(`/api/${apiEndpoint}`, {
-        method: 'POST',
-        credentials: 'include',
+        method: "POST",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
       return await response.json();
     },
     onSuccess: async (newItem) => {
       // Invalidate queries to refresh the search results
       queryClient.invalidateQueries({ queryKey: [`/api/${apiEndpoint}`] });
-      
+
       // Save the newly created item to the notebook's saved_items
       if (activeNotebookId && newItem.id) {
         try {
-          await apiRequest('POST', '/api/saved-items', {
+          await apiRequest("POST", "/api/saved-items", {
             itemType: contentType,
             itemId: newItem.id,
             notebookId: activeNotebookId,
-            itemData: newItem
+            itemData: newItem,
           });
-          
+
           // Invalidate saved items queries so notebook view refreshes
-          queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
+          queryClient.invalidateQueries({ queryKey: ["/api/saved-items"] });
         } catch (error) {
-          console.warn('Failed to save new item to notebook:', error);
+          console.warn("Failed to save new item to notebook:", error);
           // Don't block the user flow if saving fails
         }
       }
-      
+
       // Add the new item to current selection
-      const newValue = multiple 
-        ? [...currentValues, (contentType === "profession" || contentType === "condition") ? newItem.id : newItem.name]
-        : (contentType === "profession" || contentType === "condition") ? newItem.id : newItem.name;
+      const newValue = multiple
+        ? [
+            ...currentValues,
+            contentType === "profession" || contentType === "condition"
+              ? newItem.id
+              : newItem.name,
+          ]
+        : contentType === "profession" || contentType === "condition"
+          ? newItem.id
+          : newItem.name;
       onChange(newValue);
       setSearchValue("");
       setOpen(false);
@@ -307,16 +485,18 @@ export function AutocompleteField({
   const handleSelect = (itemName: string) => {
     // Clear search value first to reset UI state
     setSearchValue("");
-    
+
     if (multiple) {
       if (contentType === "profession" || contentType === "condition") {
         // For professions and conditions in multiple mode, work with IDs
-        const selectedItem = items.find((item: AutocompleteOption) => item.name === itemName);
+        const selectedItem = items.find(
+          (item: AutocompleteOption) => item.name === itemName,
+        );
         const itemId = selectedItem ? selectedItem.id : itemName;
-        
+
         if (currentValues.includes(itemId)) {
           // Remove if already selected
-          onChange(currentValues.filter(v => v !== itemId));
+          onChange(currentValues.filter((v) => v !== itemId));
         } else {
           // Add to selection
           onChange([...currentValues, itemId]);
@@ -325,7 +505,7 @@ export function AutocompleteField({
         // For other content types, use names
         if (currentValues.includes(itemName)) {
           // Remove if already selected
-          onChange(currentValues.filter(v => v !== itemName));
+          onChange(currentValues.filter((v) => v !== itemName));
         } else {
           // Add to selection
           onChange([...currentValues, itemName]);
@@ -334,11 +514,17 @@ export function AutocompleteField({
     } else {
       // For location-type, use the value instead of label if available
       if (contentType === "location-type" && options) {
-        const selectedOption = options.find(opt => opt.label === itemName);
+        const selectedOption = options.find((opt) => opt.label === itemName);
         onChange(selectedOption ? selectedOption.value : itemName);
-      } else if (contentType === "profession" || contentType === "species" || contentType === "condition") {
+      } else if (
+        contentType === "profession" ||
+        contentType === "species" ||
+        contentType === "condition"
+      ) {
         // For professions, species, and conditions, store the ID but display the name
-        const selectedItem = items.find((item: AutocompleteOption) => item.name === itemName);
+        const selectedItem = items.find(
+          (item: AutocompleteOption) => item.name === itemName,
+        );
         const newValue = selectedItem ? selectedItem.id : itemName;
         onChange(newValue);
       } else {
@@ -350,7 +536,7 @@ export function AutocompleteField({
 
   const handleRemove = (itemName: string) => {
     if (multiple) {
-      onChange(currentValues.filter(v => v !== itemName));
+      onChange(currentValues.filter((v) => v !== itemName));
     } else {
       onChange("");
     }
@@ -364,18 +550,23 @@ export function AutocompleteField({
 
   // Helper function to get display name for a value
   const getDisplayName = (val: string) => {
-    if ((contentType === 'profession' || contentType === 'species' || contentType === 'condition') && isUUID(val)) {
+    if (
+      (contentType === "profession" ||
+        contentType === "species" ||
+        contentType === "condition") &&
+      isUUID(val)
+    ) {
       // Try resolved names cache first
       if (resolvedNames[val]) {
         return resolvedNames[val];
       }
-      
+
       // Fall back to items array for newly selected items
       const item = items.find((item: AutocompleteOption) => item.id === val);
       if (item) {
         return item.name;
       }
-      
+
       return val;
     }
     return val;
@@ -384,25 +575,34 @@ export function AutocompleteField({
   // Filter out already selected items - need to handle both names and IDs
   const availableItems = (items || []).filter((item: AutocompleteOption) => {
     if (!item || !item.name) return false;
-    
+
     // For professions, species, and conditions, check against both names and resolved IDs
-    if (contentType === 'profession' || contentType === 'species' || contentType === 'condition') {
-      return !currentValues.includes(item.name) && !currentValues.includes(item.id);
-    };
-    
+    if (
+      contentType === "profession" ||
+      contentType === "species" ||
+      contentType === "condition"
+    ) {
+      return (
+        !currentValues.includes(item.name) && !currentValues.includes(item.id)
+      );
+    }
+
     return !currentValues.includes(item.name);
   });
 
   // Check if search value exactly matches existing item
-  const exactMatch = (items || []).find((item: AutocompleteOption) => 
-    item && item.name && item.name.toLowerCase() === searchValue.toLowerCase()
+  const exactMatch = (items || []).find(
+    (item: AutocompleteOption) =>
+      item &&
+      item.name &&
+      item.name.toLowerCase() === searchValue.toLowerCase(),
   );
 
   // Don't show create option for static content types like location-type
-  const showCreateOption = contentType !== "location-type" && (
-    (searchValue.trim() && !exactMatch) || // Show when typing and no exact match
-    (!searchValue.trim() && (items || []).length === 0) // Show when empty and no items exist
-  );
+  const showCreateOption =
+    contentType !== "location-type" &&
+    ((searchValue.trim() && !exactMatch) || // Show when typing and no exact match
+      (!searchValue.trim() && (items || []).length === 0)); // Show when empty and no items exist
 
   return (
     <div className={cn("space-y-2", className)}>
@@ -443,10 +643,9 @@ export function AutocompleteField({
             data-testid={`button-${contentType}-autocomplete`}
           >
             <span className="truncate">
-              {!multiple && currentValues.length > 0 
+              {!multiple && currentValues.length > 0
                 ? getDisplayName(currentValues[0])
-                : placeholder
-              }
+                : placeholder}
             </span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -461,15 +660,17 @@ export function AutocompleteField({
             />
             <CommandList>
               <CommandEmpty>
-                {isLoading ? "Searching..." : 
-                  searchValue.trim() 
+                {isLoading
+                  ? "Searching..."
+                  : searchValue.trim()
                     ? `No ${getPluralForm(contentType)} match "${searchValue}".`
-                    : `No ${getPluralForm(contentType)} found. Type to create a new one.`
-                }
+                    : `No ${getPluralForm(contentType)} found. Type to create a new one.`}
               </CommandEmpty>
-              
+
               {availableItems.length > 0 && (
-                <CommandGroup heading={`Existing ${getPluralForm(contentType)}`}>
+                <CommandGroup
+                  heading={`Existing ${getPluralForm(contentType)}`}
+                >
                   {availableItems.map((item: AutocompleteOption) => (
                     <CommandItem
                       key={item.id}
@@ -480,9 +681,9 @@ export function AutocompleteField({
                       <Check
                         className={cn(
                           "mr-2 h-4 w-4",
-                          currentValues.includes(item.name) 
-                            ? "opacity-100" 
-                            : "opacity-0"
+                          currentValues.includes(item.name)
+                            ? "opacity-100"
+                            : "opacity-0",
                         )}
                       />
                       <div className="flex flex-col">
@@ -507,12 +708,11 @@ export function AutocompleteField({
                     data-testid={`option-create-${contentType}`}
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                    {createMutation.isPending 
+                    {createMutation.isPending
                       ? `Creating ${searchValue}...`
                       : searchValue.trim()
                         ? `Create "${searchValue}"`
-                        : `Type a name to create new ${contentType}`
-                    }
+                        : `Type a name to create new ${contentType}`}
                   </CommandItem>
                 </CommandGroup>
               )}

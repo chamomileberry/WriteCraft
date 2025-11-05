@@ -1,23 +1,36 @@
-import { useQuery } from '@tanstack/react-query';
-import { useSubscription } from '@/hooks/useSubscription';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Infinity } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useQuery } from "@tanstack/react-query";
+import { useSubscription } from "@/hooks/useSubscription";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { AlertCircle, Infinity } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface UsageIndicatorProps {
-  type: 'ai_generations';
+  type: "ai_generations";
   showLabel?: boolean;
   compact?: boolean;
 }
 
-export function UsageIndicator({ type, showLabel = true, compact = false }: UsageIndicatorProps) {
+export function UsageIndicator({
+  type,
+  showLabel = true,
+  compact = false,
+}: UsageIndicatorProps) {
   const { subscription, getMaxLimit } = useSubscription();
 
   // Fetch AI usage stats
-  const { data: usage, isLoading } = useQuery<{ count: number; limit: number | null; remaining: number | null }>({
-    queryKey: ['/api/subscription/usage', type],
-    enabled: type === 'ai_generations',
+  const { data: usage, isLoading } = useQuery<{
+    count: number;
+    limit: number | null;
+    remaining: number | null;
+  }>({
+    queryKey: ["/api/subscription/usage", type],
+    enabled: type === "ai_generations",
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
@@ -25,7 +38,7 @@ export function UsageIndicator({ type, showLabel = true, compact = false }: Usag
     return null;
   }
 
-  const limits = getMaxLimit('ai_generations');
+  const limits = getMaxLimit("ai_generations");
 
   if (limits.unlimited) {
     return (
@@ -33,7 +46,11 @@ export function UsageIndicator({ type, showLabel = true, compact = false }: Usag
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex items-center gap-2">
-              {showLabel && <span className="text-sm text-muted-foreground">AI Generations:</span>}
+              {showLabel && (
+                <span className="text-sm text-muted-foreground">
+                  AI Generations:
+                </span>
+              )}
               <Badge variant="secondary" className="gap-1">
                 <Infinity className="h-3 w-3" />
                 Unlimited
@@ -61,7 +78,13 @@ export function UsageIndicator({ type, showLabel = true, compact = false }: Usag
         <Tooltip>
           <TooltipTrigger asChild>
             <Badge
-              variant={isAtLimit ? 'destructive' : isNearLimit ? 'secondary' : 'outline'}
+              variant={
+                isAtLimit
+                  ? "destructive"
+                  : isNearLimit
+                    ? "secondary"
+                    : "outline"
+              }
               className="gap-1"
               data-testid="badge-ai-usage-compact"
             >
@@ -71,7 +94,8 @@ export function UsageIndicator({ type, showLabel = true, compact = false }: Usag
           </TooltipTrigger>
           <TooltipContent>
             <p>
-              {remaining} AI generation{remaining !== 1 ? 's' : ''} remaining today
+              {remaining} AI generation{remaining !== 1 ? "s" : ""} remaining
+              today
             </p>
           </TooltipContent>
         </Tooltip>
@@ -83,9 +107,7 @@ export function UsageIndicator({ type, showLabel = true, compact = false }: Usag
     <div className="space-y-2" data-testid="usage-indicator-ai">
       <div className="flex items-center justify-between gap-4">
         {showLabel && (
-          <span className="text-sm font-medium">
-            AI Generations Today
-          </span>
+          <span className="text-sm font-medium">AI Generations Today</span>
         )}
         <span className="text-sm text-muted-foreground">
           {count} / {limit}
@@ -93,14 +115,16 @@ export function UsageIndicator({ type, showLabel = true, compact = false }: Usag
       </div>
       <Progress
         value={percentage}
-        className={isAtLimit ? 'bg-destructive/20' : isNearLimit ? 'bg-warning/20' : ''}
+        className={
+          isAtLimit ? "bg-destructive/20" : isNearLimit ? "bg-warning/20" : ""
+        }
       />
       {isNearLimit && (
         <p className="text-xs text-muted-foreground flex items-center gap-1">
           <AlertCircle className="h-3 w-3" />
           {isAtLimit
-            ? 'Daily limit reached. Upgrade for unlimited generations.'
-            : `${remaining} generation${remaining !== 1 ? 's' : ''} remaining today.`}
+            ? "Daily limit reached. Upgrade for unlimited generations."
+            : `${remaining} generation${remaining !== 1 ? "s" : ""} remaining today.`}
         </p>
       )}
     </div>

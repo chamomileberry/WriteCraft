@@ -1,7 +1,36 @@
-import { Search, BookOpen, Menu, Moon, Sun, Plus, StickyNote, Sparkles, User, Settings, ChevronDown, Upload, HelpCircle, Inbox, MessageSquare, Shield, Tag, Ban, FileText, Users, LogOut } from "lucide-react";
+import {
+  Search,
+  BookOpen,
+  Menu,
+  Moon,
+  Sun,
+  Plus,
+  StickyNote,
+  Sparkles,
+  User,
+  Settings,
+  ChevronDown,
+  Upload,
+  HelpCircle,
+  Inbox,
+  MessageSquare,
+  Shield,
+  Tag,
+  Ban,
+  FileText,
+  Users,
+  LogOut,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useState, useEffect } from "react";
@@ -22,10 +51,16 @@ interface HeaderProps {
   onCreateNew?: () => void;
 }
 
-export default function Header({ onSearch, searchQuery = "", onNavigate, onCreateNew }: HeaderProps) {
+export default function Header({
+  onSearch,
+  searchQuery = "",
+  onNavigate,
+  onCreateNew,
+}: HeaderProps) {
   const { isDark, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobileGeneratorsExpanded, setIsMobileGeneratorsExpanded] = useState(false);
+  const [isMobileGeneratorsExpanded, setIsMobileGeneratorsExpanded] =
+    useState(false);
   const [activeGenerator, setActiveGenerator] = useState<GeneratorType>(null);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -33,18 +68,36 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
   const { user } = useAuth();
   const { tier } = useSubscription();
 
-  const { toggleQuickNote, isQuickNoteOpen, addPanel, findPanel, focusPanel, updatePanel, openMobileDrawer, restorePanel, isInManuscriptEditor } = useWorkspaceStore();
+  const {
+    toggleQuickNote,
+    isQuickNoteOpen,
+    addPanel,
+    findPanel,
+    focusPanel,
+    updatePanel,
+    openMobileDrawer,
+    restorePanel,
+    isInManuscriptEditor,
+  } = useWorkspaceStore();
 
-  const { isMobile: isWorkspaceMobile, hasPanels, MobileMenuButton } = useMobileWorkspaceMenu();
+  const {
+    isMobile: isWorkspaceMobile,
+    hasPanels,
+    MobileMenuButton,
+  } = useMobileWorkspaceMenu();
   const isMobile = useIsMobile();
 
-  const userInitials = user ? `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase() || user.email?.[0]?.toUpperCase() || "U" : "U";
+  const userInitials = user
+    ? `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase() ||
+      user.email?.[0]?.toUpperCase() ||
+      "U"
+    : "U";
 
   const openWritingAssistant = () => {
-    const existingPanel = findPanel('writingAssistant', 'writing-assistant');
+    const existingPanel = findPanel("writingAssistant", "writing-assistant");
 
     if (existingPanel) {
-      if (existingPanel.mode === 'docked') {
+      if (existingPanel.mode === "docked") {
         if (existingPanel.minimized) {
           restorePanel(existingPanel.id);
         }
@@ -54,11 +107,14 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
         }
         return;
       }
-      if (existingPanel.mode === 'tabbed' || existingPanel.mode === 'floating') {
+      if (
+        existingPanel.mode === "tabbed" ||
+        existingPanel.mode === "floating"
+      ) {
         updatePanel(existingPanel.id, {
-          mode: 'docked',
-          regionId: 'docked',
-          minimized: false
+          mode: "docked",
+          regionId: "docked",
+          minimized: false,
         });
         if (isWorkspaceMobile) {
           openMobileDrawer();
@@ -69,12 +125,12 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
 
     addPanel({
       id: `writing-assistant-${Date.now()}`,
-      type: 'writingAssistant' as const,
-      title: 'Writing Assistant',
-      mode: 'docked' as const,
-      regionId: 'docked' as const,
+      type: "writingAssistant" as const,
+      title: "Writing Assistant",
+      mode: "docked" as const,
+      regionId: "docked" as const,
       size: { width: 400, height: 600 },
-      entityId: 'writing-assistant',
+      entityId: "writing-assistant",
     });
 
     if (isWorkspaceMobile) {
@@ -87,13 +143,15 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
 
     const fetchUnreadCount = async () => {
       try {
-        const res = await fetch('/api/inbox/unread-count', { credentials: 'include' });
+        const res = await fetch("/api/inbox/unread-count", {
+          credentials: "include",
+        });
         if (res.ok) {
           const data = await res.json();
           setUnreadCount(data.count || 0);
         }
       } catch (error) {
-        console.error('Failed to fetch unread count:', error);
+        console.error("Failed to fetch unread count:", error);
       }
     };
 
@@ -104,42 +162,46 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
 
   return (
     <header className="bg-background border-b border-border sticky top-0 z-40">
-      <div className={`px-4 sm:px-6 lg:px-8 ${isMobile ? 'h-14' : 'h-16'}`}>
+      <div className={`px-4 sm:px-6 lg:px-8 ${isMobile ? "h-14" : "h-16"}`}>
         <div className="flex items-center justify-between gap-2 h-full">
           <button
-            onClick={() => setLocation('/')}
+            onClick={() => setLocation("/")}
             className="flex items-center gap-2 hover:opacity-80 transition-opacity flex-shrink-0"
             data-testid="button-logo-home"
           >
             <BookOpen className="h-7 w-7 text-primary flex-shrink-0" />
-            <h1 className={`font-serif font-bold text-foreground whitespace-nowrap ${isMobile ? 'text-lg' : 'text-lg lg:text-xl'}`}>WriteCraft</h1>
+            <h1
+              className={`font-serif font-bold text-foreground whitespace-nowrap ${isMobile ? "text-lg" : "text-lg lg:text-xl"}`}
+            >
+              WriteCraft
+            </h1>
           </button>
 
           <nav className="hidden md:flex items-center gap-8 flex-shrink-0">
             <GeneratorDropdown onSelectGenerator={setActiveGenerator} />
             <button
-              onClick={() => setLocation('/guides')}
+              onClick={() => setLocation("/guides")}
               className="text-foreground hover:text-primary transition-colors whitespace-nowrap"
               data-testid="link-guides"
             >
               Guides
             </button>
             <button
-              onClick={() => onNavigate?.('notebook')}
+              onClick={() => onNavigate?.("notebook")}
               className="text-foreground hover:text-primary transition-colors whitespace-nowrap"
               data-testid="link-notebook"
             >
               Notebook
             </button>
             <button
-              onClick={() => onNavigate?.('projects')}
+              onClick={() => onNavigate?.("projects")}
               className="text-foreground hover:text-primary transition-colors whitespace-nowrap"
               data-testid="link-projects"
             >
               Projects
             </button>
             <button
-              onClick={() => setLocation('/canvases')}
+              onClick={() => setLocation("/canvases")}
               className="text-foreground hover:text-primary transition-colors whitespace-nowrap"
               data-testid="link-canvases"
             >
@@ -164,7 +226,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setLocation('/inbox')}
+              onClick={() => setLocation("/inbox")}
               className="relative"
               data-testid="button-inbox"
               title="Inbox"
@@ -173,7 +235,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               <Inbox className="h-4 w-4" />
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-                  {unreadCount > 9 ? '9+' : unreadCount}
+                  {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
             </Button>
@@ -193,7 +255,7 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               variant="ghost"
               size="icon"
               onClick={toggleQuickNote}
-              className={`${isQuickNoteOpen() ? 'bg-primary/10 text-primary' : ''}`}
+              className={`${isQuickNoteOpen() ? "bg-primary/10 text-primary" : ""}`}
               data-testid="button-quick-note"
               title="Quick Note"
               aria-label="Quick Note"
@@ -207,8 +269,9 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               onClick={openWritingAssistant}
               className="hover:bg-primary/10 hover:text-primary"
               style={{
-                background: 'linear-gradient(135deg, hsl(270, 75%, 75%) 0%, hsl(255, 69%, 71%) 100%)',
-                color: 'white'
+                background:
+                  "linear-gradient(135deg, hsl(270, 75%, 75%) 0%, hsl(255, 69%, 71%) 100%)",
+                color: "white",
               }}
               data-testid="button-writing-assistant"
               title="Writing Assistant"
@@ -223,17 +286,27 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
               onClick={toggleTheme}
               data-testid="button-theme-toggle"
             >
-              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {isDark ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
             </Button>
 
             <BillingAlertsDropdown />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" data-testid="button-user-menu">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  data-testid="button-user-menu"
+                >
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={user?.profileImageUrl || undefined} />
-                    <AvatarFallback className="text-xs">{userInitials}</AvatarFallback>
+                    <AvatarFallback className="text-xs">
+                      {userInitials}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
@@ -249,22 +322,34 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setLocation('/import')} data-testid="menu-import">
+                <DropdownMenuItem
+                  onClick={() => setLocation("/import")}
+                  data-testid="menu-import"
+                >
                   <Upload className="mr-2 h-4 w-4" />
                   <span>Import</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLocation('/help')} data-testid="menu-help-support">
+                <DropdownMenuItem
+                  onClick={() => setLocation("/help")}
+                  data-testid="menu-help-support"
+                >
                   <HelpCircle className="mr-2 h-4 w-4" />
                   <span>Help & Support</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLocation('/account')} data-testid="menu-account-settings">
+                <DropdownMenuItem
+                  onClick={() => setLocation("/account")}
+                  data-testid="menu-account-settings"
+                >
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Account Settings</span>
                 </DropdownMenuItem>
-                {tier === 'team' && (
+                {tier === "team" && (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setLocation('/team')} data-testid="menu-team-management">
+                    <DropdownMenuItem
+                      onClick={() => setLocation("/team")}
+                      data-testid="menu-team-management"
+                    >
                       <Users className="mr-2 h-4 w-4" />
                       <span>Team Management</span>
                     </DropdownMenuItem>
@@ -274,23 +359,38 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuLabel>Admin Tools</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => setLocation('/admin/security')} data-testid="menu-admin-security">
+                    <DropdownMenuItem
+                      onClick={() => setLocation("/admin/security")}
+                      data-testid="menu-admin-security"
+                    >
                       <Shield className="mr-2 h-4 w-4" />
                       <span>Security Dashboard</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setLocation('/admin/feedback')} data-testid="menu-admin-feedback">
+                    <DropdownMenuItem
+                      onClick={() => setLocation("/admin/feedback")}
+                      data-testid="menu-admin-feedback"
+                    >
                       <MessageSquare className="mr-2 h-4 w-4" />
                       <span>Feedback Management</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setLocation('/admin/discount-codes')} data-testid="menu-admin-discounts">
+                    <DropdownMenuItem
+                      onClick={() => setLocation("/admin/discount-codes")}
+                      data-testid="menu-admin-discounts"
+                    >
                       <Tag className="mr-2 h-4 w-4" />
                       <span>Discount Codes</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setLocation('/admin/guide-categories')} data-testid="menu-admin-guide-categories">
+                    <DropdownMenuItem
+                      onClick={() => setLocation("/admin/guide-categories")}
+                      data-testid="menu-admin-guide-categories"
+                    >
                       <FileText className="mr-2 h-4 w-4" />
                       <span>Guide Categories</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setLocation('/admin/banned-phrases')} data-testid="menu-admin-banned-phrases">
+                    <DropdownMenuItem
+                      onClick={() => setLocation("/admin/banned-phrases")}
+                      data-testid="menu-admin-banned-phrases"
+                    >
                       <Ban className="mr-2 h-4 w-4" />
                       <span>Banned Phrases</span>
                     </DropdownMenuItem>
@@ -302,15 +402,15 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
                     event.preventDefault();
                     // Use POST endpoint for secure logout with CSRF protection
                     try {
-                      await fetch('/api/auth/logout', {
-                        method: 'POST',
-                        credentials: 'include',
+                      await fetch("/api/auth/logout", {
+                        method: "POST",
+                        credentials: "include",
                       });
-                      window.location.href = '/';
+                      window.location.href = "/";
                     } catch (error) {
-                      console.error('Logout failed:', error);
+                      console.error("Logout failed:", error);
                       // Fallback to GET endpoint if POST fails
-                      window.location.href = '/api/logout';
+                      window.location.href = "/api/logout";
                     }
                   }}
                   data-testid="menu-logout"
@@ -323,11 +423,12 @@ export default function Header({ onSearch, searchQuery = "", onNavigate, onCreat
             </DropdownMenu>
 
             {/* Mobile workspace menu button - only show when there are workspace panels */}
-            {isWorkspaceMobile && hasPanels && isInManuscriptEditor() && <MobileMenuButton />}
+            {isWorkspaceMobile && hasPanels && isInManuscriptEditor() && (
+              <MobileMenuButton />
+            )}
           </div>
         </div>
       </div>
-
 
       <GeneratorModals
         activeGenerator={activeGenerator}

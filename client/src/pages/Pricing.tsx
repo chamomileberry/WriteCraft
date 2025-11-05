@@ -1,21 +1,33 @@
-import { useState } from 'react';
-import { useLocation } from 'wouter';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Check, Sparkles, Users, Zap } from 'lucide-react';
-import { TIER_LIMITS, type SubscriptionTier } from '@shared/types/subscription';
-import { useSubscription } from '@/hooks/useSubscription';
-import { useAuth } from '@/hooks/useAuth';
-import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-import { FeatureTooltip } from '@/components/FeatureTooltip';
-import { FEATURE_DESCRIPTIONS } from '@/lib/featureDescriptions';
-import { PlanPreviewDialog } from '@/components/PlanPreviewDialog';
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Check, Sparkles, Users, Zap } from "lucide-react";
+import { TIER_LIMITS, type SubscriptionTier } from "@shared/types/subscription";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { FeatureTooltip } from "@/components/FeatureTooltip";
+import { FEATURE_DESCRIPTIONS } from "@/lib/featureDescriptions";
+import { PlanPreviewDialog } from "@/components/PlanPreviewDialog";
 
-const TIER_ORDER: SubscriptionTier[] = ['free', 'author', 'professional', 'team'];
+const TIER_ORDER: SubscriptionTier[] = [
+  "free",
+  "author",
+  "professional",
+  "team",
+];
 
 const TIER_ICONS = {
   free: Sparkles,
@@ -25,10 +37,10 @@ const TIER_ICONS = {
 };
 
 const TIER_HIGHLIGHTS = {
-  free: 'Perfect for trying out WriteCraft',
-  author: 'Everything you need to write your next bestseller',
-  professional: 'Advanced features for serious writers',
-  team: 'Collaborate with your writing team',
+  free: "Perfect for trying out WriteCraft",
+  author: "Everything you need to write your next bestseller",
+  professional: "Advanced features for serious writers",
+  team: "Collaborate with your writing team",
 };
 
 export default function Pricing() {
@@ -43,12 +55,12 @@ export default function Pricing() {
 
   const handleUpgrade = async (tier: SubscriptionTier) => {
     if (!user) {
-      setLocation('/');
+      setLocation("/");
       return;
     }
 
-    if (tier === 'free') {
-      setLocation('/dashboard');
+    if (tier === "free") {
+      setLocation("/dashboard");
       return;
     }
 
@@ -63,9 +75,9 @@ export default function Pricing() {
     setLoadingTier(previewTier);
 
     try {
-      const response = await apiRequest('POST', '/api/stripe/create-checkout', {
+      const response = await apiRequest("POST", "/api/stripe/create-checkout", {
         tier: previewTier,
-        billingCycle: isAnnual ? 'annual' : 'monthly',
+        billingCycle: isAnnual ? "annual" : "monthly",
         ...(discountCode && { discountCode }),
       });
 
@@ -74,27 +86,28 @@ export default function Pricing() {
       }
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to start checkout. Please try again.',
-        variant: 'destructive',
+        title: "Error",
+        description:
+          error.message || "Failed to start checkout. Please try again.",
+        variant: "destructive",
       });
       setLoadingTier(null);
     }
   };
 
   const getButtonText = (tier: SubscriptionTier) => {
-    if (!user) return 'Sign in to upgrade';
-    if (subscription?.tier === tier) return 'Current plan';
-    if (tier === 'free') return 'Get started';
-    return 'Upgrade';
+    if (!user) return "Sign in to upgrade";
+    if (subscription?.tier === tier) return "Current plan";
+    if (tier === "free") return "Get started";
+    return "Upgrade";
   };
 
   const isCurrentTier = (tier: SubscriptionTier) => subscription?.tier === tier;
 
   const formatPrice = (tier: SubscriptionTier) => {
     const limits = TIER_LIMITS[tier];
-    if (limits.price === 0) return 'Free';
-    
+    if (limits.price === 0) return "Free";
+
     const price = isAnnual ? limits.annualPrice / 12 : limits.price;
     return `$${price.toFixed(0)}`;
   };
@@ -102,11 +115,11 @@ export default function Pricing() {
   const getSavingsText = (tier: SubscriptionTier) => {
     const limits = TIER_LIMITS[tier];
     if (!isAnnual || limits.price === 0) return null;
-    
+
     const monthlyCost = limits.price * 12;
     const savings = monthlyCost - limits.annualPrice;
     const percentage = Math.round((savings / monthlyCost) * 100);
-    
+
     return `Save ${percentage}%`;
   };
 
@@ -115,14 +128,19 @@ export default function Pricing() {
       <div className="container mx-auto px-4 py-16">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Choose Your Writing Journey</h1>
+          <h1 className="text-4xl font-bold mb-4">
+            Choose Your Writing Journey
+          </h1>
           <p className="text-lg text-muted-foreground mb-8">
             Start free, upgrade when you need more power
           </p>
 
           {/* Billing Toggle */}
           <div className="flex items-center justify-center gap-3">
-            <Label htmlFor="billing-toggle" className={!isAnnual ? 'font-semibold' : ''}>
+            <Label
+              htmlFor="billing-toggle"
+              className={!isAnnual ? "font-semibold" : ""}
+            >
               Monthly
             </Label>
             <Switch
@@ -131,7 +149,10 @@ export default function Pricing() {
               checked={isAnnual}
               onCheckedChange={setIsAnnual}
             />
-            <Label htmlFor="billing-toggle" className={isAnnual ? 'font-semibold' : ''}>
+            <Label
+              htmlFor="billing-toggle"
+              className={isAnnual ? "font-semibold" : ""}
+            >
               Annual
             </Label>
             <Badge variant="secondary" className="ml-2">
@@ -153,18 +174,24 @@ export default function Pricing() {
               <Card
                 key={tier}
                 className={`relative ${
-                  tier === 'professional' ? 'border-primary shadow-lg' : ''
-                } ${isCurrent ? 'ring-2 ring-primary' : ''}`}
+                  tier === "professional" ? "border-primary shadow-lg" : ""
+                } ${isCurrent ? "ring-2 ring-primary" : ""}`}
                 data-testid={`card-pricing-${tier}`}
               >
-                {tier === 'professional' && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2" variant="default">
+                {tier === "professional" && (
+                  <Badge
+                    className="absolute -top-3 left-1/2 -translate-x-1/2"
+                    variant="default"
+                  >
                     Most Popular
                   </Badge>
                 )}
 
                 {isCurrent && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2" variant="secondary">
+                  <Badge
+                    className="absolute -top-3 left-1/2 -translate-x-1/2"
+                    variant="secondary"
+                  >
                     Current Plan
                   </Badge>
                 )}
@@ -179,7 +206,9 @@ export default function Pricing() {
                   </CardDescription>
                   <div className="mt-4">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold">{formatPrice(tier)}</span>
+                      <span className="text-3xl font-bold">
+                        {formatPrice(tier)}
+                      </span>
                       {limits.price > 0 && (
                         <span className="text-muted-foreground">/month</span>
                       )}
@@ -206,7 +235,10 @@ export default function Pricing() {
                     >
                       <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                       <span className="text-sm">
-                        {limits.maxProjects === null ? 'Unlimited' : limits.maxProjects} projects
+                        {limits.maxProjects === null
+                          ? "Unlimited"
+                          : limits.maxProjects}{" "}
+                        projects
                       </span>
                     </FeatureTooltip>
 
@@ -217,18 +249,27 @@ export default function Pricing() {
                     >
                       <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                       <span className="text-sm">
-                        {limits.maxNotebooks === null ? 'Unlimited' : limits.maxNotebooks} notebook{limits.maxNotebooks === 1 ? '' : 's'} per project
+                        {limits.maxNotebooks === null
+                          ? "Unlimited"
+                          : limits.maxNotebooks}{" "}
+                        notebook{limits.maxNotebooks === 1 ? "" : "s"} per
+                        project
                       </span>
                     </FeatureTooltip>
 
                     <FeatureTooltip
                       title={FEATURE_DESCRIPTIONS.aiGenerations.title}
-                      description={FEATURE_DESCRIPTIONS.aiGenerations.description}
+                      description={
+                        FEATURE_DESCRIPTIONS.aiGenerations.description
+                      }
                       comparison={FEATURE_DESCRIPTIONS.aiGenerations.comparison}
                     >
                       <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                       <span className="text-sm">
-                        {limits.aiGenerationsPerDay === null ? 'Unlimited' : limits.aiGenerationsPerDay} AI generations/day
+                        {limits.aiGenerationsPerDay === null
+                          ? "Unlimited"
+                          : limits.aiGenerationsPerDay}{" "}
+                        AI generations/day
                       </span>
                     </FeatureTooltip>
 
@@ -238,17 +279,25 @@ export default function Pricing() {
                         <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                         <div className="text-sm">
                           <span className="font-medium">Polish</span>
-                          <span className="text-muted-foreground"> ({limits.polishUsesPerMonth}/month) - Premium AI enhancement</span>
+                          <span className="text-muted-foreground">
+                            {" "}
+                            ({limits.polishUsesPerMonth}/month) - Premium AI
+                            enhancement
+                          </span>
                         </div>
                       </div>
                     )}
-                    
+
                     {limits.extendedThinkingPerMonth > 0 && (
                       <div className="flex items-start gap-2">
                         <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                         <div className="text-sm">
                           <span className="font-medium">Extended Thinking</span>
-                          <span className="text-muted-foreground"> ({limits.extendedThinkingPerMonth}/month) - Deep AI reasoning</span>
+                          <span className="text-muted-foreground">
+                            {" "}
+                            ({limits.extendedThinkingPerMonth}/month) - Deep AI
+                            reasoning
+                          </span>
                         </div>
                       </div>
                     )}
@@ -256,12 +305,17 @@ export default function Pricing() {
                     {limits.hasCollaboration && (
                       <FeatureTooltip
                         title={FEATURE_DESCRIPTIONS.collaboration.title}
-                        description={FEATURE_DESCRIPTIONS.collaboration.description}
-                        comparison={FEATURE_DESCRIPTIONS.collaboration.comparison}
+                        description={
+                          FEATURE_DESCRIPTIONS.collaboration.description
+                        }
+                        comparison={
+                          FEATURE_DESCRIPTIONS.collaboration.comparison
+                        }
                       >
                         <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                         <span className="text-sm">
-                          {limits.maxTeamMembers} team member{limits.maxTeamMembers === 1 ? '' : 's'}
+                          {limits.maxTeamMembers} team member
+                          {limits.maxTeamMembers === 1 ? "" : "s"}
                         </span>
                       </FeatureTooltip>
                     )}
@@ -280,8 +334,12 @@ export default function Pricing() {
                     {limits.hasPrioritySupport && (
                       <FeatureTooltip
                         title={FEATURE_DESCRIPTIONS.prioritySupport.title}
-                        description={FEATURE_DESCRIPTIONS.prioritySupport.description}
-                        comparison={FEATURE_DESCRIPTIONS.prioritySupport.comparison}
+                        description={
+                          FEATURE_DESCRIPTIONS.prioritySupport.description
+                        }
+                        comparison={
+                          FEATURE_DESCRIPTIONS.prioritySupport.comparison
+                        }
                       >
                         <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                         <span className="text-sm">Priority support</span>
@@ -289,22 +347,30 @@ export default function Pricing() {
                     )}
 
                     {/* Team tier exclusive features */}
-                    {tier === 'team' && (
+                    {tier === "team" && (
                       <>
                         <div className="border-t my-3 pt-3">
-                          <p className="text-xs font-semibold text-muted-foreground mb-2">TEAM EXCLUSIVE</p>
+                          <p className="text-xs font-semibold text-muted-foreground mb-2">
+                            TEAM EXCLUSIVE
+                          </p>
                         </div>
                         <div className="flex items-start gap-2">
                           <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                          <span className="text-sm">Role-based access control</span>
+                          <span className="text-sm">
+                            Role-based access control
+                          </span>
                         </div>
                         <div className="flex items-start gap-2">
                           <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                          <span className="text-sm">Audit logs & compliance</span>
+                          <span className="text-sm">
+                            Audit logs & compliance
+                          </span>
                         </div>
                         <div className="flex items-start gap-2">
                           <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                          <span className="text-sm">Team analytics dashboard</span>
+                          <span className="text-sm">
+                            Team analytics dashboard
+                          </span>
                         </div>
                         <div className="flex items-start gap-2">
                           <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
@@ -315,13 +381,16 @@ export default function Pricing() {
 
                     <FeatureTooltip
                       title={FEATURE_DESCRIPTIONS.exportFormats.title}
-                      description={FEATURE_DESCRIPTIONS.exportFormats.description}
+                      description={
+                        FEATURE_DESCRIPTIONS.exportFormats.description
+                      }
                       comparison={FEATURE_DESCRIPTIONS.exportFormats.comparison}
                     >
                       <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                       <span className="text-sm">
-                        Export: {limits.exportFormats.slice(0, 3).join(', ')}
-                        {limits.exportFormats.length > 3 && ` +${limits.exportFormats.length - 3} more`}
+                        Export: {limits.exportFormats.slice(0, 3).join(", ")}
+                        {limits.exportFormats.length > 3 &&
+                          ` +${limits.exportFormats.length - 3} more`}
                       </span>
                     </FeatureTooltip>
                   </div>
@@ -330,12 +399,12 @@ export default function Pricing() {
                 <CardFooter>
                   <Button
                     className="w-full"
-                    variant={tier === 'professional' ? 'default' : 'outline'}
+                    variant={tier === "professional" ? "default" : "outline"}
                     onClick={() => handleUpgrade(tier)}
                     disabled={isCurrent || isPending || isLoading}
                     data-testid={`button-upgrade-${tier}`}
                   >
-                    {isPending ? 'Loading...' : getButtonText(tier)}
+                    {isPending ? "Loading..." : getButtonText(tier)}
                   </Button>
                 </CardFooter>
               </Card>
@@ -384,8 +453,8 @@ export default function Pricing() {
           open={showPreview}
           onOpenChange={setShowPreview}
           tier={previewTier}
-          billingCycle={isAnnual ? 'annual' : 'monthly'}
-          currentTier={subscription?.tier || 'free'}
+          billingCycle={isAnnual ? "annual" : "monthly"}
+          currentTier={subscription?.tier || "free"}
           hasActiveSubscription={!!subscription?.stripeSubscriptionId}
           onConfirm={handleConfirmUpgrade}
         />

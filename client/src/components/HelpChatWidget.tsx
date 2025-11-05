@@ -1,15 +1,22 @@
-import { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Loader2, Minimize2, HeadphonesIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
-import { useLocation } from 'wouter';
+import { useState, useRef, useEffect } from "react";
+import {
+  MessageSquare,
+  X,
+  Send,
+  Loader2,
+  Minimize2,
+  HeadphonesIcon,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 
 interface Message {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: Date;
   showContactSupport?: boolean;
@@ -19,12 +26,13 @@ export function HelpChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
-      role: 'assistant',
-      content: "Hi! I'm your WriteCraft assistant. I can help you with:\n\n• Navigating the application\n• Understanding workflows and features\n• Billing and subscription questions\n• Tips for using generators and tools\n\nWhat can I help you with today?",
+      role: "assistant",
+      content:
+        "Hi! I'm your WriteCraft assistant. I can help you with:\n\n• Navigating the application\n• Understanding workflows and features\n• Billing and subscription questions\n• Tips for using generators and tools\n\nWhat can I help you with today?",
       timestamp: new Date(),
     },
   ]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -32,38 +40,40 @@ export function HelpChatWidget() {
 
   // Escalation keywords to detect when AI suggests contacting support
   const escalationKeywords = [
-    'contact support',
-    'contact our support',
-    'reach out to support',
-    'speak to support',
-    'talk to support',
-    'real person',
-    'human representative',
-    'customer service',
-    'speak to a human',
-    'talk to a human',
-    'speak with someone',
-    'talk to someone',
-    'contact us',
-    'get in touch',
-    'representative',
-    'support team',
-    'customer support',
-    'technical support',
-    'admin',
-    'administrator'
+    "contact support",
+    "contact our support",
+    "reach out to support",
+    "speak to support",
+    "talk to support",
+    "real person",
+    "human representative",
+    "customer service",
+    "speak to a human",
+    "talk to a human",
+    "speak with someone",
+    "talk to someone",
+    "contact us",
+    "get in touch",
+    "representative",
+    "support team",
+    "customer support",
+    "technical support",
+    "admin",
+    "administrator",
   ];
 
   // Check if message contains escalation keywords
   const detectEscalation = (content: string): boolean => {
     const lowerContent = content.toLowerCase();
-    return escalationKeywords.some(keyword => lowerContent.includes(keyword));
+    return escalationKeywords.some((keyword) => lowerContent.includes(keyword));
   };
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      const scrollContainer = scrollAreaRef.current.querySelector(
+        "[data-radix-scroll-area-viewport]",
+      );
       if (scrollContainer) {
         scrollContainer.scrollTop = scrollContainer.scrollHeight;
       }
@@ -73,22 +83,26 @@ export function HelpChatWidget() {
   const handleContactSupport = () => {
     // Create a conversation transcript for context
     const transcript = messages
-      .map(m => `${m.role === 'user' ? 'You' : 'Assistant'}: ${m.content}`)
-      .join('\n\n');
+      .map((m) => `${m.role === "user" ? "You" : "Assistant"}: ${m.content}`)
+      .join("\n\n");
 
     // Store transcript in sessionStorage for pre-filling feedback
-    sessionStorage.setItem('helpChatTranscript', transcript);
-    sessionStorage.setItem('helpChatOriginalQuestion', messages.find(m => m.role === 'user')?.content || '');
+    sessionStorage.setItem("helpChatTranscript", transcript);
+    sessionStorage.setItem(
+      "helpChatOriginalQuestion",
+      messages.find((m) => m.role === "user")?.content || "",
+    );
 
     // Close the chat widget
     setIsOpen(false);
 
     // Navigate to feedback page with a flag to pre-fill the form
-    setLocation('/feedback?openFeedback=true');
+    setLocation("/feedback?openFeedback=true");
 
     toast({
-      title: 'Redirecting to support',
-      description: 'Opening the feedback form with your conversation context...',
+      title: "Redirecting to support",
+      description:
+        "Opening the feedback form with your conversation context...",
     });
   };
 
@@ -96,61 +110,65 @@ export function HelpChatWidget() {
     if (!input.trim() || isLoading) return;
 
     const userMessage: Message = {
-      role: 'user',
+      role: "user",
       content: input,
       timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
     setIsLoading(true);
 
     try {
       // Call the AI assistant with help context
-      const response = await apiRequest('POST', '/api/writing-assistant/chat', {
+      const response = await apiRequest("POST", "/api/writing-assistant/chat", {
         message: input,
-        conversationHistory: messages.slice(-5).map(m => ({
+        conversationHistory: messages.slice(-5).map((m) => ({
           role: m.role,
           content: m.content,
         })),
-        context: 'help_support',
+        context: "help_support",
       });
 
       const data = await response.json();
 
-      const responseContent = data.content || data.message || 'Sorry, I could not generate a response.';
+      const responseContent =
+        data.content ||
+        data.message ||
+        "Sorry, I could not generate a response.";
       const shouldShowContactSupport = detectEscalation(responseContent);
 
       const assistantMessage: Message = {
-        role: 'assistant',
+        role: "assistant",
         content: responseContent,
         timestamp: new Date(),
         showContactSupport: shouldShowContactSupport,
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error("Error sending message:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to get response. Please try again.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to get response. Please try again.",
+        variant: "destructive",
       });
-      
+
       // Add error message
       const errorMessage: Message = {
-        role: 'assistant',
-        content: "I'm sorry, I encountered an error. Please try again or visit our documentation for more help.",
+        role: "assistant",
+        content:
+          "I'm sorry, I encountered an error. Please try again or visit our documentation for more help.",
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
@@ -200,24 +218,29 @@ export function HelpChatWidget() {
             {messages.map((message, index) => (
               <div key={index} className="space-y-2">
                 <div
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
                     className={`max-w-[80%] rounded-lg p-3 ${
-                      message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-foreground'
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-foreground"
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-sm whitespace-pre-wrap">
+                      {message.content}
+                    </p>
                     <p className="text-xs opacity-70 mt-1">
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {message.timestamp.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </p>
                   </div>
                 </div>
-                
+
                 {/* Show Contact Support button for assistant messages with escalation keywords */}
-                {message.role === 'assistant' && message.showContactSupport && (
+                {message.role === "assistant" && message.showContactSupport && (
                   <div className="flex justify-start">
                     <Button
                       onClick={handleContactSupport}

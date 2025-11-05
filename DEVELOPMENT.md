@@ -1,4 +1,3 @@
-
 # Development Guide
 
 ## Getting Started
@@ -37,6 +36,7 @@ npm run dev
 ```
 
 This starts:
+
 - Vite dev server (frontend) on port 5173
 - Express API server (backend) on port 5000
 
@@ -148,6 +148,7 @@ HH:MM:SS [express] METHOD /path STATUS in Xms :: response
 ### Frontend Debugging
 
 Use browser DevTools:
+
 - React DevTools for component inspection
 - Network tab for API requests
 - Console for errors and logs
@@ -155,14 +156,17 @@ Use browser DevTools:
 ### Common Issues
 
 **Database connection fails:**
+
 - Verify `DATABASE_URL` in Secrets
 - Check Neon database is active
 
 **AI features not working:**
+
 - Verify `ANTHROPIC_API_KEY` is set
 - Check API quota
 
 **Session issues:**
+
 - Clear browser cookies
 - Verify `SESSION_SECRET` is set
 

@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -37,7 +43,11 @@ export function PauseResumeSubscription() {
   const [pauseReason, setPauseReason] = useState("");
 
   // Hide for free users
-  if (!subscription || subscription.tier === 'free' || !subscription.stripeSubscriptionId) {
+  if (
+    !subscription ||
+    subscription.tier === "free" ||
+    !subscription.stripeSubscriptionId
+  ) {
     return null;
   }
 
@@ -110,7 +120,9 @@ export function PauseResumeSubscription() {
       <Card>
         <CardHeader>
           <CardTitle>Subscription Pause/Resume</CardTitle>
-          <CardDescription>Temporarily pause or resume your subscription</CardDescription>
+          <CardDescription>
+            Temporarily pause or resume your subscription
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
@@ -136,15 +148,21 @@ export function PauseResumeSubscription() {
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 <div className="space-y-2">
-                  <p className="font-medium">Your subscription is currently paused</p>
+                  <p className="font-medium">
+                    Your subscription is currently paused
+                  </p>
                   {pauseStatus.pausedAt && (
                     <p className="text-sm text-muted-foreground">
-                      Paused {formatDistanceToNow(new Date(pauseStatus.pausedAt), { addSuffix: true })}
+                      Paused{" "}
+                      {formatDistanceToNow(new Date(pauseStatus.pausedAt), {
+                        addSuffix: true,
+                      })}
                     </p>
                   )}
                   {pauseStatus.resumesAt && (
                     <p className="text-sm text-muted-foreground">
-                      Scheduled to resume on {new Date(pauseStatus.resumesAt).toLocaleDateString()}
+                      Scheduled to resume on{" "}
+                      {new Date(pauseStatus.resumesAt).toLocaleDateString()}
                     </p>
                   )}
                   {pauseStatus.pauseReason && (
@@ -159,7 +177,8 @@ export function PauseResumeSubscription() {
             <Alert>
               <AlertDescription>
                 <p className="text-sm text-muted-foreground">
-                  Your subscription is active. You can pause it temporarily if needed.
+                  Your subscription is active. You can pause it temporarily if
+                  needed.
                 </p>
               </AlertDescription>
             </Alert>
@@ -195,7 +214,8 @@ export function PauseResumeSubscription() {
           <DialogHeader>
             <DialogTitle>Pause Subscription</DialogTitle>
             <DialogDescription>
-              Pausing your subscription will stop billing but you'll lose access to premium features.
+              Pausing your subscription will stop billing but you'll lose access
+              to premium features.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -206,7 +226,7 @@ export function PauseResumeSubscription() {
                 type="date"
                 value={resumeDate}
                 onChange={(e) => setResumeDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
+                min={new Date().toISOString().split("T")[0]}
                 data-testid="input-resume-date"
               />
               <p className="text-xs text-muted-foreground">
@@ -238,7 +258,9 @@ export function PauseResumeSubscription() {
               disabled={pauseMutation.isPending}
               data-testid="button-confirm-pause"
             >
-              {pauseMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {pauseMutation.isPending && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
               Pause Subscription
             </Button>
           </DialogFooter>
@@ -251,7 +273,8 @@ export function PauseResumeSubscription() {
           <DialogHeader>
             <DialogTitle>Resume Subscription</DialogTitle>
             <DialogDescription>
-              Resuming your subscription will restart billing and restore access to premium features.
+              Resuming your subscription will restart billing and restore access
+              to premium features.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -267,7 +290,9 @@ export function PauseResumeSubscription() {
               disabled={resumeMutation.isPending}
               data-testid="button-confirm-resume"
             >
-              {resumeMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {resumeMutation.isPending && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
               Resume Subscription
             </Button>
           </DialogFooter>

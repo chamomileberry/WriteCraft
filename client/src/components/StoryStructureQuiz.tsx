@@ -1,7 +1,19 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -31,19 +43,25 @@ const QUIZ_QUESTIONS: QuizQuestion[] = [
       { value: "comedy-romance", label: "Comedy/Romance/Character-driven" },
       { value: "mystery-thriller", label: "Mystery/Thriller/Crime" },
       { value: "fantasy-scifi", label: "Fantasy/Science Fiction/Epic" },
-      { value: "literary", label: "Literary Fiction/Character Study" }
-    ]
+      { value: "literary", label: "Literary Fiction/Character Study" },
+    ],
   },
   {
     id: "focus",
     question: "What's your story's primary focus?",
     options: [
-      { value: "character-growth", label: "Character transformation and growth" },
+      {
+        value: "character-growth",
+        label: "Character transformation and growth",
+      },
       { value: "plot-driven", label: "Fast-paced plot and events" },
       { value: "world-building", label: "Complex world and mythology" },
       { value: "mystery-solving", label: "Solving puzzles and mysteries" },
-      { value: "emotional-journey", label: "Emotional relationships and conflicts" }
-    ]
+      {
+        value: "emotional-journey",
+        label: "Emotional relationships and conflicts",
+      },
+    ],
   },
   {
     id: "complexity",
@@ -52,8 +70,8 @@ const QUIZ_QUESTIONS: QuizQuestion[] = [
       { value: "simple", label: "Simple and straightforward" },
       { value: "moderate", label: "Moderate complexity with clear beats" },
       { value: "detailed", label: "Highly detailed with specific milestones" },
-      { value: "flexible", label: "Flexible framework I can adapt" }
-    ]
+      { value: "flexible", label: "Flexible framework I can adapt" },
+    ],
   },
   {
     id: "experience",
@@ -62,68 +80,122 @@ const QUIZ_QUESTIONS: QuizQuestion[] = [
       { value: "beginner", label: "Beginner - I need clear guidance" },
       { value: "intermediate", label: "Intermediate - I know the basics" },
       { value: "advanced", label: "Advanced - I want sophisticated tools" },
-      { value: "experimental", label: "I like to experiment with structure" }
-    ]
-  }
+      { value: "experimental", label: "I like to experiment with structure" },
+    ],
+  },
 ];
 
 const STRUCTURE_RESULTS: Record<string, QuizResult> = {
   "three-act": {
     structure: "three-act",
     title: "Three-Act Structure",
-    description: "The classic beginning, middle, and end structure used in most modern storytelling.",
-    bestFor: ["Beginners", "Commercial fiction", "Screenwriting", "Clear narratives"],
-    explanation: "Perfect for writers who want a simple, proven framework that's easy to understand and implement."
+    description:
+      "The classic beginning, middle, and end structure used in most modern storytelling.",
+    bestFor: [
+      "Beginners",
+      "Commercial fiction",
+      "Screenwriting",
+      "Clear narratives",
+    ],
+    explanation:
+      "Perfect for writers who want a simple, proven framework that's easy to understand and implement.",
   },
-  "freytag": {
+  freytag: {
     structure: "freytag",
     title: "Freytag's Pyramid",
-    description: "A dramatic structure featuring rising action, climax, and falling action, ideal for tragedies.",
-    bestFor: ["Tragedies", "Classical drama", "Character downfall", "Literary fiction"],
-    explanation: "Best suited for tragic stories where the protagonist faces a significant downfall or moral reckoning."
+    description:
+      "A dramatic structure featuring rising action, climax, and falling action, ideal for tragedies.",
+    bestFor: [
+      "Tragedies",
+      "Classical drama",
+      "Character downfall",
+      "Literary fiction",
+    ],
+    explanation:
+      "Best suited for tragic stories where the protagonist faces a significant downfall or moral reckoning.",
   },
   "hero-journey": {
     structure: "hero-journey",
     title: "The Hero's Journey",
-    description: "Joseph Campbell's monomyth featuring a hero's transformation through trials and tribulations.",
-    bestFor: ["Adventure", "Fantasy", "Sci-fi", "Coming-of-age", "Personal transformation"],
-    explanation: "Ideal for epic adventures where your protagonist undergoes significant personal growth and transformation."
+    description:
+      "Joseph Campbell's monomyth featuring a hero's transformation through trials and tribulations.",
+    bestFor: [
+      "Adventure",
+      "Fantasy",
+      "Sci-fi",
+      "Coming-of-age",
+      "Personal transformation",
+    ],
+    explanation:
+      "Ideal for epic adventures where your protagonist undergoes significant personal growth and transformation.",
   },
   "story-circle": {
     structure: "story-circle",
     title: "The Story Circle",
-    description: "Dan Harmon's simplified hero's journey focusing on character needs and growth.",
-    bestFor: ["Character-driven stories", "Comedy", "Romance", "TV writing", "Emotional arcs"],
-    explanation: "Perfect for character-focused narratives where emotional growth and relationships are central to the story."
+    description:
+      "Dan Harmon's simplified hero's journey focusing on character needs and growth.",
+    bestFor: [
+      "Character-driven stories",
+      "Comedy",
+      "Romance",
+      "TV writing",
+      "Emotional arcs",
+    ],
+    explanation:
+      "Perfect for character-focused narratives where emotional growth and relationships are central to the story.",
   },
-  "snowflake": {
+  snowflake: {
     structure: "snowflake",
     title: "The Snowflake Method",
-    description: "A systematic approach to building complex narratives from simple concepts.",
-    bestFor: ["Complex plots", "Multiple characters", "World-building", "Planning-heavy writers"],
-    explanation: "Excellent for writers who love detailed planning and want to develop intricate, well-structured narratives."
+    description:
+      "A systematic approach to building complex narratives from simple concepts.",
+    bestFor: [
+      "Complex plots",
+      "Multiple characters",
+      "World-building",
+      "Planning-heavy writers",
+    ],
+    explanation:
+      "Excellent for writers who love detailed planning and want to develop intricate, well-structured narratives.",
   },
-  "fichtean": {
+  fichtean: {
     structure: "fichtean",
     title: "Fichtean Curve",
-    description: "A structure emphasizing multiple rising crises and conflicts throughout the story.",
+    description:
+      "A structure emphasizing multiple rising crises and conflicts throughout the story.",
     bestFor: ["Thrillers", "Mysteries", "Suspense", "Fast-paced action"],
-    explanation: "Great for high-tension stories that need to maintain constant momentum and escalating stakes."
+    explanation:
+      "Great for high-tension stories that need to maintain constant momentum and escalating stakes.",
   },
   "save-cat": {
     structure: "save-cat",
     title: "Save the Cat Beat Sheet",
-    description: "Blake Snyder's detailed 15-beat structure originally designed for screenwriting.",
-    bestFor: ["Screenwriting", "Commercial fiction", "Genre fiction", "Structured plotting"],
-    explanation: "Perfect for writers who want a highly detailed roadmap with specific page/time markers for each story beat."
+    description:
+      "Blake Snyder's detailed 15-beat structure originally designed for screenwriting.",
+    bestFor: [
+      "Screenwriting",
+      "Commercial fiction",
+      "Genre fiction",
+      "Structured plotting",
+    ],
+    explanation:
+      "Perfect for writers who want a highly detailed roadmap with specific page/time markers for each story beat.",
   },
   "seven-point": {
     structure: "seven-point",
     title: "Seven-Point Story Structure",
-    description: "Dan Wells' structure focusing on four plot turns and three pinch points.",
-    bestFor: ["Fantasy", "Sci-fi", "Adventure", "Plot-heavy stories", "Series writing"],
-    explanation: "Excellent for complex genre fiction where you need to balance multiple plot threads and character arcs."
-  }
+    description:
+      "Dan Wells' structure focusing on four plot turns and three pinch points.",
+    bestFor: [
+      "Fantasy",
+      "Sci-fi",
+      "Adventure",
+      "Plot-heavy stories",
+      "Series writing",
+    ],
+    explanation:
+      "Excellent for complex genre fiction where you need to balance multiple plot threads and character arcs.",
+  },
 };
 
 interface StoryStructureQuizProps {
@@ -132,15 +204,19 @@ interface StoryStructureQuizProps {
   onSelectStructure: (structure: string) => void;
 }
 
-export default function StoryStructureQuiz({ open, onClose, onSelectStructure }: StoryStructureQuizProps) {
+export default function StoryStructureQuiz({
+  open,
+  onClose,
+  onSelectStructure,
+}: StoryStructureQuizProps) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [result, setResult] = useState<QuizResult | null>(null);
 
   const handleAnswer = (value: string) => {
-    setAnswers(prev => ({
+    setAnswers((prev) => ({
       ...prev,
-      [QUIZ_QUESTIONS[currentQuestion].id]: value
+      [QUIZ_QUESTIONS[currentQuestion].id]: value,
     }));
   };
 
@@ -160,10 +236,10 @@ export default function StoryStructureQuiz({ open, onClose, onSelectStructure }:
 
   const calculateResult = () => {
     const { genre, focus, complexity, experience } = answers;
-    
+
     // Logic to determine best structure based on answers
     let recommendedStructure = "three-act"; // default
-    
+
     if (genre === "tragedy") {
       recommendedStructure = "freytag";
     } else if (genre === "action-adventure" || focus === "character-growth") {
@@ -209,7 +285,8 @@ export default function StoryStructureQuiz({ open, onClose, onSelectStructure }:
         <DialogHeader>
           <DialogTitle>Find Your Perfect Story Structure</DialogTitle>
           <DialogDescription>
-            Answer a few questions to discover which story structure best fits your writing project
+            Answer a few questions to discover which story structure best fits
+            your writing project
           </DialogDescription>
         </DialogHeader>
 
@@ -217,13 +294,15 @@ export default function StoryStructureQuiz({ open, onClose, onSelectStructure }:
           <div className="space-y-6">
             {/* Progress indicator */}
             <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>Question {currentQuestion + 1} of {QUIZ_QUESTIONS.length}</span>
+              <span>
+                Question {currentQuestion + 1} of {QUIZ_QUESTIONS.length}
+              </span>
               <div className="flex gap-1">
                 {QUIZ_QUESTIONS.map((_, index) => (
                   <div
                     key={index}
                     className={`w-2 h-2 rounded-full ${
-                      index <= currentQuestion ? 'bg-primary' : 'bg-muted'
+                      index <= currentQuestion ? "bg-primary" : "bg-muted"
                     }`}
                   />
                 ))}
@@ -232,7 +311,9 @@ export default function StoryStructureQuiz({ open, onClose, onSelectStructure }:
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">{currentQuestionData?.question}</CardTitle>
+                <CardTitle className="text-lg">
+                  {currentQuestionData?.question}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <RadioGroup
@@ -241,9 +322,15 @@ export default function StoryStructureQuiz({ open, onClose, onSelectStructure }:
                   data-testid="quiz-radio-group"
                 >
                   {currentQuestionData?.options.map((option) => (
-                    <div key={option.value} className="flex items-center space-x-2">
+                    <div
+                      key={option.value}
+                      className="flex items-center space-x-2"
+                    >
                       <RadioGroupItem value={option.value} id={option.value} />
-                      <Label htmlFor={option.value} className="flex-1 cursor-pointer">
+                      <Label
+                        htmlFor={option.value}
+                        className="flex-1 cursor-pointer"
+                      >
                         {option.label}
                       </Label>
                     </div>
@@ -262,7 +349,7 @@ export default function StoryStructureQuiz({ open, onClose, onSelectStructure }:
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Previous
               </Button>
-              
+
               <Button
                 onClick={nextQuestion}
                 disabled={!canProceed}
@@ -297,23 +384,34 @@ export default function StoryStructureQuiz({ open, onClose, onSelectStructure }:
                   <h4 className="font-semibold mb-2">Best for:</h4>
                   <div className="flex flex-wrap gap-2">
                     {result.bestFor.map((item) => (
-                      <Badge key={item} variant="secondary">{item}</Badge>
+                      <Badge key={item} variant="secondary">
+                        {item}
+                      </Badge>
                     ))}
                   </div>
                 </div>
-                
+
                 <div>
-                  <h4 className="font-semibold mb-2">Why this works for you:</h4>
+                  <h4 className="font-semibold mb-2">
+                    Why this works for you:
+                  </h4>
                   <p className="text-muted-foreground">{result.explanation}</p>
                 </div>
               </CardContent>
             </Card>
 
             <div className="flex gap-4">
-              <Button onClick={useThisStructure} data-testid="button-use-structure">
+              <Button
+                onClick={useThisStructure}
+                data-testid="button-use-structure"
+              >
                 Use This Structure
               </Button>
-              <Button variant="outline" onClick={resetQuiz} data-testid="button-retake-quiz">
+              <Button
+                variant="outline"
+                onClick={resetQuiz}
+                data-testid="button-retake-quiz"
+              >
                 Retake Quiz
               </Button>
             </div>

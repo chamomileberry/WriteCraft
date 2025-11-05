@@ -1,4 +1,4 @@
-import PlotGenerator from '../PlotGenerator';
+import PlotGenerator from "../PlotGenerator";
 
 export default function PlotGeneratorExample() {
   return (

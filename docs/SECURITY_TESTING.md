@@ -12,6 +12,7 @@ This document outlines comprehensive security testing procedures for the WriteCr
 ### 1. Authentication Tests
 
 #### Test: Unauthenticated Access
+
 ```bash
 # Should return 401 Unauthorized
 curl -X GET https://writecraft.com/api/notebooks \
@@ -22,6 +23,7 @@ curl -X GET https://writecraft.com/api/notebooks \
 ```
 
 #### Test: Expired Token
+
 ```bash
 # Create expired session, then attempt access
 curl -X GET https://writecraft.com/api/notebooks \
@@ -32,6 +34,7 @@ curl -X GET https://writecraft.com/api/notebooks \
 ```
 
 #### Test: MFA Verification
+
 ```bash
 # 1. Setup MFA
 curl -X POST https://writecraft.com/api/auth/mfa/setup \
@@ -50,6 +53,7 @@ curl -X POST https://writecraft.com/api/auth/mfa/verify \
 ### 2. Authorization Tests
 
 #### Test: Access Other User's Data
+
 ```bash
 # Try to access notebook owned by different user
 curl -X GET https://writecraft.com/api/notebooks/user-2-notebook-id \
@@ -60,6 +64,7 @@ curl -X GET https://writecraft.com/api/notebooks/user-2-notebook-id \
 ```
 
 #### Test: Modify Other User's Project
+
 ```bash
 # Try to update project owned by different user
 curl -X PUT https://writecraft.com/api/projects/user-2-project-id \
@@ -72,6 +77,7 @@ curl -X PUT https://writecraft.com/api/projects/user-2-project-id \
 ```
 
 #### Test: Delete Other User's Content
+
 ```bash
 # Try to delete character owned by different user
 curl -X DELETE https://writecraft.com/api/characters/user-2-character-id \
@@ -84,6 +90,7 @@ curl -X DELETE https://writecraft.com/api/characters/user-2-character-id \
 ### 3. SQL Injection Tests
 
 #### Test: SQL Injection in Query Parameters
+
 ```bash
 # Try SQL injection in search
 curl -X GET "https://writecraft.com/api/search?q=test' OR '1'='1" \
@@ -94,6 +101,7 @@ curl -X GET "https://writecraft.com/api/search?q=test' OR '1'='1" \
 ```
 
 #### Test: SQL Injection in Request Body
+
 ```bash
 # Try SQL injection in notebook creation
 curl -X POST https://writecraft.com/api/notebooks \
@@ -109,6 +117,7 @@ curl -X POST https://writecraft.com/api/notebooks \
 ```
 
 #### Test: SQL Injection in User ID
+
 ```bash
 # Try to inject SQL through userId
 curl -X POST https://writecraft.com/api/notebooks \
@@ -122,6 +131,7 @@ curl -X POST https://writecraft.com/api/notebooks \
 ### 4. XSS (Cross-Site Scripting) Tests
 
 #### Test: Stored XSS in Notebook Title
+
 ```bash
 # Try to inject script in notebook title
 curl -X POST https://writecraft.com/api/notebooks \
@@ -140,6 +150,7 @@ curl -X GET https://writecraft.com/api/notebooks/{id} \
 ```
 
 #### Test: XSS in Rich Text Editor
+
 ```bash
 # Try to inject malicious HTML
 curl -X POST https://writecraft.com/api/projects/{id}/sections \
@@ -154,6 +165,7 @@ curl -X POST https://writecraft.com/api/projects/{id}/sections \
 ```
 
 #### Test: XSS via URL Parameters
+
 ```bash
 # Try to inject script via URL
 curl -X GET "https://writecraft.com/search?q=<script>alert('XSS')</script>" \
@@ -165,6 +177,7 @@ curl -X GET "https://writecraft.com/search?q=<script>alert('XSS')</script>" \
 ### 5. CSRF (Cross-Site Request Forgery) Tests
 
 #### Test: POST Without CSRF Token
+
 ```bash
 # Try to create notebook without CSRF token
 curl -X POST https://writecraft.com/api/notebooks \
@@ -178,13 +191,16 @@ curl -X POST https://writecraft.com/api/notebooks \
 ```
 
 #### Test: State-Changing Operation from External Site
+
 ```html
 <!-- Malicious site attempting CSRF -->
 <form action="https://writecraft.com/api/notebooks" method="POST">
-  <input name="title" value="Malicious">
-  <input name="description" value="Created via CSRF">
+  <input name="title" value="Malicious" />
+  <input name="description" value="Created via CSRF" />
 </form>
-<script>document.forms[0].submit();</script>
+<script>
+  document.forms[0].submit();
+</script>
 
 <!-- Expected: Blocked by SameSite cookie policy -->
 ```
@@ -192,6 +208,7 @@ curl -X POST https://writecraft.com/api/notebooks \
 ### 6. Rate Limiting Tests
 
 #### Test: Exceed Global Rate Limit
+
 ```bash
 # Send 1001 requests rapidly (global limit: 1000/15min)
 for i in {1..1001}; do
@@ -204,6 +221,7 @@ done
 ```
 
 #### Test: Exceed AI Generation Rate Limit
+
 ```bash
 # Send 31 AI generation requests (limit: 30/15min)
 for i in {1..31}; do
@@ -218,6 +236,7 @@ done
 ```
 
 #### Test: Failed Login Attempts (IDS)
+
 ```bash
 # Attempt 6 failed logins (limit: 5 before block)
 for i in {1..6}; do
@@ -233,6 +252,7 @@ done
 ### 7. Session Security Tests
 
 #### Test: Session Fixation Attack
+
 ```bash
 # 1. Get session ID before login
 SESSION_ID=$(curl -c - https://writecraft.com | grep connect.sid | awk '{print $7}')
@@ -246,6 +266,7 @@ curl -X POST https://writecraft.com/api/login \
 ```
 
 #### Test: Concurrent Session Limiting
+
 ```bash
 # Login from 4 different devices (limit: 3)
 curl -X POST https://writecraft.com/api/login -d "..." -c session1.txt
@@ -260,6 +281,7 @@ curl -X GET https://writecraft.com/api/notebooks -b session1.txt
 ```
 
 #### Test: Session Hijacking via XSS
+
 ```javascript
 // Try to steal session cookie via XSS
 <script>
@@ -275,6 +297,7 @@ curl -X GET https://writecraft.com/api/notebooks -b session1.txt
 ### 8. Input Validation Tests
 
 #### Test: Oversized Request Body
+
 ```bash
 # Send request larger than 10MB limit
 dd if=/dev/zero bs=1M count=11 | curl -X POST \
@@ -288,6 +311,7 @@ dd if=/dev/zero bs=1M count=11 | curl -X POST \
 ```
 
 #### Test: Invalid Data Types
+
 ```bash
 # Send string where number expected
 curl -X POST https://writecraft.com/api/projects \
@@ -303,6 +327,7 @@ curl -X POST https://writecraft.com/api/projects \
 ```
 
 #### Test: Missing Required Fields
+
 ```bash
 # Send incomplete data
 curl -X POST https://writecraft.com/api/notebooks \
@@ -317,6 +342,7 @@ curl -X POST https://writecraft.com/api/notebooks \
 ### 9. API Key Security Tests
 
 #### Test: API Key Rotation Status
+
 ```bash
 # Check if keys are properly tracked
 curl -X GET https://writecraft.com/api/admin/key-rotation/status \
@@ -326,6 +352,7 @@ curl -X GET https://writecraft.com/api/admin/key-rotation/status \
 ```
 
 #### Test: Expired API Key Detection
+
 ```bash
 # Check for keys older than 90 days
 curl -X GET https://writecraft.com/api/admin/key-rotation/status \
@@ -338,6 +365,7 @@ curl -X GET https://writecraft.com/api/admin/key-rotation/status \
 ### 10. Security Headers Tests
 
 #### Test: CSP Header Present
+
 ```bash
 curl -I https://writecraft.com | grep -i content-security-policy
 
@@ -345,6 +373,7 @@ curl -I https://writecraft.com | grep -i content-security-policy
 ```
 
 #### Test: HSTS Header (HTTPS Only)
+
 ```bash
 curl -I https://writecraft.com | grep -i strict-transport-security
 
@@ -352,6 +381,7 @@ curl -I https://writecraft.com | grep -i strict-transport-security
 ```
 
 #### Test: X-Frame-Options
+
 ```bash
 curl -I https://writecraft.com | grep -i x-frame-options
 
@@ -359,6 +389,7 @@ curl -I https://writecraft.com | grep -i x-frame-options
 ```
 
 #### Test: Cross-Origin Policies
+
 ```bash
 curl -I https://writecraft.com | grep -i cross-origin
 
@@ -370,6 +401,7 @@ curl -I https://writecraft.com | grep -i cross-origin
 ### Penetration Testing Checklist
 
 #### 1. Authentication & Authorization
+
 - [ ] Test login with invalid credentials
 - [ ] Test password reset flow for vulnerabilities
 - [ ] Verify MFA enforcement for admin accounts
@@ -378,6 +410,7 @@ curl -I https://writecraft.com | grep -i cross-origin
 - [ ] Test remember-me functionality
 
 #### 2. Injection Attacks
+
 - [ ] SQL injection in all input fields
 - [ ] NoSQL injection (if applicable)
 - [ ] Command injection in file operations
@@ -385,35 +418,41 @@ curl -I https://writecraft.com | grep -i cross-origin
 - [ ] XML/XXE injection in file uploads
 
 #### 3. XSS Attacks
+
 - [ ] Reflected XSS in all parameters
 - [ ] Stored XSS in all user input fields
 - [ ] DOM-based XSS in client-side code
 - [ ] XSS via file upload (SVG, HTML)
 
 #### 4. CSRF Attacks
+
 - [ ] Test state-changing operations without tokens
 - [ ] Verify SameSite cookie attributes
 - [ ] Test CSRF in API endpoints
 
 #### 5. File Upload Security
+
 - [ ] Test malicious file upload (exe, sh, php)
 - [ ] Verify file type validation
 - [ ] Test oversized file upload
 - [ ] Check for directory traversal in filenames
 
 #### 6. API Security
+
 - [ ] Test rate limiting on all endpoints
 - [ ] Verify API authentication
 - [ ] Test for mass assignment vulnerabilities
 - [ ] Check for information disclosure in errors
 
 #### 7. Session Management
+
 - [ ] Test session fixation
 - [ ] Test concurrent session limiting
 - [ ] Verify session invalidation on logout
 - [ ] Test session hijacking resistance
 
 #### 8. Business Logic
+
 - [ ] Test for race conditions in critical operations
 - [ ] Verify subscription tier enforcement
 - [ ] Test AI usage quota limits
@@ -422,6 +461,7 @@ curl -I https://writecraft.com | grep -i cross-origin
 ## Security Testing Tools
 
 ### 1. OWASP ZAP (Automated Scanner)
+
 ```bash
 # Run automated security scan
 docker run -t owasp/zap2docker-stable \
@@ -429,12 +469,14 @@ docker run -t owasp/zap2docker-stable \
 ```
 
 ### 2. Burp Suite (Manual Testing)
+
 - Configure browser proxy to localhost:8080
 - Intercept and modify requests
 - Test for injection, XSS, CSRF
 - Analyze session tokens
 
 ### 3. SQLMap (SQL Injection)
+
 ```bash
 # Test for SQL injection
 sqlmap -u "https://writecraft.com/api/search?q=test" \
@@ -443,12 +485,14 @@ sqlmap -u "https://writecraft.com/api/search?q=test" \
 ```
 
 ### 4. XSStrike (XSS Testing)
+
 ```bash
 # Test for XSS vulnerabilities
 python3 xsstrike.py -u "https://writecraft.com/search?q=XSS"
 ```
 
 ### 5. Nuclei (Vulnerability Scanner)
+
 ```bash
 # Scan for known vulnerabilities
 nuclei -u https://writecraft.com \
@@ -461,6 +505,7 @@ nuclei -u https://writecraft.com \
 # Security Test Results - [Date]
 
 ## Executive Summary
+
 - **Tests Performed:** [Number]
 - **Vulnerabilities Found:** [Number]
 - **Critical Issues:** [Number]
@@ -469,6 +514,7 @@ nuclei -u https://writecraft.com \
 ## Vulnerabilities Found
 
 ### Critical (P0)
+
 1. **[Vulnerability Name]**
    - **Severity:** Critical
    - **Description:** [Details]
@@ -476,23 +522,29 @@ nuclei -u https://writecraft.com \
    - **Recommendation:** [Fix]
 
 ### High (P1)
+
 ...
 
 ### Medium (P2)
+
 ...
 
 ### Low (P3)
+
 ...
 
 ## Tests Passed
+
 - [List of successful security tests]
 
 ## Recommendations
+
 1. [Priority recommendation]
 2. [Next recommendation]
 3. ...
 
 ## Next Steps
+
 - [ ] Fix critical vulnerabilities
 - [ ] Re-test after fixes
 - [ ] Update security documentation
@@ -502,6 +554,7 @@ nuclei -u https://writecraft.com \
 ## Continuous Security Testing
 
 ### CI/CD Integration
+
 ```yaml
 # .github/workflows/security.yml
 name: Security Tests
@@ -513,13 +566,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Run npm audit
         run: npm audit --audit-level=moderate
-      
+
       - name: Run OWASP Dependency Check
         run: dependency-check --project WriteCraft --scan .
-      
+
       - name: Run Security Headers Check
         run: |
           curl -I https://staging.writecraft.com | \
@@ -527,6 +580,7 @@ jobs:
 ```
 
 ### Weekly Security Scans
+
 ```bash
 #!/bin/bash
 # weekly-security-scan.sh

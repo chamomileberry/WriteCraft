@@ -1,6 +1,6 @@
-import { memo } from 'react';
-import { EdgeProps, getSmoothStepPath, BaseEdge } from '@xyflow/react';
-import type { TimelineRelationship } from '@shared/schema';
+import { memo } from "react";
+import { EdgeProps, getSmoothStepPath, BaseEdge } from "@xyflow/react";
+import type { TimelineRelationship } from "@shared/schema";
 
 export interface TimelineRelationshipEdgeData {
   relationship: TimelineRelationship;
@@ -18,8 +18,9 @@ function TimelineRelationshipEdgeComponent({
   targetPosition,
   data,
 }: EdgeProps) {
-  const { relationship } = (data || {}) as unknown as TimelineRelationshipEdgeData;
-  
+  const { relationship } = (data ||
+    {}) as unknown as TimelineRelationshipEdgeData;
+
   // Use smooth step path for all timeline relationships
   const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
@@ -30,39 +31,39 @@ function TimelineRelationshipEdgeComponent({
     targetPosition,
   });
 
-  const label = relationship?.relationshipType || '';
+  const label = relationship?.relationshipType || "";
 
   // Style based on relationship type
   const getEdgeStyle = () => {
     switch (relationship?.relationshipType) {
-      case 'causes':
-        return { 
-          stroke: 'hsl(var(--primary))', 
+      case "causes":
+        return {
+          stroke: "hsl(var(--primary))",
           strokeWidth: 2,
-          strokeDasharray: '0'
+          strokeDasharray: "0",
         };
-      case 'precedes':
-        return { 
-          stroke: 'hsl(var(--foreground))', 
+      case "precedes":
+        return {
+          stroke: "hsl(var(--foreground))",
           strokeWidth: 1.5,
-          strokeDasharray: '0'
+          strokeDasharray: "0",
         };
-      case 'concurrent':
-        return { 
-          stroke: 'hsl(var(--secondary))', 
+      case "concurrent":
+        return {
+          stroke: "hsl(var(--secondary))",
           strokeWidth: 1.5,
-          strokeDasharray: '5,5'
+          strokeDasharray: "5,5",
         };
-      case 'related':
-        return { 
-          stroke: 'hsl(var(--muted-foreground))', 
+      case "related":
+        return {
+          stroke: "hsl(var(--muted-foreground))",
           strokeWidth: 1,
-          strokeDasharray: '3,3'
+          strokeDasharray: "3,3",
         };
       default:
-        return { 
-          stroke: 'hsl(var(--muted-foreground))', 
-          strokeWidth: 1
+        return {
+          stroke: "hsl(var(--muted-foreground))",
+          strokeWidth: 1,
         };
     }
   };
@@ -78,8 +79,8 @@ function TimelineRelationshipEdgeComponent({
           textAnchor="middle"
           dominantBaseline="middle"
           style={{
-            pointerEvents: 'none',
-            userSelect: 'none',
+            pointerEvents: "none",
+            userSelect: "none",
           }}
         >
           <tspan

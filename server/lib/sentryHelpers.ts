@@ -5,7 +5,11 @@ import type { Request } from "express";
  * Set user context for Sentry error tracking
  * Call this after authentication to associate errors with specific users
  */
-export function setSentryUser(userId: string, email?: string, username?: string) {
+export function setSentryUser(
+  userId: string,
+  email?: string,
+  username?: string,
+) {
   Sentry.setUser({
     id: userId,
     email,
@@ -30,7 +34,10 @@ export function addSentryContext(key: string, data: Record<string, any>) {
 /**
  * Capture exception with additional context
  */
-export function captureSentryException(error: Error, context?: Record<string, any>) {
+export function captureSentryException(
+  error: Error,
+  context?: Record<string, any>,
+) {
   if (context) {
     Sentry.withScope((scope) => {
       Object.entries(context).forEach(([key, value]) => {
@@ -47,9 +54,9 @@ export function captureSentryException(error: Error, context?: Record<string, an
  * Capture a message (not an error) with severity level
  */
 export function captureSentryMessage(
-  message: string, 
-  level: 'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug' = 'info',
-  context?: Record<string, any>
+  message: string,
+  level: "fatal" | "error" | "warning" | "log" | "info" | "debug" = "info",
+  context?: Record<string, any>,
 ) {
   if (context) {
     Sentry.withScope((scope) => {
@@ -79,11 +86,7 @@ export function startSentryTransaction(name: string, op: string) {
 export function sentryUserMiddleware(req: Request, _res: any, next: any) {
   if (req.user) {
     const user = req.user as any;
-    setSentryUser(
-      user.id,
-      user.email,
-      user.username || user.name
-    );
+    setSentryUser(user.id, user.email, user.username || user.name);
   }
   next();
 }

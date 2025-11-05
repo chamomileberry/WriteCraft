@@ -1,4 +1,4 @@
-import CharacterGenerator from '../CharacterGenerator';
+import CharacterGenerator from "../CharacterGenerator";
 
 export default function CharacterGeneratorExample() {
   return (

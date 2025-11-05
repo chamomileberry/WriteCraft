@@ -1,24 +1,46 @@
-import { useState, useEffect, useRef } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-import { useWorkspaceStore } from '@/stores/workspaceStore';
-import { WorkspaceLayout } from './workspace/WorkspaceLayout';
-import { ProjectHeader } from './ProjectHeader';
-import { ProjectOutline } from './ProjectOutline';
-import { SectionEditor } from './SectionEditor';
-import { GeneratorDropdown, GENERATORS } from './GeneratorDropdown';
-import { GeneratorModals, GeneratorType } from './GeneratorModals';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Loader2, ArrowLeft, BookOpen, Moon, Sun, StickyNote, Sparkles, Menu, ChevronDown, Plus, Search, User, Settings, Upload } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useAuth } from '@/hooks/useAuth';
-import { useLocation } from 'wouter';
-import { useTheme } from '@/hooks/use-theme';
-import type { ProjectSectionWithChildren } from '@shared/schema';
+import { useState, useEffect, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useWorkspaceStore } from "@/stores/workspaceStore";
+import { WorkspaceLayout } from "./workspace/WorkspaceLayout";
+import { ProjectHeader } from "./ProjectHeader";
+import { ProjectOutline } from "./ProjectOutline";
+import { SectionEditor } from "./SectionEditor";
+import { GeneratorDropdown, GENERATORS } from "./GeneratorDropdown";
+import { GeneratorModals, GeneratorType } from "./GeneratorModals";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Loader2,
+  ArrowLeft,
+  BookOpen,
+  Moon,
+  Sun,
+  StickyNote,
+  Sparkles,
+  Menu,
+  ChevronDown,
+  Plus,
+  Search,
+  User,
+  Settings,
+  Upload,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
+import { useTheme } from "@/hooks/use-theme";
+import type { ProjectSectionWithChildren } from "@shared/schema";
 
 interface ProjectContainerProps {
   projectId: string;
@@ -28,26 +50,41 @@ interface ProjectContainerProps {
 export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
+  const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">(
+    "saved",
+  );
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   const [wordCount, setWordCount] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeGenerator, setActiveGenerator] = useState<GeneratorType>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobileGeneratorsExpanded, setIsMobileGeneratorsExpanded] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
+  const [isMobileGeneratorsExpanded, setIsMobileGeneratorsExpanded] =
+    useState(false);
+  const [searchValue, setSearchValue] = useState("");
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { isDark, toggleTheme } = useTheme();
-  
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const sectionEditorRef = useRef<{ saveContent: () => Promise<void> } | null>(null);
-  const { addPanel, isPanelOpen, focusPanel, toggleQuickNote, isQuickNoteOpen, findPanel, updatePanel, currentLayout } = useWorkspaceStore();
-  
+  const sectionEditorRef = useRef<{ saveContent: () => Promise<void> } | null>(
+    null,
+  );
+  const {
+    addPanel,
+    isPanelOpen,
+    focusPanel,
+    toggleQuickNote,
+    isQuickNoteOpen,
+    findPanel,
+    updatePanel,
+    currentLayout,
+  } = useWorkspaceStore();
+
   // Auto-collapse sidebar when multiple reference tabs are present (keep open for single tabs or when empty)
   useEffect(() => {
-    const totalReferenceTabs = currentLayout.regions.main.length + currentLayout.regions.split.length;
+    const totalReferenceTabs =
+      currentLayout.regions.main.length + currentLayout.regions.split.length;
     if (totalReferenceTabs > 1) {
       setIsSidebarOpen(false);
     }
@@ -56,29 +93,31 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   // Project rename mutation
   const renameProjectMutation = useMutation({
     mutationFn: async (newTitle: string) => {
-      await apiRequest('PUT', `/api/projects/${projectId}`, { title: newTitle });
+      await apiRequest("PUT", `/api/projects/${projectId}`, {
+        title: newTitle,
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId] });
       toast({
-        title: 'Project renamed',
-        description: 'Your project title has been updated.',
+        title: "Project renamed",
+        description: "Your project title has been updated.",
       });
     },
     onError: () => {
       toast({
-        title: 'Update failed',
-        description: 'Could not update project title.',
-        variant: 'destructive',
+        title: "Update failed",
+        description: "Could not update project title.",
+        variant: "destructive",
       });
     },
   });
 
   // Fetch project data
   const { data: project, isLoading: isLoadingProject } = useQuery({
-    queryKey: ['/api/projects', projectId],
+    queryKey: ["/api/projects", projectId],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/projects/${projectId}`);
+      const response = await apiRequest("GET", `/api/projects/${projectId}`);
       return response.json();
     },
     enabled: !!projectId,
@@ -86,9 +125,12 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
 
   // Fetch project sections (tree structure)
   const { data: sections = [], isLoading: isLoadingSections } = useQuery({
-    queryKey: ['/api/projects', projectId, 'sections'],
+    queryKey: ["/api/projects", projectId, "sections"],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/projects/${projectId}/sections`);
+      const response = await apiRequest(
+        "GET",
+        `/api/projects/${projectId}/sections`,
+      );
       return response.json();
     },
     enabled: !!projectId,
@@ -96,10 +138,13 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
 
   // Fetch active section content
   const { data: activeSection, isLoading: isLoadingSection } = useQuery({
-    queryKey: ['/api/projects', projectId, 'sections', activeSectionId],
+    queryKey: ["/api/projects", projectId, "sections", activeSectionId],
     queryFn: async () => {
       if (!activeSectionId) return null;
-      const response = await apiRequest('GET', `/api/projects/${projectId}/sections/${activeSectionId}`);
+      const response = await apiRequest(
+        "GET",
+        `/api/projects/${projectId}/sections/${activeSectionId}`,
+      );
       return response.json();
     },
     enabled: !!activeSectionId,
@@ -109,9 +154,11 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   useEffect(() => {
     if (!activeSectionId && sections.length > 0) {
       // Find first page (not folder)
-      const findFirstPage = (sectionList: ProjectSectionWithChildren[]): ProjectSectionWithChildren | null => {
+      const findFirstPage = (
+        sectionList: ProjectSectionWithChildren[],
+      ): ProjectSectionWithChildren | null => {
         for (const section of sectionList) {
-          if (section.type === 'page') {
+          if (section.type === "page") {
             return section;
           }
           if (section.children && section.children.length > 0) {
@@ -121,7 +168,7 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
         }
         return null;
       };
-      
+
       const firstPage = findFirstPage(sections);
       if (firstPage) {
         setActiveSectionId(firstPage.id);
@@ -143,9 +190,9 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
         setHasUnsavedChanges(false);
       } catch (error) {
         toast({
-          title: 'Save failed',
-          description: 'Could not save changes. Please try again.',
-          variant: 'destructive',
+          title: "Save failed",
+          description: "Could not save changes. Please try again.",
+          variant: "destructive",
         });
         return;
       }
@@ -162,9 +209,9 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
         await sectionEditorRef.current.saveContent();
       } catch (error) {
         toast({
-          title: 'Save failed',
-          description: 'Could not save changes. Please try again.',
-          variant: 'destructive',
+          title: "Save failed",
+          description: "Could not save changes. Please try again.",
+          variant: "destructive",
         });
       }
     }
@@ -173,19 +220,19 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   // Get breadcrumb path for current section
   const getBreadcrumb = (): string[] => {
     if (!activeSectionId || !sections) return [];
-    
+
     const findPath = (
-      sectionList: ProjectSectionWithChildren[], 
-      targetId: string, 
-      path: string[] = []
+      sectionList: ProjectSectionWithChildren[],
+      targetId: string,
+      path: string[] = [],
     ): string[] | null => {
       for (const section of sectionList) {
         const currentPath = [...path, section.title];
-        
+
         if (section.id === targetId) {
           return currentPath;
         }
-        
+
         if (section.children && section.children.length > 0) {
           const childPath = findPath(section.children, targetId, currentPath);
           if (childPath) return childPath;
@@ -193,7 +240,7 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
       }
       return null;
     };
-    
+
     return findPath(sections, activeSectionId) || [];
   };
 
@@ -209,44 +256,51 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
   }
 
   // Determine what to show in main content area
-  const showEmptyState = !activeSectionId || activeSection?.type === 'folder';
-  const showEditor = activeSectionId && activeSection?.type === 'page';
+  const showEmptyState = !activeSectionId || activeSection?.type === "folder";
+  const showEditor = activeSectionId && activeSection?.type === "page";
 
   // Writing Assistant functionality
   const openWritingAssistant = () => {
     // Check if there's already an existing writing assistant panel
-    const existingPanel = findPanel('writingAssistant', 'writing-assistant');
-    
+    const existingPanel = findPanel("writingAssistant", "writing-assistant");
+
     if (existingPanel) {
       // If it's already docked, focus it
-      if (existingPanel.mode === 'docked') {
+      if (existingPanel.mode === "docked") {
         focusPanel(existingPanel.id);
         return;
       }
       // If it exists as a tab or floating, convert it to docked mode
-      if (existingPanel.mode === 'tabbed' || existingPanel.mode === 'floating') {
-        updatePanel(existingPanel.id, { 
-          mode: 'docked',
-          regionId: 'docked'
+      if (
+        existingPanel.mode === "tabbed" ||
+        existingPanel.mode === "floating"
+      ) {
+        updatePanel(existingPanel.id, {
+          mode: "docked",
+          regionId: "docked",
         });
         return;
       }
     }
-    
+
     // Create new docked panel if none exists
     addPanel({
       id: `writing-assistant-${Date.now()}`,
-      type: 'writingAssistant' as const,
-      title: 'Writing Assistant',
-      mode: 'docked' as const,
-      regionId: 'docked' as const,
+      type: "writingAssistant" as const,
+      title: "Writing Assistant",
+      mode: "docked" as const,
+      regionId: "docked" as const,
       size: { width: 400, height: 600 },
-      entityId: 'writing-assistant', // Stable entityId for proper duplicate detection
+      entityId: "writing-assistant", // Stable entityId for proper duplicate detection
     });
   };
 
   // User initials for avatar
-  const userInitials = user ? `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase() || user.email?.[0]?.toUpperCase() || "U" : "U";
+  const userInitials = user
+    ? `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase() ||
+      user.email?.[0]?.toUpperCase() ||
+      "U"
+    : "U";
 
   // Search handler
   const handleSearch = (e: React.FormEvent) => {
@@ -254,13 +308,13 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
     if (searchValue.trim()) {
       setLocation(`/search?q=${encodeURIComponent(searchValue.trim())}`);
     } else {
-      setLocation('/search');
+      setLocation("/search");
     }
   };
 
   // Create new handler
   const handleCreateNew = () => {
-    setLocation('/notebook');
+    setLocation("/notebook");
   };
 
   return (
@@ -270,35 +324,37 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
         <div className="max-w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <button 
+            <button
               onClick={onBack}
               className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
               data-testid="button-logo-home"
             >
               <BookOpen className="h-8 w-8 text-primary" />
-              <h1 className="text-xl font-serif font-bold text-foreground">WriteCraft</h1>
+              <h1 className="text-xl font-serif font-bold text-foreground">
+                WriteCraft
+              </h1>
             </button>
 
             {/* Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
               <GeneratorDropdown onSelectGenerator={setActiveGenerator} />
-              <button 
-                onClick={() => window.location.href = '/guides'}
-                className="text-foreground hover:text-primary transition-colors" 
+              <button
+                onClick={() => (window.location.href = "/guides")}
+                className="text-foreground hover:text-primary transition-colors"
                 data-testid="link-guides"
               >
                 Guides
               </button>
-              <button 
-                onClick={() => window.location.href = '/notebook'}
-                className="text-foreground hover:text-primary transition-colors" 
+              <button
+                onClick={() => (window.location.href = "/notebook")}
+                className="text-foreground hover:text-primary transition-colors"
                 data-testid="link-notebook"
               >
                 Notebook
               </button>
-              <button 
-                onClick={() => window.location.href = '/projects'}
-                className="text-foreground hover:text-primary transition-colors" 
+              <button
+                onClick={() => (window.location.href = "/projects")}
+                className="text-foreground hover:text-primary transition-colors"
                 data-testid="link-projects"
               >
                 Projects
@@ -308,7 +364,10 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
             {/* Actions */}
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               {/* Desktop Search Bar */}
-              <form onSubmit={handleSearch} className="hidden lg:flex items-center">
+              <form
+                onSubmit={handleSearch}
+                className="hidden lg:flex items-center"
+              >
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -346,20 +405,20 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
                 <Plus className="h-4 w-4 sm:mr-1" />
                 <span className="hidden sm:inline">Create</span>
               </Button>
-              
+
               {/* Quick Note Button */}
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleQuickNote}
-                className={`${isQuickNoteOpen() ? 'bg-primary/10 text-primary' : ''}`}
+                className={`${isQuickNoteOpen() ? "bg-primary/10 text-primary" : ""}`}
                 data-testid="button-quick-note"
                 title="Quick Note"
                 aria-label="Quick Note"
               >
                 <StickyNote className="h-4 w-4" />
               </Button>
-              
+
               {/* Writing Assistant Button */}
               <Button
                 variant="ghost"
@@ -367,8 +426,9 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
                 onClick={openWritingAssistant}
                 className="hover:bg-primary/10 hover:text-primary"
                 style={{
-                  background: 'linear-gradient(135deg, hsl(270, 75%, 75%) 0%, hsl(255, 69%, 71%) 100%)',
-                  color: 'white'
+                  background:
+                    "linear-gradient(135deg, hsl(270, 75%, 75%) 0%, hsl(255, 69%, 71%) 100%)",
+                  color: "white",
                 }}
                 data-testid="button-writing-assistant"
                 title="Writing Assistant"
@@ -383,16 +443,26 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
                 onClick={toggleTheme}
                 data-testid="button-theme-toggle"
               >
-                {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                {isDark ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )}
               </Button>
 
               {/* User Profile Avatar */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" data-testid="button-user-menu">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    data-testid="button-user-menu"
+                  >
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user?.profileImageUrl || undefined} />
-                      <AvatarFallback className="text-xs">{userInitials}</AvatarFallback>
+                      <AvatarFallback className="text-xs">
+                        {userInitials}
+                      </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
@@ -408,11 +478,17 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setLocation('/account')} data-testid="menu-account">
+                  <DropdownMenuItem
+                    onClick={() => setLocation("/account")}
+                    data-testid="menu-account"
+                  >
                     <User className="mr-2 h-4 w-4" />
                     <span>Account</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLocation('/import')} data-testid="menu-import">
+                  <DropdownMenuItem
+                    onClick={() => setLocation("/import")}
+                    data-testid="menu-import"
+                  >
                     <Upload className="mr-2 h-4 w-4" />
                     <span>Import Data</span>
                   </DropdownMenuItem>
@@ -421,15 +497,15 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
                     onClick={async () => {
                       // Use POST endpoint for secure logout with CSRF protection
                       try {
-                        await fetch('/api/auth/logout', {
-                          method: 'POST',
-                          credentials: 'include',
+                        await fetch("/api/auth/logout", {
+                          method: "POST",
+                          credentials: "include",
                         });
-                        window.location.href = '/';
+                        window.location.href = "/";
                       } catch (error) {
-                        console.error('Logout failed:', error);
+                        console.error("Logout failed:", error);
                         // Fallback to GET endpoint if POST fails
-                        window.location.href = '/api/logout';
+                        window.location.href = "/api/logout";
                       }
                     }}
                     data-testid="menu-logout"
@@ -439,10 +515,10 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="md:hidden" 
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 data-testid="button-menu"
                 title="Menu"
@@ -458,37 +534,41 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
         {isMobileMenuOpen && (
           <div className="md:hidden bg-background border-b border-border max-h-[calc(100vh-4rem)] overflow-y-auto">
             <div className="px-4 py-4 space-y-4">
-              <button 
+              <button
                 onClick={() => {
-                  window.location.href = '/notebook';
+                  window.location.href = "/notebook";
                   setIsMobileMenuOpen(false);
                 }}
-                className="block w-full text-left text-foreground hover:text-primary transition-colors py-2" 
+                className="block w-full text-left text-foreground hover:text-primary transition-colors py-2"
                 data-testid="mobile-link-notebook"
               >
                 Notebook
               </button>
-              <button 
+              <button
                 onClick={() => {
-                  window.location.href = '/projects';
+                  window.location.href = "/projects";
                   setIsMobileMenuOpen(false);
                 }}
-                className="block w-full text-left text-foreground hover:text-primary transition-colors py-2" 
+                className="block w-full text-left text-foreground hover:text-primary transition-colors py-2"
                 data-testid="mobile-link-projects"
               >
                 Projects
               </button>
-              
+
               <div className="space-y-2">
-                <button 
-                  onClick={() => setIsMobileGeneratorsExpanded(!isMobileGeneratorsExpanded)}
-                  className="flex items-center justify-between w-full text-left text-foreground hover:text-primary transition-colors py-2" 
+                <button
+                  onClick={() =>
+                    setIsMobileGeneratorsExpanded(!isMobileGeneratorsExpanded)
+                  }
+                  className="flex items-center justify-between w-full text-left text-foreground hover:text-primary transition-colors py-2"
                   data-testid="mobile-link-generators"
                 >
                   <span>Generators</span>
-                  <ChevronDown className={`h-4 w-4 transition-transform ${isMobileGeneratorsExpanded ? 'rotate-180' : ''}`} />
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${isMobileGeneratorsExpanded ? "rotate-180" : ""}`}
+                  />
                 </button>
-                
+
                 {isMobileGeneratorsExpanded && (
                   <div className="pl-4 space-y-2">
                     {GENERATORS.map((generator) => {
@@ -512,13 +592,13 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
                   </div>
                 )}
               </div>
-              
-              <button 
+
+              <button
                 onClick={() => {
-                  window.location.href = '/guides';
+                  window.location.href = "/guides";
                   setIsMobileMenuOpen(false);
                 }}
-                className="block w-full text-left text-foreground hover:text-primary transition-colors py-2" 
+                className="block w-full text-left text-foreground hover:text-primary transition-colors py-2"
                 data-testid="mobile-link-guides"
               >
                 Guides
@@ -527,9 +607,9 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
           </div>
         )}
 
-        <GeneratorModals 
-          activeGenerator={activeGenerator} 
-          onClose={() => setActiveGenerator(null)} 
+        <GeneratorModals
+          activeGenerator={activeGenerator}
+          onClose={() => setActiveGenerator(null)}
         />
       </div>
 
@@ -538,16 +618,16 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
         <WorkspaceLayout
           projectInfo={{
             id: projectId,
-            title: project?.title || 'Untitled Project',
+            title: project?.title || "Untitled Project",
             onRename: (newTitle) => renameProjectMutation.mutate(newTitle),
           }}
         >
-          <div className="flex h-full bg-background">            
+          <div className="flex h-full bg-background">
             {/* Left Sidebar - Outline (collapsible) */}
-            <div 
+            <div
               className={cn(
                 "border-r flex-shrink-0 overflow-hidden transition-all duration-300 ease-in-out relative",
-                isSidebarOpen ? "w-64" : "w-0"
+                isSidebarOpen ? "w-64" : "w-0",
               )}
             >
               {isSidebarOpen && (
@@ -572,7 +652,7 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
                 lastSaveTime={lastSaveTime}
                 onBack={onBack}
                 onManualSave={handleManualSave}
-                isSaving={saveStatus === 'saving'}
+                isSaving={saveStatus === "saving"}
                 sidebarOpen={isSidebarOpen}
                 onToggleSidebar={() => setIsSidebarOpen(true)}
               />
@@ -586,20 +666,26 @@ export function ProjectContainer({ projectId, onBack }: ProjectContainerProps) {
                   onContentChange={(changes) => {
                     setHasUnsavedChanges(changes);
                     if (!changes) {
-                      setSaveStatus('saved');
+                      setSaveStatus("saved");
                     }
                   }}
                   onSaveStatusChange={setSaveStatus}
                   onLastSaveTimeChange={setLastSaveTime}
                   onWordCountChange={setWordCount}
-                  readOnly={(project as any)?.isShared && (project as any)?.sharePermission === 'view'}
+                  readOnly={
+                    (project as any)?.isShared &&
+                    (project as any)?.sharePermission === "view"
+                  }
                 />
               ) : showEmptyState ? (
                 <div className="flex-1 flex items-center justify-center text-center p-8">
                   <div>
-                    <h3 className="text-lg font-semibold mb-2">No page selected</h3>
+                    <h3 className="text-lg font-semibold mb-2">
+                      No page selected
+                    </h3>
                     <p className="text-sm text-muted-foreground">
-                      Select a page from the outline to start writing, or create a new page.
+                      Select a page from the outline to start writing, or create
+                      a new page.
                     </p>
                   </div>
                 </div>

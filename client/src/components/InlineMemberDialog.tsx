@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,10 +6,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 interface InlineMemberDialogProps {
   open: boolean;
@@ -24,7 +24,7 @@ export function InlineMemberDialog({
   onConfirm,
   isLoading = false,
 }: InlineMemberDialogProps) {
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
 
   const handleConfirm = () => {
     if (!name.trim()) {
@@ -32,13 +32,13 @@ export function InlineMemberDialog({
     }
     onConfirm(name.trim());
     // Reset state
-    setName('');
+    setName("");
   };
 
   const handleCancel = () => {
     onOpenChange(false);
     // Reset state
-    setName('');
+    setName("");
   };
 
   return (
@@ -47,7 +47,8 @@ export function InlineMemberDialog({
         <DialogHeader>
           <DialogTitle>Add Family Member</DialogTitle>
           <DialogDescription>
-            Create a new family member node without linking to an existing character.
+            Create a new family member node without linking to an existing
+            character.
           </DialogDescription>
         </DialogHeader>
 
@@ -61,7 +62,7 @@ export function InlineMemberDialog({
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && name.trim()) {
+                if (e.key === "Enter" && name.trim()) {
                   handleConfirm();
                 }
               }}
@@ -83,7 +84,7 @@ export function InlineMemberDialog({
             disabled={!name.trim() || isLoading}
             data-testid="button-confirm-inline-member"
           >
-            {isLoading ? 'Adding...' : 'Add Member'}
+            {isLoading ? "Adding..." : "Add Member"}
           </Button>
         </DialogFooter>
       </DialogContent>

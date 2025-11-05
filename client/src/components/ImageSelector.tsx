@@ -4,9 +4,23 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { Search, Upload, Loader2, ExternalLink, ImageIcon, Sparkles, Download } from "lucide-react";
+import {
+  Search,
+  Upload,
+  Loader2,
+  ExternalLink,
+  ImageIcon,
+  Sparkles,
+  Download,
+} from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -53,45 +67,55 @@ interface AIGenerateResponse {
   revisedPrompt?: string;
 }
 
-export function ImageSelector({ 
-  value, 
-  onChange, 
+export function ImageSelector({
+  value,
+  onChange,
   onFileUpload,
   label = "Image",
   showUploadTab = true,
   showAIGenerateTab = true,
-  characterData
+  characterData,
 }: ImageSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
   const [selectedTab, setSelectedTab] = useState<string>(
-    showUploadTab ? "upload" : showAIGenerateTab ? "ai-generate" : "stock"
+    showUploadTab ? "upload" : showAIGenerateTab ? "ai-generate" : "stock",
   );
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // AI Generation state
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiQuality, setAiQuality] = useState<"standard" | "hd">("standard");
-  const [aiSize, setAiSize] = useState<"1024x1024" | "1024x1792" | "1792x1024">("1024x1024");
+  const [aiSize, setAiSize] = useState<"1024x1024" | "1024x1792" | "1792x1024">(
+    "1024x1024",
+  );
   const { toast } = useToast();
 
   // Fetch curated photos by default, or search results if query exists
   const { data: pexelsData, isLoading } = useQuery<PexelsResponse>({
-    queryKey: activeSearch 
-      ? [`/api/pexels/search?query=${encodeURIComponent(activeSearch)}`] 
-      : ['/api/pexels/curated'],
+    queryKey: activeSearch
+      ? [`/api/pexels/search?query=${encodeURIComponent(activeSearch)}`]
+      : ["/api/pexels/curated"],
     enabled: selectedTab === "stock",
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
   // AI image generation mutation
   const aiGenerateMutation = useMutation({
-    mutationFn: async (params: { prompt: string; quality: string; size: string }) => {
-      const response = await apiRequest("POST", "/api/ideogram/generate", params);
-      return await response.json() as AIGenerateResponse;
+    mutationFn: async (params: {
+      prompt: string;
+      quality: string;
+      size: string;
+    }) => {
+      const response = await apiRequest(
+        "POST",
+        "/api/ideogram/generate",
+        params,
+      );
+      return (await response.json()) as AIGenerateResponse;
     },
     onSuccess: (data: AIGenerateResponse) => {
       onChange(data.imageUrl);
@@ -103,7 +127,8 @@ export function ImageSelector({
     onError: (error: any) => {
       toast({
         title: "Generation failed",
-        description: error.message || "Failed to generate image. Please try again.",
+        description:
+          error.message || "Failed to generate image. Please try again.",
         variant: "destructive",
       });
     },
@@ -112,39 +137,44 @@ export function ImageSelector({
   // Build image prompt from character data
   const buildCharacterImagePrompt = () => {
     if (!characterData) return "";
-    
+
     const parts: string[] = [];
-    
+
     // Age and gender
     if (characterData.age) parts.push(`${characterData.age}-year-old`);
     if (characterData.gender) parts.push(characterData.gender);
-    
+
     // Species/ethnicity
     if (characterData.species) parts.push(characterData.species);
     else if (characterData.ethnicity) parts.push(characterData.ethnicity);
-    
+
     // Physical description
     const physicalTraits: string[] = [];
     if (characterData.hairColor && characterData.hairStyle) {
-      physicalTraits.push(`${characterData.hairStyle} ${characterData.hairColor} hair`);
+      physicalTraits.push(
+        `${characterData.hairStyle} ${characterData.hairColor} hair`,
+      );
     } else if (characterData.hairColor) {
       physicalTraits.push(`${characterData.hairColor} hair`);
     }
-    
-    if (characterData.eyeColor) physicalTraits.push(`${characterData.eyeColor} eyes`);
-    if (characterData.skinTone) physicalTraits.push(`${characterData.skinTone} skin`);
-    if (characterData.build) physicalTraits.push(`${characterData.build} build`);
-    
+
+    if (characterData.eyeColor)
+      physicalTraits.push(`${characterData.eyeColor} eyes`);
+    if (characterData.skinTone)
+      physicalTraits.push(`${characterData.skinTone} skin`);
+    if (characterData.build)
+      physicalTraits.push(`${characterData.build} build`);
+
     if (characterData.height) {
       physicalTraits.push(`${characterData.height} tall`);
     }
-    
+
     // Combine parts
     let prompt = parts.join(" ");
     if (physicalTraits.length > 0) {
       prompt += " with " + physicalTraits.join(", ");
     }
-    
+
     // Add distinctive features
     if (characterData.facialFeatures) {
       prompt += `, ${characterData.facialFeatures}`;
@@ -152,7 +182,7 @@ export function ImageSelector({
     if (characterData.identifyingMarks) {
       prompt += `, ${characterData.identifyingMarks}`;
     }
-    
+
     return prompt.trim();
   };
 
@@ -162,12 +192,14 @@ export function ImageSelector({
       setAiPrompt(generatedPrompt);
       toast({
         title: "Prompt generated",
-        description: "Character details have been added to the prompt. You can edit it before generating.",
+        description:
+          "Character details have been added to the prompt. You can edit it before generating.",
       });
     } else {
       toast({
         title: "No character details",
-        description: "Fill in some character details first to auto-generate a prompt.",
+        description:
+          "Fill in some character details first to auto-generate a prompt.",
         variant: "destructive",
       });
     }
@@ -189,7 +221,8 @@ export function ImageSelector({
     if (!aiPrompt.trim()) {
       toast({
         title: "Prompt required",
-        description: "Please enter a description for the image you want to generate.",
+        description:
+          "Please enter a description for the image you want to generate.",
         variant: "destructive",
       });
       return;
@@ -207,14 +240,14 @@ export function ImageSelector({
     if (!file) return;
 
     setUploadedFile(file);
-    
+
     if (onFileUpload) {
       setIsUploading(true);
       try {
         const url = await onFileUpload(file);
         onChange(url);
       } catch (error) {
-        console.error('Upload failed:', error);
+        console.error("Upload failed:", error);
       } finally {
         setIsUploading(false);
       }
@@ -254,21 +287,21 @@ export function ImageSelector({
     if (isUploading) return;
 
     const files = Array.from(e.dataTransfer.files);
-    const imageFile = files.find(file => file.type.startsWith('image/'));
+    const imageFile = files.find((file) => file.type.startsWith("image/"));
 
     if (!imageFile) {
       return;
     }
 
     setUploadedFile(imageFile);
-    
+
     if (onFileUpload) {
       setIsUploading(true);
       try {
         const url = await onFileUpload(imageFile);
         onChange(url);
       } catch (error) {
-        console.error('Upload failed:', error);
+        console.error("Upload failed:", error);
       } finally {
         setIsUploading(false);
       }
@@ -281,11 +314,14 @@ export function ImageSelector({
   return (
     <div className="space-y-4">
       {label && <Label>{label}</Label>}
-      
+
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList className="grid w-full" style={{ 
-          gridTemplateColumns: `repeat(${[showUploadTab, showAIGenerateTab, true].filter(Boolean).length}, 1fr)` 
-        }}>
+        <TabsList
+          className="grid w-full"
+          style={{
+            gridTemplateColumns: `repeat(${[showUploadTab, showAIGenerateTab, true].filter(Boolean).length}, 1fr)`,
+          }}
+        >
           {showUploadTab && (
             <TabsTrigger value="upload" data-testid="tab-upload-image">
               <Upload className="h-4 w-4 mr-2" />
@@ -306,12 +342,12 @@ export function ImageSelector({
 
         {showUploadTab && (
           <TabsContent value="upload" className="space-y-4">
-            <div 
+            <div
               className={cn(
                 "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
-                isDragging 
-                  ? "border-primary bg-primary/10" 
-                  : "border-border bg-muted/50"
+                isDragging
+                  ? "border-primary bg-primary/10"
+                  : "border-border bg-muted/50",
               )}
               onDragEnter={handleDragEnter}
               onDragLeave={handleDragLeave}
@@ -320,7 +356,9 @@ export function ImageSelector({
             >
               <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
               <p className="text-sm text-muted-foreground mb-4">
-                {isDragging ? 'Drop image here' : 'Drag and drop an image, or choose a file'}
+                {isDragging
+                  ? "Drop image here"
+                  : "Drag and drop an image, or choose a file"}
               </p>
               <Button
                 type="button"
@@ -395,10 +433,15 @@ export function ImageSelector({
                   <Label htmlFor="ai-quality">Quality</Label>
                   <Select
                     value={aiQuality}
-                    onValueChange={(value) => setAiQuality(value as "standard" | "hd")}
+                    onValueChange={(value) =>
+                      setAiQuality(value as "standard" | "hd")
+                    }
                     disabled={aiGenerateMutation.isPending}
                   >
-                    <SelectTrigger id="ai-quality" data-testid="select-ai-quality">
+                    <SelectTrigger
+                      id="ai-quality"
+                      data-testid="select-ai-quality"
+                    >
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -412,16 +455,26 @@ export function ImageSelector({
                   <Label htmlFor="ai-size">Size</Label>
                   <Select
                     value={aiSize}
-                    onValueChange={(value) => setAiSize(value as "1024x1024" | "1024x1792" | "1792x1024")}
+                    onValueChange={(value) =>
+                      setAiSize(
+                        value as "1024x1024" | "1024x1792" | "1792x1024",
+                      )
+                    }
                     disabled={aiGenerateMutation.isPending}
                   >
                     <SelectTrigger id="ai-size" data-testid="select-ai-size">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1024x1024">Square (1024×1024)</SelectItem>
-                      <SelectItem value="1024x1792">Portrait (1024×1792)</SelectItem>
-                      <SelectItem value="1792x1024">Landscape (1792×1024)</SelectItem>
+                      <SelectItem value="1024x1024">
+                        Square (1024×1024)
+                      </SelectItem>
+                      <SelectItem value="1024x1792">
+                        Portrait (1024×1792)
+                      </SelectItem>
+                      <SelectItem value="1792x1024">
+                        Landscape (1792×1024)
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -447,12 +500,12 @@ export function ImageSelector({
                 )}
               </Button>
 
-              {value && value.startsWith('/objects/') && (
+              {value && value.startsWith("/objects/") && (
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => {
-                    const link = document.createElement('a');
+                    const link = document.createElement("a");
                     link.href = value;
                     link.download = `ai-generated-${Date.now()}.png`;
                     document.body.appendChild(link);
@@ -460,7 +513,8 @@ export function ImageSelector({
                     document.body.removeChild(link);
                     toast({
                       title: "Download started",
-                      description: "Your AI-generated image is being downloaded.",
+                      description:
+                        "Your AI-generated image is being downloaded.",
                     });
                   }}
                   className="w-full"
@@ -481,16 +535,16 @@ export function ImageSelector({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === "Enter") {
                   e.preventDefault();
                   handleSearch(e);
                 }
               }}
               data-testid="input-search-pexels"
             />
-            <Button 
-              type="button" 
-              size="icon" 
+            <Button
+              type="button"
+              size="icon"
               onClick={handleSearch}
               data-testid="button-search-pexels"
             >
@@ -509,7 +563,7 @@ export function ImageSelector({
                   <Card
                     key={photo.id}
                     className={`cursor-pointer hover-elevate ${
-                      value === photo.src.large ? 'ring-2 ring-primary' : ''
+                      value === photo.src.large ? "ring-2 ring-primary" : ""
                     }`}
                     onClick={() => handleSelectPexelsImage(photo)}
                     data-testid={`image-pexels-${photo.id}`}
@@ -539,7 +593,9 @@ export function ImageSelector({
             </>
           ) : (
             <div className="text-center py-12 text-muted-foreground">
-              {activeSearch ? 'No images found. Try a different search.' : 'Start searching for images'}
+              {activeSearch
+                ? "No images found. Try a different search."
+                : "Start searching for images"}
             </div>
           )}
         </TabsContent>

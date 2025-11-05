@@ -6,28 +6,29 @@ const sentryDsn = process.env.SENTRY_DSN;
 Sentry.init({
   dsn: sentryDsn,
   enabled: !!sentryDsn,
-  environment: process.env.NODE_ENV || 'development',
-  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-  integrations: [
-    nodeProfilingIntegration(),
-  ],
-  profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+  environment: process.env.NODE_ENV || "development",
+  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+  integrations: [nodeProfilingIntegration()],
+  profilesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
 
   beforeSend(event, hint) {
     if (event.breadcrumbs) {
-      event.breadcrumbs = event.breadcrumbs.map(breadcrumb => {
+      event.breadcrumbs = event.breadcrumbs.map((breadcrumb) => {
         if (breadcrumb.data && breadcrumb.data.url) {
-          breadcrumb.data.url = breadcrumb.data.url.replace(/([?&])(api_key|token|password|secret)=[^&]*/gi, '$1$2=REDACTED');
+          breadcrumb.data.url = breadcrumb.data.url.replace(
+            /([?&])(api_key|token|password|secret)=[^&]*/gi,
+            "$1$2=REDACTED",
+          );
         }
         return breadcrumb;
       });
     }
 
     if (event.request?.headers) {
-      const sensitiveHeaders = ['authorization', 'cookie', 'x-api-key'];
-      sensitiveHeaders.forEach(header => {
+      const sensitiveHeaders = ["authorization", "cookie", "x-api-key"];
+      sensitiveHeaders.forEach((header) => {
         if (event.request!.headers![header]) {
-          event.request!.headers![header] = 'REDACTED';
+          event.request!.headers![header] = "REDACTED";
         }
       });
     }

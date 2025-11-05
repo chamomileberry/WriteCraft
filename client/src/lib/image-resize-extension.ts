@@ -1,6 +1,6 @@
-import { Node, mergeAttributes } from '@tiptap/core';
-import { Plugin, PluginKey } from '@tiptap/pm/state';
-import { Decoration, DecorationSet } from '@tiptap/pm/view';
+import { Node, mergeAttributes } from "@tiptap/core";
+import { Plugin, PluginKey } from "@tiptap/pm/state";
+import { Decoration, DecorationSet } from "@tiptap/pm/view";
 
 export interface ImageResizeOptions {
   inline: boolean;
@@ -8,17 +8,23 @@ export interface ImageResizeOptions {
   HTMLAttributes: Record<string, any>;
 }
 
-declare module '@tiptap/core' {
+declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     imageResize: {
-      setImage: (options: { src: string; alt?: string; title?: string; width?: number; align?: string }) => ReturnType;
-      setImageAlign: (align: 'left' | 'center' | 'right') => ReturnType;
+      setImage: (options: {
+        src: string;
+        alt?: string;
+        title?: string;
+        width?: number;
+        align?: string;
+      }) => ReturnType;
+      setImageAlign: (align: "left" | "center" | "right") => ReturnType;
     };
   }
 }
 
 export const ImageResize = Node.create<ImageResizeOptions>({
-  name: 'image',
+  name: "image",
 
   addOptions() {
     return {
@@ -33,7 +39,7 @@ export const ImageResize = Node.create<ImageResizeOptions>({
   },
 
   group() {
-    return this.options.inline ? 'inline' : 'block';
+    return this.options.inline ? "inline" : "block";
   },
 
   draggable: true,
@@ -51,11 +57,11 @@ export const ImageResize = Node.create<ImageResizeOptions>({
       },
       width: {
         default: null,
-        parseHTML: element => {
-          const width = element.style.width || element.getAttribute('width');
+        parseHTML: (element) => {
+          const width = element.style.width || element.getAttribute("width");
           return width ? parseInt(width) : null;
         },
-        renderHTML: attributes => {
+        renderHTML: (attributes) => {
           if (!attributes.width) {
             return {};
           }
@@ -65,13 +71,13 @@ export const ImageResize = Node.create<ImageResizeOptions>({
         },
       },
       align: {
-        default: 'center',
-        parseHTML: element => {
-          return element.getAttribute('data-align') || 'center';
+        default: "center",
+        parseHTML: (element) => {
+          return element.getAttribute("data-align") || "center";
         },
-        renderHTML: attributes => {
+        renderHTML: (attributes) => {
           return {
-            'data-align': attributes.align,
+            "data-align": attributes.align,
           };
         },
       },
@@ -82,45 +88,46 @@ export const ImageResize = Node.create<ImageResizeOptions>({
     return [
       {
         tag: this.options.allowBase64
-          ? 'img[src]'
+          ? "img[src]"
           : 'img[src]:not([src^="data:"])',
       },
     ];
   },
 
   renderHTML({ HTMLAttributes }) {
-    const align = HTMLAttributes['data-align'] || 'center';
+    const align = HTMLAttributes["data-align"] || "center";
     const width = HTMLAttributes.width;
-    
+
     // Build style string
-    let style = '';
+    let style = "";
     if (width) {
       style += `width: ${width}px;`;
     }
-    
+
     // Add alignment styles
-    if (align === 'left') {
-      style += 'float: left; margin: 0 1.5rem 1rem 0;';
-    } else if (align === 'right') {
-      style += 'float: right; margin: 0 0 1rem 1.5rem;';
-    } else if (align === 'center') {
-      style += 'display: block; margin-left: auto; margin-right: auto; margin-top: 1rem; margin-bottom: 1rem;';
+    if (align === "left") {
+      style += "float: left; margin: 0 1.5rem 1rem 0;";
+    } else if (align === "right") {
+      style += "float: right; margin: 0 0 1rem 1.5rem;";
+    } else if (align === "center") {
+      style +=
+        "display: block; margin-left: auto; margin-right: auto; margin-top: 1rem; margin-bottom: 1rem;";
     }
-    
+
     const attrs = {
       ...this.options.HTMLAttributes,
       ...HTMLAttributes,
       style,
-      class: `editor-image ${this.options.HTMLAttributes?.class || ''}`.trim(),
+      class: `editor-image ${this.options.HTMLAttributes?.class || ""}`.trim(),
     };
-    
-    return ['img', mergeAttributes(attrs)];
+
+    return ["img", mergeAttributes(attrs)];
   },
 
   addCommands() {
     return {
       setImage:
-        options =>
+        (options) =>
         ({ commands }) => {
           return commands.insertContent({
             type: this.name,
@@ -128,7 +135,7 @@ export const ImageResize = Node.create<ImageResizeOptions>({
           });
         },
       setImageAlign:
-        align =>
+        (align) =>
         ({ tr, state, dispatch }) => {
           const { selection } = state;
           let imagePos: number | null = null;
@@ -137,8 +144,8 @@ export const ImageResize = Node.create<ImageResizeOptions>({
           // Find the selected image node
           state.doc.descendants((node, pos) => {
             if (imagePos !== null) return false;
-            
-            if (node.type.name === 'image') {
+
+            if (node.type.name === "image") {
               if (pos >= selection.from - 1 && pos <= selection.to) {
                 imagePos = pos;
                 imageNode = node;
@@ -164,22 +171,22 @@ export const ImageResize = Node.create<ImageResizeOptions>({
   addProseMirrorPlugins() {
     return [
       new Plugin({
-        key: new PluginKey('imageResize'),
+        key: new PluginKey("imageResize"),
         props: {
           decorations(state) {
             const { doc, selection } = state;
             const decorations: Decoration[] = [];
 
             doc.descendants((node, pos) => {
-              if (node.type.name === 'image') {
+              if (node.type.name === "image") {
                 const { from, to } = selection;
                 const isSelected = pos >= from && pos < to;
 
                 if (isSelected) {
                   decorations.push(
                     Decoration.node(pos, pos + node.nodeSize, {
-                      class: 'ProseMirror-selectednode image-resizer-selected',
-                    })
+                      class: "ProseMirror-selectednode image-resizer-selected",
+                    }),
                   );
                 }
               }
@@ -191,8 +198,8 @@ export const ImageResize = Node.create<ImageResizeOptions>({
           handleDOMEvents: {
             mousedown(view, event) {
               const target = event.target as HTMLElement;
-              
-              if (target.tagName !== 'IMG') {
+
+              if (target.tagName !== "IMG") {
                 return false;
               }
 
@@ -213,11 +220,11 @@ export const ImageResize = Node.create<ImageResizeOptions>({
               // Find the position of this image node
               let imagePos: number | null = null;
               let imageNode: any = null;
-              
+
               view.state.doc.descendants((node, pos) => {
                 if (imagePos !== null) return false; // Already found
-                
-                if (node.type.name === 'image') {
+
+                if (node.type.name === "image") {
                   // Try to match by checking if this is the same DOM element
                   const domAtPos = view.domAtPos(pos);
                   if (domAtPos.node === img || domAtPos.node.contains(img)) {
@@ -229,7 +236,7 @@ export const ImageResize = Node.create<ImageResizeOptions>({
               });
 
               if (imagePos === null) {
-                console.warn('Could not find image node position');
+                console.warn("Could not find image node position");
                 return false;
               }
 
@@ -238,16 +245,16 @@ export const ImageResize = Node.create<ImageResizeOptions>({
               const onMouseMove = (e: MouseEvent) => {
                 const diff = e.clientX - startX;
                 currentWidth = Math.max(100, Math.min(startWidth + diff, 1000));
-                
+
                 // Update the image width visually
                 img.style.width = `${currentWidth}px`;
-                img.setAttribute('width', String(currentWidth));
+                img.setAttribute("width", String(currentWidth));
               };
 
               const onMouseUp = () => {
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-                img.style.cursor = '';
+                document.removeEventListener("mousemove", onMouseMove);
+                document.removeEventListener("mouseup", onMouseUp);
+                img.style.cursor = "";
 
                 // Update ProseMirror state only once at the end
                 if (imagePos !== null && imageNode) {
@@ -259,9 +266,9 @@ export const ImageResize = Node.create<ImageResizeOptions>({
                 }
               };
 
-              img.style.cursor = 'ew-resize';
-              document.addEventListener('mousemove', onMouseMove);
-              document.addEventListener('mouseup', onMouseUp);
+              img.style.cursor = "ew-resize";
+              document.addEventListener("mousemove", onMouseMove);
+              document.addEventListener("mouseup", onMouseUp);
 
               return true;
             },

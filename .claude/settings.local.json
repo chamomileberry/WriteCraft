@@ -1,8 +1,6 @@
 {
   "permissions": {
-    "allow": [
-      "Bash(gh pr list:*)"
-    ],
+    "allow": ["Bash(gh pr list:*)"],
     "deny": [],
     "ask": []
   }

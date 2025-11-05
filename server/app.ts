@@ -18,90 +18,93 @@ export function setServerInstance(server: Server) {
 // Graceful shutdown function
 async function gracefulShutdown(signal: string) {
   console.log(`\n[SHUTDOWN] Received ${signal}, starting graceful shutdown...`);
-  
+
   if (serverInstance) {
     try {
       // Stop accepting new connections
       await new Promise<void>((resolve, reject) => {
         serverInstance!.close((err) => {
           if (err) {
-            console.error('[SHUTDOWN] Error closing server:', err);
+            console.error("[SHUTDOWN] Error closing server:", err);
             reject(err);
           } else {
-            console.log('[SHUTDOWN] Server closed successfully');
+            console.log("[SHUTDOWN] Server closed successfully");
             resolve();
           }
         });
       });
     } catch (error) {
-      console.error('[SHUTDOWN] Error during graceful shutdown:', error);
+      console.error("[SHUTDOWN] Error during graceful shutdown:", error);
     }
   }
-  
+
   // Flush Sentry events
   try {
     await Sentry.close(2000);
-    console.log('[SHUTDOWN] Sentry client closed');
+    console.log("[SHUTDOWN] Sentry client closed");
   } catch (error) {
-    console.error('[SHUTDOWN] Error closing Sentry:', error);
+    console.error("[SHUTDOWN] Error closing Sentry:", error);
   }
-  
-  console.log('[SHUTDOWN] Graceful shutdown complete');
+
+  console.log("[SHUTDOWN] Graceful shutdown complete");
   process.exit(0);
 }
 
 // Global error handlers to prevent server crashes
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
   // Capture in Sentry
   Sentry.captureException(reason);
   // Log the error but don't crash the server in production
-  if (process.env.NODE_ENV !== 'production') {
-    console.error('Stack trace:', reason);
+  if (process.env.NODE_ENV !== "production") {
+    console.error("Stack trace:", reason);
   }
 });
 
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
   // Capture in Sentry
   Sentry.captureException(error);
   // Log the error but don't crash in production
-  if (process.env.NODE_ENV !== 'production') {
-    console.error('Stack trace:', error.stack);
+  if (process.env.NODE_ENV !== "production") {
+    console.error("Stack trace:", error.stack);
   }
   // In production, you might want to gracefully shutdown
   // For now, we log and continue
 });
 
 // Signal handlers for graceful shutdown
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
 export async function createApp() {
   const app = express();
-  
+
   // Health check endpoint for deployment monitoring
-  app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok', timestamp: Date.now() });
+  app.get("/health", (req, res) => {
+    res.status(200).json({ status: "ok", timestamp: Date.now() });
   });
-  
+
   // HTTP request logging with pino
-  app.use(pinoHttp({
-    logger,
-    autoLogging: {
-      ignore: (req) => req.url?.startsWith('/assets') || req.url?.startsWith('/@vite')
-    },
-    customLogLevel: (req, res, err) => {
-      if (res.statusCode >= 500 || err) return 'error';
-      if (res.statusCode >= 400) return 'warn';
-      return 'info';
-    },
-  }));
-  
+  app.use(
+    pinoHttp({
+      logger,
+      autoLogging: {
+        ignore: (req) =>
+          req.url?.startsWith("/assets") || req.url?.startsWith("/@vite"),
+      },
+      customLogLevel: (req, res, err) => {
+        if (res.statusCode >= 500 || err) return "error";
+        if (res.statusCode >= 400) return "warn";
+        return "info";
+      },
+    }),
+  );
+
   // Parse request bodies first (required for sanitization to work)
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
-  
+
   // Apply security middleware AFTER body parsing so req.body exists
   applySecurityMiddleware(app);
 
@@ -151,7 +154,7 @@ export async function createApp() {
     Sentry.captureException(err);
 
     // Log the error for debugging but don't throw after response is sent
-    console.error('Error handler caught:', err);
+    console.error("Error handler caught:", err);
     res.status(status).json({ message });
   });
 

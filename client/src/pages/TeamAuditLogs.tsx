@@ -1,23 +1,35 @@
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { 
-  FileEdit, 
-  Trash2, 
-  Plus, 
-  Users, 
+import { useQuery } from "@tanstack/react-query";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import {
+  FileEdit,
+  Trash2,
+  Plus,
+  Users,
   Settings,
   Shield,
   Clock,
   Search,
   ChevronLeft,
-  ChevronRight
-} from 'lucide-react';
-import { useState } from 'react';
-import { format } from 'date-fns';
+  ChevronRight,
+} from "lucide-react";
+import { useState } from "react";
+import { format } from "date-fns";
 
 const ACTION_ICONS = {
   create: Plus,
@@ -30,20 +42,20 @@ const ACTION_ICONS = {
 };
 
 const ACTION_COLORS = {
-  create: 'default',
-  update: 'secondary',
-  delete: 'destructive',
-  invite: 'default',
-  remove_member: 'destructive',
-  role_change: 'secondary',
-  settings_change: 'secondary',
+  create: "default",
+  update: "secondary",
+  delete: "destructive",
+  invite: "default",
+  remove_member: "destructive",
+  role_change: "secondary",
+  settings_change: "secondary",
 } as const;
 
 export default function TeamAuditLogs() {
   const [filters, setFilters] = useState({
-    action: '',
-    resourceType: '',
-    search: '',
+    action: "",
+    resourceType: "",
+    search: "",
   });
   const [page, setPage] = useState(0);
   const limit = 20;
@@ -67,7 +79,7 @@ export default function TeamAuditLogs() {
     offset: number;
   }>({
     queryKey: [
-      '/api/team/audit-logs',
+      "/api/team/audit-logs",
       {
         ...filters,
         limit,
@@ -82,12 +94,12 @@ export default function TeamAuditLogs() {
   const totalPages = Math.ceil(total / limit);
 
   const handleFilterChange = (key: string, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    setFilters((prev) => ({ ...prev, [key]: value }));
     setPage(0); // Reset to first page when filters change
   };
 
   const handleClearFilters = () => {
-    setFilters({ action: '', resourceType: '', search: '' });
+    setFilters({ action: "", resourceType: "", search: "" });
     setPage(0);
   };
 
@@ -104,20 +116,23 @@ export default function TeamAuditLogs() {
 
   const formatActionName = (action: string) => {
     return action
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   };
 
   const formatResourceType = (type: string) => {
     return type
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6" data-testid="page-audit-logs">
+    <div
+      className="container mx-auto p-6 space-y-6"
+      data-testid="page-audit-logs"
+    >
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold">Audit Logs</h1>
@@ -143,7 +158,7 @@ export default function TeamAuditLogs() {
               <label className="text-sm font-medium">Action</label>
               <Select
                 value={filters.action}
-                onValueChange={(value) => handleFilterChange('action', value)}
+                onValueChange={(value) => handleFilterChange("action", value)}
               >
                 <SelectTrigger data-testid="select-action-filter">
                   <SelectValue placeholder="All actions" />
@@ -164,7 +179,9 @@ export default function TeamAuditLogs() {
               <label className="text-sm font-medium">Resource Type</label>
               <Select
                 value={filters.resourceType}
-                onValueChange={(value) => handleFilterChange('resourceType', value)}
+                onValueChange={(value) =>
+                  handleFilterChange("resourceType", value)
+                }
               >
                 <SelectTrigger data-testid="select-resource-filter">
                   <SelectValue placeholder="All resources" />
@@ -185,15 +202,15 @@ export default function TeamAuditLogs() {
               <Input
                 placeholder="Search by resource name..."
                 value={filters.search}
-                onChange={(e) => handleFilterChange('search', e.target.value)}
+                onChange={(e) => handleFilterChange("search", e.target.value)}
                 data-testid="input-search"
               />
             </div>
           </div>
 
           {(filters.action || filters.resourceType || filters.search) && (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={handleClearFilters}
               data-testid="button-clear-filters"
             >
@@ -219,8 +236,12 @@ export default function TeamAuditLogs() {
           ) : (
             <div className="space-y-4">
               {logs.map((log) => {
-                const ActionIcon = ACTION_ICONS[log.action as keyof typeof ACTION_ICONS] || Clock;
-                const actionColor = ACTION_COLORS[log.action as keyof typeof ACTION_COLORS] || 'default';
+                const ActionIcon =
+                  ACTION_ICONS[log.action as keyof typeof ACTION_ICONS] ||
+                  Clock;
+                const actionColor =
+                  ACTION_COLORS[log.action as keyof typeof ACTION_COLORS] ||
+                  "default";
 
                 return (
                   <div
@@ -236,7 +257,10 @@ export default function TeamAuditLogs() {
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <Badge variant={actionColor} data-testid={`badge-action-${log.id}`}>
+                            <Badge
+                              variant={actionColor}
+                              data-testid={`badge-action-${log.id}`}
+                            >
                               {formatActionName(log.action)}
                             </Badge>
                             <Badge variant="outline">
@@ -250,16 +274,17 @@ export default function TeamAuditLogs() {
                           </div>
                           <div className="mt-2 text-sm text-muted-foreground">
                             {log.user ? (
-                              <span>
-                                By {log.user.name || log.user.email}
-                              </span>
+                              <span>By {log.user.name || log.user.email}</span>
                             ) : (
                               <span>By system</span>
                             )}
-                            {' • '}
+                            {" • "}
                             <span className="flex items-center gap-1 inline-flex">
                               <Clock className="h-3 w-3" />
-                              {format(new Date(log.createdAt), 'MMM d, yyyy h:mm a')}
+                              {format(
+                                new Date(log.createdAt),
+                                "MMM d, yyyy h:mm a",
+                              )}
                             </span>
                           </div>
                         </div>
@@ -268,35 +293,47 @@ export default function TeamAuditLogs() {
                       {/* Show changes if available */}
                       {(log.changesBefore || log.changesAfter) && (
                         <div className="mt-3 p-3 rounded bg-muted/50 text-sm space-y-1">
-                          {log.action === 'update' && log.changesBefore && log.changesAfter && (
+                          {log.action === "update" &&
+                            log.changesBefore &&
+                            log.changesAfter && (
+                              <div className="space-y-1">
+                                {Object.keys(log.changesAfter).map((key) => {
+                                  const before = log.changesBefore?.[key];
+                                  const after = log.changesAfter?.[key];
+                                  if (before !== after) {
+                                    return (
+                                      <div
+                                        key={key}
+                                        className="flex items-center gap-2 flex-wrap"
+                                      >
+                                        <span className="font-medium">
+                                          {key}:
+                                        </span>
+                                        <span className="text-muted-foreground line-through">
+                                          {String(before)}
+                                        </span>
+                                        <span>→</span>
+                                        <span>{String(after)}</span>
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                })}
+                              </div>
+                            )}
+                          {log.action === "create" && log.changesAfter && (
                             <div className="space-y-1">
-                              {Object.keys(log.changesAfter).map((key) => {
-                                const before = log.changesBefore?.[key];
-                                const after = log.changesAfter?.[key];
-                                if (before !== after) {
-                                  return (
-                                    <div key={key} className="flex items-center gap-2 flex-wrap">
-                                      <span className="font-medium">{key}:</span>
-                                      <span className="text-muted-foreground line-through">
-                                        {String(before)}
-                                      </span>
-                                      <span>→</span>
-                                      <span>{String(after)}</span>
-                                    </div>
-                                  );
-                                }
-                                return null;
-                              })}
-                            </div>
-                          )}
-                          {log.action === 'create' && log.changesAfter && (
-                            <div className="space-y-1">
-                              {Object.entries(log.changesAfter).map(([key, value]) => (
-                                <div key={key} className="flex items-center gap-2">
-                                  <span className="font-medium">{key}:</span>
-                                  <span>{String(value)}</span>
-                                </div>
-                              ))}
+                              {Object.entries(log.changesAfter).map(
+                                ([key, value]) => (
+                                  <div
+                                    key={key}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <span className="font-medium">{key}:</span>
+                                    <span>{String(value)}</span>
+                                  </div>
+                                ),
+                              )}
                             </div>
                           )}
                         </div>
@@ -330,7 +367,7 @@ export default function TeamAuditLogs() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPage(p => Math.max(0, p - 1))}
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
                   disabled={page === 0}
                   data-testid="button-prev-page"
                 >
@@ -340,7 +377,9 @@ export default function TeamAuditLogs() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                  onClick={() =>
+                    setPage((p) => Math.min(totalPages - 1, p + 1))
+                  }
                   disabled={page >= totalPages - 1}
                   data-testid="button-next-page"
                 >

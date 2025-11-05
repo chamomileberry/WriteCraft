@@ -50,7 +50,7 @@ export function ContentTypeSwitcherModal({
       const response = await apiRequest(
         "PATCH",
         `/api/saved-items/${savedItemId}/type`,
-        { newItemType: newType }
+        { newItemType: newType },
       );
 
       if (!response.ok) {
@@ -89,13 +89,16 @@ export function ContentTypeSwitcherModal({
     }
   };
 
-  const groupedTypes = CONTENT_TYPES.reduce((acc, type) => {
-    if (!acc[type.category]) {
-      acc[type.category] = [];
-    }
-    acc[type.category].push(type);
-    return acc;
-  }, {} as Record<string, typeof CONTENT_TYPES>);
+  const groupedTypes = CONTENT_TYPES.reduce(
+    (acc, type) => {
+      if (!acc[type.category]) {
+        acc[type.category] = [];
+      }
+      acc[type.category].push(type);
+      return acc;
+    },
+    {} as Record<string, typeof CONTENT_TYPES>,
+  );
 
   const currentTypeInfo = CONTENT_TYPES.find((t) => t.id === currentType);
   const selectedTypeInfo = CONTENT_TYPES.find((t) => t.id === selectedType);
@@ -117,17 +120,16 @@ export function ContentTypeSwitcherModal({
           <DialogTitle>Change Item Type</DialogTitle>
           <DialogDescription className="space-y-1">
             {itemName && (
-              <div className="font-medium text-foreground">
-                {itemName}
-              </div>
+              <div className="font-medium text-foreground">{itemName}</div>
             )}
             {itemDescription && (
-              <div className="text-sm line-clamp-2">
-                {itemDescription}
-              </div>
+              <div className="text-sm line-clamp-2">{itemDescription}</div>
             )}
             <div className="text-sm">
-              Current type: <span className="font-medium">{currentTypeInfo?.name || currentType}</span>
+              Current type:{" "}
+              <span className="font-medium">
+                {currentTypeInfo?.name || currentType}
+              </span>
             </div>
           </DialogDescription>
         </DialogHeader>
@@ -138,7 +140,11 @@ export function ContentTypeSwitcherModal({
               <SelectTrigger data-testid="select-new-type">
                 <SelectValue placeholder="Select a type" />
               </SelectTrigger>
-              <SelectContent className="max-h-[400px] z-[300]" position="popper" sideOffset={5}>
+              <SelectContent
+                className="max-h-[400px] z-[300]"
+                position="popper"
+                sideOffset={5}
+              >
                 {Object.entries(groupedTypes).map(([category, types]) => (
                   <SelectGroup key={category}>
                     <SelectLabel>{category}</SelectLabel>

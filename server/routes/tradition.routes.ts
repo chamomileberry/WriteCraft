@@ -10,31 +10,41 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.body.notebookId;
-    
+
     // Validate notebook ownership before allowing write
     if (notebookId) {
-      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, userId);
+      const ownsNotebook = await storage.validateNotebookOwnership(
+        notebookId,
+        userId,
+      );
       if (!ownsNotebook) {
-        console.warn(`[Security] Unauthorized notebook access attempt - userId: ${userId}, notebookId: ${notebookId}`);
-        return res.status(404).json({ error: 'Notebook not found' });
+        console.warn(
+          `[Security] Unauthorized notebook access attempt - userId: ${userId}, notebookId: ${notebookId}`,
+        );
+        return res.status(404).json({ error: "Notebook not found" });
       }
     }
-    
+
     const validatedTradition = insertTraditionSchema.parse(req.body);
     const savedTradition = await storage.createTradition(validatedTradition);
     res.json(savedTradition);
   } catch (error) {
-    console.error('Error saving tradition:', error);
+    console.error("Error saving tradition:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
-      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
-      return res.status(404).json({ error: 'Not found' });
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const notebookId =
+        req.query.notebookId || req.body.notebookId || "unknown";
+      console.warn(
+        `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to save tradition' });
+    res.status(500).json({ error: "Failed to save tradition" });
   }
 });
 
@@ -43,25 +53,27 @@ router.get("/", readRateLimiter, async (req: any, res) => {
     const search = req.query.search as string;
     const notebookId = req.query.notebookId as string;
     const userId = req.user.claims.sub;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     const traditions = await storage.getUserTraditions(userId, notebookId);
-    
+
     // Filter by search text if provided
     let filtered = traditions;
     if (search) {
       filtered = filtered.filter((tradition: any) =>
-        tradition.name?.toLowerCase().includes(search.toLowerCase())
+        tradition.name?.toLowerCase().includes(search.toLowerCase()),
       );
     }
-    
+
     res.json(filtered);
   } catch (error) {
-    console.error('Error fetching traditions:', error);
-    res.status(500).json({ error: 'Failed to fetch traditions' });
+    console.error("Error fetching traditions:", error);
+    res.status(500).json({ error: "Failed to fetch traditions" });
   }
 });
 
@@ -69,16 +81,18 @@ router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     const traditions = await storage.getUserTraditions(userId, notebookId);
     res.json(traditions);
   } catch (error) {
-    console.error('Error fetching traditions:', error);
-    res.status(500).json({ error: 'Failed to fetch traditions' });
+    console.error("Error fetching traditions:", error);
+    res.status(500).json({ error: "Failed to fetch traditions" });
   }
 });
 
@@ -86,19 +100,25 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
-    const tradition = await storage.getTradition(req.params.id, userId, notebookId);
+
+    const tradition = await storage.getTradition(
+      req.params.id,
+      userId,
+      notebookId,
+    );
     if (!tradition) {
-      return res.status(404).json({ error: 'Tradition not found' });
+      return res.status(404).json({ error: "Tradition not found" });
     }
     res.json(tradition);
   } catch (error) {
-    console.error('Error fetching tradition:', error);
-    res.status(500).json({ error: 'Failed to fetch tradition' });
+    console.error("Error fetching tradition:", error);
+    res.status(500).json({ error: "Failed to fetch tradition" });
   }
 });
 
@@ -106,19 +126,29 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const validatedUpdates = insertTraditionSchema.parse(req.body);
-    const updatedTradition = await storage.updateTradition(req.params.id, userId, validatedUpdates);
+    const updatedTradition = await storage.updateTradition(
+      req.params.id,
+      userId,
+      validatedUpdates,
+    );
     res.json(updatedTradition);
   } catch (error) {
-    console.error('Error updating tradition:', error);
+    console.error("Error updating tradition:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
-      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
-      return res.status(404).json({ error: 'Not found' });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const notebookId =
+        req.query.notebookId || req.body.notebookId || "unknown";
+      console.warn(
+        `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -130,14 +160,17 @@ router.delete("/:id", writeRateLimiter, async (req: any, res) => {
     await storage.deleteTradition(req.params.id, userId);
     res.json({ success: true });
   } catch (error) {
-    console.error('Error deleting tradition:', error);
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
-      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
-      return res.status(404).json({ error: 'Not found' });
+    console.error("Error deleting tradition:", error);
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const notebookId =
+        req.query.notebookId || req.body.notebookId || "unknown";
+      console.warn(
+        `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to delete tradition' });
+    res.status(500).json({ error: "Failed to delete tradition" });
   }
 });
 

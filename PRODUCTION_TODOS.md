@@ -17,6 +17,7 @@ The application needs a comprehensive email notification system to keep users in
 Consider one of these email service providers:
 
 1. **Resend** (Recommended)
+
    - Modern, developer-friendly API
    - Excellent deliverability
    - Simple pricing: $20/month for 50,000 emails
@@ -81,26 +82,30 @@ Consider one of these email service providers:
 ### Implementation Steps
 
 1. **Choose Email Service**
+
    - Sign up for Resend or SendGrid
    - Obtain API key and add to environment variables
    - Verify sender domain
 
 2. **Create Email Templates**
+
    - Design branded HTML email templates
    - Create plain-text fallbacks
    - Test across email clients
 
 3. **Implement Email Service Module**
+
    ```typescript
    // server/services/emailService.ts
-   - sendWelcomeEmail(user)
-   - sendSubscriptionConfirmation(user, subscription)
-   - sendPaymentFailedNotification(user, invoice)
-   - sendGracePeriodWarning(user, daysRemaining)
+   -sendWelcomeEmail(user) -
+     sendSubscriptionConfirmation(user, subscription) -
+     sendPaymentFailedNotification(user, invoice) -
+     sendGracePeriodWarning(user, daysRemaining);
    // ... etc
    ```
 
 4. **Integrate Email Triggers**
+
    - Add email calls to existing endpoints
    - Subscribe to Stripe webhooks for payment events
    - Create background jobs for scheduled emails

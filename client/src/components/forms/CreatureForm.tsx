@@ -3,14 +3,52 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, Zap, Eye, Shield, Crown, Heart, TreePine, Mountain, Waves, Wind, Star, Feather, Package } from "lucide-react";
-import { insertCreatureSchema, type InsertCreature, type Creature } from "@shared/schema";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Sparkles,
+  Zap,
+  Eye,
+  Shield,
+  Crown,
+  Heart,
+  TreePine,
+  Mountain,
+  Waves,
+  Wind,
+  Star,
+  Feather,
+  Package,
+} from "lucide-react";
+import {
+  insertCreatureSchema,
+  type InsertCreature,
+  type Creature,
+} from "@shared/schema";
 import { useState } from "react";
 
 interface CreatureFormProps {
@@ -39,27 +77,61 @@ const creatureTypes = [
   { value: "natural", label: "Natural", icon: TreePine },
   { value: "aquatic", label: "Aquatic", icon: Waves },
   { value: "aerial", label: "Aerial", icon: Wind },
-  { value: "other", label: "Other", icon: Package }
+  { value: "other", label: "Other", icon: Package },
 ];
 
 const habitatTypes = [
-  "Forest", "Mountain", "Desert", "Ocean", "River", "Lake", "Swamp", "Plains", 
-  "Caves", "Underground", "Arctic", "Jungle", "Volcanic", "Sky", "Ethereal Plane",
-  "Shadow Realm", "Magical Forest", "Ancient Ruins", "Urban", "Farmland"
+  "Forest",
+  "Mountain",
+  "Desert",
+  "Ocean",
+  "River",
+  "Lake",
+  "Swamp",
+  "Plains",
+  "Caves",
+  "Underground",
+  "Arctic",
+  "Jungle",
+  "Volcanic",
+  "Sky",
+  "Ethereal Plane",
+  "Shadow Realm",
+  "Magical Forest",
+  "Ancient Ruins",
+  "Urban",
+  "Farmland",
 ];
 
 const genres = [
-  "Fantasy", "Sci-Fi", "Horror", "Modern", "Post-Apocalyptic", "Steampunk", 
-  "Cyberpunk", "Medieval", "Ancient", "Futuristic", "Mythological", "Dark Fantasy"
+  "Fantasy",
+  "Sci-Fi",
+  "Horror",
+  "Modern",
+  "Post-Apocalyptic",
+  "Steampunk",
+  "Cyberpunk",
+  "Medieval",
+  "Ancient",
+  "Futuristic",
+  "Mythological",
+  "Dark Fantasy",
 ];
 
-export default function CreatureForm({ initialData, onSubmit, onGenerate, isLoading }: CreatureFormProps) {
+export default function CreatureForm({
+  initialData,
+  onSubmit,
+  onGenerate,
+  isLoading,
+}: CreatureFormProps) {
   const [activeTab, setActiveTab] = useState("basic");
-  
+
   const form = useForm<InsertCreature>({
-    resolver: zodResolver(insertCreatureSchema.extend({
-      abilities: insertCreatureSchema.shape.abilities.optional(),
-    })),
+    resolver: zodResolver(
+      insertCreatureSchema.extend({
+        abilities: insertCreatureSchema.shape.abilities.optional(),
+      }),
+    ),
     defaultValues: {
       name: initialData?.name ?? "",
       creatureType: initialData?.creatureType ?? "",
@@ -91,11 +163,11 @@ export default function CreatureForm({ initialData, onSubmit, onGenerate, isLoad
             </p>
           </div>
         </div>
-        
+
         {onGenerate && (
-          <Button 
-            onClick={onGenerate} 
-            variant="outline" 
+          <Button
+            onClick={onGenerate}
+            variant="outline"
             disabled={isLoading}
             data-testid="button-generate-creature"
           >
@@ -134,9 +206,9 @@ export default function CreatureForm({ initialData, onSubmit, onGenerate, isLoad
                         <FormItem>
                           <FormLabel>Creature Name *</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="Enter creature name..." 
-                              {...field} 
+                            <Input
+                              placeholder="Enter creature name..."
+                              {...field}
                               value={field.value ?? ""}
                               data-testid="input-creature-name"
                             />
@@ -152,7 +224,10 @@ export default function CreatureForm({ initialData, onSubmit, onGenerate, isLoad
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Creature Type *</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value ?? ""}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value ?? ""}
+                          >
                             <FormControl>
                               <SelectTrigger data-testid="select-creature-type">
                                 <SelectValue placeholder="Select creature type" />
@@ -162,7 +237,10 @@ export default function CreatureForm({ initialData, onSubmit, onGenerate, isLoad
                               {creatureTypes.map((type) => {
                                 const IconComponent = type.icon;
                                 return (
-                                  <SelectItem key={type.value} value={type.value}>
+                                  <SelectItem
+                                    key={type.value}
+                                    value={type.value}
+                                  >
                                     <div className="flex items-center gap-2">
                                       <IconComponent className="w-4 h-4" />
                                       {type.label}
@@ -185,7 +263,10 @@ export default function CreatureForm({ initialData, onSubmit, onGenerate, isLoad
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Habitat *</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value ?? ""}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value ?? ""}
+                          >
                             <FormControl>
                               <SelectTrigger data-testid="select-creature-habitat">
                                 <SelectValue placeholder="Select habitat" />
@@ -210,7 +291,10 @@ export default function CreatureForm({ initialData, onSubmit, onGenerate, isLoad
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Genre</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value ?? ""}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value ?? ""}
+                          >
                             <FormControl>
                               <SelectTrigger data-testid="select-creature-genre">
                                 <SelectValue placeholder="Select genre" />
@@ -249,7 +333,7 @@ export default function CreatureForm({ initialData, onSubmit, onGenerate, isLoad
                       <FormItem>
                         <FormLabel>Physical Description *</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Describe the creature's appearance, size, coloring, distinctive features..."
                             className="min-h-24"
                             {...field}
@@ -272,7 +356,7 @@ export default function CreatureForm({ initialData, onSubmit, onGenerate, isLoad
                       <FormItem>
                         <FormLabel>Behavior *</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Describe how the creature acts, its temperament, hunting patterns, social behavior..."
                             className="min-h-24"
                             {...field}
@@ -281,7 +365,8 @@ export default function CreatureForm({ initialData, onSubmit, onGenerate, isLoad
                           />
                         </FormControl>
                         <FormDescription>
-                          How does this creature interact with its environment and other beings?
+                          How does this creature interact with its environment
+                          and other beings?
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -310,17 +395,25 @@ export default function CreatureForm({ initialData, onSubmit, onGenerate, isLoad
                       <FormItem>
                         <FormLabel>Special Abilities</FormLabel>
                         <FormControl>
-                          <Input 
+                          <Input
                             placeholder="Enter abilities separated by commas (e.g., Flight, Fire breath, Invisibility, Telepathy)"
                             value={field.value ? field.value.join(", ") : ""}
-                            onChange={(e) => field.onChange(
-                              e.target.value ? e.target.value.split(",").map(s => s.trim()).filter(Boolean) : []
-                            )}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value
+                                  ? e.target.value
+                                      .split(",")
+                                      .map((s) => s.trim())
+                                      .filter(Boolean)
+                                  : [],
+                              )
+                            }
                             data-testid="input-creature-abilities"
                           />
                         </FormControl>
                         <FormDescription>
-                          Special powers, magical abilities, or unique traits this creature possesses
+                          Special powers, magical abilities, or unique traits
+                          this creature possesses
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -334,7 +427,7 @@ export default function CreatureForm({ initialData, onSubmit, onGenerate, isLoad
                       <FormItem>
                         <FormLabel>Cultural Significance *</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Describe the creature's role in society, mythology, religion, or folklore..."
                             className="min-h-24"
                             {...field}
@@ -343,7 +436,8 @@ export default function CreatureForm({ initialData, onSubmit, onGenerate, isLoad
                           />
                         </FormControl>
                         <FormDescription>
-                          How do people in your world view and interact with this creature?
+                          How do people in your world view and interact with
+                          this creature?
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -357,7 +451,11 @@ export default function CreatureForm({ initialData, onSubmit, onGenerate, isLoad
           <Separator />
 
           <div className="flex justify-end gap-3">
-            <Button type="submit" disabled={isLoading} data-testid="button-save-creature">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              data-testid="button-save-creature"
+            >
               {isLoading ? "Saving..." : "Save Creature"}
             </Button>
           </div>

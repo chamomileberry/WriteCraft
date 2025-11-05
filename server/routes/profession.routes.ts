@@ -9,35 +9,42 @@ const router = Router();
 router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    
+
     // Extract notebookId from request body - it's required for professions
     const { notebookId, ...professionData } = req.body;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId is required' });
+      return res.status(400).json({ error: "notebookId is required" });
     }
-    
+
     // Validate notebook ownership before allowing write
-    const ownsNotebook = await storage.validateNotebookOwnership(notebookId, userId);
+    const ownsNotebook = await storage.validateNotebookOwnership(
+      notebookId,
+      userId,
+    );
     if (!ownsNotebook) {
-      console.warn(`[Security] Unauthorized profession access attempt - userId: ${userId}, notebookId: ${notebookId}`);
-      return res.status(404).json({ error: 'Profession not found' });
+      console.warn(
+        `[Security] Unauthorized profession access attempt - userId: ${userId}, notebookId: ${notebookId}`,
+      );
+      return res.status(404).json({ error: "Profession not found" });
     }
-    
-    const validatedProfession = insertProfessionSchema.parse({ 
-      ...professionData, 
-      userId, 
-      notebookId 
+
+    const validatedProfession = insertProfessionSchema.parse({
+      ...professionData,
+      userId,
+      notebookId,
     });
-    
+
     const savedProfession = await storage.createProfession(validatedProfession);
     res.json(savedProfession);
   } catch (error) {
-    console.error('Error saving profession:', error);
+    console.error("Error saving profession:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    res.status(500).json({ error: 'Failed to save profession' });
+    res.status(500).json({ error: "Failed to save profession" });
   }
 });
 
@@ -46,25 +53,27 @@ router.get("/", readRateLimiter, async (req: any, res) => {
     const search = req.query.search as string;
     const notebookId = req.query.notebookId as string;
     const userId = req.user.claims.sub;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     const professions = await storage.getUserProfessions(userId, notebookId);
-    
+
     // Filter by search text if provided
     let filtered = professions;
     if (search) {
-      filtered = filtered.filter(item =>
-        item.name?.toLowerCase().includes(search.toLowerCase())
+      filtered = filtered.filter((item) =>
+        item.name?.toLowerCase().includes(search.toLowerCase()),
       );
     }
-    
+
     res.json(filtered);
   } catch (error) {
-    console.error('Error fetching professions:', error);
-    res.status(500).json({ error: 'Failed to fetch professions' });
+    console.error("Error fetching professions:", error);
+    res.status(500).json({ error: "Failed to fetch professions" });
   }
 });
 
@@ -72,19 +81,25 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
-    const profession = await storage.getProfession(req.params.id, userId, notebookId);
+
+    const profession = await storage.getProfession(
+      req.params.id,
+      userId,
+      notebookId,
+    );
     if (!profession) {
-      return res.status(404).json({ error: 'Profession not found' });
+      return res.status(404).json({ error: "Profession not found" });
     }
     res.json(profession);
   } catch (error) {
-    console.error('Error fetching profession:', error);
-    res.status(500).json({ error: 'Failed to fetch profession' });
+    console.error("Error fetching profession:", error);
+    res.status(500).json({ error: "Failed to fetch profession" });
   }
 });
 
@@ -92,22 +107,32 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const professionData = { ...req.body, userId };
-    
-    const validatedUpdates = insertProfessionSchema.partial().parse(professionData);
-    const updatedProfession = await storage.updateProfession(req.params.id, userId, validatedUpdates);
+
+    const validatedUpdates = insertProfessionSchema
+      .partial()
+      .parse(professionData);
+    const updatedProfession = await storage.updateProfession(
+      req.params.id,
+      userId,
+      validatedUpdates,
+    );
     res.json(updatedProfession);
   } catch (error) {
-    console.error('Error updating profession:', error);
+    console.error("Error updating profession:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const professionId = req.params.id || 'unknown';
-      console.warn(`[Security] Unauthorized profession operation - userId: ${userId}, professionId: ${professionId}`);
-      return res.status(404).json({ error: 'Not found' });
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const professionId = req.params.id || "unknown";
+      console.warn(
+        `[Security] Unauthorized profession operation - userId: ${userId}, professionId: ${professionId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to update profession' });
+    res.status(500).json({ error: "Failed to update profession" });
   }
 });
 
@@ -117,14 +142,16 @@ router.delete("/:id", writeRateLimiter, async (req: any, res) => {
     await storage.deleteProfession(req.params.id, userId);
     res.status(204).send();
   } catch (error) {
-    console.error('Error deleting profession:', error);
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const professionId = req.params.id || 'unknown';
-      console.warn(`[Security] Unauthorized profession operation - userId: ${userId}, professionId: ${professionId}`);
-      return res.status(404).json({ error: 'Not found' });
+    console.error("Error deleting profession:", error);
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const professionId = req.params.id || "unknown";
+      console.warn(
+        `[Security] Unauthorized profession operation - userId: ${userId}, professionId: ${professionId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to delete profession' });
+    res.status(500).json({ error: "Failed to delete profession" });
   }
 });
 

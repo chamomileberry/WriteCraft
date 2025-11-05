@@ -1,26 +1,26 @@
-import { 
-  Swords, 
-  Sparkles, 
-  Star, 
+import {
+  Swords,
+  Sparkles,
+  Star,
   Skull,
-  Users, 
-  Flag, 
-  BookOpen, 
-  MapPin, 
+  Users,
+  Flag,
+  BookOpen,
+  MapPin,
   Zap,
-  type LucideIcon
-} from 'lucide-react';
+  type LucideIcon,
+} from "lucide-react";
 
-export type EventType = 
-  | 'battle'
-  | 'discovery'
-  | 'birth'
-  | 'death'
-  | 'meeting'
-  | 'political'
-  | 'cultural'
-  | 'location'
-  | 'other';
+export type EventType =
+  | "battle"
+  | "discovery"
+  | "birth"
+  | "death"
+  | "meeting"
+  | "political"
+  | "cultural"
+  | "location"
+  | "other";
 
 export interface EventTypeConfig {
   icon: string; // Icon name (e.g., 'Swords')
@@ -32,67 +32,67 @@ export interface EventTypeConfig {
 
 export const EVENT_TYPE_CONFIGS: Record<EventType, EventTypeConfig> = {
   battle: {
-    icon: 'Swords',
+    icon: "Swords",
     iconComponent: Swords,
-    color: '#ef4444', // red-500
-    label: 'Battle',
-    description: 'Military conflicts and combat',
+    color: "#ef4444", // red-500
+    label: "Battle",
+    description: "Military conflicts and combat",
   },
   discovery: {
-    icon: 'Sparkles',
+    icon: "Sparkles",
     iconComponent: Sparkles,
-    color: '#8b5cf6', // violet-500
-    label: 'Discovery',
-    description: 'New findings and revelations',
+    color: "#8b5cf6", // violet-500
+    label: "Discovery",
+    description: "New findings and revelations",
   },
   birth: {
-    icon: 'Star',
+    icon: "Star",
     iconComponent: Star,
-    color: '#3b82f6', // blue-500
-    label: 'Birth',
-    description: 'Character births and beginnings',
+    color: "#3b82f6", // blue-500
+    label: "Birth",
+    description: "Character births and beginnings",
   },
   death: {
-    icon: 'Skull',
+    icon: "Skull",
     iconComponent: Skull,
-    color: '#6b7280', // gray-500
-    label: 'Death',
-    description: 'Character deaths and endings',
+    color: "#6b7280", // gray-500
+    label: "Death",
+    description: "Character deaths and endings",
   },
   meeting: {
-    icon: 'Users',
+    icon: "Users",
     iconComponent: Users,
-    color: '#10b981', // emerald-500
-    label: 'Meeting',
-    description: 'Important gatherings and encounters',
+    color: "#10b981", // emerald-500
+    label: "Meeting",
+    description: "Important gatherings and encounters",
   },
   political: {
-    icon: 'Flag',
+    icon: "Flag",
     iconComponent: Flag,
-    color: '#f59e0b', // amber-500
-    label: 'Political',
-    description: 'Political events and decisions',
+    color: "#f59e0b", // amber-500
+    label: "Political",
+    description: "Political events and decisions",
   },
   cultural: {
-    icon: 'BookOpen',
+    icon: "BookOpen",
     iconComponent: BookOpen,
-    color: '#ec4899', // pink-500
-    label: 'Cultural',
-    description: 'Cultural events and traditions',
+    color: "#ec4899", // pink-500
+    label: "Cultural",
+    description: "Cultural events and traditions",
   },
   location: {
-    icon: 'MapPin',
+    icon: "MapPin",
     iconComponent: MapPin,
-    color: '#14b8a6', // teal-500
-    label: 'Location',
-    description: 'Location-based events',
+    color: "#14b8a6", // teal-500
+    label: "Location",
+    description: "Location-based events",
   },
   other: {
-    icon: 'Zap',
+    icon: "Zap",
     iconComponent: Zap,
-    color: '#a855f7', // purple-500
-    label: 'Other',
-    description: 'Miscellaneous events',
+    color: "#a855f7", // purple-500
+    label: "Other",
+    description: "Miscellaneous events",
   },
 };
 

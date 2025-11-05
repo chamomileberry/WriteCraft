@@ -12,13 +12,14 @@ const router = Router();
 router.get("/today", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    
+
     const usageStats = await subscriptionService.getTodayUsage(userId);
-    
+
     res.json(usageStats);
   } catch (error) {
-    console.error('Error fetching today\'s usage:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error("Error fetching today's usage:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
     res.status(500).json({ error: errorMessage });
   }
 });
@@ -34,26 +35,31 @@ router.get("/today", readRateLimiter, async (req: any, res) => {
 router.get("/history", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    
-    const { startDate, endDate, limit } = z.object({
-      startDate: z.coerce.date().optional(),
-      endDate: z.coerce.date().optional(),
-      limit: z.coerce.number().min(1).max(1000).optional()
-    }).parse(req.query);
-    
+
+    const { startDate, endDate, limit } = z
+      .object({
+        startDate: z.coerce.date().optional(),
+        endDate: z.coerce.date().optional(),
+        limit: z.coerce.number().min(1).max(1000).optional(),
+      })
+      .parse(req.query);
+
     const usageHistory = await subscriptionService.getUsageHistory(userId, {
       startDate,
       endDate,
-      limit
+      limit,
     });
-    
+
     res.json(usageHistory);
   } catch (error) {
-    console.error('Error fetching usage history:', error);
+    console.error("Error fetching usage history:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request parameters', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request parameters", details: error.errors });
     }
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
     res.status(500).json({ error: errorMessage });
   }
 });

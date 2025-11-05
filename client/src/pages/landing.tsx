@@ -1,11 +1,25 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Feather, Globe, Lightbulb, Sparkles, Users, MessageSquare } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  BookOpen,
+  Feather,
+  Globe,
+  Lightbulb,
+  Sparkles,
+  Users,
+  MessageSquare,
+} from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 
 export default function Landing() {
   const { isDark } = useTheme();
-  
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Hero Section */}
@@ -16,21 +30,22 @@ export default function Landing() {
               <Sparkles className="w-4 h-4" />
               <span>Welcome to WriteCraft</span>
             </div>
-            
+
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
               Craft Your Creative Worlds
             </h1>
-            
+
             <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-              The ultimate toolkit for writers, worldbuilders, and storytellers. 
-              Organize your ideas, generate content, and bring your creative vision to life.
+              The ultimate toolkit for writers, worldbuilders, and storytellers.
+              Organize your ideas, generate content, and bring your creative
+              vision to life.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 className="text-lg px-8"
-                onClick={() => window.location.href = '/api/login'}
+                onClick={() => (window.location.href = "/api/login")}
                 data-testid="button-login"
               >
                 <Users className="w-5 h-5 mr-2" />
@@ -44,7 +59,9 @@ export default function Landing() {
       {/* Features Section */}
       <div className="container mx-auto px-4 py-20">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Everything You Need to Create</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Everything You Need to Create
+          </h2>
           <p className="text-xl text-muted-foreground">
             Powerful tools designed for creative writers and worldbuilders
           </p>
@@ -56,7 +73,8 @@ export default function Landing() {
               <Globe className="w-10 h-10 text-primary mb-2" />
               <CardTitle>Worldbuilding Tools</CardTitle>
               <CardDescription>
-                Create detailed species, cultures, religions, languages, and entire civilizations
+                Create detailed species, cultures, religions, languages, and
+                entire civilizations
               </CardDescription>
             </CardHeader>
           </Card>
@@ -66,7 +84,8 @@ export default function Landing() {
               <Users className="w-10 h-10 text-primary mb-2" />
               <CardTitle>Character Generator</CardTitle>
               <CardDescription>
-                Build rich, multidimensional characters with detailed backgrounds and motivations
+                Build rich, multidimensional characters with detailed
+                backgrounds and motivations
               </CardDescription>
             </CardHeader>
           </Card>
@@ -76,7 +95,8 @@ export default function Landing() {
               <BookOpen className="w-10 h-10 text-primary mb-2" />
               <CardTitle>Project Management</CardTitle>
               <CardDescription>
-                Organize your manuscripts, notes, and worldbuilding content in structured notebooks
+                Organize your manuscripts, notes, and worldbuilding content in
+                structured notebooks
               </CardDescription>
             </CardHeader>
           </Card>
@@ -86,7 +106,8 @@ export default function Landing() {
               <Lightbulb className="w-10 h-10 text-primary mb-2" />
               <CardTitle>Writing Prompts</CardTitle>
               <CardDescription>
-                Generate creative prompts and overcome writer's block with AI assistance
+                Generate creative prompts and overcome writer's block with AI
+                assistance
               </CardDescription>
             </CardHeader>
           </Card>
@@ -96,7 +117,8 @@ export default function Landing() {
               <Feather className="w-10 h-10 text-primary mb-2" />
               <CardTitle>Rich Text Editor</CardTitle>
               <CardDescription>
-                Write with powerful editing tools, AI assistance, and export to multiple formats
+                Write with powerful editing tools, AI assistance, and export to
+                multiple formats
               </CardDescription>
             </CardHeader>
           </Card>
@@ -106,7 +128,8 @@ export default function Landing() {
               <Sparkles className="w-10 h-10 text-primary mb-2" />
               <CardTitle>AI-Powered Features</CardTitle>
               <CardDescription>
-                Get intelligent suggestions, content generation, and writing assistance
+                Get intelligent suggestions, content generation, and writing
+                assistance
               </CardDescription>
             </CardHeader>
           </Card>
@@ -118,19 +141,22 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <MessageSquare className="w-12 h-12 text-primary mx-auto mb-4" />
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Join Our Community</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Join Our Community
+            </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Connect with fellow writers, share your work, get feedback, and stay updated on new features.
+              Connect with fellow writers, share your work, get feedback, and
+              stay updated on new features.
             </p>
           </div>
-          
+
           <div className="flex justify-center">
             <div className="w-full max-w-md">
-              <iframe 
-                src={`https://discord.com/widget?id=1432757366717284414&theme=${isDark ? 'dark' : 'light'}`}
-                width="350" 
-                height="500" 
-                frameBorder="0" 
+              <iframe
+                src={`https://discord.com/widget?id=1432757366717284414&theme=${isDark ? "dark" : "light"}`}
+                width="350"
+                height="500"
+                frameBorder="0"
                 sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
                 className="w-full rounded-lg shadow-lg"
                 title="Discord Community Widget"
@@ -147,12 +173,13 @@ export default function Landing() {
             Ready to Start Creating?
           </h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join writers and worldbuilders using WriteCraft to bring their creative visions to life.
+            Join writers and worldbuilders using WriteCraft to bring their
+            creative visions to life.
           </p>
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             className="text-lg px-8"
-            onClick={() => window.location.href = '/api/login'}
+            onClick={() => (window.location.href = "/api/login")}
             data-testid="button-login-cta"
           >
             Sign In Now

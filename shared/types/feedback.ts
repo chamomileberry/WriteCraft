@@ -1,5 +1,10 @@
-export type FeedbackType = 'bug' | 'feature-request' | 'general-feedback';
-export type FeedbackStatus = 'new' | 'reviewed' | 'in-progress' | 'resolved' | 'closed';
+export type FeedbackType = "bug" | "feature-request" | "general-feedback";
+export type FeedbackStatus =
+  | "new"
+  | "reviewed"
+  | "in-progress"
+  | "resolved"
+  | "closed";
 
 export interface Feedback {
   id: string;

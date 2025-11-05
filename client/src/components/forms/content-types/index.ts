@@ -1,26 +1,29 @@
-import { ContentTypeFormConfig } from '../types';
+import { ContentTypeFormConfig } from "../types";
 
 // Static imports for frequently used content types (loaded immediately)
-import { characterConfig } from './character';
+import { characterConfig } from "./character";
 
 // Import remaining configs from the original file (temporary until all are split)
-import { contentTypeFormConfigs as originalConfigs } from '../ContentTypeFormConfig';
+import { contentTypeFormConfigs as originalConfigs } from "../ContentTypeFormConfig";
 
 // Static configurations for core content types
 const staticConfigs: Record<string, ContentTypeFormConfig> = {
   character: characterConfig,
   // Include all remaining configs from original file to maintain functionality
   ...Object.fromEntries(
-    Object.entries(originalConfigs).filter(([key]) => ![
-      'character'
-    ].includes(key))
+    Object.entries(originalConfigs).filter(
+      ([key]) => !["character"].includes(key),
+    ),
   ),
 };
 
 // Dynamic import factory for less frequently used content types
 // This reduces initial bundle size by only loading configs when needed
 // TODO: As you split more content types from ContentTypeFormConfig.tsx, add them here
-const dynamicConfigLoaders: Record<string, () => Promise<ContentTypeFormConfig>> = {
+const dynamicConfigLoaders: Record<
+  string,
+  () => Promise<ContentTypeFormConfig>
+> = {
   // Example of how to add more content types:
   // location: () => import('./location').then(m => m.default || m.locationConfig),
   // organization: () => import('./organization').then(m => m.default || m.organizationConfig),
@@ -34,7 +37,9 @@ const configCache = new Map<string, ContentTypeFormConfig>();
  * @param contentType - The content type key
  * @returns Promise that resolves to the configuration
  */
-export async function getContentTypeConfig(contentType: string): Promise<ContentTypeFormConfig | null> {
+export async function getContentTypeConfig(
+  contentType: string,
+): Promise<ContentTypeFormConfig | null> {
   // Check static configs first (immediate availability)
   if (staticConfigs[contentType]) {
     return staticConfigs[contentType];
@@ -52,7 +57,10 @@ export async function getContentTypeConfig(contentType: string): Promise<Content
       configCache.set(contentType, config);
       return config;
     } catch (error) {
-      console.error(`Failed to load config for content type: ${contentType}`, error);
+      console.error(
+        `Failed to load config for content type: ${contentType}`,
+        error,
+      );
       return null;
     }
   }
@@ -69,7 +77,7 @@ export async function getContentTypeConfig(contentType: string): Promise<Content
 export function getAvailableContentTypes(): string[] {
   return [
     ...Object.keys(staticConfigs),
-    ...Object.keys(dynamicConfigLoaders)
+    ...Object.keys(dynamicConfigLoaders),
   ].sort();
 }
 
@@ -84,10 +92,12 @@ export function isContentTypeAvailable(contentType: string): boolean {
  * Preload specific content type configurations
  * Useful for preloading configs that will be needed soon
  */
-export async function preloadContentTypes(contentTypes: string[]): Promise<void> {
+export async function preloadContentTypes(
+  contentTypes: string[],
+): Promise<void> {
   const loadPromises = contentTypes
-    .filter(type => dynamicConfigLoaders[type] && !configCache.has(type))
-    .map(async type => {
+    .filter((type) => dynamicConfigLoaders[type] && !configCache.has(type))
+    .map(async (type) => {
       try {
         const config = await dynamicConfigLoaders[type]();
         configCache.set(type, config);
@@ -108,4 +118,4 @@ export const contentTypeFormConfigs: Record<string, ContentTypeFormConfig> = {
 };
 
 // Re-export individual configs for direct imports if needed
-export { characterConfig } from './character';
+export { characterConfig } from "./character";

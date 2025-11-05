@@ -1,12 +1,22 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Separator } from "@/components/ui/separator";
 import { Shuffle, Copy, Heart, Loader2, Edit } from "lucide-react";
-import { GENRE_CATEGORIES, GENDER_IDENTITIES, ETHNICITY_CATEGORIES } from "@shared/genres";
+import {
+  GENRE_CATEGORIES,
+  GENDER_IDENTITIES,
+  ETHNICITY_CATEGORIES,
+} from "@shared/genres";
 import { type Character } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 import { useGenerator } from "@/hooks/useGenerator";
@@ -22,27 +32,30 @@ export default function CharacterGenerator() {
   const [ethnicity, setEthnicity] = useState<string>("");
   const { user } = useAuth();
   const { notebookId, validateNotebook } = useRequireNotebook({
-    errorMessage: 'Please create or select a notebook before generating characters.'
+    errorMessage:
+      "Please create or select a notebook before generating characters.",
   });
 
   const generator = useGenerator<Character>({
-    generateEndpoint: '/api/characters/generate',
+    generateEndpoint: "/api/characters/generate",
     getGenerateParams: () => ({
       genre: genre || undefined,
       gender: gender || undefined,
       ethnicity: ethnicity || undefined,
       userId: null,
-      notebookId
+      notebookId,
     }),
-    itemTypeName: 'character',
+    itemTypeName: "character",
     userId: user?.id ?? undefined,
     notebookId: notebookId ?? undefined,
     validateBeforeGenerate: validateNotebook,
     formatForClipboard: (character) => {
-      const fullName = [character.givenName, character.familyName].filter(Boolean).join(' ') || 'Unnamed Character';
+      const fullName =
+        [character.givenName, character.familyName].filter(Boolean).join(" ") ||
+        "Unnamed Character";
       return `**${fullName}** (Age: ${character.age})
 **Occupation:** ${character.occupation}
-**Personality:** ${character.personality?.join(', ') || 'None specified'}
+**Personality:** ${character.personality?.join(", ") || "None specified"}
 **Backstory:** ${character.backstory}
 **Motivation:** ${character.motivation}
 **Strength:** ${character.strength}
@@ -50,12 +63,12 @@ export default function CharacterGenerator() {
     },
     prepareSavePayload: (character) => ({
       userId: user?.id ?? undefined,
-      itemType: 'character',
+      itemType: "character",
       itemId: character.id,
       notebookId,
       itemData: {
-        givenName: character.givenName || '',
-        familyName: character.familyName || '',
+        givenName: character.givenName || "",
+        familyName: character.familyName || "",
         age: character.age,
         occupation: character.occupation,
         personality: character.personality,
@@ -63,12 +76,12 @@ export default function CharacterGenerator() {
         motivation: character.motivation,
         flaw: character.flaw,
         strength: character.strength,
-        gender: character.gender
-      }
+        gender: character.gender,
+      },
     }),
-    invalidateOnSave: [['/api/saved-items', user?.id ?? undefined]],
+    invalidateOnSave: [["/api/saved-items", user?.id ?? undefined]],
     onGenerateSuccess: (data) => {
-      console.log('Generated character:', data);
+      console.log("Generated character:", data);
     },
   });
 
@@ -83,16 +96,19 @@ export default function CharacterGenerator() {
             Character Generator
           </CardTitle>
           <CardDescription>
-            Create unique, detailed characters with rich backstories and motivations
+            Create unique, detailed characters with rich backstories and
+            motivations
           </CardDescription>
         </CardHeader>
         <CardContent>
           <GeneratorNotebookControls />
-          
+
           <div className="space-y-4 mt-6">
             <div className="grid md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Genre (Optional)</label>
+                <label className="block text-sm font-medium mb-2">
+                  Genre (Optional)
+                </label>
                 <SearchableSelect
                   value={genre}
                   onValueChange={setGenre}
@@ -107,23 +123,31 @@ export default function CharacterGenerator() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Gender (Optional)</label>
+                <label className="block text-sm font-medium mb-2">
+                  Gender (Optional)
+                </label>
                 <SearchableSelect
                   value={gender}
                   onValueChange={setGender}
-                  categorizedOptions={{ "Gender Identities": GENDER_IDENTITIES }}
+                  categorizedOptions={{
+                    "Gender Identities": GENDER_IDENTITIES,
+                  }}
                   placeholder="Any gender..."
                   searchPlaceholder="Search gender identities..."
                   emptyText="No gender identity found."
                   testId="select-gender"
                   allowEmpty={true}
                   emptyLabel="Any Gender"
-                  formatLabel={(value) => value.charAt(0).toUpperCase() + value.slice(1)}
+                  formatLabel={(value) =>
+                    value.charAt(0).toUpperCase() + value.slice(1)
+                  }
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Ethnicity (Optional)</label>
+                <label className="block text-sm font-medium mb-2">
+                  Ethnicity (Optional)
+                </label>
                 <SearchableSelect
                   value={ethnicity}
                   onValueChange={setEthnicity}
@@ -146,7 +170,7 @@ export default function CharacterGenerator() {
           </div>
 
           <div className="flex justify-end pt-4">
-            <Button 
+            <Button
               onClick={generator.generate}
               disabled={generator.isGenerating}
               data-testid="button-generate-character"
@@ -170,13 +194,16 @@ export default function CharacterGenerator() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-2xl">
-                  {[character.givenName, character.familyName].filter(Boolean).join(' ') || 'Unnamed Character'}
+                  {[character.givenName, character.familyName]
+                    .filter(Boolean)
+                    .join(" ") || "Unnamed Character"}
                 </CardTitle>
                 <CardDescription>
                   Age {character.age} • {character.occupation}
                   {character.gender && (
                     <span className="ml-2 text-xs px-2 py-1 bg-secondary rounded-full">
-                      {character.gender.charAt(0).toUpperCase() + character.gender.slice(1)}
+                      {character.gender.charAt(0).toUpperCase() +
+                        character.gender.slice(1)}
                     </span>
                   )}
                 </CardDescription>
@@ -189,17 +216,22 @@ export default function CharacterGenerator() {
                     // Update the character's backstory with polished content
                     generator.setResult({
                       ...character,
-                      backstory: polished
+                      backstory: polished,
                     });
                   }}
                 />
-                <Button variant="outline" size="sm" onClick={generator.copyToClipboard} data-testid="button-copy-character">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={generator.copyToClipboard}
+                  data-testid="button-copy-character"
+                >
                   <Copy className="h-4 w-4" />
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={generator.saveToCollection} 
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={generator.saveToCollection}
                   disabled={generator.isSaving || !character?.id}
                   data-testid="button-save-character"
                 >
@@ -210,7 +242,12 @@ export default function CharacterGenerator() {
                   )}
                 </Button>
                 {character?.id && (
-                  <Button variant="outline" size="sm" asChild data-testid="button-edit-character">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    data-testid="button-edit-character"
+                  >
                     <Link href={`/characters/${character.id}/edit`}>
                       <Edit className="h-4 w-4" />
                     </Link>
@@ -224,8 +261,14 @@ export default function CharacterGenerator() {
               <h4 className="font-semibold mb-2">Personality Traits</h4>
               <div className="flex flex-wrap gap-2">
                 {character.personality?.map((trait, index) => (
-                  <Badge key={index} variant="secondary">{trait}</Badge>
-                )) || <span className="text-muted-foreground">No personality traits specified</span>}
+                  <Badge key={index} variant="secondary">
+                    {trait}
+                  </Badge>
+                )) || (
+                  <span className="text-muted-foreground">
+                    No personality traits specified
+                  </span>
+                )}
               </div>
             </div>
 
@@ -245,11 +288,15 @@ export default function CharacterGenerator() {
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <h4 className="font-semibold mb-2 text-chart-4">Greatest Strength</h4>
+                <h4 className="font-semibold mb-2 text-chart-4">
+                  Greatest Strength
+                </h4>
                 <p className="text-muted-foreground">{character.strength}</p>
               </div>
               <div>
-                <h4 className="font-semibold mb-2 text-destructive">Fatal Flaw</h4>
+                <h4 className="font-semibold mb-2 text-destructive">
+                  Fatal Flaw
+                </h4>
                 <p className="text-muted-foreground">{character.flaw}</p>
               </div>
             </div>

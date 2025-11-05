@@ -4,7 +4,13 @@ import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,7 +40,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import Header from "@/components/Header";
-import { Loader2, Plus, Pencil, Trash2, GripVertical, ChevronRight, ChevronDown } from "lucide-react";
+import {
+  Loader2,
+  Plus,
+  Pencil,
+  Trash2,
+  GripVertical,
+  ChevronRight,
+  ChevronDown,
+} from "lucide-react";
 import { ReactSortable } from "react-sortablejs";
 
 interface GuideCategory {
@@ -60,13 +74,20 @@ export default function GuideCategoriesAdmin() {
   const [, setLocation] = useLocation();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [deleteDialogData, setDeleteDialogData] = useState<{ id: string; name: string } | null>(null);
-  const [editingCategory, setEditingCategory] = useState<GuideCategory | null>(null);
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [deleteDialogData, setDeleteDialogData] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [editingCategory, setEditingCategory] = useState<GuideCategory | null>(
+    null,
+  );
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
+    new Set(),
+  );
   const [localCategories, setLocalCategories] = useState<GuideCategory[]>([]);
 
   const [formData, setFormData] = useState<CategoryFormData>({
-    name: '',
+    name: "",
     parentId: null,
   });
 
@@ -78,8 +99,10 @@ export default function GuideCategoriesAdmin() {
   }, [user, authLoading, setLocation]);
 
   // Fetch all categories
-  const { data: categories = [], isLoading: categoriesLoading } = useQuery<GuideCategory[]>({
-    queryKey: ['/api/guide-categories'],
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery<
+    GuideCategory[]
+  >({
+    queryKey: ["/api/guide-categories"],
     enabled: !!user?.isAdmin,
   });
 
@@ -91,17 +114,17 @@ export default function GuideCategoriesAdmin() {
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: CategoryFormData) => {
-      const res = await apiRequest('POST', '/api/guide-categories', data);
+      const res = await apiRequest("POST", "/api/guide-categories", data);
       return await res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/guide-categories'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/guide-categories"] });
       toast({
         title: "Success",
         description: "Category created successfully",
       });
       setIsCreateDialogOpen(false);
-      setFormData({ name: '', parentId: null });
+      setFormData({ name: "", parentId: null });
     },
     onError: (error: Error) => {
       toast({
@@ -114,19 +137,25 @@ export default function GuideCategoriesAdmin() {
 
   // Update mutation
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: CategoryFormData }) => {
-      const res = await apiRequest('PUT', `/api/guide-categories/${id}`, data);
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: CategoryFormData;
+    }) => {
+      const res = await apiRequest("PUT", `/api/guide-categories/${id}`, data);
       return await res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/guide-categories'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/guide-categories"] });
       toast({
         title: "Success",
         description: "Category updated successfully",
       });
       setIsEditDialogOpen(false);
       setEditingCategory(null);
-      setFormData({ name: '', parentId: null });
+      setFormData({ name: "", parentId: null });
     },
     onError: (error: Error) => {
       toast({
@@ -140,10 +169,10 @@ export default function GuideCategoriesAdmin() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest('DELETE', `/api/guide-categories/${id}`);
+      await apiRequest("DELETE", `/api/guide-categories/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/guide-categories'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/guide-categories"] });
       toast({
         title: "Success",
         description: "Category deleted successfully",
@@ -162,15 +191,19 @@ export default function GuideCategoriesAdmin() {
 
   // Reorder mutation
   const reorderMutation = useMutation({
-    mutationFn: async (categoryOrders: Array<{ id: string; order: number }>) => {
-      await apiRequest('POST', '/api/guide-categories/reorder', { categoryOrders });
+    mutationFn: async (
+      categoryOrders: Array<{ id: string; order: number }>,
+    ) => {
+      await apiRequest("POST", "/api/guide-categories/reorder", {
+        categoryOrders,
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/guide-categories'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/guide-categories"] });
     },
     onError: (error: Error) => {
       // Refetch to revert optimistic update on failure
-      queryClient.invalidateQueries({ queryKey: ['/api/guide-categories'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/guide-categories"] });
       toast({
         title: "Error",
         description: error.message || "Failed to reorder categories",
@@ -224,7 +257,7 @@ export default function GuideCategoriesAdmin() {
   };
 
   const toggleExpanded = (id: string) => {
-    setExpandedCategories(prev => {
+    setExpandedCategories((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) {
         newSet.delete(id);
@@ -236,7 +269,10 @@ export default function GuideCategoriesAdmin() {
   };
 
   // Flatten categories for parent selection dropdown
-  const flattenCategories = (cats: GuideCategory[], level = 0): Array<{ id: string; name: string; level: number }> => {
+  const flattenCategories = (
+    cats: GuideCategory[],
+    level = 0,
+  ): Array<{ id: string; name: string; level: number }> => {
     let result: Array<{ id: string; name: string; level: number }> = [];
     for (const cat of cats) {
       result.push({ id: cat.id, name: cat.name, level });
@@ -248,14 +284,17 @@ export default function GuideCategoriesAdmin() {
   };
 
   // Get all descendant IDs for a category (to prevent cycles when editing parent)
-  const getDescendantIds = (categoryId: string, cats: GuideCategory[]): Set<string> => {
+  const getDescendantIds = (
+    categoryId: string,
+    cats: GuideCategory[],
+  ): Set<string> => {
     const descendants = new Set<string>();
-    
+
     const findAndAddDescendants = (id: string, categories: GuideCategory[]) => {
       for (const cat of categories) {
         if (cat.id === id) {
           descendants.add(cat.id);
-          cat.children.forEach(child => {
+          cat.children.forEach((child) => {
             findAndAddDescendants(child.id, [child]);
           });
         } else if (cat.children.length > 0) {
@@ -263,31 +302,37 @@ export default function GuideCategoriesAdmin() {
         }
       }
     };
-    
+
     findAndAddDescendants(categoryId, cats);
     return descendants;
   };
 
   const flatCategories = flattenCategories(localCategories);
-  const editingDescendants = editingCategory ? getDescendantIds(editingCategory.id, localCategories) : new Set();
+  const editingDescendants = editingCategory
+    ? getDescendantIds(editingCategory.id, localCategories)
+    : new Set();
 
   // Update nested children in tree
   const updateCategoryChildren = (
     tree: GuideCategory[],
     targetParentId: string | null,
-    newChildren: GuideCategory[]
+    newChildren: GuideCategory[],
   ): GuideCategory[] => {
     if (targetParentId === null) {
       return newChildren;
     }
-    return tree.map(cat => {
+    return tree.map((cat) => {
       if (cat.id === targetParentId) {
         return { ...cat, children: newChildren };
       }
       if (cat.children.length > 0) {
         return {
           ...cat,
-          children: updateCategoryChildren(cat.children, targetParentId, newChildren)
+          children: updateCategoryChildren(
+            cat.children,
+            targetParentId,
+            newChildren,
+          ),
         };
       }
       return cat;
@@ -299,7 +344,7 @@ export default function GuideCategoriesAdmin() {
   // To move a category to a different parent, use the Edit dialog.
   const handleReorder = (newList: GuideCategory[], parentId: string | null) => {
     // Update local state immediately for responsive UI
-    setLocalCategories(prevCategories => {
+    setLocalCategories((prevCategories) => {
       return updateCategoryChildren(prevCategories, parentId, newList);
     });
 
@@ -312,7 +357,11 @@ export default function GuideCategoriesAdmin() {
   };
 
   // Render category tree recursively
-  const renderCategoryTree = (cats: GuideCategory[], parentId: string | null, level = 0): JSX.Element => {
+  const renderCategoryTree = (
+    cats: GuideCategory[],
+    parentId: string | null,
+    level = 0,
+  ): JSX.Element => {
     return (
       <ReactSortable
         list={cats}
@@ -331,7 +380,10 @@ export default function GuideCategoriesAdmin() {
                 className="flex items-center gap-2 p-3 rounded-lg border bg-card hover-elevate"
                 style={{ marginLeft: `${level * 24}px` }}
               >
-                <div className="drag-handle cursor-move" data-testid={`drag-handle-${category.id}`}>
+                <div
+                  className="drag-handle cursor-move"
+                  data-testid={`drag-handle-${category.id}`}
+                >
                   <GripVertical className="h-4 w-4 text-muted-foreground" />
                 </div>
 
@@ -353,7 +405,10 @@ export default function GuideCategoriesAdmin() {
 
                 {!hasChildren && <div className="w-6" />}
 
-                <span className="flex-1 font-medium" data-testid={`text-category-${category.id}`}>
+                <span
+                  className="flex-1 font-medium"
+                  data-testid={`text-category-${category.id}`}
+                >
                   {category.name}
                 </span>
 
@@ -380,7 +435,11 @@ export default function GuideCategoriesAdmin() {
 
               {hasChildren && isExpanded && (
                 <div>
-                  {renderCategoryTree(category.children, category.id, level + 1)}
+                  {renderCategoryTree(
+                    category.children,
+                    category.id,
+                    level + 1,
+                  )}
                 </div>
               )}
             </div>
@@ -411,7 +470,9 @@ export default function GuideCategoriesAdmin() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle data-testid="text-page-title">Guide Categories</CardTitle>
+                  <CardTitle data-testid="text-page-title">
+                    Guide Categories
+                  </CardTitle>
                   <CardDescription>
                     Manage hierarchical categories for organizing writing guides
                   </CardDescription>
@@ -446,7 +507,8 @@ export default function GuideCategoriesAdmin() {
           <DialogHeader>
             <DialogTitle>Create Category</DialogTitle>
             <DialogDescription>
-              Add a new guide category. You can nest it under an existing category if needed.
+              Add a new guide category. You can nest it under an existing
+              category if needed.
             </DialogDescription>
           </DialogHeader>
 
@@ -457,7 +519,9 @@ export default function GuideCategoriesAdmin() {
                 id="create-name"
                 data-testid="input-category-name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="e.g., Writing Craft"
               />
             </div>
@@ -466,16 +530,24 @@ export default function GuideCategoriesAdmin() {
               <Label htmlFor="create-parent">Parent Category (Optional)</Label>
               <Select
                 value={formData.parentId || "none"}
-                onValueChange={(value) => setFormData({ ...formData, parentId: value === "none" ? null : value })}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    parentId: value === "none" ? null : value,
+                  })
+                }
               >
-                <SelectTrigger id="create-parent" data-testid="select-parent-category">
+                <SelectTrigger
+                  id="create-parent"
+                  data-testid="select-parent-category"
+                >
                   <SelectValue placeholder="Select parent category" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">No parent (top level)</SelectItem>
                   {flatCategories.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>
-                      {'  '.repeat(cat.level) + cat.name}
+                      {"  ".repeat(cat.level) + cat.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -488,7 +560,7 @@ export default function GuideCategoriesAdmin() {
               variant="outline"
               onClick={() => {
                 setIsCreateDialogOpen(false);
-                setFormData({ name: '', parentId: null });
+                setFormData({ name: "", parentId: null });
               }}
               data-testid="button-cancel-create"
             >
@@ -499,7 +571,9 @@ export default function GuideCategoriesAdmin() {
               disabled={createMutation.isPending}
               data-testid="button-confirm-create"
             >
-              {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {createMutation.isPending && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
               Create
             </Button>
           </DialogFooter>
@@ -523,7 +597,9 @@ export default function GuideCategoriesAdmin() {
                 id="edit-name"
                 data-testid="input-edit-name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="e.g., Writing Craft"
               />
             </div>
@@ -532,9 +608,17 @@ export default function GuideCategoriesAdmin() {
               <Label htmlFor="edit-parent">Parent Category (Optional)</Label>
               <Select
                 value={formData.parentId || "none"}
-                onValueChange={(value) => setFormData({ ...formData, parentId: value === "none" ? null : value })}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    parentId: value === "none" ? null : value,
+                  })
+                }
               >
-                <SelectTrigger id="edit-parent" data-testid="select-edit-parent">
+                <SelectTrigger
+                  id="edit-parent"
+                  data-testid="select-edit-parent"
+                >
                   <SelectValue placeholder="Select parent category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -543,7 +627,7 @@ export default function GuideCategoriesAdmin() {
                     .filter((cat) => !editingDescendants.has(cat.id))
                     .map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>
-                        {'  '.repeat(cat.level) + cat.name}
+                        {"  ".repeat(cat.level) + cat.name}
                       </SelectItem>
                     ))}
                 </SelectContent>
@@ -557,7 +641,7 @@ export default function GuideCategoriesAdmin() {
               onClick={() => {
                 setIsEditDialogOpen(false);
                 setEditingCategory(null);
-                setFormData({ name: '', parentId: null });
+                setFormData({ name: "", parentId: null });
               }}
               data-testid="button-cancel-edit"
             >
@@ -568,7 +652,9 @@ export default function GuideCategoriesAdmin() {
               disabled={updateMutation.isPending}
               data-testid="button-confirm-edit"
             >
-              {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {updateMutation.isPending && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
               Update
             </Button>
           </DialogFooter>
@@ -584,17 +670,22 @@ export default function GuideCategoriesAdmin() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Category</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deleteDialogData?.name}"? This will also delete all subcategories. This action cannot be undone.
+              Are you sure you want to delete "{deleteDialogData?.name}"? This
+              will also delete all subcategories. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
+            <AlertDialogCancel data-testid="button-cancel-delete">
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               data-testid="button-confirm-delete"
               className="bg-destructive text-destructive-foreground hover-elevate"
             >
-              {deleteMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {deleteMutation.isPending && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

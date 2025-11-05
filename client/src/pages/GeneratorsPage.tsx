@@ -19,71 +19,71 @@ import { getMappingById } from "@shared/contentTypes";
 
 export default function GeneratorsPage() {
   const [location, setLocation] = useLocation();
-  const [activeView, setActiveView] = useState<string>('generators');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [activeView, setActiveView] = useState<string>("generators");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [isContentModalOpen, setIsContentModalOpen] = useState<boolean>(false);
 
   const handleToolSelect = (toolId: string) => {
-    if (toolId === 'notebook') {
-      setLocation('/notebook');
-    } else if (toolId === 'projects') {
-      setLocation('/projects');
+    if (toolId === "notebook") {
+      setLocation("/notebook");
+    } else if (toolId === "projects") {
+      setLocation("/projects");
     } else {
       setActiveView(toolId);
     }
-    console.log('Navigating to tool:', toolId);
+    console.log("Navigating to tool:", toolId);
   };
 
   const handleBackToGenerators = () => {
-    setActiveView('generators');
-    console.log('Navigating back to generators');
+    setActiveView("generators");
+    console.log("Navigating back to generators");
   };
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    console.log('Search query:', query);
+    console.log("Search query:", query);
   };
 
   const handleCreateNew = () => {
     setIsContentModalOpen(true);
-    console.log('Opening content type modal');
+    console.log("Opening content type modal");
   };
 
   const handleSelectContentType = (contentType: string) => {
-    console.log('Selected content type:', contentType);
+    console.log("Selected content type:", contentType);
     setIsContentModalOpen(false);
     const mapping = getMappingById(contentType);
     if (mapping) {
       setLocation(`/editor/${mapping.urlSegment}/new`);
     } else {
       console.log(`No mapping found for content type: ${contentType}`);
-      setLocation('/notebook');
+      setLocation("/notebook");
     }
   };
 
   const renderActiveView = () => {
     switch (activeView) {
-      case 'generators':
+      case "generators":
         return <ToolsShowcase onToolSelect={handleToolSelect} />;
-      case 'character-generator':
+      case "character-generator":
         return <CharacterGenerator />;
-      case 'plot-generator':
+      case "plot-generator":
         return <PlotGenerator />;
-      case 'setting-generator':
+      case "setting-generator":
         return <SettingGenerator />;
-      case 'creature-generator':
+      case "creature-generator":
         return <CreatureGenerator />;
-      case 'name-generator':
+      case "name-generator":
         return <NameGenerator />;
-      case 'conflict-generator':
+      case "conflict-generator":
         return <ConflictGenerator />;
-      case 'theme-explorer':
+      case "theme-explorer":
         return <ThemeExplorer />;
-      case 'mood-palette':
+      case "mood-palette":
         return <MoodPalette />;
-      case 'plant-generator':
+      case "plant-generator":
         return <PlantGenerator />;
-      case 'description-generator':
+      case "description-generator":
         return <DescriptionGenerator />;
       default:
         return <ToolsShowcase onToolSelect={handleToolSelect} />;
@@ -92,15 +92,15 @@ export default function GeneratorsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header 
+      <Header
         onSearch={handleSearch}
         searchQuery={searchQuery}
         onNavigate={handleToolSelect}
         onCreateNew={handleCreateNew}
       />
-      
+
       <main className="flex-1">
-        {activeView !== 'generators' && (
+        {activeView !== "generators" && (
           <div className="container mx-auto px-4 py-6">
             <Button
               variant="outline"
@@ -113,14 +113,12 @@ export default function GeneratorsPage() {
             </Button>
           </div>
         )}
-        
-        <div className="container mx-auto px-4 py-8">
-          {renderActiveView()}
-        </div>
+
+        <div className="container mx-auto px-4 py-8">{renderActiveView()}</div>
       </main>
 
       {/* Content Type Modal */}
-      <ContentTypeModal 
+      <ContentTypeModal
         isOpen={isContentModalOpen}
         onClose={() => setIsContentModalOpen(false)}
         onSelectType={handleSelectContentType}

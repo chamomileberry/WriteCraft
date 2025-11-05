@@ -5,17 +5,68 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerClose } from "@/components/ui/drawer";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerClose,
+} from "@/components/ui/drawer";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Search, MessageSquare, Trash2, Edit, GitBranch, Tag as TagIcon, Sparkles, Archive, ArchiveRestore, X, Filter, Calendar, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Search,
+  MessageSquare,
+  Trash2,
+  Edit,
+  GitBranch,
+  Tag as TagIcon,
+  Sparkles,
+  Archive,
+  ArchiveRestore,
+  X,
+  Filter,
+  Calendar,
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { format } from "date-fns";
 
 interface ConversationThread {
@@ -52,7 +103,8 @@ export default function ConversationThreadsManager() {
   const [filterProjectId, setFilterProjectId] = useState<string>("");
   const [filterGuideId, setFilterGuideId] = useState<string>("");
   const [filterActive, setFilterActive] = useState<string>("all");
-  const [selectedThread, setSelectedThread] = useState<ConversationThread | null>(null);
+  const [selectedThread, setSelectedThread] =
+    useState<ConversationThread | null>(null);
   const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [threadToDelete, setThreadToDelete] = useState<string | null>(null);
@@ -71,47 +123,60 @@ export default function ConversationThreadsManager() {
   };
 
   const handleNavigate = (view: string) => {
-    if (view === 'notebook') {
-      setLocation('/notebook');
-    } else if (view === 'projects') {
-      setLocation('/projects');
-    } else if (view === 'generators') {
-      setLocation('/generators');
-    } else if (view === 'guides') {
-      setLocation('/guides');
+    if (view === "notebook") {
+      setLocation("/notebook");
+    } else if (view === "projects") {
+      setLocation("/projects");
+    } else if (view === "generators") {
+      setLocation("/generators");
+    } else if (view === "guides") {
+      setLocation("/guides");
     }
   };
 
   // Fetch conversation threads
-  const { data: threads = [], isLoading: isThreadsLoading } = useQuery<ConversationThread[]>({
-    queryKey: ['/api/conversation-threads', { projectId: filterProjectId, guideId: filterGuideId, isActive: filterActive }],
+  const { data: threads = [], isLoading: isThreadsLoading } = useQuery<
+    ConversationThread[]
+  >({
+    queryKey: [
+      "/api/conversation-threads",
+      {
+        projectId: filterProjectId,
+        guideId: filterGuideId,
+        isActive: filterActive,
+      },
+    ],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (filterProjectId) params.append('projectId', filterProjectId);
-      if (filterGuideId) params.append('guideId', filterGuideId);
-      if (filterActive !== 'all') params.append('isActive', filterActive);
-      
-      const url = `/api/conversation-threads${params.toString() ? `?${params.toString()}` : ''}`;
-      const response = await fetch(url, { credentials: 'include' });
-      if (!response.ok) throw new Error('Failed to fetch threads');
+      if (filterProjectId) params.append("projectId", filterProjectId);
+      if (filterGuideId) params.append("guideId", filterGuideId);
+      if (filterActive !== "all") params.append("isActive", filterActive);
+
+      const url = `/api/conversation-threads${params.toString() ? `?${params.toString()}` : ""}`;
+      const response = await fetch(url, { credentials: "include" });
+      if (!response.ok) throw new Error("Failed to fetch threads");
       return response.json();
     },
   });
 
   // Fetch projects for filter
   const { data: projects = [] } = useQuery<Project[]>({
-    queryKey: ['/api/projects'],
+    queryKey: ["/api/projects"],
   });
 
   // Fetch guides for filter
   const { data: guides = [] } = useQuery<Guide[]>({
-    queryKey: ['/api/guides'],
+    queryKey: ["/api/guides"],
   });
 
   // Create thread mutation
-  const createThreadMutation = useMutation<ConversationThread, Error, { title: string; projectId?: string; guideId?: string }>({
+  const createThreadMutation = useMutation<
+    ConversationThread,
+    Error,
+    { title: string; projectId?: string; guideId?: string }
+  >({
     mutationFn: async (data) => {
-      const response = await apiRequest('POST', '/api/conversation-threads', {
+      const response = await apiRequest("POST", "/api/conversation-threads", {
         title: data.title,
         projectId: data.projectId || undefined,
         guideId: data.guideId || undefined,
@@ -120,7 +185,9 @@ export default function ConversationThreadsManager() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/conversation-threads'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversation-threads"],
+      });
       toast({
         title: "Thread created",
         description: "New conversation thread has been created successfully.",
@@ -142,10 +209,12 @@ export default function ConversationThreadsManager() {
   // Delete thread mutation
   const deleteThreadMutation = useMutation({
     mutationFn: async (threadId: string) => {
-      return apiRequest('DELETE', `/api/conversation-threads/${threadId}`);
+      return apiRequest("DELETE", `/api/conversation-threads/${threadId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/conversation-threads'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversation-threads"],
+      });
       toast({
         title: "Thread deleted",
         description: "The conversation thread has been deleted successfully.",
@@ -167,13 +236,23 @@ export default function ConversationThreadsManager() {
   });
 
   // Update thread mutation
-  const updateThreadMutation = useMutation<ConversationThread, Error, { id: string; updates: Partial<ConversationThread> }>({
+  const updateThreadMutation = useMutation<
+    ConversationThread,
+    Error,
+    { id: string; updates: Partial<ConversationThread> }
+  >({
     mutationFn: async ({ id, updates }) => {
-      const response = await apiRequest('PUT', `/api/conversation-threads/${id}`, updates);
+      const response = await apiRequest(
+        "PUT",
+        `/api/conversation-threads/${id}`,
+        updates,
+      );
       return response.json();
     },
     onSuccess: (updatedThread: ConversationThread) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/conversation-threads'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversation-threads"],
+      });
       setSelectedThread(updatedThread);
       toast({
         title: "Thread updated",
@@ -193,11 +272,16 @@ export default function ConversationThreadsManager() {
   // Generate tags mutation
   const generateTagsMutation = useMutation<ConversationThread, Error, string>({
     mutationFn: async (threadId: string) => {
-      const response = await apiRequest('POST', `/api/conversation-threads/${threadId}/generate-tags`);
+      const response = await apiRequest(
+        "POST",
+        `/api/conversation-threads/${threadId}/generate-tags`,
+      );
       return response.json();
     },
     onSuccess: (updatedThread: ConversationThread) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/conversation-threads'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversation-threads"],
+      });
       setSelectedThread(updatedThread);
       toast({
         title: "Tags generated",
@@ -242,13 +326,13 @@ export default function ConversationThreadsManager() {
     }
   };
 
-  const filteredThreads = threads.filter(thread => {
+  const filteredThreads = threads.filter((thread) => {
     if (debouncedSearch) {
       const search = debouncedSearch.toLowerCase();
       return (
         thread.title.toLowerCase().includes(search) ||
         thread.summary?.toLowerCase().includes(search) ||
-        thread.tags?.some(tag => tag.toLowerCase().includes(search))
+        thread.tags?.some((tag) => tag.toLowerCase().includes(search))
       );
     }
     return true;
@@ -264,7 +348,7 @@ export default function ConversationThreadsManager() {
   const totalPages = Math.ceil(sortedThreads.length / ITEMS_PER_PAGE);
   const paginatedThreads = sortedThreads.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
+    currentPage * ITEMS_PER_PAGE,
   );
 
   const handleCreateThread = () => {
@@ -290,16 +374,25 @@ export default function ConversationThreadsManager() {
         searchQuery={searchQuery}
         onNavigate={handleNavigate}
       />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2" data-testid="heading-conversation-threads">Conversation Threads</h1>
+            <h1
+              className="text-3xl font-bold mb-2"
+              data-testid="heading-conversation-threads"
+            >
+              Conversation Threads
+            </h1>
             <p className="text-muted-foreground">
-              Manage your AI writing assistant conversations and brainstorming sessions
+              Manage your AI writing assistant conversations and brainstorming
+              sessions
             </p>
           </div>
-          <Button onClick={() => setIsCreateDialogOpen(true)} data-testid="button-create-thread">
+          <Button
+            onClick={() => setIsCreateDialogOpen(true)}
+            data-testid="button-create-thread"
+          >
             <Plus className="w-4 h-4 mr-2" />
             New Thread
           </Button>
@@ -331,14 +424,19 @@ export default function ConversationThreadsManager() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Project</label>
-                <Select value={filterProjectId} onValueChange={setFilterProjectId}>
+                <Select
+                  value={filterProjectId}
+                  onValueChange={setFilterProjectId}
+                >
                   <SelectTrigger data-testid="select-filter-project">
                     <SelectValue placeholder="All projects" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">All projects</SelectItem>
-                    {projects.map(project => (
-                      <SelectItem key={project.id} value={project.id}>{project.title}</SelectItem>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.title}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -352,8 +450,10 @@ export default function ConversationThreadsManager() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">All guides</SelectItem>
-                    {guides.map(guide => (
-                      <SelectItem key={guide.id} value={guide.id}>{guide.title}</SelectItem>
+                    {guides.map((guide) => (
+                      <SelectItem key={guide.id} value={guide.id}>
+                        {guide.title}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -379,7 +479,7 @@ export default function ConversationThreadsManager() {
         {/* Thread List */}
         {isThreadsLoading ? (
           <div className="space-y-4">
-            {[1, 2, 3, 4].map(i => (
+            {[1, 2, 3, 4].map((i) => (
               <Card key={i}>
                 <CardHeader>
                   <Skeleton className="h-5 w-3/4" />
@@ -392,64 +492,78 @@ export default function ConversationThreadsManager() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <MessageSquare className="w-12 h-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium mb-2">No conversation threads found</p>
+              <p className="text-lg font-medium mb-2">
+                No conversation threads found
+              </p>
               <p className="text-sm text-muted-foreground">
-                {debouncedSearch || filterProjectId || filterGuideId || filterActive !== 'all'
-                  ? 'Try adjusting your filters'
-                  : 'Start a conversation with the AI writing assistant to create your first thread'}
+                {debouncedSearch ||
+                filterProjectId ||
+                filterGuideId ||
+                filterActive !== "all"
+                  ? "Try adjusting your filters"
+                  : "Start a conversation with the AI writing assistant to create your first thread"}
               </p>
             </CardContent>
           </Card>
         ) : (
           <>
             <div className="space-y-4">
-              {paginatedThreads.map(thread => (
-              <Card
-                key={thread.id}
-                className="hover-elevate cursor-pointer transition-all"
-                onClick={() => handleViewThread(thread)}
-                data-testid={`card-thread-${thread.id}`}
-              >
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <CardTitle className="flex items-center gap-2">
-                        {thread.title}
-                        {!thread.isActive && (
-                          <Badge variant="secondary" className="text-xs">
-                            <Archive className="w-3 h-3 mr-1" />
-                            Archived
-                          </Badge>
-                        )}
-                      </CardTitle>
-                      <CardDescription className="mt-2">
-                        {thread.summary || 'No summary available'}
-                      </CardDescription>
-                      
-                      <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {format(new Date(thread.lastActivityAt || thread.updatedAt), 'MMM d, yyyy')}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <MessageSquare className="w-3 h-3" />
-                          {thread.messageCount || 0} messages
-                        </span>
-                      </div>
-
-                      {thread.tags && thread.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-3">
-                          {thread.tags.map((tag, idx) => (
-                            <Badge key={idx} variant="outline" className="text-xs">
-                              {tag}
+              {paginatedThreads.map((thread) => (
+                <Card
+                  key={thread.id}
+                  className="hover-elevate cursor-pointer transition-all"
+                  onClick={() => handleViewThread(thread)}
+                  data-testid={`card-thread-${thread.id}`}
+                >
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <CardTitle className="flex items-center gap-2">
+                          {thread.title}
+                          {!thread.isActive && (
+                            <Badge variant="secondary" className="text-xs">
+                              <Archive className="w-3 h-3 mr-1" />
+                              Archived
                             </Badge>
-                          ))}
+                          )}
+                        </CardTitle>
+                        <CardDescription className="mt-2">
+                          {thread.summary || "No summary available"}
+                        </CardDescription>
+
+                        <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {format(
+                              new Date(
+                                thread.lastActivityAt || thread.updatedAt,
+                              ),
+                              "MMM d, yyyy",
+                            )}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <MessageSquare className="w-3 h-3" />
+                            {thread.messageCount || 0} messages
+                          </span>
                         </div>
-                      )}
+
+                        {thread.tags && thread.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-3">
+                            {thread.tags.map((tag, idx) => (
+                              <Badge
+                                key={idx}
+                                variant="outline"
+                                className="text-xs"
+                              >
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </CardHeader>
-              </Card>
+                  </CardHeader>
+                </Card>
               ))}
             </div>
 
@@ -459,7 +573,7 @@ export default function ConversationThreadsManager() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                   data-testid="button-prev-page"
                 >
@@ -472,7 +586,9 @@ export default function ConversationThreadsManager() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
                   disabled={currentPage === totalPages}
                   data-testid="button-next-page"
                 >
@@ -497,22 +613,26 @@ export default function ConversationThreadsManager() {
                           value={editingTitle}
                           onChange={(e) => setEditingTitle(e.target.value)}
                           onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleSaveTitle();
-                            if (e.key === 'Escape') {
+                            if (e.key === "Enter") handleSaveTitle();
+                            if (e.key === "Escape") {
                               setIsEditingTitle(false);
-                              setEditingTitle(selectedThread?.title || '');
+                              setEditingTitle(selectedThread?.title || "");
                             }
                           }}
                           className="text-lg font-semibold"
                           data-testid="input-edit-thread-title"
                         />
-                        <Button onClick={handleSaveTitle} size="sm" data-testid="button-save-title">
+                        <Button
+                          onClick={handleSaveTitle}
+                          size="sm"
+                          data-testid="button-save-title"
+                        >
                           Save
                         </Button>
                         <Button
                           onClick={() => {
                             setIsEditingTitle(false);
-                            setEditingTitle(selectedThread?.title || '');
+                            setEditingTitle(selectedThread?.title || "");
                           }}
                           size="sm"
                           variant="ghost"
@@ -539,11 +659,15 @@ export default function ConversationThreadsManager() {
                       </DrawerTitle>
                     )}
                     <DrawerDescription className="mt-2">
-                      {selectedThread?.summary || 'No summary available'}
+                      {selectedThread?.summary || "No summary available"}
                     </DrawerDescription>
                   </div>
                   <DrawerClose asChild>
-                    <Button variant="ghost" size="icon" data-testid="button-close-drawer">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      data-testid="button-close-drawer"
+                    >
                       <X className="w-4 h-4" />
                     </Button>
                   </DrawerClose>
@@ -555,21 +679,37 @@ export default function ConversationThreadsManager() {
                   {/* Thread Metadata */}
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-muted-foreground">Created:</span>{' '}
-                      <span>{format(new Date(selectedThread.createdAt), 'PPP')}</span>
+                      <span className="text-muted-foreground">Created:</span>{" "}
+                      <span>
+                        {format(new Date(selectedThread.createdAt), "PPP")}
+                      </span>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Last Activity:</span>{' '}
-                      <span>{format(new Date(selectedThread.lastActivityAt || selectedThread.updatedAt), 'PPP')}</span>
+                      <span className="text-muted-foreground">
+                        Last Activity:
+                      </span>{" "}
+                      <span>
+                        {format(
+                          new Date(
+                            selectedThread.lastActivityAt ||
+                              selectedThread.updatedAt,
+                          ),
+                          "PPP",
+                        )}
+                      </span>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Messages:</span>{' '}
+                      <span className="text-muted-foreground">Messages:</span>{" "}
                       <span>{selectedThread.messageCount || 0}</span>
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Status:</span>{' '}
-                      <Badge variant={selectedThread.isActive ? "default" : "secondary"}>
-                        {selectedThread.isActive ? 'Active' : 'Archived'}
+                      <span className="text-muted-foreground">Status:</span>{" "}
+                      <Badge
+                        variant={
+                          selectedThread.isActive ? "default" : "secondary"
+                        }
+                      >
+                        {selectedThread.isActive ? "Active" : "Archived"}
                       </Badge>
                     </div>
                   </div>
@@ -579,14 +719,18 @@ export default function ConversationThreadsManager() {
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-sm font-medium">Tags</h3>
                       <Button
-                        onClick={() => generateTagsMutation.mutate(selectedThread.id)}
+                        onClick={() =>
+                          generateTagsMutation.mutate(selectedThread.id)
+                        }
                         disabled={generateTagsMutation.isPending}
                         size="sm"
                         variant="outline"
                         data-testid="button-generate-tags"
                       >
                         <Sparkles className="w-3 h-3 mr-1" />
-                        {generateTagsMutation.isPending ? 'Generating...' : 'Generate AI Tags'}
+                        {generateTagsMutation.isPending
+                          ? "Generating..."
+                          : "Generate AI Tags"}
                       </Button>
                     </div>
                     {selectedThread.tags && selectedThread.tags.length > 0 ? (
@@ -599,7 +743,9 @@ export default function ConversationThreadsManager() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground">No tags yet. Generate AI tags to categorize this thread.</p>
+                      <p className="text-sm text-muted-foreground">
+                        No tags yet. Generate AI tags to categorize this thread.
+                      </p>
                     )}
                   </div>
 
@@ -644,7 +790,8 @@ export default function ConversationThreadsManager() {
             <DialogHeader>
               <DialogTitle>Create New Conversation Thread</DialogTitle>
               <DialogDescription>
-                Start a new conversation thread. You can link it to a project or guide for better organization.
+                Start a new conversation thread. You can link it to a project or
+                guide for better organization.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -660,28 +807,44 @@ export default function ConversationThreadsManager() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="thread-project">Project (Optional)</Label>
-                <Select value={newThreadProjectId} onValueChange={setNewThreadProjectId}>
-                  <SelectTrigger id="thread-project" data-testid="select-new-thread-project">
+                <Select
+                  value={newThreadProjectId}
+                  onValueChange={setNewThreadProjectId}
+                >
+                  <SelectTrigger
+                    id="thread-project"
+                    data-testid="select-new-thread-project"
+                  >
                     <SelectValue placeholder="Select a project" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">No project</SelectItem>
-                    {projects.map(project => (
-                      <SelectItem key={project.id} value={project.id}>{project.title}</SelectItem>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.title}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="thread-guide">Guide (Optional)</Label>
-                <Select value={newThreadGuideId} onValueChange={setNewThreadGuideId}>
-                  <SelectTrigger id="thread-guide" data-testid="select-new-thread-guide">
+                <Select
+                  value={newThreadGuideId}
+                  onValueChange={setNewThreadGuideId}
+                >
+                  <SelectTrigger
+                    id="thread-guide"
+                    data-testid="select-new-thread-guide"
+                  >
                     <SelectValue placeholder="Select a guide" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">No guide</SelectItem>
-                    {guides.map(guide => (
-                      <SelectItem key={guide.id} value={guide.id}>{guide.title}</SelectItem>
+                    {guides.map((guide) => (
+                      <SelectItem key={guide.id} value={guide.id}>
+                        {guide.title}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -705,23 +868,32 @@ export default function ConversationThreadsManager() {
                 disabled={createThreadMutation.isPending}
                 data-testid="button-confirm-create-thread"
               >
-                {createThreadMutation.isPending ? 'Creating...' : 'Create Thread'}
+                {createThreadMutation.isPending
+                  ? "Creating..."
+                  : "Create Thread"}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
 
         {/* Delete Confirmation Dialog */}
-        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Delete Conversation Thread</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete this conversation thread? This will permanently delete all associated messages. This action cannot be undone.
+                Are you sure you want to delete this conversation thread? This
+                will permanently delete all associated messages. This action
+                cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
+              <AlertDialogCancel data-testid="button-cancel-delete">
+                Cancel
+              </AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => {
                   if (threadToDelete) {

@@ -1,7 +1,7 @@
-import nodemailer from 'nodemailer';
-import type { Transporter } from 'nodemailer';
-import { logger } from '../utils/logger';
-import * as emailTemplates from '../templates/email/emailTemplates';
+import nodemailer from "nodemailer";
+import type { Transporter } from "nodemailer";
+import { logger } from "../utils/logger";
+import * as emailTemplates from "../templates/email/emailTemplates";
 
 export interface EmailOptions {
   to: string;
@@ -60,11 +60,11 @@ class EmailService {
 
   constructor() {
     // Default "from" address
-    this.from = process.env.EMAIL_FROM || 'WriteCraft <admin@writecraft.app>';
-    
+    this.from = process.env.EMAIL_FROM || "WriteCraft <admin@writecraft.app>";
+
     // Test mode: if true, emails are logged instead of sent
-    this.testMode = process.env.EMAIL_TEST_MODE === 'true';
-    
+    this.testMode = process.env.EMAIL_TEST_MODE === "true";
+
     this.initializeTransporter();
   }
 
@@ -75,14 +75,20 @@ class EmailService {
     const smtpPass = process.env.SMTP_PASS;
 
     if (this.testMode) {
-      logger.info('[EmailService] Running in TEST MODE - emails will be logged but not sent');
+      logger.info(
+        "[EmailService] Running in TEST MODE - emails will be logged but not sent",
+      );
       this.initialized = true;
       return;
     }
 
     if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
-      logger.warn('[EmailService] SMTP credentials not configured - email notifications disabled');
-      logger.warn('[EmailService] Required env vars: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS');
+      logger.warn(
+        "[EmailService] SMTP credentials not configured - email notifications disabled",
+      );
+      logger.warn(
+        "[EmailService] Required env vars: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS",
+      );
       return;
     }
 
@@ -101,20 +107,23 @@ class EmailService {
       });
 
       this.initialized = true;
-      logger.info('[EmailService] Email service initialized successfully');
+      logger.info("[EmailService] Email service initialized successfully");
     } catch (error) {
-      logger.error('[EmailService] Failed to initialize email service:', error);
+      logger.error("[EmailService] Failed to initialize email service:", error);
     }
   }
 
   private async sendEmail(options: EmailOptions): Promise<boolean> {
     if (!this.initialized) {
-      logger.warn('[EmailService] Email service not initialized - skipping email to:', options.to);
+      logger.warn(
+        "[EmailService] Email service not initialized - skipping email to:",
+        options.to,
+      );
       return false;
     }
 
     if (this.testMode) {
-      logger.info('[EmailService] TEST MODE - Would send email:', {
+      logger.info("[EmailService] TEST MODE - Would send email:", {
         to: options.to,
         subject: options.subject,
         from: options.from || this.from,
@@ -124,7 +133,7 @@ class EmailService {
     }
 
     if (!this.transporter) {
-      logger.error('[EmailService] Transporter not available');
+      logger.error("[EmailService] Transporter not available");
       return false;
     }
 
@@ -137,7 +146,7 @@ class EmailService {
         html: options.html,
       });
 
-      logger.info('[EmailService] Email sent successfully:', {
+      logger.info("[EmailService] Email sent successfully:", {
         to: options.to,
         subject: options.subject,
         messageId: info.messageId,
@@ -145,7 +154,7 @@ class EmailService {
 
       return true;
     } catch (error) {
-      logger.error('[EmailService] Failed to send email:', {
+      logger.error("[EmailService] Failed to send email:", {
         to: options.to,
         subject: options.subject,
         error,
@@ -157,141 +166,199 @@ class EmailService {
   // Subscription & Billing Emails
 
   async sendWelcomeEmail(email: string, userName: string): Promise<boolean> {
-    const subject = 'Welcome to WriteCraft!';
+    const subject = "Welcome to WriteCraft!";
     const { html, text } = this.renderWelcomeEmail(userName);
-    
+
     return this.sendEmail({ to: email, subject, html, text });
   }
 
-  async sendSubscriptionActivated(email: string, data: SubscriptionEmailData): Promise<boolean> {
+  async sendSubscriptionActivated(
+    email: string,
+    data: SubscriptionEmailData,
+  ): Promise<boolean> {
     const subject = `Your ${data.planName} subscription is now active`;
     const { html, text } = this.renderSubscriptionActivatedEmail(data);
-    
+
     return this.sendEmail({ to: email, subject, html, text });
   }
 
-  async sendSubscriptionCanceled(email: string, data: SubscriptionEmailData): Promise<boolean> {
-    const subject = 'Your WriteCraft subscription has been canceled';
+  async sendSubscriptionCanceled(
+    email: string,
+    data: SubscriptionEmailData,
+  ): Promise<boolean> {
+    const subject = "Your WriteCraft subscription has been canceled";
     const { html, text } = this.renderSubscriptionCanceledEmail(data);
-    
+
     return this.sendEmail({ to: email, subject, html, text });
   }
 
-  async sendSubscriptionReactivated(email: string, data: SubscriptionEmailData): Promise<boolean> {
-    const subject = 'Your WriteCraft subscription has been reactivated';
+  async sendSubscriptionReactivated(
+    email: string,
+    data: SubscriptionEmailData,
+  ): Promise<boolean> {
+    const subject = "Your WriteCraft subscription has been reactivated";
     const { html, text } = this.renderSubscriptionReactivatedEmail(data);
-    
+
     return this.sendEmail({ to: email, subject, html, text });
   }
 
-  async sendPaymentSuccessful(email: string, data: PaymentEmailData): Promise<boolean> {
-    const subject = 'Payment receipt from WriteCraft';
+  async sendPaymentSuccessful(
+    email: string,
+    data: PaymentEmailData,
+  ): Promise<boolean> {
+    const subject = "Payment receipt from WriteCraft";
     const { html, text } = this.renderPaymentSuccessfulEmail(data);
-    
+
     return this.sendEmail({ to: email, subject, html, text });
   }
 
-  async sendPaymentFailed(email: string, data: PaymentEmailData): Promise<boolean> {
-    const subject = 'Payment failed - Action required';
+  async sendPaymentFailed(
+    email: string,
+    data: PaymentEmailData,
+  ): Promise<boolean> {
+    const subject = "Payment failed - Action required";
     const { html, text } = this.renderPaymentFailedEmail(data);
-    
+
     return this.sendEmail({ to: email, subject, html, text });
   }
 
-  async sendRefundProcessed(email: string, data: PaymentEmailData): Promise<boolean> {
-    const subject = 'Your refund has been processed';
+  async sendRefundProcessed(
+    email: string,
+    data: PaymentEmailData,
+  ): Promise<boolean> {
+    const subject = "Your refund has been processed";
     const { html, text } = this.renderRefundProcessedEmail(data);
-    
+
     return this.sendEmail({ to: email, subject, html, text });
   }
 
   // Security Emails
 
-  async sendMfaEnabled(email: string, data: SecurityEmailData): Promise<boolean> {
-    const subject = 'Two-factor authentication enabled';
+  async sendMfaEnabled(
+    email: string,
+    data: SecurityEmailData,
+  ): Promise<boolean> {
+    const subject = "Two-factor authentication enabled";
     const { html, text } = this.renderMfaEnabledEmail(data);
-    
+
     return this.sendEmail({ to: email, subject, html, text });
   }
 
-  async sendMfaDisabled(email: string, data: SecurityEmailData): Promise<boolean> {
-    const subject = 'Two-factor authentication disabled';
+  async sendMfaDisabled(
+    email: string,
+    data: SecurityEmailData,
+  ): Promise<boolean> {
+    const subject = "Two-factor authentication disabled";
     const { html, text } = this.renderMfaDisabledEmail(data);
-    
+
     return this.sendEmail({ to: email, subject, html, text });
   }
 
-  async sendNewDeviceLogin(email: string, data: SecurityEmailData): Promise<boolean> {
-    const subject = 'New login to your WriteCraft account';
+  async sendNewDeviceLogin(
+    email: string,
+    data: SecurityEmailData,
+  ): Promise<boolean> {
+    const subject = "New login to your WriteCraft account";
     const { html, text } = this.renderNewDeviceLoginEmail(data);
-    
+
     return this.sendEmail({ to: email, subject, html, text });
   }
 
-  async sendPasswordChanged(email: string, data: SecurityEmailData): Promise<boolean> {
-    const subject = 'Your WriteCraft password was changed';
+  async sendPasswordChanged(
+    email: string,
+    data: SecurityEmailData,
+  ): Promise<boolean> {
+    const subject = "Your WriteCraft password was changed";
     const { html, text } = this.renderPasswordChangedEmail(data);
-    
+
     return this.sendEmail({ to: email, subject, html, text });
   }
 
-  async sendAccountDeletionScheduled(email: string, userName: string, deletionDate: Date): Promise<boolean> {
-    const subject = 'Your WriteCraft account will be deleted';
-    const { html, text } = this.renderAccountDeletionScheduledEmail(userName, deletionDate);
-    
+  async sendAccountDeletionScheduled(
+    email: string,
+    userName: string,
+    deletionDate: Date,
+  ): Promise<boolean> {
+    const subject = "Your WriteCraft account will be deleted";
+    const { html, text } = this.renderAccountDeletionScheduledEmail(
+      userName,
+      deletionDate,
+    );
+
     return this.sendEmail({ to: email, subject, html, text });
   }
 
   // Team Emails
 
-  async sendTeamInvitation(email: string, data: TeamEmailData): Promise<boolean> {
+  async sendTeamInvitation(
+    email: string,
+    data: TeamEmailData,
+  ): Promise<boolean> {
     const subject = `You've been invited to join ${data.teamName} on WriteCraft`;
     const { html, text } = this.renderTeamInvitationEmail(data);
-    
+
     return this.sendEmail({ to: email, subject, html, text });
   }
 
-  async sendTeamMemberRemoved(email: string, data: TeamEmailData): Promise<boolean> {
+  async sendTeamMemberRemoved(
+    email: string,
+    data: TeamEmailData,
+  ): Promise<boolean> {
     const subject = `You've been removed from ${data.teamName}`;
     const { html, text } = this.renderTeamMemberRemovedEmail(data);
-    
+
     return this.sendEmail({ to: email, subject, html, text });
   }
 
-  async sendTeamRoleChanged(email: string, data: TeamEmailData): Promise<boolean> {
+  async sendTeamRoleChanged(
+    email: string,
+    data: TeamEmailData,
+  ): Promise<boolean> {
     const subject = `Your role in ${data.teamName} has changed`;
     const { html, text } = this.renderTeamRoleChangedEmail(data);
-    
+
     return this.sendEmail({ to: email, subject, html, text });
   }
 
   // Usage Limit Emails
 
-  async sendUsageLimitWarning(email: string, data: UsageLimitEmailData): Promise<boolean> {
+  async sendUsageLimitWarning(
+    email: string,
+    data: UsageLimitEmailData,
+  ): Promise<boolean> {
     const subject = `You've used ${data.percentageUsed}% of your ${data.limitType} limit`;
     const { html, text } = this.renderUsageLimitWarningEmail(data);
-    
+
     return this.sendEmail({ to: email, subject, html, text });
   }
 
-  async sendGracePeriodStarted(email: string, data: UsageLimitEmailData): Promise<boolean> {
-    const subject = 'You have exceeded your plan limits';
+  async sendGracePeriodStarted(
+    email: string,
+    data: UsageLimitEmailData,
+  ): Promise<boolean> {
+    const subject = "You have exceeded your plan limits";
     const { html, text } = this.renderGracePeriodStartedEmail(data);
-    
+
     return this.sendEmail({ to: email, subject, html, text });
   }
 
-  async sendGracePeriodEnding(email: string, data: UsageLimitEmailData): Promise<boolean> {
-    const subject = 'Your grace period is ending soon';
+  async sendGracePeriodEnding(
+    email: string,
+    data: UsageLimitEmailData,
+  ): Promise<boolean> {
+    const subject = "Your grace period is ending soon";
     const { html, text } = this.renderGracePeriodEndingEmail(data);
-    
+
     return this.sendEmail({ to: email, subject, html, text });
   }
 
-  async sendLimitExceeded(email: string, data: UsageLimitEmailData): Promise<boolean> {
-    const subject = 'You have reached your plan limits';
+  async sendLimitExceeded(
+    email: string,
+    data: UsageLimitEmailData,
+  ): Promise<boolean> {
+    const subject = "You have reached your plan limits";
     const { html, text } = this.renderLimitExceededEmail(data);
-    
+
     return this.sendEmail({ to: email, subject, html, text });
   }
 
@@ -300,75 +367,132 @@ class EmailService {
     return emailTemplates.renderWelcomeEmail(userName);
   }
 
-  private renderSubscriptionActivatedEmail(data: SubscriptionEmailData): { html: string; text: string } {
+  private renderSubscriptionActivatedEmail(data: SubscriptionEmailData): {
+    html: string;
+    text: string;
+  } {
     return emailTemplates.renderSubscriptionActivatedEmail(data);
   }
 
-  private renderSubscriptionCanceledEmail(data: SubscriptionEmailData): { html: string; text: string } {
+  private renderSubscriptionCanceledEmail(data: SubscriptionEmailData): {
+    html: string;
+    text: string;
+  } {
     return emailTemplates.renderSubscriptionCanceledEmail(data);
   }
 
-  private renderSubscriptionReactivatedEmail(data: SubscriptionEmailData): { html: string; text: string } {
+  private renderSubscriptionReactivatedEmail(data: SubscriptionEmailData): {
+    html: string;
+    text: string;
+  } {
     return emailTemplates.renderSubscriptionReactivatedEmail(data);
   }
 
-  private renderPaymentSuccessfulEmail(data: PaymentEmailData): { html: string; text: string } {
+  private renderPaymentSuccessfulEmail(data: PaymentEmailData): {
+    html: string;
+    text: string;
+  } {
     return emailTemplates.renderPaymentSuccessfulEmail(data);
   }
 
-  private renderPaymentFailedEmail(data: PaymentEmailData): { html: string; text: string } {
+  private renderPaymentFailedEmail(data: PaymentEmailData): {
+    html: string;
+    text: string;
+  } {
     return emailTemplates.renderPaymentFailedEmail(data);
   }
 
-  private renderRefundProcessedEmail(data: PaymentEmailData): { html: string; text: string } {
+  private renderRefundProcessedEmail(data: PaymentEmailData): {
+    html: string;
+    text: string;
+  } {
     return emailTemplates.renderRefundProcessedEmail(data);
   }
 
-  private renderMfaEnabledEmail(data: SecurityEmailData): { html: string; text: string } {
+  private renderMfaEnabledEmail(data: SecurityEmailData): {
+    html: string;
+    text: string;
+  } {
     return emailTemplates.renderMfaEnabledEmail(data);
   }
 
-  private renderMfaDisabledEmail(data: SecurityEmailData): { html: string; text: string } {
+  private renderMfaDisabledEmail(data: SecurityEmailData): {
+    html: string;
+    text: string;
+  } {
     return emailTemplates.renderMfaDisabledEmail(data);
   }
 
-  private renderNewDeviceLoginEmail(data: SecurityEmailData): { html: string; text: string } {
+  private renderNewDeviceLoginEmail(data: SecurityEmailData): {
+    html: string;
+    text: string;
+  } {
     return emailTemplates.renderNewDeviceLoginEmail(data);
   }
 
-  private renderPasswordChangedEmail(data: SecurityEmailData): { html: string; text: string } {
+  private renderPasswordChangedEmail(data: SecurityEmailData): {
+    html: string;
+    text: string;
+  } {
     return emailTemplates.renderPasswordChangedEmail(data);
   }
 
-  private renderAccountDeletionScheduledEmail(userName: string, deletionDate: Date): { html: string; text: string } {
-    return emailTemplates.renderAccountDeletionScheduledEmail(userName, deletionDate);
+  private renderAccountDeletionScheduledEmail(
+    userName: string,
+    deletionDate: Date,
+  ): { html: string; text: string } {
+    return emailTemplates.renderAccountDeletionScheduledEmail(
+      userName,
+      deletionDate,
+    );
   }
 
-  private renderTeamInvitationEmail(data: TeamEmailData): { html: string; text: string } {
+  private renderTeamInvitationEmail(data: TeamEmailData): {
+    html: string;
+    text: string;
+  } {
     return emailTemplates.renderTeamInvitationEmail(data);
   }
 
-  private renderTeamMemberRemovedEmail(data: TeamEmailData): { html: string; text: string } {
+  private renderTeamMemberRemovedEmail(data: TeamEmailData): {
+    html: string;
+    text: string;
+  } {
     return emailTemplates.renderTeamMemberRemovedEmail(data);
   }
 
-  private renderTeamRoleChangedEmail(data: TeamEmailData): { html: string; text: string } {
+  private renderTeamRoleChangedEmail(data: TeamEmailData): {
+    html: string;
+    text: string;
+  } {
     return emailTemplates.renderTeamRoleChangedEmail(data);
   }
 
-  private renderUsageLimitWarningEmail(data: UsageLimitEmailData): { html: string; text: string } {
+  private renderUsageLimitWarningEmail(data: UsageLimitEmailData): {
+    html: string;
+    text: string;
+  } {
     return emailTemplates.renderUsageLimitWarningEmail(data);
   }
 
-  private renderGracePeriodStartedEmail(data: UsageLimitEmailData): { html: string; text: string } {
+  private renderGracePeriodStartedEmail(data: UsageLimitEmailData): {
+    html: string;
+    text: string;
+  } {
     return emailTemplates.renderGracePeriodStartedEmail(data);
   }
 
-  private renderGracePeriodEndingEmail(data: UsageLimitEmailData): { html: string; text: string } {
+  private renderGracePeriodEndingEmail(data: UsageLimitEmailData): {
+    html: string;
+    text: string;
+  } {
     return emailTemplates.renderGracePeriodEndingEmail(data);
   }
 
-  private renderLimitExceededEmail(data: UsageLimitEmailData): { html: string; text: string } {
+  private renderLimitExceededEmail(data: UsageLimitEmailData): {
+    html: string;
+    text: string;
+  } {
     return emailTemplates.renderLimitExceededEmail(data);
   }
 }

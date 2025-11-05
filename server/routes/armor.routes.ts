@@ -10,31 +10,41 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.body.notebookId;
-    
+
     // Validate notebook ownership before allowing write
     if (notebookId) {
-      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, userId);
+      const ownsNotebook = await storage.validateNotebookOwnership(
+        notebookId,
+        userId,
+      );
       if (!ownsNotebook) {
-        console.warn(`[Security] Unauthorized notebook access attempt - userId: ${userId}, notebookId: ${notebookId}`);
-        return res.status(404).json({ error: 'Notebook not found' });
+        console.warn(
+          `[Security] Unauthorized notebook access attempt - userId: ${userId}, notebookId: ${notebookId}`,
+        );
+        return res.status(404).json({ error: "Notebook not found" });
       }
     }
-    
+
     const validatedArmor = insertArmorSchema.parse(req.body);
     const savedArmor = await storage.createArmor(validatedArmor);
     res.json(savedArmor);
   } catch (error) {
-    console.error('Error saving armor:', error);
+    console.error("Error saving armor:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
-      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
-      return res.status(404).json({ error: 'Not found' });
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const notebookId =
+        req.query.notebookId || req.body.notebookId || "unknown";
+      console.warn(
+        `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to save armor' });
+    res.status(500).json({ error: "Failed to save armor" });
   }
 });
 
@@ -42,16 +52,18 @@ router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     const armors = await storage.getUserArmor(userId, notebookId);
     res.json(armors);
   } catch (error) {
-    console.error('Error fetching armors:', error);
-    res.status(500).json({ error: 'Failed to fetch armors' });
+    console.error("Error fetching armors:", error);
+    res.status(500).json({ error: "Failed to fetch armors" });
   }
 });
 
@@ -59,19 +71,21 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     const armor = await storage.getArmor(req.params.id, userId, notebookId);
     if (!armor) {
-      return res.status(404).json({ error: 'Armor not found' });
+      return res.status(404).json({ error: "Armor not found" });
     }
     res.json(armor);
   } catch (error) {
-    console.error('Error fetching armor:', error);
-    res.status(500).json({ error: 'Failed to fetch armor' });
+    console.error("Error fetching armor:", error);
+    res.status(500).json({ error: "Failed to fetch armor" });
   }
 });
 
@@ -79,19 +93,29 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const validatedUpdates = insertArmorSchema.parse(req.body);
-    const updatedArmor = await storage.updateArmor(req.params.id, userId, validatedUpdates);
+    const updatedArmor = await storage.updateArmor(
+      req.params.id,
+      userId,
+      validatedUpdates,
+    );
     res.json(updatedArmor);
   } catch (error) {
-    console.error('Error updating armor:', error);
+    console.error("Error updating armor:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
-      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
-      return res.status(404).json({ error: 'Not found' });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const notebookId =
+        req.query.notebookId || req.body.notebookId || "unknown";
+      console.warn(
+        `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -103,14 +127,17 @@ router.delete("/:id", writeRateLimiter, async (req: any, res) => {
     await storage.deleteArmor(req.params.id, userId);
     res.json({ success: true });
   } catch (error) {
-    console.error('Error deleting armor:', error);
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
-      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
-      return res.status(404).json({ error: 'Not found' });
+    console.error("Error deleting armor:", error);
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const notebookId =
+        req.query.notebookId || req.body.notebookId || "unknown";
+      console.warn(
+        `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to delete armor' });
+    res.status(500).json({ error: "Failed to delete armor" });
   }
 });
 

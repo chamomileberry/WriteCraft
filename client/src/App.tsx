@@ -81,21 +81,21 @@ import MapStudio from "@/pages/MapStudio";
 // Notebook page component
 function NotebookPage() {
   const [, setLocation] = useLocation();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isContentModalOpen, setIsContentModalOpen] = useState(false);
   const [notebookPopoverOpen, setNotebookPopoverOpen] = useState(false);
   const [mountNotebookSwitcher, setMountNotebookSwitcher] = useState(true);
 
   const handleNavigate = (toolId: string) => {
-    if (toolId === 'notebook') {
+    if (toolId === "notebook") {
       // Already on notebook page
       return;
-    } else if (toolId === 'projects') {
-      setLocation('/projects');
-    } else if (toolId === 'generators') {
-      setLocation('/generators');
-    } else if (toolId === 'guides') {
-      setLocation('/guides');
+    } else if (toolId === "projects") {
+      setLocation("/projects");
+    } else if (toolId === "generators") {
+      setLocation("/generators");
+    } else if (toolId === "guides") {
+      setLocation("/guides");
     }
   };
 
@@ -107,7 +107,7 @@ function NotebookPage() {
     // Force close popover and unmount NotebookSwitcher
     setNotebookPopoverOpen(false);
     setMountNotebookSwitcher(false);
-    
+
     // Wait for popover to fully close and unmount before opening modal
     setTimeout(() => {
       setIsContentModalOpen(true);
@@ -118,17 +118,20 @@ function NotebookPage() {
     }, 100);
   };
 
-  const handleSelectContentType = (contentType: string, notebookId?: string) => {
+  const handleSelectContentType = (
+    contentType: string,
+    notebookId?: string,
+  ) => {
     setIsContentModalOpen(false);
     setNotebookPopoverOpen(false); // Ensure popover stays closed
     const mapping = getMappingById(contentType);
     if (mapping) {
-      const url = notebookId 
+      const url = notebookId
         ? `/editor/${mapping.urlSegment}/new?notebookId=${notebookId}`
         : `/editor/${mapping.urlSegment}/new`;
       setLocation(url);
     } else {
-      setLocation('/notebook');
+      setLocation("/notebook");
     }
   };
 
@@ -141,9 +144,9 @@ function NotebookPage() {
         onCreateNew={handleCreateNew}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Button 
-          variant="ghost" 
-          onClick={() => setLocation('/')}
+        <Button
+          variant="ghost"
+          onClick={() => setLocation("/")}
           className="mb-6"
           data-testid="button-back-to-home"
         >
@@ -151,14 +154,14 @@ function NotebookPage() {
           Back to Home
         </Button>
         {mountNotebookSwitcher && (
-          <SavedItems 
-            onCreateNew={handleCreateNew} 
+          <SavedItems
+            onCreateNew={handleCreateNew}
             notebookPopoverOpen={notebookPopoverOpen}
             onNotebookPopoverOpenChange={setNotebookPopoverOpen}
           />
         )}
       </div>
-      
+
       <ContentTypeModal
         isOpen={isContentModalOpen}
         onClose={() => {
@@ -175,25 +178,25 @@ function NotebookPage() {
   );
 }
 
-// Content editor page component  
+// Content editor page component
 function EditorPage({ params }: { params: { type: string; id: string } }) {
   const [, setLocation] = useLocation();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const mapping = getMappingByUrlSegment(params.type);
-  
+
   if (!mapping) {
     return <NotFound />;
   }
 
   const handleNavigate = (toolId: string) => {
-    if (toolId === 'notebook') {
-      setLocation('/notebook');
-    } else if (toolId === 'projects') {
-      setLocation('/projects');
-    } else if (toolId === 'generators') {
-      setLocation('/generators');
-    } else if (toolId === 'guides') {
-      setLocation('/guides');
+    if (toolId === "notebook") {
+      setLocation("/notebook");
+    } else if (toolId === "projects") {
+      setLocation("/projects");
+    } else if (toolId === "generators") {
+      setLocation("/generators");
+    } else if (toolId === "guides") {
+      setLocation("/guides");
     }
   };
 
@@ -202,7 +205,7 @@ function EditorPage({ params }: { params: { type: string; id: string } }) {
   };
 
   const handleCreateNew = () => {
-    setLocation('/notebook');
+    setLocation("/notebook");
   };
 
   return (
@@ -214,10 +217,10 @@ function EditorPage({ params }: { params: { type: string; id: string } }) {
         onCreateNew={handleCreateNew}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <ContentEditor 
+        <ContentEditor
           contentType={mapping.id}
           contentId={params.id}
-          onBack={() => setLocation('/notebook')}
+          onBack={() => setLocation("/notebook")}
         />
       </div>
     </Layout>
@@ -237,7 +240,10 @@ function Router() {
       <Route path="/feedback" component={FeedbackPage} />
       <Route path="/help" component={HelpPage} />
       <Route path="/inbox" component={InboxPage} />
-      <Route path="/conversation-threads" component={ConversationThreadsManager} />
+      <Route
+        path="/conversation-threads"
+        component={ConversationThreadsManager}
+      />
       <Route path="/team" component={TeamManagement} />
       <Route path="/account" component={AccountSettings} />
       <Route path="/refund-request" component={RefundRequestPage} />
@@ -246,7 +252,10 @@ function Router() {
       <Route path="/guides" component={GuidesPage} />
       <Route path="/guides/new" component={GuideEditPage} />
       <Route path="/notebook" component={NotebookPage} />
-      <Route path="/notebook/consolidate" component={CharacterConsolidatePage} />
+      <Route
+        path="/notebook/consolidate"
+        component={CharacterConsolidatePage}
+      />
       <Route path="/admin/banned-phrases" component={BannedPhrasesManagement} />
       <Route path="/admin/security" component={SecurityDashboard} />
       <Route path="/admin/discount-codes" component={DiscountCodesAdmin} />
@@ -261,10 +270,26 @@ function Router() {
       <Route path="/guides/:id/edit-basic" component={GuideEditPage} />
       <Route path="/notes/:id/edit" component={NoteEditPage} />
       <Route path="/characters" component={CharacterPage} />
-      <Route path="/characters/new" component={(props: any) => <EditorPage params={{ type: "characters", id: "new" }} />} />
-      <Route path="/characters/:id" component={({ params }: { params: { id: string } }) => <EditorPage params={{ type: "characters", id: params.id }} />} />
-      <Route path="/characters/:id/edit" component={CharacterEditPageWithSidebar} />
-      <Route path="/characters/:id/edit-sidebar" component={CharacterEditPageWithSidebar} />
+      <Route
+        path="/characters/new"
+        component={(props: any) => (
+          <EditorPage params={{ type: "characters", id: "new" }} />
+        )}
+      />
+      <Route
+        path="/characters/:id"
+        component={({ params }: { params: { id: string } }) => (
+          <EditorPage params={{ type: "characters", id: params.id }} />
+        )}
+      />
+      <Route
+        path="/characters/:id/edit"
+        component={CharacterEditPageWithSidebar}
+      />
+      <Route
+        path="/characters/:id/edit-sidebar"
+        component={CharacterEditPageWithSidebar}
+      />
       <Route path="/settings" component={SettingPage} />
       <Route path="/creatures" component={CreaturePage} />
       <Route path="/editor/:type/:id" component={EditorPage} />
@@ -308,12 +333,19 @@ function AuthenticatedApp() {
   const [location, setLocation] = useLocation();
   const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
   const [isContentModalOpen, setIsContentModalOpen] = useState(false);
-  
-  const { addPanel, findPanel, focusPanel, updatePanel, openMobileDrawer, restorePanel } = useWorkspaceStore();
+
+  const {
+    addPanel,
+    findPanel,
+    focusPanel,
+    updatePanel,
+    openMobileDrawer,
+    restorePanel,
+  } = useWorkspaceStore();
 
   // Fetch user preferences to check onboarding status
   const { data: preferences, isLoading: preferencesLoading } = useQuery<any>({
-    queryKey: ['/api/user/preferences'],
+    queryKey: ["/api/user/preferences"],
     enabled: !!user, // Only fetch when user is authenticated
   });
 
@@ -368,10 +400,10 @@ function AuthenticatedApp() {
   };
 
   const handleMobileWritingAssistant = () => {
-    const existingPanel = findPanel('writingAssistant', 'writing-assistant');
+    const existingPanel = findPanel("writingAssistant", "writing-assistant");
 
     if (existingPanel) {
-      if (existingPanel.mode === 'docked') {
+      if (existingPanel.mode === "docked") {
         if (existingPanel.minimized) {
           restorePanel(existingPanel.id);
         }
@@ -379,11 +411,14 @@ function AuthenticatedApp() {
         openMobileDrawer();
         return;
       }
-      if (existingPanel.mode === 'tabbed' || existingPanel.mode === 'floating') {
+      if (
+        existingPanel.mode === "tabbed" ||
+        existingPanel.mode === "floating"
+      ) {
         updatePanel(existingPanel.id, {
-          mode: 'docked',
-          regionId: 'docked',
-          minimized: false
+          mode: "docked",
+          regionId: "docked",
+          minimized: false,
         });
         openMobileDrawer();
         return;
@@ -392,22 +427,25 @@ function AuthenticatedApp() {
 
     addPanel({
       id: `writing-assistant-${Date.now()}`,
-      type: 'writingAssistant' as const,
-      title: 'Writing Assistant',
-      mode: 'docked' as const,
-      regionId: 'docked' as const,
+      type: "writingAssistant" as const,
+      title: "Writing Assistant",
+      mode: "docked" as const,
+      regionId: "docked" as const,
       size: { width: 400, height: 600 },
-      entityId: 'writing-assistant',
+      entityId: "writing-assistant",
     });
 
     openMobileDrawer();
   };
 
-  const handleSelectContentType = (contentType: string, notebookId?: string) => {
+  const handleSelectContentType = (
+    contentType: string,
+    notebookId?: string,
+  ) => {
     setIsContentModalOpen(false);
     const mapping = getMappingById(contentType);
     if (mapping) {
-      const url = notebookId 
+      const url = notebookId
         ? `/editor/${mapping.urlSegment}/new?notebookId=${notebookId}`
         : `/editor/${mapping.urlSegment}/new`;
       setLocation(url);
@@ -421,9 +459,9 @@ function AuthenticatedApp() {
       <WorkspaceShell>
         <Router />
       </WorkspaceShell>
-      
+
       {/* Mobile bottom navigation */}
-      <MobileBottomNav 
+      <MobileBottomNav
         onCreateNew={handleMobileCreateNew}
         onOpenWritingAssistant={handleMobileWritingAssistant}
         onOpenMore={() => setIsMobileMoreOpen(true)}
@@ -440,7 +478,7 @@ function AuthenticatedApp() {
               variant="ghost"
               className="w-full justify-start"
               onClick={() => {
-                setLocation('/guides');
+                setLocation("/guides");
                 setIsMobileMoreOpen(false);
               }}
               data-testid="more-menu-guides"
@@ -451,7 +489,7 @@ function AuthenticatedApp() {
               variant="ghost"
               className="w-full justify-start"
               onClick={() => {
-                setLocation('/account');
+                setLocation("/account");
                 setIsMobileMoreOpen(false);
               }}
               data-testid="more-menu-account"
@@ -462,7 +500,7 @@ function AuthenticatedApp() {
               variant="ghost"
               className="w-full justify-start"
               onClick={() => {
-                setLocation('/pricing');
+                setLocation("/pricing");
                 setIsMobileMoreOpen(false);
               }}
               data-testid="more-menu-pricing"
@@ -479,7 +517,7 @@ function AuthenticatedApp() {
         onClose={() => setIsContentModalOpen(false)}
         onSelectType={handleSelectContentType}
       />
-      
+
       {/* Show onboarding wizard on first login */}
       {showOnboarding && (
         <OnboardingWizard

@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus, Users, ArrowRight } from "lucide-react";
 import Header from "@/components/Header";
@@ -33,9 +39,10 @@ export default function FamilyTreesListPage() {
     setLocation(`/family-trees/${id}`);
   };
 
-  const filteredFamilyTrees = familyTrees.filter((tree) =>
-    tree.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    tree.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredFamilyTrees = familyTrees.filter(
+    (tree) =>
+      tree.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tree.description?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -45,7 +52,7 @@ export default function FamilyTreesListPage() {
         searchQuery={searchQuery}
         onNavigate={handleNavigate}
       />
-      
+
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -58,7 +65,10 @@ export default function FamilyTreesListPage() {
                 Map character relationships and genealogies across generations
               </p>
             </div>
-            <Button onClick={handleCreateFamilyTree} data-testid="button-create-family-tree">
+            <Button
+              onClick={handleCreateFamilyTree}
+              data-testid="button-create-family-tree"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Create Family Tree
             </Button>
@@ -73,11 +83,17 @@ export default function FamilyTreesListPage() {
           <Card className="text-center py-12">
             <CardContent>
               <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Family Trees Yet</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                No Family Trees Yet
+              </h3>
               <p className="text-muted-foreground mb-4">
-                Create your first family tree to track character relationships and lineages
+                Create your first family tree to track character relationships
+                and lineages
               </p>
-              <Button onClick={handleCreateFamilyTree} data-testid="button-create-first-family-tree">
+              <Button
+                onClick={handleCreateFamilyTree}
+                data-testid="button-create-first-family-tree"
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Create Your First Family Tree
               </Button>
@@ -86,8 +102,8 @@ export default function FamilyTreesListPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredFamilyTrees.map((tree) => (
-              <Card 
-                key={tree.id} 
+              <Card
+                key={tree.id}
                 className="hover:shadow-lg transition-shadow cursor-pointer"
                 onClick={() => handleViewFamilyTree(tree.id)}
               >
@@ -102,11 +118,12 @@ export default function FamilyTreesListPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-sm text-muted-foreground mb-2">
-                    Layout: <span className="capitalize">{tree.layoutMode}</span>
+                    Layout:{" "}
+                    <span className="capitalize">{tree.layoutMode}</span>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="w-full"
                     onClick={(e) => {
                       e.stopPropagation();

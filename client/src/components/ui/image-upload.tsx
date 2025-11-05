@@ -1,10 +1,10 @@
-import { useState, useRef } from 'react';
-import { Upload, X, ImageIcon, Loader2, Camera } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
+import { useState, useRef } from "react";
+import { Upload, X, ImageIcon, Loader2, Camera } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface ImageUploadProps {
   value?: string;
@@ -16,7 +16,7 @@ interface ImageUploadProps {
   maxFileSize?: number; // in MB
   className?: string;
   disabled?: boolean;
-  visibility?: 'public' | 'private'; // Specify upload visibility
+  visibility?: "public" | "private"; // Specify upload visibility
 }
 
 /**
@@ -44,7 +44,7 @@ function isSafeImageUrl(url: string): boolean {
   if (/^https?:\/\//i.test(url)) return true;
 
   // Accept relative paths starting with /
-  if (url.startsWith('/')) return true;
+  if (url.startsWith("/")) return true;
 
   // For data: URLs, allow only whitelisted image MIME types (exclude SVG)
   if (/^data:/i.test(url)) {
@@ -58,22 +58,24 @@ function isSafeImageUrl(url: string): boolean {
   return false;
 }
 
-export function ImageUpload({ 
-  value, 
-  onChange, 
-  onCaptionChange, 
-  caption = '', 
-  label = 'Image',
-  accept = 'image/jpeg,image/png,image/gif,image/webp',
+export function ImageUpload({
+  value,
+  onChange,
+  onCaptionChange,
+  caption = "",
+  label = "Image",
+  accept = "image/jpeg,image/png,image/gif,image/webp",
   maxFileSize = 5,
   className,
   disabled = false,
-  visibility = 'private' // Default to private for backward compatibility
+  visibility = "private", // Default to private for backward compatibility
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   // Validate initial value to prevent XSS
-  const [imageUrl, setImageUrl] = useState(value && isSafeImageUrl(value) ? value : '');
-  const [urlInput, setUrlInput] = useState('');
+  const [imageUrl, setImageUrl] = useState(
+    value && isSafeImageUrl(value) ? value : "",
+  );
+  const [urlInput, setUrlInput] = useState("");
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -83,9 +85,9 @@ export function ImageUpload({
     // Validate file size
     if (file.size > maxFileSize * 1024 * 1024) {
       toast({
-        title: 'File too large',
+        title: "File too large",
         description: `Image must be less than ${maxFileSize}MB`,
-        variant: 'destructive'
+        variant: "destructive",
       });
       return;
     }
@@ -93,46 +95,46 @@ export function ImageUpload({
     setUploading(true);
     try {
       // Get presigned upload URL and object path from server
-      const uploadUrlResponse = await fetch('/api/upload/image', {
-        method: 'POST',
-        credentials: 'include',
+      const uploadUrlResponse = await fetch("/api/upload/image", {
+        method: "POST",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ visibility })
+        body: JSON.stringify({ visibility }),
       });
 
       if (!uploadUrlResponse.ok) {
-        throw new Error('Failed to get upload URL');
+        throw new Error("Failed to get upload URL");
       }
 
       const { uploadURL, objectPath } = await uploadUrlResponse.json();
 
       // Upload file directly to object storage
       const uploadResponse = await fetch(uploadURL, {
-        method: 'PUT',
+        method: "PUT",
         body: file,
         headers: {
-          'Content-Type': file.type,
-        }
+          "Content-Type": file.type,
+        },
       });
 
       if (!uploadResponse.ok) {
-        throw new Error('Upload failed');
+        throw new Error("Upload failed");
       }
 
       // Finalize upload by setting ACL metadata
-      const finalizeResponse = await fetch('/api/upload/finalize', {
-        method: 'POST',
-        credentials: 'include',
+      const finalizeResponse = await fetch("/api/upload/finalize", {
+        method: "POST",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ objectPath })
+        body: JSON.stringify({ objectPath }),
       });
 
       if (!finalizeResponse.ok) {
-        throw new Error('Failed to finalize upload');
+        throw new Error("Failed to finalize upload");
       }
 
       const { objectPath: finalPath } = await finalizeResponse.json();
@@ -141,20 +143,20 @@ export function ImageUpload({
       onChange(finalPath);
 
       toast({
-        title: 'Upload successful',
-        description: 'Your image has been uploaded'
+        title: "Upload successful",
+        description: "Your image has been uploaded",
       });
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error("Upload error:", error);
       toast({
-        title: 'Upload failed',
-        description: 'Failed to upload image. Please try again.',
-        variant: 'destructive'
+        title: "Upload failed",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
@@ -167,33 +169,34 @@ export function ImageUpload({
 
   const handleUrlSubmit = () => {
     const trimmedUrl = urlInput.trim();
-    
+
     // Validate URL to prevent XSS attacks (e.g., javascript: URLs)
     if (!isSafeImageUrl(trimmedUrl)) {
       toast({
-        title: 'Invalid URL',
-        description: 'Please enter a valid image URL (http://, https://, or data:)',
-        variant: 'destructive'
+        title: "Invalid URL",
+        description:
+          "Please enter a valid image URL (http://, https://, or data:)",
+        variant: "destructive",
       });
       return;
     }
-    
+
     if (trimmedUrl) {
       setImageUrl(trimmedUrl);
       onChange(trimmedUrl);
       setShowUrlInput(false);
-      setUrlInput('');
+      setUrlInput("");
       toast({
-        title: 'Image URL added',
-        description: 'The image URL has been set'
+        title: "Image URL added",
+        description: "The image URL has been set",
       });
     }
   };
 
   const handleRemove = () => {
-    setImageUrl('');
-    onChange('');
-    setUrlInput('');
+    setImageUrl("");
+    onChange("");
+    setUrlInput("");
   };
 
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
@@ -225,13 +228,13 @@ export function ImageUpload({
     if (disabled || uploading) return;
 
     const files = Array.from(e.dataTransfer.files);
-    const imageFile = files.find(file => file.type.startsWith('image/'));
+    const imageFile = files.find((file) => file.type.startsWith("image/"));
 
     if (!imageFile) {
       toast({
-        title: 'Invalid file type',
-        description: 'Please drop an image file',
-        variant: 'destructive'
+        title: "Invalid file type",
+        description: "Please drop an image file",
+        variant: "destructive",
       });
       return;
     }
@@ -240,18 +243,18 @@ export function ImageUpload({
   };
 
   // Sanitize URL at point of use to prevent XSS - only render if URL is safe
-  const safeImageUrl = imageUrl && isSafeImageUrl(imageUrl) ? imageUrl : '';
+  const safeImageUrl = imageUrl && isSafeImageUrl(imageUrl) ? imageUrl : "";
 
   return (
     <div className={cn("space-y-4", className)}>
       {label && <Label>{label}</Label>}
-      
+
       {safeImageUrl ? (
         <div className="flex justify-center">
           <div className="relative inline-block max-w-full">
-            <img 
-              src={safeImageUrl} 
-              alt={caption || "Uploaded image"} 
+            <img
+              src={safeImageUrl}
+              alt={caption || "Uploaded image"}
               className="max-w-full h-auto max-h-64 rounded-lg border block"
             />
             <div className="absolute top-2 right-2 z-10">
@@ -271,12 +274,12 @@ export function ImageUpload({
         </div>
       ) : (
         <div className="space-y-3">
-          <div 
+          <div
             className={cn(
               "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
-              isDragging 
-                ? "border-primary bg-primary/10" 
-                : "border-border bg-muted/50"
+              isDragging
+                ? "border-primary bg-primary/10"
+                : "border-border bg-muted/50",
             )}
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
@@ -285,7 +288,9 @@ export function ImageUpload({
           >
             <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
             <p className="text-sm text-muted-foreground mb-4">
-              {isDragging ? 'Drop image here' : 'Drag and drop an image, or choose a file'}
+              {isDragging
+                ? "Drop image here"
+                : "Drag and drop an image, or choose a file"}
             </p>
             <div className="flex flex-col sm:flex-row gap-2 justify-center">
               <Button
@@ -337,7 +342,7 @@ export function ImageUpload({
                 onChange={(e) => setUrlInput(e.target.value)}
                 placeholder="https://example.com/image.jpg"
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === "Enter") {
                     e.preventDefault();
                     handleUrlSubmit();
                   }

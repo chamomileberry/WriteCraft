@@ -1,6 +1,6 @@
-import { db } from '../db';
-import { billingAlerts, type InsertBillingAlert } from '@shared/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { db } from "../db";
+import { billingAlerts, type InsertBillingAlert } from "@shared/schema";
+import { eq, and, desc } from "drizzle-orm";
 
 export class BillingAlertsService {
   /**
@@ -11,7 +11,7 @@ export class BillingAlertsService {
       .insert(billingAlerts)
       .values(alertData)
       .returning();
-    
+
     return alert;
   }
 
@@ -20,17 +20,17 @@ export class BillingAlertsService {
    */
   async getUserAlerts(userId: string, status?: string) {
     const conditions = [eq(billingAlerts.userId, userId)];
-    
+
     if (status) {
       conditions.push(eq(billingAlerts.status, status));
     }
-    
+
     const alerts = await db
       .select()
       .from(billingAlerts)
       .where(and(...conditions))
       .orderBy(desc(billingAlerts.createdAt));
-    
+
     return alerts;
   }
 
@@ -44,10 +44,10 @@ export class BillingAlertsService {
       .where(
         and(
           eq(billingAlerts.userId, userId),
-          eq(billingAlerts.status, 'unread')
-        )
+          eq(billingAlerts.status, "unread"),
+        ),
       );
-    
+
     return alerts.length;
   }
 
@@ -57,15 +57,12 @@ export class BillingAlertsService {
   async markAsRead(alertId: string, userId: string) {
     const [alert] = await db
       .update(billingAlerts)
-      .set({ status: 'read', updatedAt: new Date() })
+      .set({ status: "read", updatedAt: new Date() })
       .where(
-        and(
-          eq(billingAlerts.id, alertId),
-          eq(billingAlerts.userId, userId)
-        )
+        and(eq(billingAlerts.id, alertId), eq(billingAlerts.userId, userId)),
       )
       .returning();
-    
+
     return alert;
   }
 
@@ -75,19 +72,16 @@ export class BillingAlertsService {
   async dismissAlert(alertId: string, userId: string) {
     const [alert] = await db
       .update(billingAlerts)
-      .set({ 
-        status: 'dismissed', 
+      .set({
+        status: "dismissed",
         dismissedAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(
-        and(
-          eq(billingAlerts.id, alertId),
-          eq(billingAlerts.userId, userId)
-        )
+        and(eq(billingAlerts.id, alertId), eq(billingAlerts.userId, userId)),
       )
       .returning();
-    
+
     return alert;
   }
 
@@ -97,19 +91,16 @@ export class BillingAlertsService {
   async resolveAlert(alertId: string, userId: string) {
     const [alert] = await db
       .update(billingAlerts)
-      .set({ 
-        status: 'resolved', 
+      .set({
+        status: "resolved",
         resolvedAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(
-        and(
-          eq(billingAlerts.id, alertId),
-          eq(billingAlerts.userId, userId)
-        )
+        and(eq(billingAlerts.id, alertId), eq(billingAlerts.userId, userId)),
       )
       .returning();
-    
+
     return alert;
   }
 
@@ -117,22 +108,22 @@ export class BillingAlertsService {
    * Create a payment failed alert
    */
   async createPaymentFailedAlert(
-    userId: string, 
-    invoiceId: string, 
+    userId: string,
+    invoiceId: string,
     subscriptionId: string,
     amount: number,
-    currency: string
+    currency: string,
   ) {
     return this.createAlert({
       userId,
-      type: 'payment_failed',
-      severity: 'critical',
-      title: 'Payment Failed',
+      type: "payment_failed",
+      severity: "critical",
+      title: "Payment Failed",
       message: `Your payment of ${(amount / 100).toFixed(2)} ${currency.toUpperCase()} failed. Please update your payment method to continue your subscription.`,
       stripeInvoiceId: invoiceId,
       stripeSubscriptionId: subscriptionId,
-      status: 'unread',
-      metadata: { amount, currency }
+      status: "unread",
+      metadata: { amount, currency },
     });
   }
 
@@ -142,35 +133,33 @@ export class BillingAlertsService {
   async createTrialExpiringAlert(
     userId: string,
     subscriptionId: string,
-    daysRemaining: number
+    daysRemaining: number,
   ) {
     return this.createAlert({
       userId,
-      type: 'trial_expiring',
-      severity: 'medium',
-      title: 'Trial Ending Soon',
-      message: `Your trial ends in ${daysRemaining} day${daysRemaining === 1 ? '' : 's'}. Add a payment method to continue enjoying premium features.`,
+      type: "trial_expiring",
+      severity: "medium",
+      title: "Trial Ending Soon",
+      message: `Your trial ends in ${daysRemaining} day${daysRemaining === 1 ? "" : "s"}. Add a payment method to continue enjoying premium features.`,
       stripeSubscriptionId: subscriptionId,
-      status: 'unread',
-      metadata: { daysRemaining }
+      status: "unread",
+      metadata: { daysRemaining },
     });
   }
 
   /**
    * Create a trial expired alert
    */
-  async createTrialExpiredAlert(
-    userId: string,
-    subscriptionId: string
-  ) {
+  async createTrialExpiredAlert(userId: string, subscriptionId: string) {
     return this.createAlert({
       userId,
-      type: 'trial_expired',
-      severity: 'high',
-      title: 'Trial Expired',
-      message: 'Your trial has expired. Upgrade to a paid plan to continue using premium features.',
+      type: "trial_expired",
+      severity: "high",
+      title: "Trial Expired",
+      message:
+        "Your trial has expired. Upgrade to a paid plan to continue using premium features.",
       stripeSubscriptionId: subscriptionId,
-      status: 'unread'
+      status: "unread",
     });
   }
 
@@ -183,18 +172,18 @@ export class BillingAlertsService {
     subscriptionId: string,
     amount: number,
     currency: string,
-    dueDate: Date
+    dueDate: Date,
   ) {
     return this.createAlert({
       userId,
-      type: 'invoice_due',
-      severity: 'medium',
-      title: 'Upcoming Payment',
+      type: "invoice_due",
+      severity: "medium",
+      title: "Upcoming Payment",
       message: `Your payment of ${(amount / 100).toFixed(2)} ${currency.toUpperCase()} is due on ${dueDate.toLocaleDateString()}.`,
       stripeInvoiceId: invoiceId,
       stripeSubscriptionId: subscriptionId,
-      status: 'unread',
-      metadata: { amount, currency, dueDate: dueDate.toISOString() }
+      status: "unread",
+      metadata: { amount, currency, dueDate: dueDate.toISOString() },
     });
   }
 }

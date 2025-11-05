@@ -1,5 +1,5 @@
-import { db } from '../db';
-import { eq, and, desc } from 'drizzle-orm';
+import { db } from "../db";
+import { eq, and, desc } from "drizzle-orm";
 import {
   type FamilyTree,
   type InsertFamilyTree,
@@ -12,9 +12,9 @@ import {
   familyTreeMembers,
   familyTreeRelationships,
   characters,
-  savedItems
-} from '@shared/schema';
-import { BaseRepository } from './base.repository';
+  savedItems,
+} from "@shared/schema";
+import { BaseRepository } from "./base.repository";
 
 export class FamilyTreeRepository extends BaseRepository {
   // Family Tree methods
@@ -30,16 +30,16 @@ export class FamilyTreeRepository extends BaseRepository {
         await db.insert(savedItems).values({
           userId: newFamilyTree.userId,
           notebookId: newFamilyTree.notebookId,
-          itemType: 'familytree',
+          itemType: "familytree",
           itemId: newFamilyTree.id,
           itemData: {
             name: newFamilyTree.name,
-            description: newFamilyTree.description
-          }
+            description: newFamilyTree.description,
+          },
         });
       } catch (error: any) {
         // Ignore unique constraint violations (item already saved)
-        if (error?.code !== '23505' && !error?.message?.includes('unique')) {
+        if (error?.code !== "23505" && !error?.message?.includes("unique")) {
           throw error;
         }
       }
@@ -48,29 +48,52 @@ export class FamilyTreeRepository extends BaseRepository {
     return newFamilyTree;
   }
 
-  async getFamilyTree(id: string, userId: string, notebookId: string): Promise<FamilyTree | undefined> {
-    const [familyTree] = await db.select().from(familyTrees).where(and(
-      eq(familyTrees.id, id),
-      eq(familyTrees.userId, userId),
-      eq(familyTrees.notebookId, notebookId)
-    ));
+  async getFamilyTree(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<FamilyTree | undefined> {
+    const [familyTree] = await db
+      .select()
+      .from(familyTrees)
+      .where(
+        and(
+          eq(familyTrees.id, id),
+          eq(familyTrees.userId, userId),
+          eq(familyTrees.notebookId, notebookId),
+        ),
+      );
     return familyTree || undefined;
   }
 
-  async getUserFamilyTrees(userId: string, notebookId: string): Promise<FamilyTree[]> {
-    return await db.select().from(familyTrees)
-      .where(and(
-        eq(familyTrees.userId, userId),
-        eq(familyTrees.notebookId, notebookId)
-      ))
+  async getUserFamilyTrees(
+    userId: string,
+    notebookId: string,
+  ): Promise<FamilyTree[]> {
+    return await db
+      .select()
+      .from(familyTrees)
+      .where(
+        and(
+          eq(familyTrees.userId, userId),
+          eq(familyTrees.notebookId, notebookId),
+        ),
+      )
       .orderBy(desc(familyTrees.createdAt));
   }
 
-  async updateFamilyTree(id: string, userId: string, updates: Partial<InsertFamilyTree>): Promise<FamilyTree> {
+  async updateFamilyTree(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFamilyTree>,
+  ): Promise<FamilyTree> {
     // Validate ownership
-    const [existing] = await db.select().from(familyTrees).where(eq(familyTrees.id, id));
+    const [existing] = await db
+      .select()
+      .from(familyTrees)
+      .where(eq(familyTrees.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedFamilyTree] = await db
@@ -86,13 +109,12 @@ export class FamilyTreeRepository extends BaseRepository {
         .set({
           itemData: {
             name: updatedFamilyTree.name,
-            description: updatedFamilyTree.description
-          }
+            description: updatedFamilyTree.description,
+          },
         })
-        .where(and(
-          eq(savedItems.itemId, id),
-          eq(savedItems.itemType, 'familytree')
-        ));
+        .where(
+          and(eq(savedItems.itemId, id), eq(savedItems.itemType, "familytree")),
+        );
     }
 
     return updatedFamilyTree;
@@ -100,16 +122,21 @@ export class FamilyTreeRepository extends BaseRepository {
 
   async deleteFamilyTree(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(familyTrees).where(eq(familyTrees.id, id));
+    const [existing] = await db
+      .select()
+      .from(familyTrees)
+      .where(eq(familyTrees.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(familyTrees).where(eq(familyTrees.id, id));
   }
 
   // Family Tree Member methods
-  async createFamilyTreeMember(member: InsertFamilyTreeMember): Promise<FamilyTreeMember> {
+  async createFamilyTreeMember(
+    member: InsertFamilyTreeMember,
+  ): Promise<FamilyTreeMember> {
     const [newMember] = await db
       .insert(familyTreeMembers)
       .values(member)
@@ -119,9 +146,12 @@ export class FamilyTreeRepository extends BaseRepository {
 
   async getFamilyTreeMembers(treeId: string, userId: string): Promise<any[]> {
     // Validate tree ownership
-    const [tree] = await db.select().from(familyTrees).where(eq(familyTrees.id, treeId));
+    const [tree] = await db
+      .select()
+      .from(familyTrees)
+      .where(eq(familyTrees.id, treeId));
     if (!this.validateContentOwnership(tree, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     // Fetch members with character data using LEFT JOIN
@@ -133,36 +163,49 @@ export class FamilyTreeRepository extends BaseRepository {
       .orderBy(desc(familyTreeMembers.createdAt));
 
     // Reshape the data to nest character inside member
-    const members = rows.map(row => ({
+    const members = rows.map((row) => ({
       ...row.family_tree_members,
-      character: row.characters ? {
-        id: row.characters.id,
-        givenName: row.characters.givenName,
-        familyName: row.characters.familyName,
-        middleName: row.characters.middleName,
-        nickname: row.characters.nickname,
-        imageUrl: row.characters.imageUrl,
-        dateOfBirth: row.characters.dateOfBirth,
-        dateOfDeath: row.characters.dateOfDeath,
-      } : null
+      character: row.characters
+        ? {
+            id: row.characters.id,
+            givenName: row.characters.givenName,
+            familyName: row.characters.familyName,
+            middleName: row.characters.middleName,
+            nickname: row.characters.nickname,
+            imageUrl: row.characters.imageUrl,
+            dateOfBirth: row.characters.dateOfBirth,
+            dateOfDeath: row.characters.dateOfDeath,
+          }
+        : null,
     }));
 
     return members;
   }
 
-  async updateFamilyTreeMember(id: string, userId: string, updates: Partial<InsertFamilyTreeMember>): Promise<FamilyTreeMember> {
+  async updateFamilyTreeMember(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFamilyTreeMember>,
+  ): Promise<FamilyTreeMember> {
     // Validate ownership via tree
-    const [existing] = await db.select().from(familyTreeMembers).where(eq(familyTreeMembers.id, id));
+    const [existing] = await db
+      .select()
+      .from(familyTreeMembers)
+      .where(eq(familyTreeMembers.id, id));
     if (!existing) {
-      throw new Error('Member not found');
+      throw new Error("Member not found");
     }
 
-    const [tree] = await db.select().from(familyTrees).where(eq(familyTrees.id, existing.treeId));
+    const [tree] = await db
+      .select()
+      .from(familyTrees)
+      .where(eq(familyTrees.id, existing.treeId));
     if (!this.validateContentOwnership(tree, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
-    const [updated] = await db.update(familyTreeMembers)
+    const [updated] = await db
+      .update(familyTreeMembers)
       .set(updates)
       .where(eq(familyTreeMembers.id, id))
       .returning();
@@ -170,21 +213,31 @@ export class FamilyTreeRepository extends BaseRepository {
     return updated;
   }
 
-  async deleteFamilyTreeMember(id: string, userId: string, treeId: string): Promise<void> {
+  async deleteFamilyTreeMember(
+    id: string,
+    userId: string,
+    treeId: string,
+  ): Promise<void> {
     // Validate ownership via tree
-    const [tree] = await db.select().from(familyTrees).where(eq(familyTrees.id, treeId));
+    const [tree] = await db
+      .select()
+      .from(familyTrees)
+      .where(eq(familyTrees.id, treeId));
     if (!this.validateContentOwnership(tree, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
-    await db.delete(familyTreeMembers).where(and(
-      eq(familyTreeMembers.id, id),
-      eq(familyTreeMembers.treeId, treeId)
-    ));
+    await db
+      .delete(familyTreeMembers)
+      .where(
+        and(eq(familyTreeMembers.id, id), eq(familyTreeMembers.treeId, treeId)),
+      );
   }
 
   // Family Tree Relationship methods
-  async createFamilyTreeRelationship(relationship: InsertFamilyTreeRelationship): Promise<FamilyTreeRelationship> {
+  async createFamilyTreeRelationship(
+    relationship: InsertFamilyTreeRelationship,
+  ): Promise<FamilyTreeRelationship> {
     const [newRelationship] = await db
       .insert(familyTreeRelationships)
       .values(relationship)
@@ -192,31 +245,50 @@ export class FamilyTreeRepository extends BaseRepository {
     return newRelationship;
   }
 
-  async getFamilyTreeRelationships(treeId: string, userId: string): Promise<FamilyTreeRelationship[]> {
+  async getFamilyTreeRelationships(
+    treeId: string,
+    userId: string,
+  ): Promise<FamilyTreeRelationship[]> {
     // Validate tree ownership
-    const [tree] = await db.select().from(familyTrees).where(eq(familyTrees.id, treeId));
+    const [tree] = await db
+      .select()
+      .from(familyTrees)
+      .where(eq(familyTrees.id, treeId));
     if (!this.validateContentOwnership(tree, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
-    return await db.select().from(familyTreeRelationships)
+    return await db
+      .select()
+      .from(familyTreeRelationships)
       .where(eq(familyTreeRelationships.treeId, treeId))
       .orderBy(desc(familyTreeRelationships.createdAt));
   }
 
-  async updateFamilyTreeRelationship(id: string, userId: string, updates: Partial<InsertFamilyTreeRelationship>): Promise<FamilyTreeRelationship> {
+  async updateFamilyTreeRelationship(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFamilyTreeRelationship>,
+  ): Promise<FamilyTreeRelationship> {
     // Validate ownership via tree
-    const [existing] = await db.select().from(familyTreeRelationships).where(eq(familyTreeRelationships.id, id));
+    const [existing] = await db
+      .select()
+      .from(familyTreeRelationships)
+      .where(eq(familyTreeRelationships.id, id));
     if (!existing) {
-      throw new Error('Relationship not found');
+      throw new Error("Relationship not found");
     }
 
-    const [tree] = await db.select().from(familyTrees).where(eq(familyTrees.id, existing.treeId));
+    const [tree] = await db
+      .select()
+      .from(familyTrees)
+      .where(eq(familyTrees.id, existing.treeId));
     if (!this.validateContentOwnership(tree, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
-    const [updated] = await db.update(familyTreeRelationships)
+    const [updated] = await db
+      .update(familyTreeRelationships)
       .set(updates)
       .where(eq(familyTreeRelationships.id, id))
       .returning();
@@ -224,16 +296,27 @@ export class FamilyTreeRepository extends BaseRepository {
     return updated;
   }
 
-  async deleteFamilyTreeRelationship(id: string, userId: string, treeId: string): Promise<void> {
+  async deleteFamilyTreeRelationship(
+    id: string,
+    userId: string,
+    treeId: string,
+  ): Promise<void> {
     // Validate ownership via tree
-    const [tree] = await db.select().from(familyTrees).where(eq(familyTrees.id, treeId));
+    const [tree] = await db
+      .select()
+      .from(familyTrees)
+      .where(eq(familyTrees.id, treeId));
     if (!this.validateContentOwnership(tree, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
-    await db.delete(familyTreeRelationships).where(and(
-      eq(familyTreeRelationships.id, id),
-      eq(familyTreeRelationships.treeId, treeId)
-    ));
+    await db
+      .delete(familyTreeRelationships)
+      .where(
+        and(
+          eq(familyTreeRelationships.id, id),
+          eq(familyTreeRelationships.treeId, treeId),
+        ),
+      );
   }
 }

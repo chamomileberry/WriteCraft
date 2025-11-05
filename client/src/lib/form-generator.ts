@@ -1,11 +1,14 @@
-import { z } from 'zod';
-import type { ContentTypeFormConfig, FormTabConfig } from '@/components/forms/types';
+import { z } from "zod";
+import type {
+  ContentTypeFormConfig,
+  FormTabConfig,
+} from "@/components/forms/types";
 import {
   analyzeZodSchema,
   fieldNameToLabel,
   generatePlaceholder,
   type FieldMetadata,
-} from './schema-analyzer';
+} from "./schema-analyzer";
 
 /**
  * UI customization for a field
@@ -54,7 +57,7 @@ export interface ContentTypeConfig {
  */
 export function generateFormConfig(
   schema: z.ZodObject<any>,
-  config: ContentTypeConfig
+  config: ContentTypeConfig,
 ): ContentTypeFormConfig {
   // Extract field metadata from schema
   const fieldMetadata = analyzeZodSchema(schema);
@@ -65,7 +68,15 @@ export function generateFormConfig(
     if (hints?.hidden) return false;
 
     // Hide system fields by default
-    const systemFields = ['id', 'userId', 'notebookId', 'createdAt', 'updatedAt', 'importSource', 'importExternalId'];
+    const systemFields = [
+      "id",
+      "userId",
+      "notebookId",
+      "createdAt",
+      "updatedAt",
+      "importSource",
+      "importExternalId",
+    ];
     if (systemFields.includes(field.name)) return false;
 
     return true;
@@ -81,7 +92,7 @@ export function generateFormConfig(
   if (config.tabs && config.tabs.length > 0) {
     for (const tabConfig of config.tabs) {
       const tabFields = fieldsByTab.get(tabConfig.id) || [];
-      
+
       // Sort fields by order if specified
       tabFields.sort((a, b) => {
         const aOrder = config.fieldHints?.[a.name]?.order ?? 999;
@@ -94,29 +105,32 @@ export function generateFormConfig(
         tabs.push({
           id: tabConfig.id,
           label: tabConfig.label,
-          icon: tabConfig.icon || 'FileText',
+          icon: tabConfig.icon || "FileText",
           fields: tabFields.map((field) => createFormField(field, config)),
         });
       }
     }
-    
+
     // Check if any fields were not assigned to configured tabs
     // These fields were grouped into defaultTab but that tab wasn't in the config
-    const defaultTab = config.defaultTab || 'general';
+    const defaultTab = config.defaultTab || "general";
     const unassignedFields = fieldsByTab.get(defaultTab) || [];
-    
-    if (unassignedFields.length > 0 && !config.tabs.some(t => t.id === defaultTab)) {
+
+    if (
+      unassignedFields.length > 0 &&
+      !config.tabs.some((t) => t.id === defaultTab)
+    ) {
       // Create a tab for unassigned fields
       unassignedFields.sort((a, b) => {
         const aOrder = config.fieldHints?.[a.name]?.order ?? 999;
         const bOrder = config.fieldHints?.[b.name]?.order ?? 999;
         return aOrder - bOrder;
       });
-      
+
       tabs.push({
         id: defaultTab,
-        label: 'Other Details',
-        icon: 'FileText',
+        label: "Other Details",
+        icon: "FileText",
         fields: unassignedFields.map((field) => createFormField(field, config)),
       });
     }
@@ -130,9 +144,9 @@ export function generateFormConfig(
     });
 
     tabs.push({
-      id: 'general',
-      label: 'General',
-      icon: 'Settings',
+      id: "general",
+      label: "General",
+      icon: "Settings",
       fields: allFields.map((field) => createFormField(field, config)),
     });
   }
@@ -140,7 +154,7 @@ export function generateFormConfig(
   return {
     title: config.title,
     description: config.description,
-    icon: config.icon || 'FileText',
+    icon: config.icon || "FileText",
     tabs,
   };
 }
@@ -150,10 +164,10 @@ export function generateFormConfig(
  */
 function groupFieldsByTab(
   fields: FieldMetadata[],
-  config: ContentTypeConfig
+  config: ContentTypeConfig,
 ): Map<string, FieldMetadata[]> {
   const fieldsByTab = new Map<string, FieldMetadata[]>();
-  const defaultTab = config.defaultTab || 'general';
+  const defaultTab = config.defaultTab || "general";
 
   for (const field of fields) {
     const hints = config.fieldHints?.[field.name];
@@ -172,17 +186,14 @@ function groupFieldsByTab(
 /**
  * Create a form field configuration from field metadata
  */
-function createFormField(
-  metadata: FieldMetadata,
-  config: ContentTypeConfig
-) {
+function createFormField(metadata: FieldMetadata, config: ContentTypeConfig) {
   const hints = config.fieldHints?.[metadata.name] || {};
 
   // Determine the final field type (hints can override)
   let fieldType = metadata.type;
 
   // If autocomplete field, check if it should be multiple
-  if (fieldType.startsWith('autocomplete-') && metadata.isArray) {
+  if (fieldType.startsWith("autocomplete-") && metadata.isArray) {
     hints.multiple = true;
   }
 
@@ -191,7 +202,8 @@ function createFormField(
     label: hints.label || fieldNameToLabel(metadata.name),
     type: fieldType,
     required: metadata.isRequired,
-    placeholder: hints.placeholder || generatePlaceholder(metadata.name, fieldType),
+    placeholder:
+      hints.placeholder || generatePlaceholder(metadata.name, fieldType),
     description: hints.description,
     rows: hints.rows,
     // Autocomplete specific
@@ -208,12 +220,27 @@ function createFormField(
  * Helper to create common tab configurations
  */
 export const commonTabs = {
-  basic: { id: 'basic', label: 'Basic Info', icon: 'User', order: 1 },
-  appearance: { id: 'appearance', label: 'Appearance', icon: 'Eye', order: 2 },
-  personality: { id: 'personality', label: 'Personality', icon: 'Heart', order: 3 },
-  background: { id: 'background', label: 'Background', icon: 'BookOpen', order: 4 },
-  skills: { id: 'skills', label: 'Skills & Abilities', icon: 'Zap', order: 5 },
-  relationships: { id: 'relationships', label: 'Relationships', icon: 'Users', order: 6 },
-  details: { id: 'details', label: 'Details', icon: 'FileText', order: 7 },
-  advanced: { id: 'advanced', label: 'Advanced', icon: 'Settings', order: 8 },
+  basic: { id: "basic", label: "Basic Info", icon: "User", order: 1 },
+  appearance: { id: "appearance", label: "Appearance", icon: "Eye", order: 2 },
+  personality: {
+    id: "personality",
+    label: "Personality",
+    icon: "Heart",
+    order: 3,
+  },
+  background: {
+    id: "background",
+    label: "Background",
+    icon: "BookOpen",
+    order: 4,
+  },
+  skills: { id: "skills", label: "Skills & Abilities", icon: "Zap", order: 5 },
+  relationships: {
+    id: "relationships",
+    label: "Relationships",
+    icon: "Users",
+    order: 6,
+  },
+  details: { id: "details", label: "Details", icon: "FileText", order: 7 },
+  advanced: { id: "advanced", label: "Advanced", icon: "Settings", order: 8 },
 };

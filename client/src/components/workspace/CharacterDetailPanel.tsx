@@ -1,27 +1,43 @@
-import { useState, useEffect } from 'react';
-import * as React from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
-import { Loader2, Eye, Heart, Zap, MapPin, Clock, X, Edit, Save } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-import { z } from 'zod';
-import { useWorkspaceStore } from '@/stores/workspaceStore';
-import { AutocompleteField } from '@/components/ui/autocomplete-field';
-import type { Character } from '@shared/schema';
+import { useState, useEffect } from "react";
+import * as React from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
+import {
+  Loader2,
+  Eye,
+  Heart,
+  Zap,
+  MapPin,
+  Clock,
+  X,
+  Edit,
+  Save,
+} from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
+import { useWorkspaceStore } from "@/stores/workspaceStore";
+import { AutocompleteField } from "@/components/ui/autocomplete-field";
+import type { Character } from "@shared/schema";
 
 interface CharacterDetailPanelProps {
   characterId: string;
   panelId: string;
-  notebookId?: string;  // Pass notebookId from panel data
+  notebookId?: string; // Pass notebookId from panel data
   onClose?: () => void;
   isCompact?: boolean;
 }
@@ -29,72 +45,89 @@ interface CharacterDetailPanelProps {
 // Enhanced form schema that covers all character fields across all tabs
 const characterFormSchema = z.object({
   // Identity tab fields
-  givenName: z.string().optional().default(''),
-  familyName: z.string().optional().default(''),
-  nickname: z.string().optional().default(''),
-  age: z.string().optional().default(''),
-  gender: z.string().optional().default(''),
-  species: z.string().optional().default(''),
-  pronouns: z.string().optional().default(''),
-  occupation: z.string().optional().default(''),
-  currentLocation: z.string().optional().default(''),
-  
+  givenName: z.string().optional().default(""),
+  familyName: z.string().optional().default(""),
+  nickname: z.string().optional().default(""),
+  age: z.string().optional().default(""),
+  gender: z.string().optional().default(""),
+  species: z.string().optional().default(""),
+  pronouns: z.string().optional().default(""),
+  occupation: z.string().optional().default(""),
+  currentLocation: z.string().optional().default(""),
+
   // Appearance tab fields
-  height: z.string().optional().default(''),
-  build: z.string().optional().default(''),
-  hairColor: z.string().optional().default(''),
-  eyeColor: z.string().optional().default(''),
-  skinTone: z.string().optional().default(''),
-  facialFeatures: z.string().optional().default(''),
-  identifyingMarks: z.string().optional().default(''),
-  description: z.string().optional().default(''),
-  
+  height: z.string().optional().default(""),
+  build: z.string().optional().default(""),
+  hairColor: z.string().optional().default(""),
+  eyeColor: z.string().optional().default(""),
+  skinTone: z.string().optional().default(""),
+  facialFeatures: z.string().optional().default(""),
+  identifyingMarks: z.string().optional().default(""),
+  description: z.string().optional().default(""),
+
   // Mind/Personality tab fields
-  personality: z.string().optional().default(''),
-  motivation: z.string().optional().default(''),
-  flaws: z.string().optional().default(''),
-  strengths: z.string().optional().default(''),
-  
+  personality: z.string().optional().default(""),
+  motivation: z.string().optional().default(""),
+  flaws: z.string().optional().default(""),
+  strengths: z.string().optional().default(""),
+
   // Background tab fields
-  backstory: z.string().optional().default(''),
-  placeOfBirth: z.string().optional().default(''),
-  education: z.string().optional().default(''),
-  workHistory: z.string().optional().default(''),
+  backstory: z.string().optional().default(""),
+  placeOfBirth: z.string().optional().default(""),
+  education: z.string().optional().default(""),
+  workHistory: z.string().optional().default(""),
 });
 
 type CharacterFormData = z.infer<typeof characterFormSchema>;
 
 // Helper function to check if a string is a UUID
 function isUUID(str: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   return uuidRegex.test(str);
 }
 
-const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCompact = false }: CharacterDetailPanelProps) => {
+const CharacterDetailPanel = ({
+  characterId,
+  panelId,
+  notebookId,
+  onClose,
+  isCompact = false,
+}: CharacterDetailPanelProps) => {
   const [isEditing, setIsEditing] = useState(false);
-  const removePanel = useWorkspaceStore(state => state.removePanel);
+  const removePanel = useWorkspaceStore((state) => state.removePanel);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: character, isLoading, error } = useQuery<Character>({
-    queryKey: ['/api/characters', characterId, notebookId || 'main-notebook'],
+  const {
+    data: character,
+    isLoading,
+    error,
+  } = useQuery<Character>({
+    queryKey: ["/api/characters", characterId, notebookId || "main-notebook"],
     queryFn: async () => {
       // Use notebookId from panel data, or fall back to default
-      const nbId = notebookId || 'main-notebook';
-      const response = await apiRequest('GET', `/api/characters/${characterId}?notebookId=${nbId}`);
+      const nbId = notebookId || "main-notebook";
+      const response = await apiRequest(
+        "GET",
+        `/api/characters/${characterId}?notebookId=${nbId}`,
+      );
       return response.json();
     },
-    enabled: !!characterId  // Remove notebookId requirement - use fallback if missing
+    enabled: !!characterId, // Remove notebookId requirement - use fallback if missing
   });
 
   // Query to resolve profession UUID to name if occupation contains a UUID
-  const professionId = character?.occupation && isUUID(character.occupation) ? character.occupation : null;
+  const professionId =
+    character?.occupation && isUUID(character.occupation)
+      ? character.occupation
+      : null;
   const { data: professionName } = useQuery({
-    queryKey: ['/api/professions', professionId],
+    queryKey: ["/api/professions", professionId],
     queryFn: async () => {
       if (!professionId) return null;
       const response = await fetch(`/api/professions/${professionId}`, {
-        headers: { 'X-User-Id': 'demo-user' }
+        headers: { "X-User-Id": "demo-user" },
       });
       if (!response.ok) return null;
       const profession = await response.json();
@@ -107,38 +140,38 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
     resolver: zodResolver(characterFormSchema),
     defaultValues: {
       // Identity tab defaults
-      givenName: '',
-      familyName: '',
-      nickname: '',
-      age: '',
-      gender: '',
-      species: '',
-      pronouns: '',
-      occupation: '',
-      currentLocation: '',
-      
+      givenName: "",
+      familyName: "",
+      nickname: "",
+      age: "",
+      gender: "",
+      species: "",
+      pronouns: "",
+      occupation: "",
+      currentLocation: "",
+
       // Appearance tab defaults
-      height: '',
-      build: '',
-      hairColor: '',
-      eyeColor: '',
-      skinTone: '',
-      facialFeatures: '',
-      identifyingMarks: '',
-      description: '',
-      
+      height: "",
+      build: "",
+      hairColor: "",
+      eyeColor: "",
+      skinTone: "",
+      facialFeatures: "",
+      identifyingMarks: "",
+      description: "",
+
       // Mind/Personality tab defaults
-      personality: '',
-      motivation: '',
-      flaws: '',
-      strengths: '',
-      
+      personality: "",
+      motivation: "",
+      flaws: "",
+      strengths: "",
+
       // Background tab defaults
-      backstory: '',
-      placeOfBirth: '',
-      education: '',
-      workHistory: '',
-    }
+      backstory: "",
+      placeOfBirth: "",
+      education: "",
+      workHistory: "",
+    },
   });
 
   // Reset form when character data loads - use resolved profession name if available
@@ -146,37 +179,39 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
     if (character) {
       form.reset({
         // Identity tab fields
-        givenName: character.givenName || '',
-        familyName: character.familyName || '',
-        nickname: character.nickname || '',
-        age: character.age?.toString() || '',
-        gender: character.gender || '',
-        species: character.species || '',
-        pronouns: character.pronouns || '',
-        occupation: professionName || character.occupation || '',
-        currentLocation: character.currentLocation || '',
-        
+        givenName: character.givenName || "",
+        familyName: character.familyName || "",
+        nickname: character.nickname || "",
+        age: character.age?.toString() || "",
+        gender: character.gender || "",
+        species: character.species || "",
+        pronouns: character.pronouns || "",
+        occupation: professionName || character.occupation || "",
+        currentLocation: character.currentLocation || "",
+
         // Appearance tab fields
-        height: character.height || '',
-        build: character.build || '',
-        hairColor: character.hairColor || '',
-        eyeColor: character.eyeColor || '',
-        skinTone: character.skinTone || '',
-        facialFeatures: character.facialFeatures || '',
-        identifyingMarks: character.identifyingMarks || '',
-        description: character.physicalDescription || '',
-        
+        height: character.height || "",
+        build: character.build || "",
+        hairColor: character.hairColor || "",
+        eyeColor: character.eyeColor || "",
+        skinTone: character.skinTone || "",
+        facialFeatures: character.facialFeatures || "",
+        identifyingMarks: character.identifyingMarks || "",
+        description: character.physicalDescription || "",
+
         // Mind/Personality tab fields
-        personality: Array.isArray(character.personality) ? character.personality.join(', ') : character.personality || '',
-        motivation: character.motivation || '',
-        flaws: character.flaw || '',
-        strengths: character.strengths || character.strength || '', // Handle both possible field names
-        
+        personality: Array.isArray(character.personality)
+          ? character.personality.join(", ")
+          : character.personality || "",
+        motivation: character.motivation || "",
+        flaws: character.flaw || "",
+        strengths: character.strengths || character.strength || "", // Handle both possible field names
+
         // Background tab fields
-        backstory: character.backstory || '',
-        placeOfBirth: character.placeOfBirth || '',
-        education: character.education || '',
-        workHistory: character.workHistory || '',
+        backstory: character.backstory || "",
+        placeOfBirth: character.placeOfBirth || "",
+        education: character.education || "",
+        workHistory: character.workHistory || "",
       });
     }
   }, [character, professionName, form]);
@@ -195,7 +230,7 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
         pronouns: data.pronouns || null,
         occupation: data.occupation || null,
         currentLocation: data.currentLocation || null,
-        
+
         // Appearance fields
         height: data.height || null,
         build: data.build || null,
@@ -205,37 +240,52 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
         facialFeatures: data.facialFeatures || null,
         identifyingMarks: data.identifyingMarks || null,
         physicalDescription: data.description || null,
-        
+
         // Mind/Personality fields
-        personality: data.personality ? data.personality.split(',').map(s => s.trim()).filter(Boolean) : null,
+        personality: data.personality
+          ? data.personality
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : null,
         motivation: data.motivation || null,
         flaw: data.flaws || null,
         strengths: data.strengths || null,
-        
+
         // Background fields
         backstory: data.backstory || null,
         placeOfBirth: data.placeOfBirth || null,
         education: data.education || null,
         workHistory: data.workHistory || null,
       };
-      
+
       // Use notebookId from panel data, or fall back to default
-      const nbId = notebookId || 'main-notebook';
-      return apiRequest('PATCH', `/api/characters/${characterId}?notebookId=${nbId}`, updateData);
+      const nbId = notebookId || "main-notebook";
+      return apiRequest(
+        "PATCH",
+        `/api/characters/${characterId}?notebookId=${nbId}`,
+        updateData,
+      );
     },
     onSuccess: () => {
-      toast({ title: 'Character updated successfully' });
+      toast({ title: "Character updated successfully" });
       // Invalidate all character queries to ensure fresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/characters'] });
-      queryClient.refetchQueries({ queryKey: ['/api/characters', characterId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters"] });
+      queryClient.refetchQueries({
+        queryKey: ["/api/characters", characterId],
+      });
       // Also invalidate saved-items to update the character name in notebook view
       // This will force SavedItems component to refetch both the list and individual character data
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/saved-items"] });
       setIsEditing(false);
     },
     onError: (error) => {
-      toast({ title: 'Error updating character', description: error.message, variant: 'destructive' });
-    }
+      toast({
+        title: "Error updating character",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 
   const onSubmit = (data: CharacterFormData) => {
@@ -248,37 +298,39 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
       if (character) {
         form.reset({
           // Identity tab fields
-          givenName: character.givenName || '',
-          familyName: character.familyName || '',
-          nickname: character.nickname || '',
-          age: character.age?.toString() || '',
-          gender: character.gender || '',
-          species: character.species || '',
-          pronouns: character.pronouns || '',
-          occupation: professionName || character.occupation || '',
-          currentLocation: character.currentLocation || '',
-          
+          givenName: character.givenName || "",
+          familyName: character.familyName || "",
+          nickname: character.nickname || "",
+          age: character.age?.toString() || "",
+          gender: character.gender || "",
+          species: character.species || "",
+          pronouns: character.pronouns || "",
+          occupation: professionName || character.occupation || "",
+          currentLocation: character.currentLocation || "",
+
           // Appearance tab fields
-          height: character.height || '',
-          build: character.build || '',
-          hairColor: character.hairColor || '',
-          eyeColor: character.eyeColor || '',
-          skinTone: character.skinTone || '',
-          facialFeatures: character.facialFeatures || '',
-          identifyingMarks: character.identifyingMarks || '',
-          description: character.physicalDescription || '',
-          
+          height: character.height || "",
+          build: character.build || "",
+          hairColor: character.hairColor || "",
+          eyeColor: character.eyeColor || "",
+          skinTone: character.skinTone || "",
+          facialFeatures: character.facialFeatures || "",
+          identifyingMarks: character.identifyingMarks || "",
+          description: character.physicalDescription || "",
+
           // Mind/Personality tab fields
-          personality: Array.isArray(character.personality) ? character.personality.join(', ') : character.personality || '',
-          motivation: character.motivation || '',
-          flaws: character.flaw || '',
-          strengths: character.strengths || character.strength || '', // Handle both possible field names
-          
+          personality: Array.isArray(character.personality)
+            ? character.personality.join(", ")
+            : character.personality || "",
+          motivation: character.motivation || "",
+          flaws: character.flaw || "",
+          strengths: character.strengths || character.strength || "", // Handle both possible field names
+
           // Background tab fields
-          backstory: character.backstory || '',
-          placeOfBirth: character.placeOfBirth || '',
-          education: character.education || '',
-          workHistory: character.workHistory || '',
+          backstory: character.backstory || "",
+          placeOfBirth: character.placeOfBirth || "",
+          education: character.education || "",
+          workHistory: character.workHistory || "",
         });
       }
       setIsEditing(false);
@@ -293,10 +345,15 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
   };
 
   const getDisplayName = (character: Character) => {
-    return [character.givenName, character.familyName].filter(Boolean).join(' ').trim() ||
-           character.nickname ||
-           character.honorificTitle ||
-           'Untitled Character';
+    return (
+      [character.givenName, character.familyName]
+        .filter(Boolean)
+        .join(" ")
+        .trim() ||
+      character.nickname ||
+      character.honorificTitle ||
+      "Untitled Character"
+    );
   };
 
   if (isLoading) {
@@ -331,7 +388,9 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
     <Card className="h-full flex flex-col">
       <CardHeader className="flex flex-row items-center justify-between flex-shrink-0 pb-3">
         <div>
-          <CardTitle className="text-sm font-semibold">{getDisplayName(character)}</CardTitle>
+          <CardTitle className="text-sm font-semibold">
+            {getDisplayName(character)}
+          </CardTitle>
           {character.occupation && (
             <p className="text-xs text-muted-foreground">
               {professionName || character.occupation}
@@ -346,7 +405,11 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
             disabled={updateCharacterMutation.isPending}
             data-testid="button-edit-character"
           >
-            {isEditing ? <X className="h-3 w-3" /> : <Edit className="h-3 w-3" />}
+            {isEditing ? (
+              <X className="h-3 w-3" />
+            ) : (
+              <Edit className="h-3 w-3" />
+            )}
           </Button>
           {isEditing && (
             <Button
@@ -359,21 +422,34 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
               <Save className="h-3 w-3" />
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={handleClose} data-testid="button-close-panel">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClose}
+            data-testid="button-close-panel"
+          >
             <X className="h-4 w-4" />
           </Button>
         </div>
       </CardHeader>
-      
+
       <CardContent className="flex-1 overflow-auto">
         <Tabs defaultValue="identity" className="h-full">
           <TabsList className="grid w-full grid-cols-4 mb-3">
-            <TabsTrigger value="identity" className="text-xs">Identity</TabsTrigger>
-            <TabsTrigger value="appearance" className="text-xs">Appearance</TabsTrigger>
-            <TabsTrigger value="personality" className="text-xs">Mind</TabsTrigger>
-            <TabsTrigger value="background" className="text-xs">Background</TabsTrigger>
+            <TabsTrigger value="identity" className="text-xs">
+              Identity
+            </TabsTrigger>
+            <TabsTrigger value="appearance" className="text-xs">
+              Appearance
+            </TabsTrigger>
+            <TabsTrigger value="personality" className="text-xs">
+              Mind
+            </TabsTrigger>
+            <TabsTrigger value="background" className="text-xs">
+              Background
+            </TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="identity" className="space-y-3">
             {isEditing ? (
               <Form {...form}>
@@ -486,7 +562,9 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
                   name="currentLocation"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs">Current Location</FormLabel>
+                      <FormLabel className="text-xs">
+                        Current Location
+                      </FormLabel>
                       <FormControl>
                         <AutocompleteField
                           value={field.value}
@@ -510,37 +588,42 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
                   )}
                   {character.gender && (
                     <div>
-                      <span className="font-medium">Gender:</span> {character.gender}
+                      <span className="font-medium">Gender:</span>{" "}
+                      {character.gender}
                     </div>
                   )}
                   {character.species && (
                     <div>
-                      <span className="font-medium">Species:</span> {character.species}
+                      <span className="font-medium">Species:</span>{" "}
+                      {character.species}
                     </div>
                   )}
                   {character.pronouns && (
                     <div>
-                      <span className="font-medium">Pronouns:</span> {character.pronouns}
+                      <span className="font-medium">Pronouns:</span>{" "}
+                      {character.pronouns}
                     </div>
                   )}
                 </div>
-                
+
                 {character.nickname && (
                   <div className="text-xs">
-                    <span className="font-medium">Nickname:</span> {character.nickname}
+                    <span className="font-medium">Nickname:</span>{" "}
+                    {character.nickname}
                   </div>
                 )}
-                
+
                 {character.currentLocation && (
                   <div className="text-xs">
                     <MapPin className="h-3 w-3 inline mr-1" />
-                    <span className="font-medium">Location:</span> {character.currentLocation}
+                    <span className="font-medium">Location:</span>{" "}
+                    {character.currentLocation}
                   </div>
                 )}
               </>
             )}
           </TabsContent>
-          
+
           <TabsContent value="appearance" className="space-y-3">
             {isEditing ? (
               <Form {...form}>
@@ -610,7 +693,9 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
                     name="facialFeatures"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-xs">Facial Features</FormLabel>
+                        <FormLabel className="text-xs">
+                          Facial Features
+                        </FormLabel>
                         <FormControl>
                           <Input {...field} className="h-7 text-xs" />
                         </FormControl>
@@ -623,7 +708,9 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
                   name="identifyingMarks"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs">Identifying Marks</FormLabel>
+                      <FormLabel className="text-xs">
+                        Identifying Marks
+                      </FormLabel>
                       <FormControl>
                         <Input {...field} className="h-7 text-xs" />
                       </FormControl>
@@ -635,7 +722,9 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs">Physical Description</FormLabel>
+                      <FormLabel className="text-xs">
+                        Physical Description
+                      </FormLabel>
                       <FormControl>
                         <Textarea {...field} className="text-xs" />
                       </FormControl>
@@ -648,51 +737,60 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
                 <div className="grid grid-cols-1 gap-2 text-xs">
                   {character.height && (
                     <div>
-                      <span className="font-medium">Height:</span> {character.height}
+                      <span className="font-medium">Height:</span>{" "}
+                      {character.height}
                     </div>
                   )}
                   {character.build && (
                     <div>
-                      <span className="font-medium">Build:</span> {character.build}
+                      <span className="font-medium">Build:</span>{" "}
+                      {character.build}
                     </div>
                   )}
                   {character.hairColor && (
                     <div>
-                      <span className="font-medium">Hair:</span> {character.hairColor}
+                      <span className="font-medium">Hair:</span>{" "}
+                      {character.hairColor}
                     </div>
                   )}
                   {character.eyeColor && (
                     <div>
-                      <span className="font-medium">Eyes:</span> {character.eyeColor}
+                      <span className="font-medium">Eyes:</span>{" "}
+                      {character.eyeColor}
                     </div>
                   )}
                   {character.skinTone && (
                     <div>
-                      <span className="font-medium">Skin:</span> {character.skinTone}
+                      <span className="font-medium">Skin:</span>{" "}
+                      {character.skinTone}
                     </div>
                   )}
                   {character.facialFeatures && (
                     <div>
-                      <span className="font-medium">Facial Features:</span> {character.facialFeatures}
+                      <span className="font-medium">Facial Features:</span>{" "}
+                      {character.facialFeatures}
                     </div>
                   )}
                   {character.identifyingMarks && (
                     <div>
-                      <span className="font-medium">Identifying Marks:</span> {character.identifyingMarks}
+                      <span className="font-medium">Identifying Marks:</span>{" "}
+                      {character.identifyingMarks}
                     </div>
                   )}
                 </div>
-                
+
                 {character.physicalDescription && (
                   <div className="text-xs">
                     <span className="font-medium">Description:</span>
-                    <p className="mt-1 text-muted-foreground">{character.physicalDescription}</p>
+                    <p className="mt-1 text-muted-foreground">
+                      {character.physicalDescription}
+                    </p>
                   </div>
                 )}
               </>
             )}
           </TabsContent>
-          
+
           <TabsContent value="personality" className="space-y-3">
             {isEditing ? (
               <Form {...form}>
@@ -701,9 +799,15 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
                   name="personality"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs">Personality Traits</FormLabel>
+                      <FormLabel className="text-xs">
+                        Personality Traits
+                      </FormLabel>
                       <FormControl>
-                        <Input {...field} className="h-7 text-xs" placeholder="List traits separated by commas" />
+                        <Input
+                          {...field}
+                          className="h-7 text-xs"
+                          placeholder="List traits separated by commas"
+                        />
                       </FormControl>
                     </FormItem>
                   )}
@@ -752,38 +856,50 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
                     <span className="font-medium text-xs">Traits:</span>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {character.personality.map((trait, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">{trait}</Badge>
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="text-xs"
+                        >
+                          {trait}
+                        </Badge>
                       ))}
                     </div>
                   </div>
                 )}
-                
+
                 {character.motivation && (
                   <div className="text-xs">
                     <Heart className="h-3 w-3 inline mr-1" />
                     <span className="font-medium">Motivation:</span>
-                    <p className="mt-1 text-muted-foreground">{character.motivation}</p>
+                    <p className="mt-1 text-muted-foreground">
+                      {character.motivation}
+                    </p>
                   </div>
                 )}
-                
+
                 {character.flaw && (
                   <div className="text-xs">
                     <span className="font-medium">Flaw:</span>
-                    <p className="mt-1 text-muted-foreground">{character.flaw}</p>
+                    <p className="mt-1 text-muted-foreground">
+                      {character.flaw}
+                    </p>
                   </div>
                 )}
-                
+
                 {(character.strengths || character.strength) && (
                   <div className="text-xs">
                     <Zap className="h-3 w-3 inline mr-1" />
                     <span className="font-medium">Strength:</span>
-                    <p className="mt-1 text-muted-foreground">{character.strengths || character.strength}</p>
+                    <p className="mt-1 text-muted-foreground">
+                      {character.strengths || character.strength}
+                    </p>
                   </div>
                 )}
               </>
             )}
           </TabsContent>
-          
+
           <TabsContent value="background" className="space-y-3">
             {isEditing ? (
               <Form {...form}>
@@ -842,27 +958,34 @@ const CharacterDetailPanel = ({ characterId, panelId, notebookId, onClose, isCom
                   <div className="text-xs">
                     <Clock className="h-3 w-3 inline mr-1" />
                     <span className="font-medium">Backstory:</span>
-                    <p className="mt-1 text-muted-foreground">{character.backstory}</p>
+                    <p className="mt-1 text-muted-foreground">
+                      {character.backstory}
+                    </p>
                   </div>
                 )}
-                
+
                 {character.placeOfBirth && (
                   <div className="text-xs">
-                    <span className="font-medium">Birthplace:</span> {character.placeOfBirth}
+                    <span className="font-medium">Birthplace:</span>{" "}
+                    {character.placeOfBirth}
                   </div>
                 )}
-                
+
                 {character.education && (
                   <div className="text-xs">
                     <span className="font-medium">Education:</span>
-                    <p className="mt-1 text-muted-foreground">{character.education}</p>
+                    <p className="mt-1 text-muted-foreground">
+                      {character.education}
+                    </p>
                   </div>
                 )}
-                
+
                 {character.workHistory && (
                   <div className="text-xs">
                     <span className="font-medium">Work History:</span>
-                    <p className="mt-1 text-muted-foreground">{character.workHistory}</p>
+                    <p className="mt-1 text-muted-foreground">
+                      {character.workHistory}
+                    </p>
                   </div>
                 )}
               </>

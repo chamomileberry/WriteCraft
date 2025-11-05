@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import type { FormField, FormFieldType } from '@/components/forms/types';
+import { z } from "zod";
+import type { FormField, FormFieldType } from "@/components/forms/types";
 
 /**
  * Field metadata extracted from Zod schema
@@ -77,89 +77,89 @@ function analyzeZodField(name: string, schema: z.ZodTypeAny): FieldMetadata {
 function determineFieldType(
   fieldName: string,
   schema: z.ZodTypeAny,
-  isArray: boolean
+  isArray: boolean,
 ): FormFieldType {
   // Check for specific field name patterns first
   const lowerName = fieldName.toLowerCase();
 
   // Image fields
-  if (lowerName.includes('image') && lowerName.includes('url')) {
-    return 'image';
+  if (lowerName.includes("image") && lowerName.includes("url")) {
+    return "image";
   }
 
   // Date fields
-  if (lowerName.includes('date') || lowerName.includes('time')) {
-    return 'date';
+  if (lowerName.includes("date") || lowerName.includes("time")) {
+    return "date";
   }
 
   // Special autocomplete fields based on naming conventions
-  if (lowerName.includes('location') && !lowerName.includes('type')) {
-    return 'autocomplete-location';
+  if (lowerName.includes("location") && !lowerName.includes("type")) {
+    return "autocomplete-location";
   }
-  if (lowerName.includes('character')) {
-    return 'autocomplete-character';
+  if (lowerName.includes("character")) {
+    return "autocomplete-character";
   }
-  if (lowerName.includes('organization')) {
-    return 'autocomplete-organization';
+  if (lowerName.includes("organization")) {
+    return "autocomplete-organization";
   }
-  if (lowerName.includes('species')) {
-    return 'autocomplete-species';
+  if (lowerName.includes("species")) {
+    return "autocomplete-species";
   }
-  if (lowerName.includes('culture')) {
-    return 'autocomplete-culture';
+  if (lowerName.includes("culture")) {
+    return "autocomplete-culture";
   }
-  if (lowerName.includes('religion')) {
-    return 'autocomplete-religion';
+  if (lowerName.includes("religion")) {
+    return "autocomplete-religion";
   }
-  if (lowerName.includes('language')) {
-    return 'autocomplete-language';
+  if (lowerName.includes("language")) {
+    return "autocomplete-language";
   }
-  if (lowerName.includes('tradition')) {
-    return 'autocomplete-tradition';
+  if (lowerName.includes("tradition")) {
+    return "autocomplete-tradition";
   }
-  if (lowerName.includes('weapon')) {
-    return 'autocomplete-weapon';
+  if (lowerName.includes("weapon")) {
+    return "autocomplete-weapon";
   }
-  if (lowerName.includes('building')) {
-    return 'autocomplete-building';
+  if (lowerName.includes("building")) {
+    return "autocomplete-building";
   }
 
   // Array fields (tags)
   if (isArray && schema instanceof z.ZodString) {
-    return 'tags';
+    return "tags";
   }
 
   // Based on Zod type
   if (schema instanceof z.ZodNumber) {
-    return 'number';
+    return "number";
   }
 
   if (schema instanceof z.ZodBoolean) {
-    return 'checkbox';
+    return "checkbox";
   }
 
   if (schema instanceof z.ZodString) {
     // Long text fields get textarea
     if (
-      lowerName.includes('description') ||
-      lowerName.includes('content') ||
-      lowerName.includes('backstory') ||
-      lowerName.includes('history') ||
-      lowerName.includes('notes') ||
-      lowerName.includes('summary') ||
-      lowerName.includes('details') ||
-      lowerName.includes('text') ||
-      lowerName.includes('message')
+      lowerName.includes("description") ||
+      lowerName.includes("content") ||
+      lowerName.includes("backstory") ||
+      lowerName.includes("history") ||
+      lowerName.includes("notes") ||
+      lowerName.includes("summary") ||
+      lowerName.includes("details") ||
+      lowerName.includes("text") ||
+      lowerName.includes("message")
     ) {
-      return 'textarea';
+      return "textarea";
     }
 
     // Default to text input
-    return 'text';
+    return "text";
   }
 
   // Default fallback
-  return 'text';
+  return "text";
 }
 
 /**
@@ -169,25 +169,27 @@ function determineFieldType(
 export function fieldNameToLabel(name: string): string {
   // Handle common acronyms
   const acronyms: Record<string, string> = {
-    url: 'URL',
-    id: 'ID',
-    dna: 'DNA',
-    ai: 'AI',
-    api: 'API',
+    url: "URL",
+    id: "ID",
+    dna: "DNA",
+    ai: "AI",
+    api: "API",
   };
 
-  return name
-    // Insert space before uppercase letters
-    .replace(/([A-Z])/g, ' $1')
-    // Replace underscores with spaces
-    .replace(/_/g, ' ')
-    // Capitalize first letter of each word
-    .replace(/\b\w/g, (char) => char.toUpperCase())
-    // Handle acronyms
-    .split(' ')
-    .map((word) => acronyms[word.toLowerCase()] || word)
-    .join(' ')
-    .trim();
+  return (
+    name
+      // Insert space before uppercase letters
+      .replace(/([A-Z])/g, " $1")
+      // Replace underscores with spaces
+      .replace(/_/g, " ")
+      // Capitalize first letter of each word
+      .replace(/\b\w/g, (char) => char.toUpperCase())
+      // Handle acronyms
+      .split(" ")
+      .map((word) => acronyms[word.toLowerCase()] || word)
+      .join(" ")
+      .trim()
+  );
 }
 
 /**
@@ -195,31 +197,31 @@ export function fieldNameToLabel(name: string): string {
  */
 export function generatePlaceholder(
   fieldName: string,
-  fieldType: FormFieldType
+  fieldType: FormFieldType,
 ): string {
   const label = fieldNameToLabel(fieldName);
 
-  if (fieldType === 'textarea') {
+  if (fieldType === "textarea") {
     return `Enter ${label.toLowerCase()}...`;
   }
 
-  if (fieldType === 'number') {
+  if (fieldType === "number") {
     return `Enter ${label.toLowerCase()}`;
   }
 
-  if (fieldType === 'tags') {
+  if (fieldType === "tags") {
     return `Add ${label.toLowerCase()}...`;
   }
 
-  if (fieldType.startsWith('autocomplete-')) {
+  if (fieldType.startsWith("autocomplete-")) {
     return `Search or select ${label.toLowerCase()}...`;
   }
 
-  if (fieldType === 'date') {
+  if (fieldType === "date") {
     return `Select ${label.toLowerCase()}`;
   }
 
-  if (fieldType === 'image') {
+  if (fieldType === "image") {
     return `Upload or enter image URL`;
   }
 

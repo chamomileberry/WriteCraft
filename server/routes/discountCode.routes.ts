@@ -3,7 +3,11 @@ import { discountCodeService } from "../services/discountCodeService";
 import { secureAuthentication, requireAdmin } from "../security/middleware";
 import { insertDiscountCodeSchema } from "@shared/schema";
 import { z } from "zod";
-import { readRateLimiter, writeRateLimiter, billingRateLimiter } from "../security/rateLimiters";
+import {
+  readRateLimiter,
+  writeRateLimiter,
+  billingRateLimiter,
+} from "../security/rateLimiters";
 
 export const discountCodeRouter = Router();
 
@@ -33,7 +37,7 @@ discountCodeRouter.post(
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -55,7 +59,7 @@ discountCodeRouter.get(
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -73,7 +77,7 @@ discountCodeRouter.get(
       if (!code) {
         return res.status(404).json({
           success: false,
-          error: 'Discount code not found',
+          error: "Discount code not found",
         });
       }
 
@@ -84,7 +88,7 @@ discountCodeRouter.get(
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -100,7 +104,7 @@ discountCodeRouter.patch(
       const updates = req.body;
       const code = await discountCodeService.updateDiscountCode(
         req.params.id,
-        updates
+        updates,
       );
 
       res.json({
@@ -110,7 +114,7 @@ discountCodeRouter.patch(
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -127,12 +131,12 @@ discountCodeRouter.delete(
 
       res.json({
         success: true,
-        message: 'Discount code deleted successfully',
+        message: "Discount code deleted successfully",
       });
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -154,7 +158,7 @@ discountCodeRouter.get(
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
 // ==================== PUBLIC ROUTES ====================
@@ -170,7 +174,7 @@ discountCodeRouter.post(
     try {
       const schema = z.object({
         code: z.string(),
-        targetTier: z.enum(['professional', 'team']),
+        targetTier: z.enum(["professional", "team"]),
       });
 
       const { code, targetTier } = schema.parse(req.body);
@@ -178,7 +182,7 @@ discountCodeRouter.post(
       const result = await discountCodeService.validateDiscountCode(
         code,
         req.user.claims.sub,
-        targetTier
+        targetTier,
       );
 
       if (!result.valid) {
@@ -197,7 +201,7 @@ discountCodeRouter.post(
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
 /**
@@ -209,7 +213,9 @@ discountCodeRouter.get(
   readRateLimiter,
   async (req: any, res, next) => {
     try {
-      const history = await discountCodeService.getUserDiscountHistory(req.user.claims.sub);
+      const history = await discountCodeService.getUserDiscountHistory(
+        req.user.claims.sub,
+      );
 
       res.json({
         success: true,
@@ -218,5 +224,5 @@ discountCodeRouter.get(
     } catch (error) {
       next(error);
     }
-  }
+  },
 );

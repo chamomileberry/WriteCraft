@@ -1,10 +1,24 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Separator } from "@/components/ui/separator";
-import { Lightbulb, HelpCircle, Target, BookOpen, Copy, Heart, Loader2 } from "lucide-react";
+import {
+  Lightbulb,
+  HelpCircle,
+  Target,
+  BookOpen,
+  Copy,
+  Heart,
+  Loader2,
+} from "lucide-react";
 import type { Theme } from "@shared/schema";
 import { useGenerator } from "@/hooks/useGenerator";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,26 +27,34 @@ import { GeneratorNotebookControls } from "@/components/GeneratorNotebookControl
 import { UpgradePrompt } from "@/components/UpgradePrompt";
 
 const GENRE_CATEGORIES = {
-  "Fiction": ['literary', 'fantasy', 'romance', 'thriller', 'sci-fi', 'historical', 'contemporary']
+  Fiction: [
+    "literary",
+    "fantasy",
+    "romance",
+    "thriller",
+    "sci-fi",
+    "historical",
+    "contemporary",
+  ],
 };
 
 export default function ThemeExplorer() {
-  const [genre, setGenre] = useState('');
+  const [genre, setGenre] = useState("");
   const { user } = useAuth();
   const { notebookId, validateNotebook } = useRequireNotebook({
-    errorMessage: 'Please create or select a notebook before exploring themes.'
+    errorMessage: "Please create or select a notebook before exploring themes.",
   });
 
   const generator = useGenerator<Theme>({
-    generateEndpoint: '/api/themes/generate',
+    generateEndpoint: "/api/themes/generate",
     getGenerateParams: () => ({ genre, notebookId }),
-    itemTypeName: 'theme',
+    itemTypeName: "theme",
     userId: user?.id ?? undefined,
     notebookId: notebookId ?? undefined,
     validateBeforeGenerate: validateNotebook,
     formatForClipboard: (theme) => `Theme: ${theme.title}
 
-Genre: ${theme.genre || 'General'}
+Genre: ${theme.genre || "General"}
 
 Description:
 ${theme.description}
@@ -41,17 +63,17 @@ Core Message:
 ${theme.coreMessage}
 
 Symbolic Elements:
-${theme.symbolicElements.join('\n')}
+${theme.symbolicElements.join("\n")}
 
 Key Questions:
-${theme.questions.join('\n')}
+${theme.questions.join("\n")}
 
 Related Conflicts:
-${theme.conflicts.join('\n')}
+${theme.conflicts.join("\n")}
 
 Literary Examples:
-${theme.examples.join('\n')}`,
-    invalidateOnSave: [['/api/saved-items']],
+${theme.examples.join("\n")}`,
+    invalidateOnSave: [["/api/saved-items"]],
   });
 
   const generatedTheme = generator.result;
@@ -67,10 +89,12 @@ ${theme.examples.join('\n')}`,
         </CardHeader>
         <CardContent>
           <GeneratorNotebookControls />
-          
+
           <div className="space-y-4 mt-6">
             <div>
-              <label className="block text-sm font-medium mb-2">Genre (Optional)</label>
+              <label className="block text-sm font-medium mb-2">
+                Genre (Optional)
+              </label>
               <SearchableSelect
                 value={genre}
                 onValueChange={setGenre}
@@ -87,7 +111,7 @@ ${theme.examples.join('\n')}`,
           </div>
 
           <div className="flex justify-end pt-4">
-            <Button 
+            <Button
               onClick={generator.generate}
               disabled={generator.isGenerating}
               data-testid="button-generate-theme"
@@ -110,7 +134,10 @@ ${theme.examples.join('\n')}`,
           <CardHeader>
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <CardTitle className="text-2xl flex items-center gap-2" data-testid="text-theme-title">
+                <CardTitle
+                  className="text-2xl flex items-center gap-2"
+                  data-testid="text-theme-title"
+                >
                   <Lightbulb className="h-6 w-6 text-primary" />
                   {generatedTheme.title}
                 </CardTitle>
@@ -122,11 +149,14 @@ ${theme.examples.join('\n')}`,
               </div>
             </div>
           </CardHeader>
-          
+
           <CardContent className="space-y-6">
             <div>
               <h3 className="text-lg font-semibold mb-2">Description</h3>
-              <p className="text-muted-foreground" data-testid="text-theme-description">
+              <p
+                className="text-muted-foreground"
+                data-testid="text-theme-description"
+              >
                 {generatedTheme.description}
               </p>
             </div>
@@ -138,7 +168,10 @@ ${theme.examples.join('\n')}`,
                 <Target className="h-5 w-5" />
                 Core Message
               </h3>
-              <p className="text-muted-foreground" data-testid="text-theme-core-message">
+              <p
+                className="text-muted-foreground"
+                data-testid="text-theme-core-message"
+              >
                 {generatedTheme.coreMessage}
               </p>
             </div>
@@ -148,12 +181,16 @@ ${theme.examples.join('\n')}`,
             <div>
               <h3 className="text-lg font-semibold mb-3">Symbolic Elements</h3>
               <div className="grid gap-2">
-                {generatedTheme.symbolicElements.map((element: string, index: number) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
-                    <span data-testid={`text-symbolic-element-${index}`}>{element}</span>
-                  </div>
-                ))}
+                {generatedTheme.symbolicElements.map(
+                  (element: string, index: number) => (
+                    <div key={index} className="flex items-start gap-2">
+                      <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
+                      <span data-testid={`text-symbolic-element-${index}`}>
+                        {element}
+                      </span>
+                    </div>
+                  ),
+                )}
               </div>
             </div>
 
@@ -163,23 +200,34 @@ ${theme.examples.join('\n')}`,
                 Key Questions to Explore
               </h3>
               <div className="space-y-2">
-                {generatedTheme.questions.map((question: string, index: number) => (
-                  <div key={index} className="p-3 bg-muted/50 rounded-lg">
-                    <p data-testid={`text-question-${index}`} className="italic">"{question}"</p>
-                  </div>
-                ))}
+                {generatedTheme.questions.map(
+                  (question: string, index: number) => (
+                    <div key={index} className="p-3 bg-muted/50 rounded-lg">
+                      <p
+                        data-testid={`text-question-${index}`}
+                        className="italic"
+                      >
+                        "{question}"
+                      </p>
+                    </div>
+                  ),
+                )}
               </div>
             </div>
 
             <div>
               <h3 className="text-lg font-semibold mb-3">Related Conflicts</h3>
               <div className="space-y-2">
-                {generatedTheme.conflicts.map((conflict: string, index: number) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <div className="w-2 h-2 bg-destructive rounded-full mt-2 flex-shrink-0" />
-                    <span data-testid={`text-conflict-${index}`}>{conflict}</span>
-                  </div>
-                ))}
+                {generatedTheme.conflicts.map(
+                  (conflict: string, index: number) => (
+                    <div key={index} className="flex items-start gap-2">
+                      <div className="w-2 h-2 bg-destructive rounded-full mt-2 flex-shrink-0" />
+                      <span data-testid={`text-conflict-${index}`}>
+                        {conflict}
+                      </span>
+                    </div>
+                  ),
+                )}
               </div>
             </div>
 
@@ -189,19 +237,26 @@ ${theme.examples.join('\n')}`,
                 Literary Examples
               </h3>
               <div className="space-y-2">
-                {generatedTheme.examples.map((example: string, index: number) => (
-                  <div key={index} className="p-3 border rounded-lg">
-                    <p data-testid={`text-example-${index}`} className="text-sm text-muted-foreground">{example}</p>
-                  </div>
-                ))}
+                {generatedTheme.examples.map(
+                  (example: string, index: number) => (
+                    <div key={index} className="p-3 border rounded-lg">
+                      <p
+                        data-testid={`text-example-${index}`}
+                        className="text-sm text-muted-foreground"
+                      >
+                        {example}
+                      </p>
+                    </div>
+                  ),
+                )}
               </div>
             </div>
 
             <Separator />
-            
+
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4">
-              <Button 
+              <Button
                 onClick={generator.saveToCollection}
                 disabled={generator.isSaving}
                 variant="default"
@@ -219,8 +274,8 @@ ${theme.examples.join('\n')}`,
                   </>
                 )}
               </Button>
-              
-              <Button 
+
+              <Button
                 onClick={generator.copyToClipboard}
                 variant="outline"
                 data-testid="button-copy-theme"

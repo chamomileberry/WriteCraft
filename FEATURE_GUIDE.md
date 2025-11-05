@@ -1,4 +1,3 @@
-
 # WriteCraft Feature Guide
 
 ## Overview
@@ -10,15 +9,18 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 ### 1. Content Organization
 
 #### Notebooks
+
 **Purpose:** Container system for organizing worldbuilding content by story universe.
 
 **Key Capabilities:**
+
 - Create unlimited notebooks for different projects/universes
 - All worldbuilding content (characters, locations, etc.) scoped to notebooks
 - Switch between notebooks to work on different story worlds
 - Share notebooks across multiple writing projects
 
 **When to Use:**
+
 - Starting a new story/series with unique worldbuilding
 - Separating content for different genres or universes
 - Organizing shared universes (e.g., multiple books in same world)
@@ -28,9 +30,11 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 ---
 
 #### Projects
+
 **Purpose:** Hierarchical document system for writing manuscripts.
 
 **Key Capabilities:**
+
 - Unlimited folder nesting for organization (Acts, Chapters, Scenes)
 - Rich text editor with formatting, images, links
 - Auto-save (every few seconds)
@@ -39,6 +43,7 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 - Link to worldbuilding content from notebooks
 
 **When to Use:**
+
 - Writing novels, short stories, scripts
 - Organizing long-form content with complex structure
 - Managing multi-chapter works
@@ -51,9 +56,11 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 ### 2. Worldbuilding System
 
 #### Content Types (40+ Categories)
+
 **Purpose:** Structured database for story world elements.
 
 **Available Types:**
+
 - **People:** Characters, Creatures, Species, Organizations, Professions
 - **Places:** Locations, Buildings, Settlements, Maps
 - **Objects:** Items, Weapons, Armor, Clothing, Materials, Transportation
@@ -64,6 +71,7 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 - **Nature:** Plants, Animals, Resources
 
 **Key Capabilities:**
+
 - Customizable form fields for each type
 - Image uploads (character portraits, location maps, etc.)
 - Tagging and categorization
@@ -72,6 +80,7 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 - Save generated content from AI generators
 
 **When to Use:**
+
 - Building consistent, detailed story worlds
 - Tracking character relationships and backstories
 - Maintaining continuity across long series
@@ -84,9 +93,11 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 ### 3. AI-Powered Tools
 
 #### Content Generators
+
 **Purpose:** AI-assisted creation of worldbuilding elements.
 
 **Available Generators:**
+
 - Characters (personality, backstory, appearance)
 - Locations (descriptions, atmosphere)
 - Plots (structure, conflicts, themes)
@@ -100,6 +111,7 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 - Moods (atmosphere palettes)
 
 **Key Capabilities:**
+
 - Genre-aware generation
 - Customizable parameters and prompts
 - Save directly to notebooks
@@ -107,6 +119,7 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 - Export/copy generated content
 
 **When to Use:**
+
 - Brainstorming new story elements
 - Overcoming writer's block
 - Generating inspiration and variations
@@ -117,9 +130,11 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 ---
 
 #### AI Inline Editing (Grammarly-style)
+
 **Purpose:** In-editor text improvement suggestions.
 
 **Key Capabilities:**
+
 - Select text to see AI menu
 - Actions: Improve, Shorten, Expand, Fix Grammar
 - Context-aware suggestions
@@ -127,6 +142,7 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 - Undo/redo friendly
 
 **When to Use:**
+
 - Revising draft text
 - Improving clarity and flow
 - Fixing grammatical issues
@@ -137,15 +153,18 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 ---
 
 #### Writing Assistant Panel
+
 **Purpose:** Conversational AI coach for writing feedback.
 
 **Key Modes:**
+
 - **Chat:** Ask questions, brainstorm ideas
 - **Analyze:** Get feedback on selected text
 - **Proofread:** Detailed grammar and style review
 - **Questions:** Generate discussion questions about your text
 
 **Key Capabilities:**
+
 - Context-aware (knows current project/section)
 - Maintains conversation history
 - Can analyze specific text selections
@@ -153,6 +172,7 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 - Genre-specific advice
 
 **When to Use:**
+
 - Getting feedback on scenes/chapters
 - Analyzing character dialogue authenticity
 - Checking pacing and tension
@@ -166,9 +186,11 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 ### 4. Educational Resources
 
 #### Writing Guides
+
 **Purpose:** Expert advice and comprehensive tutorials.
 
 **Key Capabilities:**
+
 - Categorized by topic (Plot, Character, Dialogue, etc.)
 - Difficulty levels (Beginner, Intermediate, Advanced)
 - Searchable library
@@ -177,6 +199,7 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 - Create custom guides
 
 **When to Use:**
+
 - Learning new writing techniques
 - Refreshing on story structure principles
 - Finding best practices for specific challenges
@@ -187,15 +210,18 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 ---
 
 #### Writing Prompts
+
 **Purpose:** Creative inspiration and practice exercises.
 
 **Key Capabilities:**
+
 - Genre-specific prompts
 - Story starters
 - Character scenarios
 - Worldbuilding challenges
 
 **When to Use:**
+
 - Warm-up exercises
 - Breaking through creative blocks
 - Practice sessions
@@ -208,15 +234,18 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 ### 5. Workspace Tools
 
 #### Quick Notes
+
 **Purpose:** Capture ephemeral ideas without context switching.
 
 **Key Capabilities:**
+
 - Always accessible from any page
 - Auto-saves as you type
 - Persistent across sessions
 - No organization required (single scratchpad)
 
 **When to Use:**
+
 - Capturing quick ideas while writing
 - Temporary research notes
 - Brainstorming without commitment
@@ -227,15 +256,18 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 ---
 
 #### Notes System
+
 **Purpose:** Structured notes attached to specific documents.
 
 **Key Capabilities:**
+
 - Create notes for projects, guides, or standalone
 - Organization and search
 - Markdown support
 - Attachments and links
 
 **When to Use:**
+
 - Research notes for specific chapters
 - Plot planning for projects
 - Commentary on guides
@@ -246,15 +278,18 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 ---
 
 #### Character Editor Sidebar
+
 **Purpose:** Enhanced character development interface.
 
 **Key Capabilities:**
+
 - Responsive sidebar navigation
 - Section-by-section editing
 - Quick access to all character fields
 - Visual organization
 
 **When to Use:**
+
 - Deep character development
 - Complex character with many attributes
 - Building character sheets
@@ -267,9 +302,11 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 ### 6. Collaboration & Sharing
 
 #### Real-Time Collaboration (Team Subscribers)
+
 **Purpose:** Work together with your team on projects simultaneously.
 
 **Key Capabilities:**
+
 - Real-time synchronization using CRDT technology (Yjs)
 - See who's actively editing in real-time
 - Automatic conflict resolution
@@ -278,10 +315,12 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 - WebSocket-based for instant updates
 
 **Available For:**
+
 - **Projects:** Multiple team members can edit the same document simultaneously
 - **Team Tier Only:** Requires Team subscription (up to 5 members)
 
 **How It Works:**
+
 - When you open a project, the system automatically connects via WebSocket
 - Changes are synced instantly across all connected users
 - You can see avatars/names of active collaborators
@@ -289,6 +328,7 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 - Collaboration state persists even if connection temporarily drops
 
 **When to Use:**
+
 - Co-writing with a partner or team
 - Real-time brainstorming sessions
 - Pair writing and immediate feedback
@@ -298,6 +338,7 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 **Works With:** Projects (Team tier)
 
 **Technical Details:**
+
 - Uses Yjs CRDT for conflict-free document merging
 - Supports offline editing with sync on reconnect
 - Maintains document consistency across all clients
@@ -306,9 +347,11 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 ---
 
 #### Content Sharing
+
 **Purpose:** Share notebooks, projects, and guides with specific users.
 
 **Key Capabilities:**
+
 - Share resources with other WriteCraft users
 - Granular permission control (View, Comment, Edit)
 - Share notebooks, projects, or writing guides
@@ -317,11 +360,13 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 - Revoke access anytime
 
 **Permission Levels:**
+
 - **View:** Read-only access to content
 - **Comment:** Can view and add comments/feedback
 - **Edit:** Full editing capabilities (except ownership transfer)
 
 **When to Use:**
+
 - Sharing worldbuilding resources with co-authors
 - Giving beta readers access to manuscripts
 - Collaborating with editors
@@ -331,6 +376,7 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 **Works With:** Notebooks, Projects, Guides, Team Features
 
 **Workflow:**
+
 1. Navigate to resource (notebook/project/guide)
 2. Click "Share" button
 3. Enter collaborator's email
@@ -341,9 +387,11 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 ---
 
 #### Team Management (Team Tier)
+
 **Purpose:** Organize and manage team members for collaborative projects.
 
 **Key Capabilities:**
+
 - Add up to 5 team members (Team tier)
 - Role-based access control
 - Team member invitations via email
@@ -356,6 +404,7 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 - View active team members in real-time
 
 **When to Use:**
+
 - Managing a writing team or group
 - Collaborative book projects
 - Writing room environments
@@ -365,6 +414,7 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 **Works With:** Real-Time Collaboration, Sharing, Projects
 
 **Team Workflow:**
+
 1. Subscribe to Team tier
 2. Invite team members via email
 3. Set individual permissions
@@ -379,9 +429,11 @@ This guide provides a comprehensive overview of WriteCraft's features, their cap
 WriteCraft offers four subscription tiers, each designed for different writing needs:
 
 ### Free Tier
+
 **Best for:** Writers exploring the platform or working on single projects
 
 **Includes:**
+
 - 3 projects
 - 1 notebook per project
 - 20 AI generations per day
@@ -393,9 +445,11 @@ WriteCraft offers four subscription tiers, each designed for different writing n
 ---
 
 ### Author Tier
+
 **Best for:** Individual authors working on multiple projects
 
 **Includes:**
+
 - Unlimited projects
 - 10 notebooks per project
 - 100 AI generations per day
@@ -409,9 +463,11 @@ WriteCraft offers four subscription tiers, each designed for different writing n
 ---
 
 ### Professional Tier
+
 **Best for:** Professional writers needing unlimited AI and advanced features
 
 **Includes:**
+
 - Everything in Author tier
 - Unlimited notebooks per project
 - Unlimited AI generations
@@ -426,9 +482,11 @@ WriteCraft offers four subscription tiers, each designed for different writing n
 ---
 
 ### Team Tier
+
 **Best for:** Collaborative writing teams and co-author partnerships
 
 **Includes:**
+
 - Everything in Professional tier
 - Up to 5 team members
 - Real-time collaboration on projects
@@ -446,22 +504,22 @@ WriteCraft offers four subscription tiers, each designed for different writing n
 
 ### When to Use What for Writing
 
-| Task | Recommended Feature | Alternative |
-|------|-------------------|-------------|
-| Write a novel | Projects | - |
-| Plan story structure | Project Outline | Writing Guides |
-| Create characters | Content Generators → Save to Notebook | Manual Content Forms |
-| Track worldbuilding | Notebooks + Content Types | Notes |
-| Get writing feedback | Writing Assistant (Analyze/Proofread) | Writing Guides |
-| Improve a paragraph | AI Inline Editing | Writing Assistant |
-| Capture quick ideas | Quick Notes | Notes |
-| Research for chapter | Notes (attached to project) | Quick Notes |
-| Learn techniques | Writing Guides | Writing Assistant (ask questions) |
-| Overcome writer's block | Writing Prompts + Generators | Writing Assistant (brainstorm) |
-| Co-write with team | Real-Time Collaboration (Team tier) | Content Sharing with Edit permission |
-| Share with beta readers | Content Sharing (View/Comment permission) | Export and email |
-| Collaborate with editor | Content Sharing (Edit permission) | Export/import workflow |
-| Manage writing team | Team Management (Team tier) | Manual coordination |
+| Task                    | Recommended Feature                       | Alternative                          |
+| ----------------------- | ----------------------------------------- | ------------------------------------ |
+| Write a novel           | Projects                                  | -                                    |
+| Plan story structure    | Project Outline                           | Writing Guides                       |
+| Create characters       | Content Generators → Save to Notebook     | Manual Content Forms                 |
+| Track worldbuilding     | Notebooks + Content Types                 | Notes                                |
+| Get writing feedback    | Writing Assistant (Analyze/Proofread)     | Writing Guides                       |
+| Improve a paragraph     | AI Inline Editing                         | Writing Assistant                    |
+| Capture quick ideas     | Quick Notes                               | Notes                                |
+| Research for chapter    | Notes (attached to project)               | Quick Notes                          |
+| Learn techniques        | Writing Guides                            | Writing Assistant (ask questions)    |
+| Overcome writer's block | Writing Prompts + Generators              | Writing Assistant (brainstorm)       |
+| Co-write with team      | Real-Time Collaboration (Team tier)       | Content Sharing with Edit permission |
+| Share with beta readers | Content Sharing (View/Comment permission) | Export and email                     |
+| Collaborate with editor | Content Sharing (Edit permission)         | Export/import workflow               |
+| Manage writing team     | Team Management (Team tier)               | Manual coordination                  |
 
 ---
 
@@ -520,6 +578,7 @@ WriteCraft offers four subscription tiers, each designed for different writing n
 12. **Monitor contributions** and editing patterns
 
 **Team Benefits:**
+
 - Multiple writers can draft different chapters simultaneously
 - Immediate feedback and iteration
 - Shared worldbuilding resources
@@ -543,6 +602,7 @@ WriteCraft offers four subscription tiers, each designed for different writing n
 10. **Revoke access** when beta period ends (optional)
 
 **Sharing Benefits:**
+
 - No need to export/email documents
 - Real-time comment notifications
 - Maintain version control
@@ -564,6 +624,7 @@ WriteCraft offers four subscription tiers, each designed for different writing n
 8. **Export final version** in required format (PDF/DOCX)
 
 **Editor Benefits:**
+
 - No version conflict issues
 - Instant synchronization of changes
 - Can work simultaneously on different sections
@@ -575,6 +636,7 @@ WriteCraft offers four subscription tiers, each designed for different writing n
 ## Feature Relationships
 
 ### Content Flow
+
 ```
 Generators → Notebooks (storage) → Projects (reference while writing)
      ↓                                  ↓
@@ -584,6 +646,7 @@ Content Types (structured data)   Real-Time Collaboration
 ```
 
 ### Writing Flow
+
 ```
 Writing Prompts → Projects (drafting) → AI Editing → Writing Assistant (feedback)
                       ↓                      ↓
@@ -593,6 +656,7 @@ Writing Prompts → Projects (drafting) → AI Editing → Writing Assistant (fe
 ```
 
 ### Learning Flow
+
 ```
 Writing Guides → Writing Assistant (questions) → Projects (apply techniques)
                                                       ↓
@@ -600,6 +664,7 @@ Writing Guides → Writing Assistant (questions) → Projects (apply techniques)
 ```
 
 ### Collaboration Flow
+
 ```
 Team Management → Invite Members → Share Resources → Real-Time Collaboration
                        ↓                                    ↓
@@ -609,6 +674,7 @@ Team Management → Invite Members → Share Resources → Real-Time Collaborati
 ```
 
 ### Complete Creative Workflow
+
 This diagram shows how all features work together in a typical creative process:
 
 ```
@@ -642,12 +708,15 @@ REFINEMENT PHASE
 ## Advanced Features
 
 ### Content Linking
+
 Use `@` mentions in any editor to link to:
+
 - Notebook content (characters, locations, etc.)
 - Other project sections
 - Notes
 
 **Benefits:**
+
 - Maintain consistency
 - Quick navigation
 - Contextual reference
@@ -655,7 +724,9 @@ Use `@` mentions in any editor to link to:
 ---
 
 ### Multi-Notebook Workflow
+
 Separate notebooks for:
+
 - **Main Story Universe:** Primary worldbuilding
 - **Research/References:** Real-world inspiration
 - **Deleted Scenes:** Cut content for potential reuse
@@ -664,6 +735,7 @@ Separate notebooks for:
 ---
 
 ### Export & Backup
+
 - **Projects:** Export to Markdown, PDF
 - **Content Types:** Export individual items
 - **Regular backups:** Recommended practice
@@ -673,6 +745,7 @@ Separate notebooks for:
 ## Tips for Maximum Productivity
 
 ### Solo Writing Tips
+
 1. **Use Notebooks liberally** - Don't cram everything into one
 2. **Start with structure** - Build project outline before drafting
 3. **Generate first, refine later** - Use AI for initial content, customize after
@@ -682,6 +755,7 @@ Separate notebooks for:
 7. **Learn continuously** - Read guides, apply techniques, iterate
 
 ### Team Collaboration Tips
+
 1. **Define roles early** - Establish who writes what sections/chapters
 2. **Use shared notebooks** - Keep worldbuilding consistent across team
 3. **Leverage real-time editing** - Work on different chapters simultaneously
@@ -692,6 +766,7 @@ Separate notebooks for:
 8. **Share templates** - Create and share custom templates for consistency
 
 ### Sharing & Feedback Tips
+
 1. **Use Comment permission for beta readers** - Prevents accidental edits
 2. **Share sections, not full manuscripts** - Give focused feedback requests
 3. **Set clear deadlines** - Communicate when you need feedback by
@@ -704,6 +779,7 @@ Separate notebooks for:
 ## Feature Limitations & Boundaries
 
 ### What WriteCraft Does
+
 ✓ Real-time collaboration (Team tier)
 ✓ Content sharing with permission control
 ✓ Team management (up to 5 members)
@@ -714,6 +790,7 @@ Separate notebooks for:
 ✓ API access (Professional/Team tiers)
 
 ### What WriteCraft Does NOT Do
+
 - **Git-style version control** - No branching/merging (but has version history)
 - **Publishing platform integration** - No direct export to Amazon, etc.
 - **Plagiarism checking** - Use external tools

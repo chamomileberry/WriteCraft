@@ -11,6 +11,7 @@ After deploying WriteCraft, test these security measures with real authenticated
 **What to test:** CSRF tokens prevent unauthorized state changes
 
 ### Test Steps:
+
 1. **Log in** to your deployed application
 2. **Open browser DevTools** → Network tab
 3. **Get a CSRF token:**
@@ -24,6 +25,7 @@ After deploying WriteCraft, test these security measures with real authenticated
    - Expected: Update succeeds
 
 **Expected Results:**
+
 - ❌ Requests without CSRF token → Rejected
 - ✅ Requests with valid CSRF token → Succeed
 
@@ -34,6 +36,7 @@ After deploying WriteCraft, test these security measures with real authenticated
 **What to test:** Users cannot elevate themselves to admin status
 
 ### Test Steps:
+
 1. **Log in as a regular user** (non-admin)
 2. **Open browser DevTools** → Network tab
 3. **Attempt privilege escalation:**
@@ -44,6 +47,7 @@ After deploying WriteCraft, test these security measures with real authenticated
    - Check if `isAdmin` field changed
 
 **Expected Results:**
+
 - ❌ isAdmin field remains `false` (not elevated)
 - ✅ Only firstName updated, isAdmin ignored
 - Schema validation should reject additional fields
@@ -57,6 +61,7 @@ After deploying WriteCraft, test these security measures with real authenticated
 ### Test Steps:
 
 #### A. Notebook Access Test
+
 1. **Log in as User A**
 2. **Create a notebook** and note its ID (from URL or response)
 3. **Log out and log in as User B**
@@ -66,6 +71,7 @@ After deploying WriteCraft, test these security measures with real authenticated
 5. **Expected:** 404 Not Found (not 403, to prevent enumeration)
 
 #### B. Character/Content Access Test
+
 1. **Log in as User A**
 2. **Create a character in a notebook** and note the character ID
 3. **Log out and log in as User B**
@@ -74,14 +80,16 @@ After deploying WriteCraft, test these security measures with real authenticated
 5. **Expected:** 404 Not Found
 
 #### C. Update/Delete Attempt Test
+
 1. **As User B, try to delete User A's content:**
    - Send DELETE to `/api/notebooks/{user-a-notebook-id}`
    - Send DELETE to `/api/characters/{user-a-character-id}`
 2. **Expected:** 404 Not Found (deletion fails)
 
 **Expected Results:**
+
 - ❌ User B cannot view User A's notebooks → 404
-- ❌ User B cannot view User A's characters → 404  
+- ❌ User B cannot view User A's characters → 404
 - ❌ User B cannot update/delete User A's content → 404
 - ✅ User B can only access their own data
 
@@ -92,6 +100,7 @@ After deploying WriteCraft, test these security measures with real authenticated
 **What to test:** Rate limits apply to authenticated requests
 
 ### Test Steps:
+
 1. **Log in to your application**
 2. **Open browser DevTools** → Network tab
 3. **Make rapid requests to any endpoint:**
@@ -105,6 +114,7 @@ After deploying WriteCraft, test these security measures with real authenticated
 6. **Expected:** 429 Too Many Requests after limit exceeded
 
 **Expected Results:**
+
 - ✅ Rate limit headers present in responses
 - ✅ Remaining count decreases with each request
 - ✅ 429 status code after exceeding limit (100 req/15min)
@@ -116,6 +126,7 @@ After deploying WriteCraft, test these security measures with real authenticated
 **What to test:** Only admins can access admin endpoints
 
 ### Test Steps:
+
 1. **Log in as regular user** (non-admin)
 2. **Try to access admin endpoints:**
    - GET `/api/admin/users`
@@ -127,6 +138,7 @@ After deploying WriteCraft, test these security measures with real authenticated
 6. **Expected:** Success (200/204 responses)
 
 **Expected Results:**
+
 - ❌ Regular users → Cannot access admin endpoints
 - ✅ Admin users → Can access admin endpoints
 
@@ -137,6 +149,7 @@ After deploying WriteCraft, test these security measures with real authenticated
 **What to test:** Sessions expire and are properly validated
 
 ### Test Steps:
+
 1. **Log in to your application**
 2. **Wait for session timeout** (check session config)
 3. **Try to access protected resource** after timeout
@@ -148,6 +161,7 @@ After deploying WriteCraft, test these security measures with real authenticated
 8. **Expected:** Redirected to login
 
 **Expected Results:**
+
 - ✅ Expired sessions rejected
 - ✅ Missing sessions require re-authentication
 
@@ -156,6 +170,7 @@ After deploying WriteCraft, test these security measures with real authenticated
 ## 7. Input Sanitization (Already Verified ✅)
 
 This was verified during development with runtime tests:
+
 - ✅ SQL injection blocked (400 "Invalid input detected")
 - ✅ XSS attacks blocked (400 "Invalid input detected")
 - ✅ Prototype pollution blocked (dangerous keys removed)
@@ -167,12 +182,14 @@ This was verified during development with runtime tests:
 ## Testing Tools
 
 ### Browser DevTools Method:
+
 1. Open DevTools (F12)
 2. Go to Network tab
 3. Right-click any request → "Edit and Resend"
 4. Modify headers/body to test security
 
 ### Using Curl (Command Line):
+
 ```bash
 # Get CSRF token
 curl -X GET https://your-app.replit.app/api/auth/csrf-token \
@@ -209,6 +226,7 @@ After deployment, verify:
 ## What's Already Verified ✅
 
 The following were tested during development:
+
 - ✅ Input sanitization blocks malicious payloads
 - ✅ Security headers present (X-Frame-Options, X-Content-Type-Options, etc.)
 - ✅ Authentication enforcement (401 for unauthenticated requests)
@@ -218,6 +236,7 @@ The following were tested during development:
 ## Support
 
 If any test fails, check:
+
 1. `SECURITY.md` for implementation details
 2. `SECURITY_SUMMARY.md` for security architecture
 3. Server logs for security event messages

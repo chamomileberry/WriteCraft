@@ -14,15 +14,19 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
 
     // Validate required fields
     if (!itemType || !itemId) {
-      return res.status(400).json({ error: 'Missing required fields: itemType, itemId' });
+      return res
+        .status(400)
+        .json({ error: "Missing required fields: itemType, itemId" });
     }
 
     // If notebookId is provided, validate user owns the notebook
     if (notebookId) {
       const userNotebook = await storage.getNotebook(notebookId, userId);
       if (!userNotebook) {
-        console.warn(`[Security] Unauthorized saved-item access attempt - userId: ${userId}, notebookId: ${notebookId}`);
-        return res.status(404).json({ error: 'Notebook not found' });
+        console.warn(
+          `[Security] Unauthorized saved-item access attempt - userId: ${userId}, notebookId: ${notebookId}`,
+        );
+        return res.status(404).json({ error: "Notebook not found" });
       }
     }
 
@@ -31,30 +35,39 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
       notebookId: notebookId || null,
       itemType,
       itemId,
-      itemData
+      itemData,
     };
 
     const validatedSavedItem = insertSavedItemSchema.parse(savedItemData);
     const savedItem = await storage.saveItem(validatedSavedItem);
     res.json(savedItem);
   } catch (error) {
-    console.error('Error creating saved item:', error);
+    console.error("Error creating saved item:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid saved item data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid saved item data", details: error.errors });
     }
     // Handle unique constraint violation (duplicate saved item)
-    if (error instanceof Error && 'code' in error && (error as any).code === '23505') {
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      (error as any).code === "23505"
+    ) {
       return res.status(409).json({
-        error: 'This item is already saved in this notebook',
-        code: 'DUPLICATE_SAVED_ITEM'
+        error: "This item is already saved in this notebook",
+        code: "DUPLICATE_SAVED_ITEM",
       });
     }
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const savedItemId = req.body.itemId || 'unknown';
-      console.warn(`[Security] Unauthorized saved-item operation - userId: ${userId}, savedItemId: ${savedItemId}`);
-      return res.status(404).json({ error: 'Not found' });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const savedItemId = req.body.itemId || "unknown";
+      console.warn(
+        `[Security] Unauthorized saved-item operation - userId: ${userId}, savedItemId: ${savedItemId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -67,25 +80,36 @@ router.patch("/:id", writeRateLimiter, async (req: any, res) => {
     const { itemData } = req.body;
 
     if (!itemData) {
-      return res.status(400).json({ error: 'Missing required field: itemData' });
+      return res
+        .status(400)
+        .json({ error: "Missing required field: itemData" });
     }
 
     // Update the saved item's itemData
-    const updatedItem = await storage.updateSavedItemData(savedItemId, userId, itemData);
+    const updatedItem = await storage.updateSavedItemData(
+      savedItemId,
+      userId,
+      itemData,
+    );
 
     if (!updatedItem) {
-      return res.status(404).json({ error: 'Saved item not found or access denied' });
+      return res
+        .status(404)
+        .json({ error: "Saved item not found or access denied" });
     }
 
     res.json(updatedItem);
   } catch (error) {
-    console.error('Error updating saved item:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const savedItemId = req.params.id || 'unknown';
-      console.warn(`[Security] Unauthorized saved-item operation - userId: ${userId}, savedItemId: ${savedItemId}`);
-      return res.status(404).json({ error: 'Not found' });
+    console.error("Error updating saved item:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const savedItemId = req.params.id || "unknown";
+      console.warn(
+        `[Security] Unauthorized saved-item operation - userId: ${userId}, savedItemId: ${savedItemId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -98,32 +122,97 @@ router.patch("/:id/type", writeRateLimiter, async (req: any, res) => {
     const { newItemType } = req.body;
 
     if (!newItemType) {
-      return res.status(400).json({ error: 'Missing required field: newItemType' });
+      return res
+        .status(400)
+        .json({ error: "Missing required field: newItemType" });
     }
 
     // Validate the new item type is a valid content type
-    const validTypes = ['character', 'location', 'item', 'organization', 'conflict', 'theme', 'mood', 'description', 'name', 'map', 'setting', 'armor', 'spell', 'plot', 'familyTree', 'timeline', 'prompt', 'vehicle', 'clothing', 'disease', 'title', 'quest', 'artifact', 'flora', 'fauna', 'mineral', 'weather', 'disaster', 'custom', 'projectItem', 'projectFolder', 'quickNote', 'creature', 'plant', 'animal', 'food', 'drink', 'resource', 'event', 'society', 'settlement', 'technology', 'religion', 'language', 'faction', 'weapon', 'building', 'ethnicity', 'culture', 'species', 'rank', 'condition', 'document'];
-    
+    const validTypes = [
+      "character",
+      "location",
+      "item",
+      "organization",
+      "conflict",
+      "theme",
+      "mood",
+      "description",
+      "name",
+      "map",
+      "setting",
+      "armor",
+      "spell",
+      "plot",
+      "familyTree",
+      "timeline",
+      "prompt",
+      "vehicle",
+      "clothing",
+      "disease",
+      "title",
+      "quest",
+      "artifact",
+      "flora",
+      "fauna",
+      "mineral",
+      "weather",
+      "disaster",
+      "custom",
+      "projectItem",
+      "projectFolder",
+      "quickNote",
+      "creature",
+      "plant",
+      "animal",
+      "food",
+      "drink",
+      "resource",
+      "event",
+      "society",
+      "settlement",
+      "technology",
+      "religion",
+      "language",
+      "faction",
+      "weapon",
+      "building",
+      "ethnicity",
+      "culture",
+      "species",
+      "rank",
+      "condition",
+      "document",
+    ];
+
     if (!validTypes.includes(newItemType)) {
-      return res.status(400).json({ error: 'Invalid item type' });
+      return res.status(400).json({ error: "Invalid item type" });
     }
 
     // Update the saved item's itemType
-    const updatedItem = await storage.updateSavedItemType(savedItemId, userId, newItemType);
+    const updatedItem = await storage.updateSavedItemType(
+      savedItemId,
+      userId,
+      newItemType,
+    );
 
     if (!updatedItem) {
-      return res.status(404).json({ error: 'Saved item not found or access denied' });
+      return res
+        .status(404)
+        .json({ error: "Saved item not found or access denied" });
     }
 
     res.json(updatedItem);
   } catch (error) {
-    console.error('Error updating saved item type:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const savedItemId = req.params.id || 'unknown';
-      console.warn(`[Security] Unauthorized saved-item operation - userId: ${userId}, savedItemId: ${savedItemId}`);
-      return res.status(404).json({ error: 'Not found' });
+    console.error("Error updating saved item type:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const savedItemId = req.params.id || "unknown";
+      console.warn(
+        `[Security] Unauthorized saved-item operation - userId: ${userId}, savedItemId: ${savedItemId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -135,53 +224,74 @@ router.delete("/", writeRateLimiter, async (req: any, res) => {
     // Extract userId from authentication headers for security (ignore client payload)
     const { itemType, itemId, notebookId } = req.body;
 
-    console.log('[DELETE] Attempting to delete saved item:', {
+    console.log("[DELETE] Attempting to delete saved item:", {
       userId,
       itemType,
       itemId,
       notebookId,
-      fullBody: req.body
+      fullBody: req.body,
     });
 
     if (!itemType || !itemId) {
-      return res.status(400).json({ error: 'Missing required fields: itemType, itemId' });
+      return res
+        .status(400)
+        .json({ error: "Missing required fields: itemType, itemId" });
     }
 
     // If notebookId is provided, validate user owns the notebook
     if (notebookId) {
       const userNotebook = await storage.getNotebook(notebookId, userId);
       if (!userNotebook) {
-        console.warn(`[Security] Unauthorized saved-item access attempt - userId: ${userId}, notebookId: ${notebookId}`);
-        return res.status(404).json({ error: 'Notebook not found' });
+        console.warn(
+          `[Security] Unauthorized saved-item access attempt - userId: ${userId}, notebookId: ${notebookId}`,
+        );
+        return res.status(404).json({ error: "Notebook not found" });
       }
 
       // Delete with notebook validation to prevent cross-notebook deletions
-      console.log('[DELETE] Calling unsaveItemFromNotebook with:', { userId, itemType, itemId, notebookId });
-      await storage.unsaveItemFromNotebook(userId, itemType, itemId, notebookId);
-      console.log('[DELETE] Delete completed successfully');
+      console.log("[DELETE] Calling unsaveItemFromNotebook with:", {
+        userId,
+        itemType,
+        itemId,
+        notebookId,
+      });
+      await storage.unsaveItemFromNotebook(
+        userId,
+        itemType,
+        itemId,
+        notebookId,
+      );
+      console.log("[DELETE] Delete completed successfully");
     } else {
       // Legacy delete without notebook scoping
-      console.log('[DELETE] Calling unsaveItem with:', { userId, itemType, itemId });
+      console.log("[DELETE] Calling unsaveItem with:", {
+        userId,
+        itemType,
+        itemId,
+      });
       await storage.unsaveItem(userId, itemType, itemId);
-      console.log('[DELETE] Delete completed successfully');
+      console.log("[DELETE] Delete completed successfully");
     }
 
     res.json({ success: true });
   } catch (error) {
-    console.error('Error deleting saved item:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const itemId = req.body.itemId || 'unknown';
-      console.warn(`[Security] Unauthorized saved-item operation - userId: ${userId}, itemId: ${itemId}`);
-      return res.status(404).json({ error: 'Not found' });
+    console.error("Error deleting saved item:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const itemId = req.body.itemId || "unknown";
+      console.warn(
+        `[Security] Unauthorized saved-item operation - userId: ${userId}, itemId: ${itemId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
     res.status(500).json({ error: errorMessage });
   }
 });
 
 // Get saved items for a user
-router.get('/:userId', readRateLimiter, async (req: any, res) => {
+router.get("/:userId", readRateLimiter, async (req: any, res) => {
   try {
     // Extract userId from authentication headers for security
     const authenticatedUserId = req.user.claims.sub;
@@ -190,20 +300,30 @@ router.get('/:userId', readRateLimiter, async (req: any, res) => {
 
     // Validate that authenticated user can only access their own saved items
     if (authenticatedUserId !== requestedUserId) {
-      console.warn(`[Security] Unauthorized saved-item access attempt - userId: ${authenticatedUserId}, requestedUserId: ${requestedUserId}`);
-      return res.status(404).json({ error: 'Saved items not found' });
+      console.warn(
+        `[Security] Unauthorized saved-item access attempt - userId: ${authenticatedUserId}, requestedUserId: ${requestedUserId}`,
+      );
+      return res.status(404).json({ error: "Saved items not found" });
     }
 
     // If notebookId is provided, validate user owns the notebook
     if (notebookId) {
-      const userNotebook = await storage.getNotebook(notebookId, authenticatedUserId);
+      const userNotebook = await storage.getNotebook(
+        notebookId,
+        authenticatedUserId,
+      );
       if (!userNotebook) {
-        console.warn(`[Security] Unauthorized saved-item access attempt - userId: ${authenticatedUserId}, notebookId: ${notebookId}`);
-        return res.status(404).json({ error: 'Notebook not found' });
+        console.warn(
+          `[Security] Unauthorized saved-item access attempt - userId: ${authenticatedUserId}, notebookId: ${notebookId}`,
+        );
+        return res.status(404).json({ error: "Notebook not found" });
       }
 
       // Get saved items for specific notebook
-      const savedItems = await storage.getUserSavedItemsByNotebook(authenticatedUserId, notebookId);
+      const savedItems = await storage.getUserSavedItemsByNotebook(
+        authenticatedUserId,
+        notebookId,
+      );
       res.json(savedItems);
     } else {
       // Get all saved items (legacy support)
@@ -211,8 +331,8 @@ router.get('/:userId', readRateLimiter, async (req: any, res) => {
       res.json(savedItems);
     }
   } catch (error) {
-    console.error('Error fetching saved items:', error);
-    res.status(500).json({ error: 'Failed to fetch saved items' });
+    console.error("Error fetching saved items:", error);
+    res.status(500).json({ error: "Failed to fetch saved items" });
   }
 });
 
@@ -223,25 +343,35 @@ router.get("/notebook/:notebookId", readRateLimiter, async (req: any, res) => {
     const { notebookId } = req.params;
     const itemType = req.query.type as string | undefined;
 
-    console.log(`[SavedItems] Fetching items for user ${userId}, notebook ${notebookId}, itemType: ${itemType || 'all'}`);
+    console.log(
+      `[SavedItems] Fetching items for user ${userId}, notebook ${notebookId}, itemType: ${itemType || "all"}`,
+    );
 
-    const items = await storage.getUserSavedItemsByNotebook(userId, notebookId, itemType);
+    const items = await storage.getUserSavedItemsByNotebook(
+      userId,
+      notebookId,
+      itemType,
+    );
 
-    console.log(`[SavedItems] Found ${items.length} items for notebook ${notebookId}`);
-    console.log(`[SavedItems] First 5 items:`, items.slice(0, 5).map(item => ({
-      id: item.id,
-      itemType: item.itemType,
-      itemId: item.itemId,
-      notebookId: item.notebookId
-    })));
+    console.log(
+      `[SavedItems] Found ${items.length} items for notebook ${notebookId}`,
+    );
+    console.log(
+      `[SavedItems] First 5 items:`,
+      items.slice(0, 5).map((item) => ({
+        id: item.id,
+        itemType: item.itemType,
+        itemId: item.itemId,
+        notebookId: item.notebookId,
+      })),
+    );
 
     res.json(items);
   } catch (error) {
-    console.error('Error fetching saved items by notebook:', error);
-    res.status(500).json({ error: 'Failed to fetch saved items' });
+    console.error("Error fetching saved items by notebook:", error);
+    res.status(500).json({ error: "Failed to fetch saved items" });
   }
 });
-
 
 // Sync endpoint to update itemData for all saved_items with current content
 router.post("/sync/:userId", writeRateLimiter, async (req: any, res) => {
@@ -251,8 +381,10 @@ router.post("/sync/:userId", writeRateLimiter, async (req: any, res) => {
 
     // Validate that authenticated user can only sync their own saved items
     if (userId !== requestedUserId) {
-      console.warn(`[Security] Unauthorized saved-item sync attempt - userId: ${userId}, requestedUserId: ${requestedUserId}`);
-      return res.status(404).json({ error: 'Saved items not found' });
+      console.warn(
+        `[Security] Unauthorized saved-item sync attempt - userId: ${userId}, requestedUserId: ${requestedUserId}`,
+      );
+      return res.status(404).json({ error: "Saved items not found" });
     }
 
     // Get all saved items for this user
@@ -262,7 +394,7 @@ router.post("/sync/:userId", writeRateLimiter, async (req: any, res) => {
       total: savedItems.length,
       updated: 0,
       failed: 0,
-      errors: [] as string[]
+      errors: [] as string[],
     };
 
     // For each saved item, fetch current data and update itemData
@@ -270,55 +402,112 @@ router.post("/sync/:userId", writeRateLimiter, async (req: any, res) => {
       try {
         let currentData = null;
 
-        console.log(`[Sync] Processing ${savedItem.itemType} ${savedItem.itemId}`);
+        console.log(
+          `[Sync] Processing ${savedItem.itemType} ${savedItem.itemId}`,
+        );
 
         // Fetch current data based on item type
         switch (savedItem.itemType) {
-          case 'character':
-            currentData = await storage.getCharacter(savedItem.itemId, userId, savedItem.notebookId);
+          case "character":
+            currentData = await storage.getCharacter(
+              savedItem.itemId,
+              userId,
+              savedItem.notebookId,
+            );
             break;
-          case 'plant':
-            currentData = await storage.getPlant(savedItem.itemId, userId, savedItem.notebookId);
+          case "plant":
+            currentData = await storage.getPlant(
+              savedItem.itemId,
+              userId,
+              savedItem.notebookId,
+            );
             break;
-          case 'weapon':
-            currentData = await storage.getWeapon(savedItem.itemId, userId, savedItem.notebookId);
+          case "weapon":
+            currentData = await storage.getWeapon(
+              savedItem.itemId,
+              userId,
+              savedItem.notebookId,
+            );
             break;
-          case 'armor':
-            currentData = await storage.getArmor(savedItem.itemId, userId, savedItem.notebookId);
+          case "armor":
+            currentData = await storage.getArmor(
+              savedItem.itemId,
+              userId,
+              savedItem.notebookId,
+            );
             break;
-          case 'location':
-            currentData = await storage.getLocation(savedItem.itemId, userId, savedItem.notebookId);
+          case "location":
+            currentData = await storage.getLocation(
+              savedItem.itemId,
+              userId,
+              savedItem.notebookId,
+            );
             break;
-          case 'creature':
-            currentData = await storage.getCreature(savedItem.itemId, userId, savedItem.notebookId);
+          case "creature":
+            currentData = await storage.getCreature(
+              savedItem.itemId,
+              userId,
+              savedItem.notebookId,
+            );
             break;
-          case 'faction':
-            currentData = await storage.getFaction(savedItem.itemId, userId, savedItem.notebookId);
+          case "faction":
+            currentData = await storage.getFaction(
+              savedItem.itemId,
+              userId,
+              savedItem.notebookId,
+            );
             break;
-          case 'culture':
-            currentData = await storage.getCulture(savedItem.itemId, userId, savedItem.notebookId);
+          case "culture":
+            currentData = await storage.getCulture(
+              savedItem.itemId,
+              userId,
+              savedItem.notebookId,
+            );
             break;
-          case 'religion':
-            currentData = await storage.getReligion(savedItem.itemId, userId, savedItem.notebookId);
+          case "religion":
+            currentData = await storage.getReligion(
+              savedItem.itemId,
+              userId,
+              savedItem.notebookId,
+            );
             break;
-          case 'language':
-            currentData = await storage.getLanguage(savedItem.itemId, userId, savedItem.notebookId);
+          case "language":
+            currentData = await storage.getLanguage(
+              savedItem.itemId,
+              userId,
+              savedItem.notebookId,
+            );
             break;
-          case 'technology':
-            currentData = await storage.getTechnology(savedItem.itemId, userId, savedItem.notebookId);
+          case "technology":
+            currentData = await storage.getTechnology(
+              savedItem.itemId,
+              userId,
+              savedItem.notebookId,
+            );
             break;
-          case 'profession':
-            currentData = await storage.getProfession(savedItem.itemId, userId, savedItem.notebookId);
+          case "profession":
+            currentData = await storage.getProfession(
+              savedItem.itemId,
+              userId,
+              savedItem.notebookId,
+            );
             break;
-          case 'species':
-            currentData = await storage.getSpecies(savedItem.itemId, userId, savedItem.notebookId);
+          case "species":
+            currentData = await storage.getSpecies(
+              savedItem.itemId,
+              userId,
+              savedItem.notebookId,
+            );
             break;
           default:
             // Skip unknown types
             continue;
         }
 
-        console.log(`[Sync] Fetched data for ${savedItem.itemType} ${savedItem.itemId}:`, currentData ? 'found' : 'not found');
+        console.log(
+          `[Sync] Fetched data for ${savedItem.itemType} ${savedItem.itemId}:`,
+          currentData ? "found" : "not found",
+        );
 
         if (currentData) {
           // Update the itemData
@@ -326,19 +515,24 @@ router.post("/sync/:userId", writeRateLimiter, async (req: any, res) => {
           console.log(`[Sync] Updated itemData for saved item ${savedItem.id}`);
           results.updated++;
         } else {
-          results.errors.push(`Item not found: ${savedItem.itemType} ${savedItem.itemId}`);
+          results.errors.push(
+            `Item not found: ${savedItem.itemType} ${savedItem.itemId}`,
+          );
           results.failed++;
         }
       } catch (error) {
         results.failed++;
-        results.errors.push(`Failed to sync ${savedItem.itemType} ${savedItem.itemId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        results.errors.push(
+          `Failed to sync ${savedItem.itemType} ${savedItem.itemId}: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     }
 
     res.json(results);
   } catch (error) {
-    console.error('Error syncing saved items:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error("Error syncing saved items:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
     res.status(500).json({ error: errorMessage });
   }
 });

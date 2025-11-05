@@ -10,31 +10,40 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.body.notebookId;
-    
+
     // Validate notebook ownership before allowing write
     if (notebookId) {
-      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, userId);
+      const ownsNotebook = await storage.validateNotebookOwnership(
+        notebookId,
+        userId,
+      );
       if (!ownsNotebook) {
-        console.warn(`[Security] Unauthorized spell access attempt - userId: ${userId}, notebookId: ${notebookId}`);
-        return res.status(404).json({ error: 'Spell not found' });
+        console.warn(
+          `[Security] Unauthorized spell access attempt - userId: ${userId}, notebookId: ${notebookId}`,
+        );
+        return res.status(404).json({ error: "Spell not found" });
       }
     }
-    
+
     const validatedSpell = insertSpellSchema.parse(req.body);
     const savedSpell = await storage.createSpell(validatedSpell);
     res.json(savedSpell);
   } catch (error) {
-    console.error('Error saving spell:', error);
+    console.error("Error saving spell:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const spellId = req.body.id || 'unknown';
-      console.warn(`[Security] Unauthorized spell operation - userId: ${userId}, spellId: ${spellId}`);
-      return res.status(404).json({ error: 'Not found' });
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const spellId = req.body.id || "unknown";
+      console.warn(
+        `[Security] Unauthorized spell operation - userId: ${userId}, spellId: ${spellId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to save spell' });
+    res.status(500).json({ error: "Failed to save spell" });
   }
 });
 
@@ -42,16 +51,18 @@ router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     const spells = await storage.getUserSpells(userId, notebookId);
     res.json(spells);
   } catch (error) {
-    console.error('Error fetching spells:', error);
-    res.status(500).json({ error: 'Failed to fetch spells' });
+    console.error("Error fetching spells:", error);
+    res.status(500).json({ error: "Failed to fetch spells" });
   }
 });
 
@@ -59,19 +70,21 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     const spell = await storage.getSpell(req.params.id, userId, notebookId);
     if (!spell) {
-      return res.status(404).json({ error: 'Spell not found' });
+      return res.status(404).json({ error: "Spell not found" });
     }
     res.json(spell);
   } catch (error) {
-    console.error('Error fetching spell:', error);
-    res.status(500).json({ error: 'Failed to fetch spell' });
+    console.error("Error fetching spell:", error);
+    res.status(500).json({ error: "Failed to fetch spell" });
   }
 });
 
@@ -79,19 +92,28 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const validatedUpdates = insertSpellSchema.parse(req.body);
-    const updatedSpell = await storage.updateSpell(req.params.id, userId, validatedUpdates);
+    const updatedSpell = await storage.updateSpell(
+      req.params.id,
+      userId,
+      validatedUpdates,
+    );
     res.json(updatedSpell);
   } catch (error) {
-    console.error('Error updating spell:', error);
+    console.error("Error updating spell:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const spellId = req.params.id || 'unknown';
-      console.warn(`[Security] Unauthorized spell operation - userId: ${userId}, spellId: ${spellId}`);
-      return res.status(404).json({ error: 'Not found' });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const spellId = req.params.id || "unknown";
+      console.warn(
+        `[Security] Unauthorized spell operation - userId: ${userId}, spellId: ${spellId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -103,14 +125,16 @@ router.delete("/:id", writeRateLimiter, async (req: any, res) => {
     await storage.deleteSpell(req.params.id, userId);
     res.json({ success: true });
   } catch (error) {
-    console.error('Error deleting spell:', error);
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const spellId = req.params.id || 'unknown';
-      console.warn(`[Security] Unauthorized spell operation - userId: ${userId}, spellId: ${spellId}`);
-      return res.status(404).json({ error: 'Not found' });
+    console.error("Error deleting spell:", error);
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const spellId = req.params.id || "unknown";
+      console.warn(
+        `[Security] Unauthorized spell operation - userId: ${userId}, spellId: ${spellId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to delete spell' });
+    res.status(500).json({ error: "Failed to delete spell" });
   }
 });
 

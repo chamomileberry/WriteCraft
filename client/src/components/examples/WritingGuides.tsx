@@ -1,4 +1,4 @@
-import WritingGuides from '../WritingGuides';
+import WritingGuides from "../WritingGuides";
 
 export default function WritingGuidesExample() {
   return (

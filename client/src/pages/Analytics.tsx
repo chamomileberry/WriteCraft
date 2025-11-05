@@ -1,54 +1,89 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, DollarSign, Activity, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import { TrendingUp, DollarSign, Activity, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-const COLORS = ['#8b5cf6', '#06b6d4', '#f97316', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+const COLORS = [
+  "#8b5cf6",
+  "#06b6d4",
+  "#f97316",
+  "#10b981",
+  "#f59e0b",
+  "#ef4444",
+  "#8b5cf6",
+];
 
 export default function Analytics() {
-  const [timeRange, setTimeRange] = useState<'7' | '30' | '90'>('30');
+  const [timeRange, setTimeRange] = useState<"7" | "30" | "90">("30");
 
   // Fetch analytics data
   const { data: analytics, isLoading: analyticsLoading } = useQuery({
-    queryKey: ['/api/subscription/analytics', timeRange],
+    queryKey: ["/api/subscription/analytics", timeRange],
     queryFn: async () => {
       const res = await fetch(`/api/subscription/analytics?days=${timeRange}`, {
-        credentials: 'include',
+        credentials: "include",
       });
-      if (!res.ok) throw new Error('Failed to fetch analytics');
+      if (!res.ok) throw new Error("Failed to fetch analytics");
       return res.json();
     },
   });
 
   // Fetch forecast data
   const { data: forecast, isLoading: forecastLoading } = useQuery({
-    queryKey: ['/api/subscription/forecast'],
+    queryKey: ["/api/subscription/forecast"],
   }) as { data: any; isLoading: boolean };
 
   const isLoading = analyticsLoading || forecastLoading;
 
   // Format daily data for charts
-  const dailyChartData = analytics?.dailySummaries?.map((day: any) => ({
-    date: new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    operations: day.totalOperations || 0,
-    cost: (day.totalCostCents || 0) / 100,
-  })) || [];
+  const dailyChartData =
+    analytics?.dailySummaries?.map((day: any) => ({
+      date: new Date(day.date).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      }),
+      operations: day.totalOperations || 0,
+      cost: (day.totalCostCents || 0) / 100,
+    })) || [];
 
   // Format feature breakdown for pie chart
-  const featureChartData = analytics?.featureBreakdown?.map((item: any) => ({
-    name: item.feature.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
-    value: item.count,
-    cost: item.costCents / 100,
-  })) || [];
+  const featureChartData =
+    analytics?.featureBreakdown?.map((item: any) => ({
+      name: item.feature
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (l: string) => l.toUpperCase()),
+      value: item.count,
+      cost: item.costCents / 100,
+    })) || [];
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
       minimumFractionDigits: 2,
     }).format(value);
   };
@@ -58,29 +93,30 @@ export default function Analytics() {
       <div>
         <h1 className="text-3xl font-bold mb-2">Usage Analytics</h1>
         <p className="text-muted-foreground">
-          Track your AI usage, costs, and get insights to optimize your subscription.
+          Track your AI usage, costs, and get insights to optimize your
+          subscription.
         </p>
       </div>
 
       {/* Time Range Selector */}
       <div className="flex gap-2">
         <Button
-          variant={timeRange === '7' ? 'default' : 'outline'}
-          onClick={() => setTimeRange('7')}
+          variant={timeRange === "7" ? "default" : "outline"}
+          onClick={() => setTimeRange("7")}
           data-testid="button-range-7"
         >
           Last 7 Days
         </Button>
         <Button
-          variant={timeRange === '30' ? 'default' : 'outline'}
-          onClick={() => setTimeRange('30')}
+          variant={timeRange === "30" ? "default" : "outline"}
+          onClick={() => setTimeRange("30")}
           data-testid="button-range-30"
         >
           Last 30 Days
         </Button>
         <Button
-          variant={timeRange === '90' ? 'default' : 'outline'}
-          onClick={() => setTimeRange('90')}
+          variant={timeRange === "90" ? "default" : "outline"}
+          onClick={() => setTimeRange("90")}
           data-testid="button-range-90"
         >
           Last 90 Days
@@ -101,11 +137,16 @@ export default function Analytics() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Generations</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Generations
+              </CardTitle>
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold" data-testid="text-total-operations">
+              <div
+                className="text-2xl font-bold"
+                data-testid="text-total-operations"
+              >
                 {analytics?.totals?.operations?.toLocaleString() || 0}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -131,7 +172,9 @@ export default function Analytics() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Daily Average</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Daily Average
+              </CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -146,17 +189,22 @@ export default function Analytics() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Current Tier</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Current Tier
+              </CardTitle>
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold capitalize" data-testid="text-current-tier">
-                {analytics?.subscription?.tier || 'Free'}
+              <div
+                className="text-2xl font-bold capitalize"
+                data-testid="text-current-tier"
+              >
+                {analytics?.subscription?.tier || "Free"}
               </div>
               <p className="text-xs text-muted-foreground">
-                {analytics?.subscription?.limits?.aiGenerationsPerDay 
+                {analytics?.subscription?.limits?.aiGenerationsPerDay
                   ? `${analytics.subscription.limits.aiGenerationsPerDay}/day limit`
-                  : 'Unlimited'}
+                  : "Unlimited"}
               </p>
             </CardContent>
           </Card>
@@ -166,9 +214,15 @@ export default function Analytics() {
       {/* Charts */}
       <Tabs defaultValue="usage" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="usage" data-testid="tab-usage">Usage Over Time</TabsTrigger>
-          <TabsTrigger value="breakdown" data-testid="tab-breakdown">Feature Breakdown</TabsTrigger>
-          <TabsTrigger value="cost" data-testid="tab-cost">Cost Analysis</TabsTrigger>
+          <TabsTrigger value="usage" data-testid="tab-usage">
+            Usage Over Time
+          </TabsTrigger>
+          <TabsTrigger value="breakdown" data-testid="tab-breakdown">
+            Feature Breakdown
+          </TabsTrigger>
+          <TabsTrigger value="cost" data-testid="tab-cost">
+            Cost Analysis
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="usage" className="space-y-4">
@@ -187,10 +241,10 @@ export default function Analytics() {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="operations" 
-                    stroke="#8b5cf6" 
+                  <Line
+                    type="monotone"
+                    dataKey="operations"
+                    stroke="#8b5cf6"
                     strokeWidth={2}
                     name="Generations"
                   />
@@ -223,7 +277,10 @@ export default function Analytics() {
                       dataKey="value"
                     >
                       {featureChartData.map((_: any, index: number) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -243,7 +300,12 @@ export default function Analytics() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={featureChartData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
+                    <XAxis
+                      dataKey="name"
+                      angle={-45}
+                      textAnchor="end"
+                      height={100}
+                    />
                     <YAxis />
                     <Tooltip />
                     <Bar dataKey="value" fill="#8b5cf6" name="Count" />
@@ -270,10 +332,10 @@ export default function Analytics() {
                   <YAxis />
                   <Tooltip formatter={(value: any) => formatCurrency(value)} />
                   <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="cost" 
-                    stroke="#10b981" 
+                  <Line
+                    type="monotone"
+                    dataKey="cost"
+                    stroke="#10b981"
                     strokeWidth={2}
                     name="Cost ($)"
                   />

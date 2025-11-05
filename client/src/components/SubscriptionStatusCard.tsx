@@ -1,4 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,7 +44,11 @@ export function SubscriptionStatusCard() {
     return Math.min((current / max) * 100, 100);
   };
 
-  const getUsageColor = (current: number, max: number | null, exceeded: boolean): string => {
+  const getUsageColor = (
+    current: number,
+    max: number | null,
+    exceeded: boolean,
+  ): string => {
     if (exceeded) return "bg-destructive";
     if (max === null) return "bg-primary";
     const percentage = (current / max) * 100;
@@ -47,19 +57,21 @@ export function SubscriptionStatusCard() {
     return "bg-primary";
   };
 
-  const tierDisplayName = {
-    free: "Free",
-    author: "Author",
-    professional: "Professional",
-    team: "Team"
-  }[tier] || tier;
+  const tierDisplayName =
+    {
+      free: "Free",
+      author: "Author",
+      professional: "Professional",
+      team: "Team",
+    }[tier] || tier;
 
-  const effectiveTierDisplayName = {
-    free: "Free",
-    author: "Author",
-    professional: "Professional",
-    team: "Team"
-  }[effectiveTier] || effectiveTier;
+  const effectiveTierDisplayName =
+    {
+      free: "Free",
+      author: "Author",
+      professional: "Professional",
+      team: "Team",
+    }[effectiveTier] || effectiveTier;
 
   return (
     <Card data-testid="card-subscription-status">
@@ -67,12 +79,20 @@ export function SubscriptionStatusCard() {
         <div className="flex items-center justify-between">
           <CardTitle>Subscription Status</CardTitle>
           {isPaused && (
-            <Badge variant="outline" className="text-orange-600 border-orange-600" data-testid="badge-paused">
+            <Badge
+              variant="outline"
+              className="text-orange-600 border-orange-600"
+              data-testid="badge-paused"
+            >
               Paused
             </Badge>
           )}
           {inGracePeriod && (
-            <Badge variant="outline" className="text-orange-600 border-orange-600" data-testid="badge-grace-period">
+            <Badge
+              variant="outline"
+              className="text-orange-600 border-orange-600"
+              data-testid="badge-grace-period"
+            >
               <Clock className="h-3 w-3 mr-1" />
               Grace Period
             </Badge>
@@ -87,24 +107,27 @@ export function SubscriptionStatusCard() {
         <CardDescription>
           {isPaused ? (
             <>
-              {tierDisplayName} plan (using {effectiveTierDisplayName} tier limits while paused)
+              {tierDisplayName} plan (using {effectiveTierDisplayName} tier
+              limits while paused)
             </>
           ) : (
-            <>
-              {tierDisplayName} plan
-            </>
+            <>{tierDisplayName} plan</>
           )}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Grace Period Warning */}
         {inGracePeriod && gracePeriodDaysRemaining !== null && (
-          <div className="p-3 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-md" data-testid="alert-grace-period">
+          <div
+            className="p-3 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-md"
+            data-testid="alert-grace-period"
+          >
             <div className="flex items-start gap-2">
               <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400 mt-0.5" />
               <div className="flex-1">
                 <p className="font-semibold text-sm text-orange-800 dark:text-orange-300">
-                  {gracePeriodDaysRemaining} {gracePeriodDaysRemaining === 1 ? 'day' : 'days'} remaining
+                  {gracePeriodDaysRemaining}{" "}
+                  {gracePeriodDaysRemaining === 1 ? "day" : "days"} remaining
                 </p>
                 <p className="text-sm text-orange-700 dark:text-orange-400 mt-1">
                   Upgrade or reduce usage to avoid service interruption
@@ -115,11 +138,16 @@ export function SubscriptionStatusCard() {
         )}
 
         {gracePeriodExpired && (
-          <div className="p-3 bg-destructive/10 border border-destructive rounded-md" data-testid="alert-grace-expired">
+          <div
+            className="p-3 bg-destructive/10 border border-destructive rounded-md"
+            data-testid="alert-grace-expired"
+          >
             <div className="flex items-start gap-2">
               <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
               <div className="flex-1">
-                <p className="font-semibold text-sm text-destructive">Grace period expired</p>
+                <p className="font-semibold text-sm text-destructive">
+                  Grace period expired
+                </p>
                 <p className="text-sm text-destructive/90 mt-1">
                   Please upgrade or reduce usage to continue
                 </p>
@@ -139,18 +167,30 @@ export function SubscriptionStatusCard() {
                   <AlertCircle className="h-4 w-4 text-destructive" />
                 )}
               </span>
-              <span className="text-muted-foreground" data-testid="text-projects-usage">
-                {usage?.projects || 0} / {limits?.maxProjects === null ? '∞' : limits?.maxProjects}
+              <span
+                className="text-muted-foreground"
+                data-testid="text-projects-usage"
+              >
+                {usage?.projects || 0} /{" "}
+                {limits?.maxProjects === null ? "∞" : limits?.maxProjects}
               </span>
             </div>
-            {limits?.maxProjects !== null && limits?.maxProjects !== undefined && (
-              <Progress 
-                value={getUsagePercentage(usage?.projects || 0, limits.maxProjects)}
-                className="h-2"
-                indicatorClassName={getUsageColor(usage?.projects || 0, limits.maxProjects, limitsExceeded?.projects || false)}
-                data-testid="progress-projects"
-              />
-            )}
+            {limits?.maxProjects !== null &&
+              limits?.maxProjects !== undefined && (
+                <Progress
+                  value={getUsagePercentage(
+                    usage?.projects || 0,
+                    limits.maxProjects,
+                  )}
+                  className="h-2"
+                  indicatorClassName={getUsageColor(
+                    usage?.projects || 0,
+                    limits.maxProjects,
+                    limitsExceeded?.projects || false,
+                  )}
+                  data-testid="progress-projects"
+                />
+              )}
           </div>
 
           {/* Notebooks */}
@@ -162,18 +202,30 @@ export function SubscriptionStatusCard() {
                   <AlertCircle className="h-4 w-4 text-destructive" />
                 )}
               </span>
-              <span className="text-muted-foreground" data-testid="text-notebooks-usage">
-                {usage?.notebooks || 0} / {limits?.maxNotebooks === null ? '∞' : limits?.maxNotebooks}
+              <span
+                className="text-muted-foreground"
+                data-testid="text-notebooks-usage"
+              >
+                {usage?.notebooks || 0} /{" "}
+                {limits?.maxNotebooks === null ? "∞" : limits?.maxNotebooks}
               </span>
             </div>
-            {limits?.maxNotebooks !== null && limits?.maxNotebooks !== undefined && (
-              <Progress 
-                value={getUsagePercentage(usage?.notebooks || 0, limits.maxNotebooks)}
-                className="h-2"
-                indicatorClassName={getUsageColor(usage?.notebooks || 0, limits.maxNotebooks, limitsExceeded?.notebooks || false)}
-                data-testid="progress-notebooks"
-              />
-            )}
+            {limits?.maxNotebooks !== null &&
+              limits?.maxNotebooks !== undefined && (
+                <Progress
+                  value={getUsagePercentage(
+                    usage?.notebooks || 0,
+                    limits.maxNotebooks,
+                  )}
+                  className="h-2"
+                  indicatorClassName={getUsageColor(
+                    usage?.notebooks || 0,
+                    limits.maxNotebooks,
+                    limitsExceeded?.notebooks || false,
+                  )}
+                  data-testid="progress-notebooks"
+                />
+              )}
           </div>
 
           {/* AI Generations */}
@@ -185,34 +237,56 @@ export function SubscriptionStatusCard() {
                   <AlertCircle className="h-4 w-4 text-destructive" />
                 )}
               </span>
-              <span className="text-muted-foreground" data-testid="text-ai-usage">
-                {usage?.aiGenerationsToday || 0} / {limits?.aiGenerationsPerDay === null ? '∞' : limits?.aiGenerationsPerDay}
+              <span
+                className="text-muted-foreground"
+                data-testid="text-ai-usage"
+              >
+                {usage?.aiGenerationsToday || 0} /{" "}
+                {limits?.aiGenerationsPerDay === null
+                  ? "∞"
+                  : limits?.aiGenerationsPerDay}
               </span>
             </div>
-            {limits?.aiGenerationsPerDay !== null && limits?.aiGenerationsPerDay !== undefined && (
-              <Progress 
-                value={getUsagePercentage(usage?.aiGenerationsToday || 0, limits.aiGenerationsPerDay)}
-                className="h-2"
-                indicatorClassName={getUsageColor(usage?.aiGenerationsToday || 0, limits.aiGenerationsPerDay, limitsExceeded?.aiGenerations || false)}
-                data-testid="progress-ai-generations"
-              />
-            )}
+            {limits?.aiGenerationsPerDay !== null &&
+              limits?.aiGenerationsPerDay !== undefined && (
+                <Progress
+                  value={getUsagePercentage(
+                    usage?.aiGenerationsToday || 0,
+                    limits.aiGenerationsPerDay,
+                  )}
+                  className="h-2"
+                  indicatorClassName={getUsageColor(
+                    usage?.aiGenerationsToday || 0,
+                    limits.aiGenerationsPerDay,
+                    limitsExceeded?.aiGenerations || false,
+                  )}
+                  data-testid="progress-ai-generations"
+                />
+              )}
           </div>
         </div>
 
         {/* Action Buttons */}
         <div className="flex gap-2 pt-4 border-t">
-          {tier === 'free' && (
+          {tier === "free" && (
             <Link href="/pricing" className="flex-1">
-              <Button className="w-full" variant="default" data-testid="button-upgrade">
+              <Button
+                className="w-full"
+                variant="default"
+                data-testid="button-upgrade"
+              >
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Upgrade Plan
               </Button>
             </Link>
           )}
-          {tier !== 'free' && (
+          {tier !== "free" && (
             <Link href="/settings?tab=billing" className="flex-1">
-              <Button className="w-full" variant="outline" data-testid="button-manage-billing">
+              <Button
+                className="w-full"
+                variant="outline"
+                data-testid="button-manage-billing"
+              >
                 Manage Billing
               </Button>
             </Link>

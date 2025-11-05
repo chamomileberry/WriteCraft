@@ -1,27 +1,27 @@
-import { useState, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { 
-  ChevronRight, 
-  ChevronDown, 
-  FileText, 
-  Folder, 
+import { useState, useEffect } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  ChevronRight,
+  ChevronDown,
+  FileText,
+  Folder,
   FolderOpen,
   Plus,
   MoreHorizontal,
   Trash2,
   Edit2,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
-import type { ProjectSectionWithChildren } from '@shared/schema';
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+import type { ProjectSectionWithChildren } from "@shared/schema";
 import Tree, {
   mutateTree,
   moveItemOnTree,
@@ -29,7 +29,7 @@ import Tree, {
   TreeItem,
   TreeData,
   ItemId,
-} from '@atlaskit/tree';
+} from "@atlaskit/tree";
 
 interface ProjectOutlineProps {
   projectId: string;
@@ -46,39 +46,44 @@ interface TreeItemData extends ProjectSectionWithChildren {
 }
 
 export function ProjectOutline({
-  projectId, 
-  sections, 
-  activeSectionId, 
+  projectId,
+  sections,
+  activeSectionId,
   onSectionClick,
-  onClose
+  onClose,
 }: ProjectOutlineProps) {
-  const [treeData, setTreeData] = useState<TreeData>({ rootId: 'root', items: {} });
+  const [treeData, setTreeData] = useState<TreeData>({
+    rootId: "root",
+    items: {},
+  });
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingTitle, setEditingTitle] = useState('');
+  const [editingTitle, setEditingTitle] = useState("");
 
   const queryClient = useQueryClient();
 
   // Convert sections to tree data structure
   useEffect(() => {
-    const convertToTreeData = (sections: ProjectSectionWithChildren[]): TreeData => {
+    const convertToTreeData = (
+      sections: ProjectSectionWithChildren[],
+    ): TreeData => {
       const items: { [key: string]: TreeItem } = {
-        'root': {
-          id: 'root',
-          children: sections.map(s => s.id),
-          data: { title: 'Root' },
+        root: {
+          id: "root",
+          children: sections.map((s) => s.id),
+          data: { title: "Root" },
           isExpanded: true,
-        }
+        },
       };
 
       const processSection = (section: ProjectSectionWithChildren) => {
         items[section.id] = {
           id: section.id,
-          children: section.children?.map(child => child.id) || [],
+          children: section.children?.map((child) => child.id) || [],
           data: {
             ...section,
-            isExpanded: section.type === 'folder',
+            isExpanded: section.type === "folder",
           },
-          isExpanded: section.type === 'folder',
+          isExpanded: section.type === "folder",
         };
 
         // Process children recursively
@@ -89,21 +94,32 @@ export function ProjectOutline({
 
       sections.forEach(processSection);
 
-      return { rootId: 'root', items };
+      return { rootId: "root", items };
     };
 
     setTreeData(convertToTreeData(sections));
   }, [sections]);
 
   const createMutation = useMutation({
-    mutationFn: async (data: { parentId: string | null; title: string; type: 'folder' | 'page'; position: number }) => {
-      const response = await apiRequest('POST', `/api/projects/${projectId}/sections`, data);
+    mutationFn: async (data: {
+      parentId: string | null;
+      title: string;
+      type: "folder" | "page";
+      position: number;
+    }) => {
+      const response = await apiRequest(
+        "POST",
+        `/api/projects/${projectId}/sections`,
+        data,
+      );
       return response.json();
     },
     onSuccess: (newSection, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'sections'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/projects", projectId, "sections"],
+      });
 
-      if (variables.type === 'page' && newSection) {
+      if (variables.type === "page" && newSection) {
         setTimeout(() => {
           onSectionClick(newSection as ProjectSectionWithChildren);
         }, 100);
@@ -113,48 +129,78 @@ export function ProjectOutline({
 
   const updateMutation = useMutation({
     mutationFn: async (data: { id: string; title: string }) => {
-      const response = await apiRequest('PUT', `/api/projects/${projectId}/sections/${data.id}`, {
-        title: data.title,
-      });
+      const response = await apiRequest(
+        "PUT",
+        `/api/projects/${projectId}/sections/${data.id}`,
+        {
+          title: data.title,
+        },
+      );
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'sections'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/projects", projectId, "sections"],
+      });
       setEditingId(null);
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest('DELETE', `/api/projects/${projectId}/sections/${id}`);
+      await apiRequest("DELETE", `/api/projects/${projectId}/sections/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'sections'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/projects", projectId, "sections"],
+      });
     },
   });
 
   const reorderMutation = useMutation({
-    mutationFn: async (reorders: Array<{ id: string; parentId: string | null; position: number }>) => {
-      const response = await apiRequest('POST', `/api/projects/${projectId}/sections/reorder`, {
-        sectionOrders: reorders
-      });
+    mutationFn: async (
+      reorders: Array<{
+        id: string;
+        parentId: string | null;
+        position: number;
+      }>,
+    ) => {
+      const response = await apiRequest(
+        "POST",
+        `/api/projects/${projectId}/sections/reorder`,
+        {
+          sectionOrders: reorders,
+        },
+      );
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'sections'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/projects", projectId, "sections"],
+      });
     },
   });
 
   const handleCreateFolder = (parentId: string | null = null) => {
-    const actualParentId = parentId === 'root' ? null : parentId;
-    const title = 'New Folder';
-    createMutation.mutate({ parentId: actualParentId, title, type: 'folder', position: 0 });
+    const actualParentId = parentId === "root" ? null : parentId;
+    const title = "New Folder";
+    createMutation.mutate({
+      parentId: actualParentId,
+      title,
+      type: "folder",
+      position: 0,
+    });
   };
 
   const handleCreatePage = (parentId: string | null = null) => {
-    const actualParentId = parentId === 'root' ? null : parentId;
-    const title = 'New Page';
-    createMutation.mutate({ parentId: actualParentId, title, type: 'page', position: 0 });
+    const actualParentId = parentId === "root" ? null : parentId;
+    const title = "New Page";
+    createMutation.mutate({
+      parentId: actualParentId,
+      title,
+      type: "page",
+      position: 0,
+    });
   };
 
   const handleStartEdit = (section: TreeItemData) => {
@@ -172,11 +218,13 @@ export function ProjectOutline({
 
   const handleCancelEdit = () => {
     setEditingId(null);
-    setEditingTitle('');
+    setEditingTitle("");
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Delete this item and all its contents? This cannot be undone.')) {
+    if (
+      confirm("Delete this item and all its contents? This cannot be undone.")
+    ) {
       deleteMutation.mutate(id);
     }
   };
@@ -197,7 +245,11 @@ export function ProjectOutline({
     setTreeData(newTree);
 
     // Generate reorder payload
-    const reorders: Array<{ id: string; parentId: string | null; position: number }> = [];
+    const reorders: Array<{
+      id: string;
+      parentId: string | null;
+      position: number;
+    }> = [];
 
     // Get the moved item's new parent and position
     const movedItem = newTree.items[source.draggableId];
@@ -206,7 +258,8 @@ export function ProjectOutline({
     if (parentItem && parentItem.children) {
       // Find the position of the moved item in its new parent
       const position = parentItem.children.indexOf(source.draggableId);
-      const actualParentId = destination.parentId === 'root' ? null : destination.parentId;
+      const actualParentId =
+        destination.parentId === "root" ? null : destination.parentId;
 
       reorders.push({
         id: source.draggableId,
@@ -214,12 +267,18 @@ export function ProjectOutline({
         position: position,
       });
 
-      console.log('[Tree] Reorder payload:', reorders);
+      console.log("[Tree] Reorder payload:", reorders);
       reorderMutation.mutate(reorders);
     }
   };
 
-  const renderItem = ({ item, onExpand, onCollapse, provided, snapshot }: RenderItemParams) => {
+  const renderItem = ({
+    item,
+    onExpand,
+    onCollapse,
+    provided,
+    snapshot,
+  }: RenderItemParams) => {
     const section = item.data as TreeItemData;
     const isActive = section.id === activeSectionId;
     const isEditing = editingId === section.id;
@@ -230,15 +289,18 @@ export function ProjectOutline({
         ref={provided.innerRef}
         {...provided.draggableProps}
         className={cn(
-          'group flex items-center gap-1 py-1.5 px-2 rounded-md hover-elevate cursor-pointer transition-colors relative',
-          isActive && 'bg-accent',
-          snapshot.isDragging && 'opacity-50'
+          "group flex items-center gap-1 py-1.5 px-2 rounded-md hover-elevate cursor-pointer transition-colors relative",
+          isActive && "bg-accent",
+          snapshot.isDragging && "opacity-50",
         )}
         data-testid={`section-item-${section.id}`}
       >
-        <div {...provided.dragHandleProps} className="flex items-center gap-1 flex-1">
+        <div
+          {...provided.dragHandleProps}
+          className="flex items-center gap-1 flex-1"
+        >
           {/* Expand/collapse button */}
-          {section.type === 'folder' && (
+          {section.type === "folder" && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -260,10 +322,10 @@ export function ProjectOutline({
             </button>
           )}
 
-          {section.type === 'page' && <div className="w-5" />}
+          {section.type === "page" && <div className="w-5" />}
 
           {/* Icon */}
-          {section.type === 'folder' ? (
+          {section.type === "folder" ? (
             item.isExpanded ? (
               <FolderOpen className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             ) : (
@@ -279,8 +341,8 @@ export function ProjectOutline({
               value={editingTitle}
               onChange={(e) => setEditingTitle(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSaveEdit();
-                if (e.key === 'Escape') handleCancelEdit();
+                if (e.key === "Enter") handleSaveEdit();
+                if (e.key === "Escape") handleCancelEdit();
               }}
               onBlur={handleSaveEdit}
               className="h-6 text-sm flex-1"
@@ -316,17 +378,26 @@ export function ProjectOutline({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleStartEdit(section)} data-testid={`button-rename-${section.id}`}>
+              <DropdownMenuItem
+                onClick={() => handleStartEdit(section)}
+                data-testid={`button-rename-${section.id}`}
+              >
                 <Edit2 className="h-4 w-4 mr-2" />
                 Rename
               </DropdownMenuItem>
-              {section.type === 'folder' && (
+              {section.type === "folder" && (
                 <>
-                  <DropdownMenuItem onClick={() => handleCreateFolder(section.id)} data-testid={`button-add-subfolder-${section.id}`}>
+                  <DropdownMenuItem
+                    onClick={() => handleCreateFolder(section.id)}
+                    data-testid={`button-add-subfolder-${section.id}`}
+                  >
                     <Folder className="h-4 w-4 mr-2" />
                     Add Subfolder
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleCreatePage(section.id)} data-testid={`button-add-page-${section.id}`}>
+                  <DropdownMenuItem
+                    onClick={() => handleCreatePage(section.id)}
+                    data-testid={`button-add-page-${section.id}`}
+                  >
                     <FileText className="h-4 w-4 mr-2" />
                     Add Page
                   </DropdownMenuItem>
@@ -400,16 +471,27 @@ export function ProjectOutline({
         <div className="flex gap-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" data-testid="button-add-section">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 w-7 p-0"
+                data-testid="button-add-section"
+              >
                 <Plus className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleCreateFolder(null)} data-testid="button-create-folder">
+              <DropdownMenuItem
+                onClick={() => handleCreateFolder(null)}
+                data-testid="button-create-folder"
+              >
                 <Folder className="h-4 w-4 mr-2" />
                 New Folder
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleCreatePage(null)} data-testid="button-create-page">
+              <DropdownMenuItem
+                onClick={() => handleCreatePage(null)}
+                data-testid="button-create-page"
+              >
                 <FileText className="h-4 w-4 mr-2" />
                 New Page
               </DropdownMenuItem>

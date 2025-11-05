@@ -1,4 +1,9 @@
-import { type User, type InsertUser, type UpsertUser, users } from "@shared/schema";
+import {
+  type User,
+  type InsertUser,
+  type UpsertUser,
+  users,
+} from "@shared/schema";
 import { db } from "../db";
 import { eq, or, ilike } from "drizzle-orm";
 import { BaseRepository } from "./base.repository";
@@ -10,15 +15,15 @@ export class UserRepository extends BaseRepository {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, username));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, username));
     return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
@@ -37,7 +42,10 @@ export class UserRepository extends BaseRepository {
     return user;
   }
 
-  async updateUser(id: string, updates: Partial<InsertUser>): Promise<User | undefined> {
+  async updateUser(
+    id: string,
+    updates: Partial<InsertUser>,
+  ): Promise<User | undefined> {
     const [updatedUser] = await db
       .update(users)
       .set({
@@ -58,8 +66,8 @@ export class UserRepository extends BaseRepository {
         or(
           ilike(users.email, searchPattern),
           ilike(users.firstName, searchPattern),
-          ilike(users.lastName, searchPattern)
-        )
+          ilike(users.lastName, searchPattern),
+        ),
       )
       .limit(10);
   }

@@ -1,38 +1,54 @@
 import { storage } from "./storage";
 import type {
-  Setting, Conflict, Theme, Creature, Plant, Item, Organization,
-  Species, Ethnicity, Culture, Document, Food, Drink
-} from '@shared/schema';
+  Setting,
+  Conflict,
+  Theme,
+  Creature,
+  Plant,
+  Item,
+  Organization,
+  Species,
+  Ethnicity,
+  Culture,
+  Document,
+  Food,
+  Drink,
+} from "@shared/schema";
 
 /**
  * HTML escaping utility to prevent XSS attacks
  * Escapes HTML special characters in user-supplied content
  */
 function escapeHtml(text: string | null | undefined): string {
-  if (!text) return '';
+  if (!text) return "";
   return String(text)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
-    .replace(/\//g, '&#x2F;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
+    .replace(/\//g, "&#x2F;");
 }
 
 /**
  * Helper to create safe HTML list from array of strings
  */
 function createSafeList(items: string[] | null | undefined): string {
-  if (!items || items.length === 0) return '';
-  const safeItems = items.map(item => `<li>${escapeHtml(item)}</li>`).join('\n');
+  if (!items || items.length === 0) return "";
+  const safeItems = items
+    .map((item) => `<li>${escapeHtml(item)}</li>`)
+    .join("\n");
   return `<ul>\n${safeItems}\n</ul>`;
 }
 
 /**
  * Helper to create safe HTML paragraph with optional label
  */
-function createSafeParagraph(label: string | null, content: string | null | undefined): string {
-  if (!content) return '';
+function createSafeParagraph(
+  label: string | null,
+  content: string | null | undefined,
+): string {
+  if (!content) return "";
   const safeContent = escapeHtml(content);
   if (label) {
     return `<p><strong>${escapeHtml(label)}:</strong> ${safeContent}</p>`;
@@ -43,12 +59,15 @@ function createSafeParagraph(label: string | null, content: string | null | unde
 /**
  * Helper to create image section with optional caption
  */
-function createImageSection(imageUrl: string | null | undefined, imageCaption?: string | null): string {
-  if (!imageUrl) return '';
-  
+function createImageSection(
+  imageUrl: string | null | undefined,
+  imageCaption?: string | null,
+): string {
+  if (!imageUrl) return "";
+
   const safeUrl = escapeHtml(imageUrl);
-  const safeCaption = imageCaption ? escapeHtml(imageCaption) : '';
-  
+  const safeCaption = imageCaption ? escapeHtml(imageCaption) : "";
+
   if (safeCaption) {
     return `<figure><img src="${safeUrl}" alt="${safeCaption}" style="max-width: 100%; height: auto;" /><figcaption><em>${safeCaption}</em></figcaption></figure>`;
   }
@@ -58,9 +77,14 @@ function createImageSection(imageUrl: string | null | undefined, imageCaption?: 
 /**
  * Helper to format array fields as bullet lists
  */
-function createListParagraph(label: string | null, items: string[] | null | undefined): string {
-  if (!items || items.length === 0) return '';
-  const safeItems = items.map(item => `<li>${escapeHtml(item)}</li>`).join('');
+function createListParagraph(
+  label: string | null,
+  items: string[] | null | undefined,
+): string {
+  if (!items || items.length === 0) return "";
+  const safeItems = items
+    .map((item) => `<li>${escapeHtml(item)}</li>`)
+    .join("");
   if (label) {
     return `<p><strong>${escapeHtml(label)}:</strong></p><ul>${safeItems}</ul>`;
   }
@@ -80,11 +104,11 @@ function generateCharacterArticle(character: any): string {
       character.givenName,
       character.middleName,
       character.familyName,
-      character.suffix
+      character.suffix,
     ].filter(Boolean);
-    const fullName = nameParts.join(' ');
+    const fullName = nameParts.join(" ");
     sections.push(`<h1>${escapeHtml(fullName)}</h1>`);
-    
+
     // Additional names section
     const nameDetails: string[] = [];
     if (character.nickname) {
@@ -97,13 +121,15 @@ function generateCharacterArticle(character: any): string {
       nameDetails.push(`Title: ${escapeHtml(character.honorificTitle)}`);
     }
     if (nameDetails.length > 0) {
-      sections.push(`<p><em>${nameDetails.join(' • ')}</em></p>`);
+      sections.push(`<p><em>${nameDetails.join(" • ")}</em></p>`);
     }
   }
 
   // Image
   if (character.imageUrl) {
-    sections.push(createImageSection(character.imageUrl, character.imageCaption));
+    sections.push(
+      createImageSection(character.imageUrl, character.imageCaption),
+    );
   }
 
   // General Description (correct field name is 'description')
@@ -113,164 +139,379 @@ function generateCharacterArticle(character: any): string {
 
   // Basic Information & Identity
   const basicInfo: string[] = [];
-  if (character.age) basicInfo.push(createSafeParagraph('Age', character.age.toString()));
-  if (character.dateOfBirth) basicInfo.push(createSafeParagraph('Date of Birth', character.dateOfBirth));
-  if (character.placeOfBirth) basicInfo.push(createSafeParagraph('Place of Birth', character.placeOfBirth));
-  if (character.dateOfDeath) basicInfo.push(createSafeParagraph('Date of Death', character.dateOfDeath));
-  if (character.placeOfDeath) basicInfo.push(createSafeParagraph('Place of Death', character.placeOfDeath));
-  if (character.gender) basicInfo.push(createSafeParagraph('Gender', character.gender));
-  if (character.pronouns) basicInfo.push(createSafeParagraph('Pronouns', character.pronouns));
-  if (character.sex) basicInfo.push(createSafeParagraph('Sex', character.sex));
-  if (character.sexualOrientation) basicInfo.push(createSafeParagraph('Sexual Orientation', character.sexualOrientation));
+  if (character.age)
+    basicInfo.push(createSafeParagraph("Age", character.age.toString()));
+  if (character.dateOfBirth)
+    basicInfo.push(createSafeParagraph("Date of Birth", character.dateOfBirth));
+  if (character.placeOfBirth)
+    basicInfo.push(
+      createSafeParagraph("Place of Birth", character.placeOfBirth),
+    );
+  if (character.dateOfDeath)
+    basicInfo.push(createSafeParagraph("Date of Death", character.dateOfDeath));
+  if (character.placeOfDeath)
+    basicInfo.push(
+      createSafeParagraph("Place of Death", character.placeOfDeath),
+    );
+  if (character.gender)
+    basicInfo.push(createSafeParagraph("Gender", character.gender));
+  if (character.pronouns)
+    basicInfo.push(createSafeParagraph("Pronouns", character.pronouns));
+  if (character.sex) basicInfo.push(createSafeParagraph("Sex", character.sex));
+  if (character.sexualOrientation)
+    basicInfo.push(
+      createSafeParagraph("Sexual Orientation", character.sexualOrientation),
+    );
   if (character.occupation || character.profession) {
     const job = character.occupation || character.profession;
-    basicInfo.push(createSafeParagraph('Occupation', job));
+    basicInfo.push(createSafeParagraph("Occupation", job));
   }
-  if (character.species) basicInfo.push(createSafeParagraph('Species', character.species));
-  if (character.ethnicity) basicInfo.push(createSafeParagraph('Ethnicity', character.ethnicity));
-  if (character.currentLocation) basicInfo.push(createSafeParagraph('Current Location', character.currentLocation));
-  if (character.currentResidence) basicInfo.push(createSafeParagraph('Residence', character.currentResidence));
+  if (character.species)
+    basicInfo.push(createSafeParagraph("Species", character.species));
+  if (character.ethnicity)
+    basicInfo.push(createSafeParagraph("Ethnicity", character.ethnicity));
+  if (character.currentLocation)
+    basicInfo.push(
+      createSafeParagraph("Current Location", character.currentLocation),
+    );
+  if (character.currentResidence)
+    basicInfo.push(
+      createSafeParagraph("Residence", character.currentResidence),
+    );
 
   if (basicInfo.length > 0) {
     sections.push(`<h2>Basic Information</h2>`);
-    sections.push(basicInfo.join('\n'));
+    sections.push(basicInfo.join("\n"));
   }
 
   // Physical Appearance
-  const hasPhysical = character.physicalDescription || character.height || character.heightDetail || 
-    character.weight || character.build || character.hairColor || character.hairTexture || 
-    character.hairStyle || character.eyeColor || character.skinTone || character.facialFeatures ||
-    character.facialDetails || character.strikingFeatures || character.identifyingMarks || 
-    character.marksPiercingsTattoos || character.distinctPhysicalFeatures || 
-    character.distinctiveBodyFeatures || character.physicalCondition;
+  const hasPhysical =
+    character.physicalDescription ||
+    character.height ||
+    character.heightDetail ||
+    character.weight ||
+    character.build ||
+    character.hairColor ||
+    character.hairTexture ||
+    character.hairStyle ||
+    character.eyeColor ||
+    character.skinTone ||
+    character.facialFeatures ||
+    character.facialDetails ||
+    character.strikingFeatures ||
+    character.identifyingMarks ||
+    character.marksPiercingsTattoos ||
+    character.distinctPhysicalFeatures ||
+    character.distinctiveBodyFeatures ||
+    character.physicalCondition;
 
   if (hasPhysical) {
     sections.push(`<h2>Physical Appearance</h2>`);
-    
+
     if (character.physicalDescription) {
       sections.push(createSafeParagraph(null, character.physicalDescription));
     }
 
     const physicalDetails: string[] = [];
     if (character.height || character.heightDetail) {
-      const heightText = [character.height, character.heightDetail].filter(Boolean).join(' - ');
-      physicalDetails.push(createSafeParagraph('Height', heightText));
+      const heightText = [character.height, character.heightDetail]
+        .filter(Boolean)
+        .join(" - ");
+      physicalDetails.push(createSafeParagraph("Height", heightText));
     }
-    if (character.weight) physicalDetails.push(createSafeParagraph('Weight', character.weight));
-    if (character.build) physicalDetails.push(createSafeParagraph('Build', character.build));
-    if (character.hairColor) physicalDetails.push(createSafeParagraph('Hair Color', character.hairColor));
-    if (character.hairTexture) physicalDetails.push(createSafeParagraph('Hair Texture', character.hairTexture));
-    if (character.hairStyle) physicalDetails.push(createSafeParagraph('Hair Style', character.hairStyle));
-    if (character.eyeColor) physicalDetails.push(createSafeParagraph('Eye Color', character.eyeColor));
-    if (character.skinTone) physicalDetails.push(createSafeParagraph('Skin Tone', character.skinTone));
+    if (character.weight)
+      physicalDetails.push(createSafeParagraph("Weight", character.weight));
+    if (character.build)
+      physicalDetails.push(createSafeParagraph("Build", character.build));
+    if (character.hairColor)
+      physicalDetails.push(
+        createSafeParagraph("Hair Color", character.hairColor),
+      );
+    if (character.hairTexture)
+      physicalDetails.push(
+        createSafeParagraph("Hair Texture", character.hairTexture),
+      );
+    if (character.hairStyle)
+      physicalDetails.push(
+        createSafeParagraph("Hair Style", character.hairStyle),
+      );
+    if (character.eyeColor)
+      physicalDetails.push(
+        createSafeParagraph("Eye Color", character.eyeColor),
+      );
+    if (character.skinTone)
+      physicalDetails.push(
+        createSafeParagraph("Skin Tone", character.skinTone),
+      );
     if (character.facialFeatures || character.facialDetails) {
-      const facialText = [character.facialFeatures, character.facialDetails].filter(Boolean).join('; ');
-      physicalDetails.push(createSafeParagraph('Facial Features', facialText));
+      const facialText = [character.facialFeatures, character.facialDetails]
+        .filter(Boolean)
+        .join("; ");
+      physicalDetails.push(createSafeParagraph("Facial Features", facialText));
     }
-    if (character.strikingFeatures) physicalDetails.push(createSafeParagraph('Striking Features', character.strikingFeatures));
-    if (character.identifyingMarks) physicalDetails.push(createSafeParagraph('Identifying Marks', character.identifyingMarks));
-    if (character.marksPiercingsTattoos) physicalDetails.push(createSafeParagraph('Marks/Piercings/Tattoos', character.marksPiercingsTattoos));
-    if (character.distinctPhysicalFeatures || character.distinctiveBodyFeatures) {
-      const distinctText = [character.distinctPhysicalFeatures, character.distinctiveBodyFeatures].filter(Boolean).join('; ');
-      physicalDetails.push(createSafeParagraph('Distinctive Features', distinctText));
+    if (character.strikingFeatures)
+      physicalDetails.push(
+        createSafeParagraph("Striking Features", character.strikingFeatures),
+      );
+    if (character.identifyingMarks)
+      physicalDetails.push(
+        createSafeParagraph("Identifying Marks", character.identifyingMarks),
+      );
+    if (character.marksPiercingsTattoos)
+      physicalDetails.push(
+        createSafeParagraph(
+          "Marks/Piercings/Tattoos",
+          character.marksPiercingsTattoos,
+        ),
+      );
+    if (
+      character.distinctPhysicalFeatures ||
+      character.distinctiveBodyFeatures
+    ) {
+      const distinctText = [
+        character.distinctPhysicalFeatures,
+        character.distinctiveBodyFeatures,
+      ]
+        .filter(Boolean)
+        .join("; ");
+      physicalDetails.push(
+        createSafeParagraph("Distinctive Features", distinctText),
+      );
     }
-    if (character.physicalCondition) physicalDetails.push(createSafeParagraph('Physical Condition', character.physicalCondition));
-    if (character.physicalPresentation) physicalDetails.push(createSafeParagraph('Physical Presentation', character.physicalPresentation));
+    if (character.physicalCondition)
+      physicalDetails.push(
+        createSafeParagraph("Physical Condition", character.physicalCondition),
+      );
+    if (character.physicalPresentation)
+      physicalDetails.push(
+        createSafeParagraph(
+          "Physical Presentation",
+          character.physicalPresentation,
+        ),
+      );
 
     if (physicalDetails.length > 0) {
-      sections.push(physicalDetails.join('\n'));
+      sections.push(physicalDetails.join("\n"));
     }
   }
 
   // Attire & Equipment
-  const hasAttire = character.typicalAttire || character.accessories || character.keyEquipment || character.specializedItems;
+  const hasAttire =
+    character.typicalAttire ||
+    character.accessories ||
+    character.keyEquipment ||
+    character.specializedItems;
   if (hasAttire) {
     sections.push(`<h2>Attire & Equipment</h2>`);
     const attireDetails: string[] = [];
-    if (character.typicalAttire) attireDetails.push(createSafeParagraph('Typical Attire', character.typicalAttire));
-    if (character.accessories) attireDetails.push(createSafeParagraph('Accessories', character.accessories));
-    if (character.keyEquipment) attireDetails.push(createSafeParagraph('Key Equipment', character.keyEquipment));
-    if (character.specializedItems) attireDetails.push(createSafeParagraph('Specialized Items', character.specializedItems));
-    sections.push(attireDetails.join('\n'));
+    if (character.typicalAttire)
+      attireDetails.push(
+        createSafeParagraph("Typical Attire", character.typicalAttire),
+      );
+    if (character.accessories)
+      attireDetails.push(
+        createSafeParagraph("Accessories", character.accessories),
+      );
+    if (character.keyEquipment)
+      attireDetails.push(
+        createSafeParagraph("Key Equipment", character.keyEquipment),
+      );
+    if (character.specializedItems)
+      attireDetails.push(
+        createSafeParagraph("Specialized Items", character.specializedItems),
+      );
+    sections.push(attireDetails.join("\n"));
   }
 
   // Personality & Psychology
-  const hasPersonality = character.personality || character.motivation || character.flaw || 
-    character.strength || character.strengths || character.characterFlaws || 
-    character.behavioralTraits || character.intellectualTraits || character.charisma ||
-    character.confidence || character.ego || character.extroversion || character.mannerisms;
+  const hasPersonality =
+    character.personality ||
+    character.motivation ||
+    character.flaw ||
+    character.strength ||
+    character.strengths ||
+    character.characterFlaws ||
+    character.behavioralTraits ||
+    character.intellectualTraits ||
+    character.charisma ||
+    character.confidence ||
+    character.ego ||
+    character.extroversion ||
+    character.mannerisms;
 
   if (hasPersonality) {
     sections.push(`<h2>Personality & Psychology</h2>`);
-    
-    if (Array.isArray(character.personality) && character.personality.length > 0) {
-      sections.push(createListParagraph('Personality Traits', character.personality));
+
+    if (
+      Array.isArray(character.personality) &&
+      character.personality.length > 0
+    ) {
+      sections.push(
+        createListParagraph("Personality Traits", character.personality),
+      );
     }
-    
+
     const personalityDetails: string[] = [];
-    if (character.motivation) personalityDetails.push(createSafeParagraph('Motivation', character.motivation));
-    if (character.strength || character.strengths || character.positiveAspects) {
-      const strengthText = [character.strength, character.strengths, character.positiveAspects].filter(Boolean).join('; ');
-      personalityDetails.push(createSafeParagraph('Strengths', strengthText));
+    if (character.motivation)
+      personalityDetails.push(
+        createSafeParagraph("Motivation", character.motivation),
+      );
+    if (
+      character.strength ||
+      character.strengths ||
+      character.positiveAspects
+    ) {
+      const strengthText = [
+        character.strength,
+        character.strengths,
+        character.positiveAspects,
+      ]
+        .filter(Boolean)
+        .join("; ");
+      personalityDetails.push(createSafeParagraph("Strengths", strengthText));
     }
     if (character.flaw || character.characterFlaws) {
-      const flawText = [character.flaw, character.characterFlaws].filter(Boolean).join('; ');
-      personalityDetails.push(createSafeParagraph('Flaws', flawText));
+      const flawText = [character.flaw, character.characterFlaws]
+        .filter(Boolean)
+        .join("; ");
+      personalityDetails.push(createSafeParagraph("Flaws", flawText));
     }
-    if (character.vices) personalityDetails.push(createSafeParagraph('Vices', character.vices));
-    if (character.addictions) personalityDetails.push(createSafeParagraph('Addictions', character.addictions));
-    if (character.likes) personalityDetails.push(createSafeParagraph('Likes', character.likes));
-    if (character.dislikes) personalityDetails.push(createSafeParagraph('Dislikes', character.dislikes));
-    if (character.behavioralTraits) personalityDetails.push(createSafeParagraph('Behavioral Traits', character.behavioralTraits));
-    if (character.intellectualTraits) personalityDetails.push(createSafeParagraph('Intellectual Traits', character.intellectualTraits));
-    if (character.valuesEthicsMorals) personalityDetails.push(createSafeParagraph('Values & Ethics', character.valuesEthicsMorals));
-    if (character.charisma) personalityDetails.push(createSafeParagraph('Charisma', character.charisma));
-    if (character.confidence) personalityDetails.push(createSafeParagraph('Confidence', character.confidence));
-    if (character.mannerisms) personalityDetails.push(createSafeParagraph('Mannerisms', character.mannerisms));
-    if (character.particularities) personalityDetails.push(createSafeParagraph('Particularities', character.particularities));
-    if (character.mentalHealth) personalityDetails.push(createSafeParagraph('Mental Health', character.mentalHealth));
-    
+    if (character.vices)
+      personalityDetails.push(createSafeParagraph("Vices", character.vices));
+    if (character.addictions)
+      personalityDetails.push(
+        createSafeParagraph("Addictions", character.addictions),
+      );
+    if (character.likes)
+      personalityDetails.push(createSafeParagraph("Likes", character.likes));
+    if (character.dislikes)
+      personalityDetails.push(
+        createSafeParagraph("Dislikes", character.dislikes),
+      );
+    if (character.behavioralTraits)
+      personalityDetails.push(
+        createSafeParagraph("Behavioral Traits", character.behavioralTraits),
+      );
+    if (character.intellectualTraits)
+      personalityDetails.push(
+        createSafeParagraph(
+          "Intellectual Traits",
+          character.intellectualTraits,
+        ),
+      );
+    if (character.valuesEthicsMorals)
+      personalityDetails.push(
+        createSafeParagraph("Values & Ethics", character.valuesEthicsMorals),
+      );
+    if (character.charisma)
+      personalityDetails.push(
+        createSafeParagraph("Charisma", character.charisma),
+      );
+    if (character.confidence)
+      personalityDetails.push(
+        createSafeParagraph("Confidence", character.confidence),
+      );
+    if (character.mannerisms)
+      personalityDetails.push(
+        createSafeParagraph("Mannerisms", character.mannerisms),
+      );
+    if (character.particularities)
+      personalityDetails.push(
+        createSafeParagraph("Particularities", character.particularities),
+      );
+    if (character.mentalHealth)
+      personalityDetails.push(
+        createSafeParagraph("Mental Health", character.mentalHealth),
+      );
+
     if (personalityDetails.length > 0) {
-      sections.push(personalityDetails.join('\n'));
+      sections.push(personalityDetails.join("\n"));
     }
   }
 
   // Background & History
-  const hasBackground = character.backstory || character.upbringing || character.education || 
-    character.workHistory || character.accomplishments || character.negativeEvents;
-  
+  const hasBackground =
+    character.backstory ||
+    character.upbringing ||
+    character.education ||
+    character.workHistory ||
+    character.accomplishments ||
+    character.negativeEvents;
+
   if (hasBackground) {
     sections.push(`<h2>Background & History</h2>`);
     if (character.backstory) {
       sections.push(createSafeParagraph(null, character.backstory));
     }
     const backgroundDetails: string[] = [];
-    if (character.upbringing) backgroundDetails.push(createSafeParagraph('Upbringing', character.upbringing));
-    if (character.education) backgroundDetails.push(createSafeParagraph('Education', character.education));
-    if (character.workHistory) backgroundDetails.push(createSafeParagraph('Work History', character.workHistory));
-    if (character.accomplishments) backgroundDetails.push(createSafeParagraph('Accomplishments', character.accomplishments));
-    if (character.negativeEvents) backgroundDetails.push(createSafeParagraph('Significant Challenges', character.negativeEvents));
-    
+    if (character.upbringing)
+      backgroundDetails.push(
+        createSafeParagraph("Upbringing", character.upbringing),
+      );
+    if (character.education)
+      backgroundDetails.push(
+        createSafeParagraph("Education", character.education),
+      );
+    if (character.workHistory)
+      backgroundDetails.push(
+        createSafeParagraph("Work History", character.workHistory),
+      );
+    if (character.accomplishments)
+      backgroundDetails.push(
+        createSafeParagraph("Accomplishments", character.accomplishments),
+      );
+    if (character.negativeEvents)
+      backgroundDetails.push(
+        createSafeParagraph("Significant Challenges", character.negativeEvents),
+      );
+
     if (backgroundDetails.length > 0) {
-      sections.push(backgroundDetails.join('\n'));
+      sections.push(backgroundDetails.join("\n"));
     }
   }
 
   // Skills & Abilities
-  const hasSkills = character.mainSkills || character.proficiencies || character.supernaturalPowers || 
-    character.specialAbilities || character.mutations || character.lackingSkills;
-    
+  const hasSkills =
+    character.mainSkills ||
+    character.proficiencies ||
+    character.supernaturalPowers ||
+    character.specialAbilities ||
+    character.mutations ||
+    character.lackingSkills;
+
   if (hasSkills) {
     sections.push(`<h2>Skills & Abilities</h2>`);
     const skillDetails: string[] = [];
-    if (character.mainSkills) skillDetails.push(createSafeParagraph('Main Skills', character.mainSkills));
-    if (character.proficiencies) skillDetails.push(createSafeParagraph('Proficiencies', character.proficiencies));
-    if (character.supernaturalPowers) skillDetails.push(createSafeParagraph('Supernatural Powers', character.supernaturalPowers));
-    if (character.specialAbilities) skillDetails.push(createSafeParagraph('Special Abilities', character.specialAbilities));
-    if (character.mutations) skillDetails.push(createSafeParagraph('Mutations', character.mutations));
-    if (character.lackingSkills) skillDetails.push(createSafeParagraph('Lacking Skills', character.lackingSkills));
-    if (character.lackingKnowledge) skillDetails.push(createSafeParagraph('Lacking Knowledge', character.lackingKnowledge));
-    sections.push(skillDetails.join('\n'));
+    if (character.mainSkills)
+      skillDetails.push(
+        createSafeParagraph("Main Skills", character.mainSkills),
+      );
+    if (character.proficiencies)
+      skillDetails.push(
+        createSafeParagraph("Proficiencies", character.proficiencies),
+      );
+    if (character.supernaturalPowers)
+      skillDetails.push(
+        createSafeParagraph(
+          "Supernatural Powers",
+          character.supernaturalPowers,
+        ),
+      );
+    if (character.specialAbilities)
+      skillDetails.push(
+        createSafeParagraph("Special Abilities", character.specialAbilities),
+      );
+    if (character.mutations)
+      skillDetails.push(createSafeParagraph("Mutations", character.mutations));
+    if (character.lackingSkills)
+      skillDetails.push(
+        createSafeParagraph("Lacking Skills", character.lackingSkills),
+      );
+    if (character.lackingKnowledge)
+      skillDetails.push(
+        createSafeParagraph("Lacking Knowledge", character.lackingKnowledge),
+      );
+    sections.push(skillDetails.join("\n"));
   }
 
   // Languages
@@ -278,125 +519,249 @@ function generateCharacterArticle(character: any): string {
     sections.push(`<h2>Languages</h2>`);
     sections.push(createListParagraph(null, character.languages));
     if (character.languageFluencyAccent) {
-      sections.push(createSafeParagraph('Fluency & Accent', character.languageFluencyAccent));
+      sections.push(
+        createSafeParagraph(
+          "Fluency & Accent",
+          character.languageFluencyAccent,
+        ),
+      );
     }
   }
 
   // Speech & Communication
-  const hasSpeech = character.speakingStyle || character.toneOfVoice || character.voicePitch || 
-    character.accent || character.dialect || character.speechParticularities || character.famousQuotes ||
-    character.catchphrases || character.commonPhrases;
-    
+  const hasSpeech =
+    character.speakingStyle ||
+    character.toneOfVoice ||
+    character.voicePitch ||
+    character.accent ||
+    character.dialect ||
+    character.speechParticularities ||
+    character.famousQuotes ||
+    character.catchphrases ||
+    character.commonPhrases;
+
   if (hasSpeech) {
     sections.push(`<h2>Speech & Communication</h2>`);
     const speechDetails: string[] = [];
-    if (character.speakingStyle) speechDetails.push(createSafeParagraph('Speaking Style', character.speakingStyle));
-    if (character.toneOfVoice) speechDetails.push(createSafeParagraph('Tone of Voice', character.toneOfVoice));
-    if (character.voicePitch) speechDetails.push(createSafeParagraph('Voice Pitch', character.voicePitch));
-    if (character.accent) speechDetails.push(createSafeParagraph('Accent', character.accent));
-    if (character.dialect) speechDetails.push(createSafeParagraph('Dialect', character.dialect));
-    if (character.speechParticularities) speechDetails.push(createSafeParagraph('Speech Particularities', character.speechParticularities));
-    if (character.speechImpediments) speechDetails.push(createSafeParagraph('Speech Impediments', character.speechImpediments));
-    if (character.famousQuotes) speechDetails.push(createSafeParagraph('Famous Quotes', character.famousQuotes));
-    if (character.catchphrases) speechDetails.push(createSafeParagraph('Catchphrases', character.catchphrases));
-    if (character.commonPhrases) speechDetails.push(createSafeParagraph('Common Phrases', character.commonPhrases));
-    sections.push(speechDetails.join('\n'));
+    if (character.speakingStyle)
+      speechDetails.push(
+        createSafeParagraph("Speaking Style", character.speakingStyle),
+      );
+    if (character.toneOfVoice)
+      speechDetails.push(
+        createSafeParagraph("Tone of Voice", character.toneOfVoice),
+      );
+    if (character.voicePitch)
+      speechDetails.push(
+        createSafeParagraph("Voice Pitch", character.voicePitch),
+      );
+    if (character.accent)
+      speechDetails.push(createSafeParagraph("Accent", character.accent));
+    if (character.dialect)
+      speechDetails.push(createSafeParagraph("Dialect", character.dialect));
+    if (character.speechParticularities)
+      speechDetails.push(
+        createSafeParagraph(
+          "Speech Particularities",
+          character.speechParticularities,
+        ),
+      );
+    if (character.speechImpediments)
+      speechDetails.push(
+        createSafeParagraph("Speech Impediments", character.speechImpediments),
+      );
+    if (character.famousQuotes)
+      speechDetails.push(
+        createSafeParagraph("Famous Quotes", character.famousQuotes),
+      );
+    if (character.catchphrases)
+      speechDetails.push(
+        createSafeParagraph("Catchphrases", character.catchphrases),
+      );
+    if (character.commonPhrases)
+      speechDetails.push(
+        createSafeParagraph("Common Phrases", character.commonPhrases),
+      );
+    sections.push(speechDetails.join("\n"));
   }
 
   // Relationships
-  const hasRelationships = character.family || character.allies || character.enemies || 
-    character.keyRelationships || character.familialTies;
-    
+  const hasRelationships =
+    character.family ||
+    character.allies ||
+    character.enemies ||
+    character.keyRelationships ||
+    character.familialTies;
+
   if (hasRelationships) {
     sections.push(`<h2>Relationships</h2>`);
     const relationDetails: string[] = [];
-    
+
     if (Array.isArray(character.family) && character.family.length > 0) {
-      relationDetails.push(createListParagraph('Family', character.family));
+      relationDetails.push(createListParagraph("Family", character.family));
     }
-    if (character.familialTies) relationDetails.push(createSafeParagraph('Familial Ties', character.familialTies));
-    if (character.keyRelationships) relationDetails.push(createSafeParagraph('Key Relationships', character.keyRelationships));
-    if (character.allies) relationDetails.push(createSafeParagraph('Allies', character.allies));
-    if (character.enemies) relationDetails.push(createSafeParagraph('Enemies', character.enemies));
-    
+    if (character.familialTies)
+      relationDetails.push(
+        createSafeParagraph("Familial Ties", character.familialTies),
+      );
+    if (character.keyRelationships)
+      relationDetails.push(
+        createSafeParagraph("Key Relationships", character.keyRelationships),
+      );
+    if (character.allies)
+      relationDetails.push(createSafeParagraph("Allies", character.allies));
+    if (character.enemies)
+      relationDetails.push(createSafeParagraph("Enemies", character.enemies));
+
     if (relationDetails.length > 0) {
-      sections.push(relationDetails.join('\n'));
+      sections.push(relationDetails.join("\n"));
     }
   }
 
   // Religion & Spirituality
-  const hasReligion = character.religiousBelief || character.religiousViews || character.spiritualPractices;
+  const hasReligion =
+    character.religiousBelief ||
+    character.religiousViews ||
+    character.spiritualPractices;
   if (hasReligion) {
     sections.push(`<h2>Religion & Spirituality</h2>`);
     const religionDetails: string[] = [];
-    if (character.religiousBelief) religionDetails.push(createSafeParagraph('Religious Belief', character.religiousBelief));
-    if (character.religiousViews) religionDetails.push(createSafeParagraph('Religious Views', character.religiousViews));
-    if (character.spiritualPractices) religionDetails.push(createSafeParagraph('Spiritual Practices', character.spiritualPractices));
-    sections.push(religionDetails.join('\n'));
+    if (character.religiousBelief)
+      religionDetails.push(
+        createSafeParagraph("Religious Belief", character.religiousBelief),
+      );
+    if (character.religiousViews)
+      religionDetails.push(
+        createSafeParagraph("Religious Views", character.religiousViews),
+      );
+    if (character.spiritualPractices)
+      religionDetails.push(
+        createSafeParagraph(
+          "Spiritual Practices",
+          character.spiritualPractices,
+        ),
+      );
+    sections.push(religionDetails.join("\n"));
   }
 
   // Hobbies & Interests
-  const hasHobbies = character.hobbies || character.interests || character.activities || character.pets;
+  const hasHobbies =
+    character.hobbies ||
+    character.interests ||
+    character.activities ||
+    character.pets;
   if (hasHobbies) {
     sections.push(`<h2>Hobbies & Interests</h2>`);
     const hobbyDetails: string[] = [];
-    if (character.hobbies) hobbyDetails.push(createSafeParagraph('Hobbies', character.hobbies));
-    if (character.interests) hobbyDetails.push(createSafeParagraph('Interests', character.interests));
-    if (character.activities) hobbyDetails.push(createSafeParagraph('Activities', character.activities));
-    if (character.pets) hobbyDetails.push(createSafeParagraph('Pets', character.pets));
-    sections.push(hobbyDetails.join('\n'));
+    if (character.hobbies)
+      hobbyDetails.push(createSafeParagraph("Hobbies", character.hobbies));
+    if (character.interests)
+      hobbyDetails.push(createSafeParagraph("Interests", character.interests));
+    if (character.activities)
+      hobbyDetails.push(
+        createSafeParagraph("Activities", character.activities),
+      );
+    if (character.pets)
+      hobbyDetails.push(createSafeParagraph("Pets", character.pets));
+    sections.push(hobbyDetails.join("\n"));
   }
 
   // Wealth & Resources
-  const hasWealth = character.wealthClass || character.funds || character.assets || 
-    character.investments || character.debts;
-    
+  const hasWealth =
+    character.wealthClass ||
+    character.funds ||
+    character.assets ||
+    character.investments ||
+    character.debts;
+
   if (hasWealth) {
     sections.push(`<h2>Wealth & Resources</h2>`);
     const wealthDetails: string[] = [];
-    if (character.wealthClass) wealthDetails.push(createSafeParagraph('Wealth Class', character.wealthClass));
-    if (character.funds) wealthDetails.push(createSafeParagraph('Funds', character.funds));
-    if (character.disposableIncome) wealthDetails.push(createSafeParagraph('Disposable Income', character.disposableIncome));
-    if (character.assets) wealthDetails.push(createSafeParagraph('Assets', character.assets));
-    if (character.investments) wealthDetails.push(createSafeParagraph('Investments', character.investments));
-    if (character.debts) wealthDetails.push(createSafeParagraph('Debts', character.debts));
-    sections.push(wealthDetails.join('\n'));
+    if (character.wealthClass)
+      wealthDetails.push(
+        createSafeParagraph("Wealth Class", character.wealthClass),
+      );
+    if (character.funds)
+      wealthDetails.push(createSafeParagraph("Funds", character.funds));
+    if (character.disposableIncome)
+      wealthDetails.push(
+        createSafeParagraph("Disposable Income", character.disposableIncome),
+      );
+    if (character.assets)
+      wealthDetails.push(createSafeParagraph("Assets", character.assets));
+    if (character.investments)
+      wealthDetails.push(
+        createSafeParagraph("Investments", character.investments),
+      );
+    if (character.debts)
+      wealthDetails.push(createSafeParagraph("Debts", character.debts));
+    sections.push(wealthDetails.join("\n"));
   }
 
   // Leadership & Domain
-  const hasLeadership = character.overseeingDomain || character.leadershipGroup || 
-    character.positionDuration || character.affiliatedOrganizations;
-    
+  const hasLeadership =
+    character.overseeingDomain ||
+    character.leadershipGroup ||
+    character.positionDuration ||
+    character.affiliatedOrganizations;
+
   if (hasLeadership) {
     sections.push(`<h2>Leadership & Affiliations</h2>`);
     const leaderDetails: string[] = [];
-    if (character.overseeingDomain) leaderDetails.push(createSafeParagraph('Domain', character.overseeingDomain));
-    if (character.leadershipGroup) leaderDetails.push(createSafeParagraph('Leadership Role', character.leadershipGroup));
-    if (character.positionDuration) leaderDetails.push(createSafeParagraph('Position Duration', character.positionDuration));
-    if (character.affiliatedOrganizations) leaderDetails.push(createSafeParagraph('Affiliated Organizations', character.affiliatedOrganizations));
-    sections.push(leaderDetails.join('\n'));
+    if (character.overseeingDomain)
+      leaderDetails.push(
+        createSafeParagraph("Domain", character.overseeingDomain),
+      );
+    if (character.leadershipGroup)
+      leaderDetails.push(
+        createSafeParagraph("Leadership Role", character.leadershipGroup),
+      );
+    if (character.positionDuration)
+      leaderDetails.push(
+        createSafeParagraph("Position Duration", character.positionDuration),
+      );
+    if (character.affiliatedOrganizations)
+      leaderDetails.push(
+        createSafeParagraph(
+          "Affiliated Organizations",
+          character.affiliatedOrganizations,
+        ),
+      );
+    sections.push(leaderDetails.join("\n"));
   }
 
   // Legacy (for deceased characters)
-  const hasLegacy = character.worldInfluence || character.legacy || 
-    (Array.isArray(character.rememberedBy) && character.rememberedBy.length > 0);
-    
+  const hasLegacy =
+    character.worldInfluence ||
+    character.legacy ||
+    (Array.isArray(character.rememberedBy) &&
+      character.rememberedBy.length > 0);
+
   if (hasLegacy) {
     sections.push(`<h2>Legacy</h2>`);
     const legacyDetails: string[] = [];
-    if (character.worldInfluence) legacyDetails.push(createSafeParagraph('World Influence', character.worldInfluence));
-    if (character.legacy) legacyDetails.push(createSafeParagraph('Legacy', character.legacy));
-    
-    if (Array.isArray(character.rememberedBy) && character.rememberedBy.length > 0) {
-      legacyDetails.push(createListParagraph('Remembered By', character.rememberedBy));
+    if (character.worldInfluence)
+      legacyDetails.push(
+        createSafeParagraph("World Influence", character.worldInfluence),
+      );
+    if (character.legacy)
+      legacyDetails.push(createSafeParagraph("Legacy", character.legacy));
+
+    if (
+      Array.isArray(character.rememberedBy) &&
+      character.rememberedBy.length > 0
+    ) {
+      legacyDetails.push(
+        createListParagraph("Remembered By", character.rememberedBy),
+      );
     }
-    
+
     if (legacyDetails.length > 0) {
-      sections.push(legacyDetails.join('\n'));
+      sections.push(legacyDetails.join("\n"));
     }
   }
 
-  return sections.join('\n\n');
+  return sections.join("\n\n");
 }
 
 /**
@@ -409,7 +774,9 @@ function generateLocationArticle(location: any): string {
   if (location.name) {
     sections.push(`<h1>${escapeHtml(location.name)}</h1>`);
     if (location.locationType) {
-      sections.push(`<p><em>Type: ${escapeHtml(location.locationType)}</em></p>`);
+      sections.push(
+        `<p><em>Type: ${escapeHtml(location.locationType)}</em></p>`,
+      );
     }
   }
 
@@ -428,10 +795,10 @@ function generateLocationArticle(location: any): string {
   if (location.geography || location.climate) {
     sections.push(`<h2>Geography & Climate</h2>`);
     if (location.geography) {
-      sections.push(createSafeParagraph('Geography', location.geography));
+      sections.push(createSafeParagraph("Geography", location.geography));
     }
     if (location.climate) {
-      sections.push(createSafeParagraph('Climate', location.climate));
+      sections.push(createSafeParagraph("Climate", location.climate));
     }
   }
 
@@ -439,10 +806,10 @@ function generateLocationArticle(location: any): string {
   if (location.population || location.government) {
     sections.push(`<h2>Society & Governance</h2>`);
     if (location.population) {
-      sections.push(createSafeParagraph('Population', location.population));
+      sections.push(createSafeParagraph("Population", location.population));
     }
     if (location.government) {
-      sections.push(createSafeParagraph('Government', location.government));
+      sections.push(createSafeParagraph("Government", location.government));
     }
   }
 
@@ -450,10 +817,10 @@ function generateLocationArticle(location: any): string {
   if (location.economy || location.culture) {
     sections.push(`<h2>Economy & Culture</h2>`);
     if (location.economy) {
-      sections.push(createSafeParagraph('Economy', location.economy));
+      sections.push(createSafeParagraph("Economy", location.economy));
     }
     if (location.culture) {
-      sections.push(createSafeParagraph('Culture', location.culture));
+      sections.push(createSafeParagraph("Culture", location.culture));
     }
   }
 
@@ -486,7 +853,7 @@ function generateLocationArticle(location: any): string {
     sections.push(createSafeList(location.threats));
   }
 
-  return sections.join('\n\n');
+  return sections.join("\n\n");
 }
 
 /**
@@ -510,14 +877,18 @@ function generateSettingArticle(setting: Setting): string {
 
   // Basic Information
   const basicInfo: string[] = [];
-  if (setting.location) basicInfo.push(createSafeParagraph('Location', setting.location));
-  if (setting.timePeriod) basicInfo.push(createSafeParagraph('Time Period', setting.timePeriod));
-  if (setting.population) basicInfo.push(createSafeParagraph('Population', setting.population));
-  if (setting.climate) basicInfo.push(createSafeParagraph('Climate', setting.climate));
+  if (setting.location)
+    basicInfo.push(createSafeParagraph("Location", setting.location));
+  if (setting.timePeriod)
+    basicInfo.push(createSafeParagraph("Time Period", setting.timePeriod));
+  if (setting.population)
+    basicInfo.push(createSafeParagraph("Population", setting.population));
+  if (setting.climate)
+    basicInfo.push(createSafeParagraph("Climate", setting.climate));
 
   if (basicInfo.length > 0) {
     sections.push(`<h2>Basic Information</h2>`);
-    sections.push(basicInfo.join('\n'));
+    sections.push(basicInfo.join("\n"));
   }
 
   // Description & Atmosphere
@@ -543,7 +914,7 @@ function generateSettingArticle(setting: Setting): string {
     sections.push(createSafeList(setting.notableFeatures));
   }
 
-  return sections.join('\n\n');
+  return sections.join("\n\n");
 }
 
 /**
@@ -589,12 +960,15 @@ function generateConflictArticle(conflict: Conflict): string {
   }
 
   // Potential Resolutions
-  if (conflict.potentialResolutions && conflict.potentialResolutions.length > 0) {
+  if (
+    conflict.potentialResolutions &&
+    conflict.potentialResolutions.length > 0
+  ) {
     sections.push(`<h2>Potential Resolutions</h2>`);
     sections.push(createSafeList(conflict.potentialResolutions));
   }
 
-  return sections.join('\n\n');
+  return sections.join("\n\n");
 }
 
 /**
@@ -643,7 +1017,7 @@ function generateThemeArticle(theme: Theme): string {
     sections.push(createSafeList(theme.examples));
   }
 
-  return sections.join('\n\n');
+  return sections.join("\n\n");
 }
 
 /**
@@ -656,7 +1030,9 @@ function generateCreatureArticle(creature: Creature): string {
   if (creature.name) {
     sections.push(`<h1>${escapeHtml(creature.name)}</h1>`);
     if (creature.creatureType) {
-      sections.push(`<p><em>Type: ${escapeHtml(creature.creatureType)}</em></p>`);
+      sections.push(
+        `<p><em>Type: ${escapeHtml(creature.creatureType)}</em></p>`,
+      );
     }
   }
 
@@ -694,7 +1070,7 @@ function generateCreatureArticle(creature: Creature): string {
     sections.push(createSafeParagraph(null, creature.culturalSignificance));
   }
 
-  return sections.join('\n\n');
+  return sections.join("\n\n");
 }
 
 /**
@@ -707,7 +1083,9 @@ function generatePlantArticle(plant: any): string {
   if (plant.name) {
     sections.push(`<h1>${escapeHtml(plant.name)}</h1>`);
     if (plant.scientificName) {
-      sections.push(`<p><em>Scientific Name: ${escapeHtml(plant.scientificName)}</em></p>`);
+      sections.push(
+        `<p><em>Scientific Name: ${escapeHtml(plant.scientificName)}</em></p>`,
+      );
     }
     if (plant.type) {
       sections.push(`<p><em>Type: ${escapeHtml(plant.type)}</em></p>`);
@@ -726,20 +1104,31 @@ function generatePlantArticle(plant: any): string {
   }
 
   // Characteristics
-  if (plant.characteristics && Array.isArray(plant.characteristics) && plant.characteristics.length > 0) {
+  if (
+    plant.characteristics &&
+    Array.isArray(plant.characteristics) &&
+    plant.characteristics.length > 0
+  ) {
     sections.push(`<h2>Characteristics</h2>`);
     sections.push(createSafeList(plant.characteristics));
   }
 
   // Growing Information
   const growingInfo: string[] = [];
-  if (plant.habitat) growingInfo.push(createSafeParagraph('Habitat', plant.habitat));
-  if (plant.hardinessZone) growingInfo.push(createSafeParagraph('Hardiness Zone', plant.hardinessZone));
-  if (plant.bloomingSeason) growingInfo.push(createSafeParagraph('Blooming Season', plant.bloomingSeason));
+  if (plant.habitat)
+    growingInfo.push(createSafeParagraph("Habitat", plant.habitat));
+  if (plant.hardinessZone)
+    growingInfo.push(
+      createSafeParagraph("Hardiness Zone", plant.hardinessZone),
+    );
+  if (plant.bloomingSeason)
+    growingInfo.push(
+      createSafeParagraph("Blooming Season", plant.bloomingSeason),
+    );
 
   if (growingInfo.length > 0) {
     sections.push(`<h2>Growing Information</h2>`);
-    sections.push(growingInfo.join('\n'));
+    sections.push(growingInfo.join("\n"));
   }
 
   // Care Instructions
@@ -754,7 +1143,7 @@ function generatePlantArticle(plant: any): string {
     sections.push(`<p>No detailed information available for this plant.</p>`);
   }
 
-  return sections.join('\n\n');
+  return sections.join("\n\n");
 }
 
 /**
@@ -784,13 +1173,13 @@ function generateItemArticle(item: Item): string {
 
   // Basic Properties
   const basicProps: string[] = [];
-  if (item.rarity) basicProps.push(createSafeParagraph('Rarity', item.rarity));
-  if (item.value) basicProps.push(createSafeParagraph('Value', item.value));
-  if (item.weight) basicProps.push(createSafeParagraph('Weight', item.weight));
+  if (item.rarity) basicProps.push(createSafeParagraph("Rarity", item.rarity));
+  if (item.value) basicProps.push(createSafeParagraph("Value", item.value));
+  if (item.weight) basicProps.push(createSafeParagraph("Weight", item.weight));
 
   if (basicProps.length > 0) {
     sections.push(`<h2>Properties</h2>`);
-    sections.push(basicProps.join('\n'));
+    sections.push(basicProps.join("\n"));
   }
 
   // Materials
@@ -827,7 +1216,7 @@ function generateItemArticle(item: Item): string {
     sections.push(createSafeParagraph(null, item.requirements));
   }
 
-  return sections.join('\n\n');
+  return sections.join("\n\n");
 }
 
 /**
@@ -840,13 +1229,17 @@ function generateOrganizationArticle(organization: Organization): string {
   if (organization.name) {
     sections.push(`<h1>${escapeHtml(organization.name)}</h1>`);
     if (organization.organizationType) {
-      sections.push(`<p><em>Type: ${escapeHtml(organization.organizationType)}</em></p>`);
+      sections.push(
+        `<p><em>Type: ${escapeHtml(organization.organizationType)}</em></p>`,
+      );
     }
   }
 
   // Image
   if (organization.imageUrl) {
-    sections.push(createImageSection(organization.imageUrl, organization.imageCaption));
+    sections.push(
+      createImageSection(organization.imageUrl, organization.imageCaption),
+    );
   }
 
   // Purpose & Description
@@ -916,7 +1309,7 @@ function generateOrganizationArticle(organization: Organization): string {
     sections.push(createSafeList(organization.enemies));
   }
 
-  return sections.join('\n\n');
+  return sections.join("\n\n");
 }
 
 /**
@@ -929,7 +1322,9 @@ function generateSpeciesArticle(species: Species): string {
   if (species.name) {
     sections.push(`<h1>${escapeHtml(species.name)}</h1>`);
     if (species.classification) {
-      sections.push(`<p><em>Classification: ${escapeHtml(species.classification)}</em></p>`);
+      sections.push(
+        `<p><em>Classification: ${escapeHtml(species.classification)}</em></p>`,
+      );
     }
   }
 
@@ -957,13 +1352,15 @@ function generateSpeciesArticle(species: Species): string {
 
   // Biology
   const biologyInfo: string[] = [];
-  if (species.diet) biologyInfo.push(createSafeParagraph('Diet', species.diet));
-  if (species.lifespan) biologyInfo.push(createSafeParagraph('Lifespan', species.lifespan));
-  if (species.reproduction) biologyInfo.push(createSafeParagraph('Reproduction', species.reproduction));
+  if (species.diet) biologyInfo.push(createSafeParagraph("Diet", species.diet));
+  if (species.lifespan)
+    biologyInfo.push(createSafeParagraph("Lifespan", species.lifespan));
+  if (species.reproduction)
+    biologyInfo.push(createSafeParagraph("Reproduction", species.reproduction));
 
   if (biologyInfo.length > 0) {
     sections.push(`<h2>Biology</h2>`);
-    sections.push(biologyInfo.join('\n'));
+    sections.push(biologyInfo.join("\n"));
   }
 
   // Intelligence & Social Structure
@@ -994,7 +1391,7 @@ function generateSpeciesArticle(species: Species): string {
     sections.push(createSafeList(species.weaknesses));
   }
 
-  return sections.join('\n\n');
+  return sections.join("\n\n");
 }
 
 /**
@@ -1010,7 +1407,9 @@ function generateEthnicityArticle(ethnicity: Ethnicity): string {
 
   // Image
   if (ethnicity.imageUrl) {
-    sections.push(createImageSection(ethnicity.imageUrl, ethnicity.imageCaption));
+    sections.push(
+      createImageSection(ethnicity.imageUrl, ethnicity.imageCaption),
+    );
   }
 
   // Origin & Geography
@@ -1075,7 +1474,7 @@ function generateEthnicityArticle(ethnicity: Ethnicity): string {
     sections.push(createSafeList(ethnicity.customs));
   }
 
-  return sections.join('\n\n');
+  return sections.join("\n\n");
 }
 
 /**
@@ -1165,7 +1564,7 @@ function generateCultureArticle(culture: Culture): string {
     sections.push(createSafeList(culture.ceremonies));
   }
 
-  return sections.join('\n\n');
+  return sections.join("\n\n");
 }
 
 /**
@@ -1178,7 +1577,9 @@ function generateDocumentArticle(document: Document): string {
   if (document.title) {
     sections.push(`<h1>${escapeHtml(document.title)}</h1>`);
     if (document.documentType) {
-      sections.push(`<p><em>Type: ${escapeHtml(document.documentType)}</em></p>`);
+      sections.push(
+        `<p><em>Type: ${escapeHtml(document.documentType)}</em></p>`,
+      );
     }
   }
 
@@ -1195,14 +1596,17 @@ function generateDocumentArticle(document: Document): string {
 
   // Authorship & Details
   const documentInfo: string[] = [];
-  if (document.author) documentInfo.push(createSafeParagraph('Author', document.author));
-  if (document.language) documentInfo.push(createSafeParagraph('Language', document.language));
-  if (document.age) documentInfo.push(createSafeParagraph('Age', document.age));
-  if (document.condition) documentInfo.push(createSafeParagraph('Condition', document.condition));
+  if (document.author)
+    documentInfo.push(createSafeParagraph("Author", document.author));
+  if (document.language)
+    documentInfo.push(createSafeParagraph("Language", document.language));
+  if (document.age) documentInfo.push(createSafeParagraph("Age", document.age));
+  if (document.condition)
+    documentInfo.push(createSafeParagraph("Condition", document.condition));
 
   if (documentInfo.length > 0) {
     sections.push(`<h2>Document Information</h2>`);
-    sections.push(documentInfo.join('\n'));
+    sections.push(documentInfo.join("\n"));
   }
 
   // Significance & Location
@@ -1232,7 +1636,7 @@ function generateDocumentArticle(document: Document): string {
     sections.push(createSafeParagraph(null, document.secrets));
   }
 
-  return sections.join('\n\n');
+  return sections.join("\n\n");
 }
 
 /**
@@ -1273,12 +1677,13 @@ function generateFoodArticle(food: Food): string {
 
   // Sensory Properties
   const sensoryInfo: string[] = [];
-  if (food.taste) sensoryInfo.push(createSafeParagraph('Taste', food.taste));
-  if (food.texture) sensoryInfo.push(createSafeParagraph('Texture', food.texture));
+  if (food.taste) sensoryInfo.push(createSafeParagraph("Taste", food.taste));
+  if (food.texture)
+    sensoryInfo.push(createSafeParagraph("Texture", food.texture));
 
   if (sensoryInfo.length > 0) {
     sections.push(`<h2>Taste & Texture</h2>`);
-    sections.push(sensoryInfo.join('\n'));
+    sections.push(sensoryInfo.join("\n"));
   }
 
   // Cultural & Nutritional Info
@@ -1299,16 +1704,18 @@ function generateFoodArticle(food: Food): string {
 
   // Practical Information
   const practicalInfo: string[] = [];
-  if (food.cost) practicalInfo.push(createSafeParagraph('Cost', food.cost));
-  if (food.rarity) practicalInfo.push(createSafeParagraph('Rarity', food.rarity));
-  if (food.preservation) practicalInfo.push(createSafeParagraph('Preservation', food.preservation));
+  if (food.cost) practicalInfo.push(createSafeParagraph("Cost", food.cost));
+  if (food.rarity)
+    practicalInfo.push(createSafeParagraph("Rarity", food.rarity));
+  if (food.preservation)
+    practicalInfo.push(createSafeParagraph("Preservation", food.preservation));
 
   if (practicalInfo.length > 0) {
     sections.push(`<h2>Practical Information</h2>`);
-    sections.push(practicalInfo.join('\n'));
+    sections.push(practicalInfo.join("\n"));
   }
 
-  return sections.join('\n\n');
+  return sections.join("\n\n");
 }
 
 /**
@@ -1349,13 +1756,17 @@ function generateDrinkArticle(drink: Drink): string {
 
   // Properties
   const drinkProps: string[] = [];
-  if (drink.alcoholContent) drinkProps.push(createSafeParagraph('Alcohol Content', drink.alcoholContent));
-  if (drink.taste) drinkProps.push(createSafeParagraph('Taste', drink.taste));
-  if (drink.appearance) drinkProps.push(createSafeParagraph('Appearance', drink.appearance));
+  if (drink.alcoholContent)
+    drinkProps.push(
+      createSafeParagraph("Alcohol Content", drink.alcoholContent),
+    );
+  if (drink.taste) drinkProps.push(createSafeParagraph("Taste", drink.taste));
+  if (drink.appearance)
+    drinkProps.push(createSafeParagraph("Appearance", drink.appearance));
 
   if (drinkProps.length > 0) {
     sections.push(`<h2>Properties</h2>`);
-    sections.push(drinkProps.join('\n'));
+    sections.push(drinkProps.join("\n"));
   }
 
   // Effects
@@ -1377,15 +1788,16 @@ function generateDrinkArticle(drink: Drink): string {
 
   // Practical Information
   const practicalInfo: string[] = [];
-  if (drink.cost) practicalInfo.push(createSafeParagraph('Cost', drink.cost));
-  if (drink.rarity) practicalInfo.push(createSafeParagraph('Rarity', drink.rarity));
+  if (drink.cost) practicalInfo.push(createSafeParagraph("Cost", drink.cost));
+  if (drink.rarity)
+    practicalInfo.push(createSafeParagraph("Rarity", drink.rarity));
 
   if (practicalInfo.length > 0) {
     sections.push(`<h2>Availability</h2>`);
-    sections.push(practicalInfo.join('\n'));
+    sections.push(practicalInfo.join("\n"));
   }
 
-  return sections.join('\n\n');
+  return sections.join("\n\n");
 }
 
 /**
@@ -1419,20 +1831,20 @@ export async function generateArticleForContent(
   contentType: SupportedContentType,
   contentId: string,
   userId: string,
-  notebookId: string
+  notebookId: string,
 ): Promise<any> {
   // Validate user owns the notebook
   const userNotebook = await storage.getNotebook(notebookId, userId);
   if (!userNotebook) {
-    throw new Error('Notebook not found or access denied');
+    throw new Error("Notebook not found or access denied");
   }
 
   // Get the content based on type
   let content: any;
   switch (contentType) {
-    case 'characters':
+    case "characters":
       content = await storage.getCharacter(contentId, userId, notebookId);
-      
+
       // Resolve occupation and species IDs to names
       if (content) {
         if (content.occupation) {
@@ -1442,10 +1854,10 @@ export async function generateArticleForContent(
               content.occupation = profession.name;
             }
           } catch (error) {
-            console.error('Failed to resolve occupation:', error);
+            console.error("Failed to resolve occupation:", error);
           }
         }
-        
+
         if (content.species) {
           try {
             const species = await storage.getSpecies(content.species);
@@ -1453,51 +1865,51 @@ export async function generateArticleForContent(
               content.species = species.name;
             }
           } catch (error) {
-            console.error('Failed to resolve species:', error);
+            console.error("Failed to resolve species:", error);
           }
         }
       }
       break;
-    case 'locations':
+    case "locations":
       content = await storage.getLocation(contentId, userId, notebookId);
       break;
-    case 'settings':
+    case "settings":
       content = await storage.getSetting(contentId);
       break;
-    case 'conflicts':
+    case "conflicts":
       content = await storage.getConflict(contentId);
       break;
-    case 'themes':
+    case "themes":
       content = await storage.getTheme(contentId);
       break;
-    case 'creatures':
+    case "creatures":
       content = await storage.getCreature(contentId);
       break;
-    case 'plants':
+    case "plants":
       content = await storage.getPlant(contentId, userId, notebookId);
       break;
-    case 'items':
+    case "items":
       content = await storage.getItem(contentId, userId, notebookId);
       break;
-    case 'organizations':
+    case "organizations":
       content = await storage.getOrganization(contentId, userId, notebookId);
       break;
-    case 'species':
+    case "species":
       content = await storage.getSpecies(contentId);
       break;
-    case 'ethnicities':
+    case "ethnicities":
       content = await storage.getEthnicity(contentId);
       break;
-    case 'cultures':
+    case "cultures":
       content = await storage.getCulture(contentId, userId, notebookId);
       break;
-    case 'documents':
+    case "documents":
       content = await storage.getDocument(contentId);
       break;
-    case 'foods':
+    case "foods":
       content = await storage.getFood(contentId);
       break;
-    case 'drinks':
+    case "drinks":
       content = await storage.getDrink(contentId);
       break;
     default:
@@ -1505,7 +1917,7 @@ export async function generateArticleForContent(
   }
 
   if (!content) {
-    throw new Error('Content not found');
+    throw new Error("Content not found");
   }
 
   // Generate safe HTML article
@@ -1515,49 +1927,91 @@ export async function generateArticleForContent(
   // Update the content with generated article
   let updatedContent: any;
   switch (contentType) {
-    case 'characters':
-      updatedContent = await storage.updateCharacter(contentId, userId, { articleContent }, notebookId);
+    case "characters":
+      updatedContent = await storage.updateCharacter(
+        contentId,
+        userId,
+        { articleContent },
+        notebookId,
+      );
       break;
-    case 'locations':
-      updatedContent = await storage.updateLocation(contentId, userId, { articleContent }, notebookId);
+    case "locations":
+      updatedContent = await storage.updateLocation(
+        contentId,
+        userId,
+        { articleContent },
+        notebookId,
+      );
       break;
-    case 'settings':
-      updatedContent = await storage.updateSetting(contentId, { articleContent });
+    case "settings":
+      updatedContent = await storage.updateSetting(contentId, {
+        articleContent,
+      });
       break;
-    case 'conflicts':
-      updatedContent = await storage.updateConflict(contentId, { articleContent });
+    case "conflicts":
+      updatedContent = await storage.updateConflict(contentId, {
+        articleContent,
+      });
       break;
-    case 'themes':
+    case "themes":
       updatedContent = await storage.updateTheme(contentId, { articleContent });
       break;
-    case 'creatures':
-      updatedContent = await storage.updateCreature(contentId, { articleContent });
+    case "creatures":
+      updatedContent = await storage.updateCreature(contentId, {
+        articleContent,
+      });
       break;
-    case 'plants':
-      updatedContent = await storage.updatePlant(contentId, userId, { articleContent }, notebookId);
+    case "plants":
+      updatedContent = await storage.updatePlant(
+        contentId,
+        userId,
+        { articleContent },
+        notebookId,
+      );
       break;
-    case 'items':
-      updatedContent = await storage.updateItem(contentId, userId, { articleContent }, notebookId);
+    case "items":
+      updatedContent = await storage.updateItem(
+        contentId,
+        userId,
+        { articleContent },
+        notebookId,
+      );
       break;
-    case 'organizations':
-      updatedContent = await storage.updateOrganization(contentId, userId, { articleContent }, notebookId);
+    case "organizations":
+      updatedContent = await storage.updateOrganization(
+        contentId,
+        userId,
+        { articleContent },
+        notebookId,
+      );
       break;
-    case 'species':
-      updatedContent = await storage.updateSpecies(contentId, { articleContent });
+    case "species":
+      updatedContent = await storage.updateSpecies(contentId, {
+        articleContent,
+      });
       break;
-    case 'ethnicities':
-      updatedContent = await storage.updateEthnicity(contentId, { articleContent });
+    case "ethnicities":
+      updatedContent = await storage.updateEthnicity(contentId, {
+        articleContent,
+      });
       break;
-    case 'cultures':
-      updatedContent = await storage.updateCulture(contentId, userId, { articleContent }, notebookId);
+    case "cultures":
+      updatedContent = await storage.updateCulture(
+        contentId,
+        userId,
+        { articleContent },
+        notebookId,
+      );
       break;
-    case 'documents':
-      updatedContent = await storage.updateDocument(contentId, { articleContent });
+    case "documents":
+      updatedContent = await storage.updateDocument(contentId, {
+        articleContent,
+      });
       break;
-    case 'foods':
+    case "foods":
       updatedContent = await storage.updateFood(contentId, { articleContent });
       break;
-    case 'drinks':
+    case "drinks":
       updatedContent = await storage.updateDrink(contentId, { articleContent });
       break;
     default:

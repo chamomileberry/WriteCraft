@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useState, useEffect, useMemo, useRef } from "react";
 import {
   ReactFlow,
   Background,
@@ -14,84 +14,118 @@ import {
   Connection,
   NodeTypes,
   EdgeTypes,
-  Panel
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { queryClient, apiRequest } from '@/lib/queryClient';
-import type { FamilyTree, FamilyTreeMember, FamilyTreeRelationship, Character } from '@shared/schema';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Loader2, ZoomIn, ZoomOut, Maximize, Users, Grid3X3, Maximize2, UserPlus, RotateCcw, Save, ArrowLeft, Check, AlertCircle, RefreshCw, Search, X, Undo, Redo, Map as MapIcon } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useDebouncedSave } from '@/hooks/useDebouncedSave';
-import { FamilyMemberNode, FamilyMemberNodeData } from './FamilyMemberNode';
-import { FamilyRelationshipEdge, FamilyRelationshipEdgeData } from './FamilyRelationshipEdge';
-import { JunctionNode } from './JunctionNode';
-import { JunctionEdge } from './JunctionEdge';
-import { CharacterGallery } from './CharacterGallery';
-import { RelationshipSelector, type RelationshipType } from './RelationshipSelector';
-import { InlineMemberDialog } from './InlineMemberDialog';
-import { MemberEditDialog } from './MemberEditDialog';
-import { AddRelationshipDialog, type RelationshipType as AddRelationshipType } from './AddRelationshipDialog';
-import { SelectCharacterDialog } from './SelectCharacterDialog';
-import { getLayoutedElements } from '@/lib/dagre-layout';
-import { 
-  calculateJunctionPosition, 
-  calculateSpouseAlignedY, 
+  Panel,
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import type {
+  FamilyTree,
+  FamilyTreeMember,
+  FamilyTreeRelationship,
+  Character,
+} from "@shared/schema";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Loader2,
+  ZoomIn,
+  ZoomOut,
+  Maximize,
+  Users,
+  Grid3X3,
+  Maximize2,
+  UserPlus,
+  RotateCcw,
+  Save,
+  ArrowLeft,
+  Check,
+  AlertCircle,
+  RefreshCw,
+  Search,
+  X,
+  Undo,
+  Redo,
+  Map as MapIcon,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useDebouncedSave } from "@/hooks/useDebouncedSave";
+import { FamilyMemberNode, FamilyMemberNodeData } from "./FamilyMemberNode";
+import {
+  FamilyRelationshipEdge,
+  FamilyRelationshipEdgeData,
+} from "./FamilyRelationshipEdge";
+import { JunctionNode } from "./JunctionNode";
+import { JunctionEdge } from "./JunctionEdge";
+import { CharacterGallery } from "./CharacterGallery";
+import {
+  RelationshipSelector,
+  type RelationshipType,
+} from "./RelationshipSelector";
+import { InlineMemberDialog } from "./InlineMemberDialog";
+import { MemberEditDialog } from "./MemberEditDialog";
+import {
+  AddRelationshipDialog,
+  type RelationshipType as AddRelationshipType,
+} from "./AddRelationshipDialog";
+import { SelectCharacterDialog } from "./SelectCharacterDialog";
+import { getLayoutedElements } from "@/lib/dagre-layout";
+import {
+  calculateJunctionPosition,
+  calculateSpouseAlignedY,
   calculateCoupleAlignment,
-  type ParentNodeWithDimensions 
-} from '@/lib/junction-positioning';
+  type ParentNodeWithDimensions,
+} from "@/lib/junction-positioning";
 
 /**
  * CRITICAL: Family Tree Junction Positioning Logic
- * 
+ *
  * This component manages family tree visualization with proper genealogical structure.
  * The most critical aspect is ensuring horizontal marriage lines with centered child branches.
- * 
+ *
  * THREE CRITICAL REQUIREMENTS:
- * 
+ *
  * 1. SPOUSE VERTICAL CENTER ALIGNMENT:
  *    - When spouses are married (have shared children), their VERTICAL CENTERS must align
  *    - This is NOT the same as aligning top edges - cards can have different heights
  *    - If top edges are aligned but heights differ, marriage line will be sloped ❌
  *    - Uses: calculateSpouseAlignedY() and calculateCoupleAlignment() utilities
- * 
+ *
  * 2. JUNCTION X FROM HANDLE EDGES:
  *    - Junction X must be calculated from actual handle connection points (edges, not centers)
  *    - Left parent's handle is at: x + width (right edge)
- *    - Right parent's handle is at: x (left edge) 
+ *    - Right parent's handle is at: x (left edge)
  *    - Junction X = (leftParentX + leftWidth + rightParentX) / 2
  *    - Using node centers instead of edges causes off-center child lines ❌
- * 
+ *
  * 3. JUNCTION Y FROM PARENT CENTERS:
  *    - Junction Y must align with parent vertical centers (where left/right handles are)
  *    - If parents aligned: use either parent's center (they're the same)
  *    - If parents not aligned: average both centers
  *    - Uses: calculateJunctionPosition() utility with areParentsAligned flag
- * 
+ *
  * CRITICAL LOCATIONS (all use utilities in junction-positioning.ts):
- * 
+ *
  * A. Drag Handler (~line 439-520):
  *    - When dragging a spouse, align partner's vertical center
  *    - Recalculate junction position with areParentsAligned: true
- * 
+ *
  * B. Initial Junction Creation (~line 597-614):
  *    - Calculate junction position for newly created junctions
  *    - Use areParentsAligned: false (parents may not be aligned yet)
- * 
+ *
  * C. Auto-Layout (~line 711-775):
  *    - Align married couples' vertical centers first
  *    - Then calculate junction positions with areParentsAligned: true
- * 
+ *
  * SINGLE SOURCE OF TRUTH:
  * All positioning logic is centralized in client/src/lib/junction-positioning.ts
  * - calculateJunctionPosition(): Calculates junction X,Y coordinates
  * - calculateSpouseAlignedY(): Aligns spouse vertical center during drag
  * - calculateCoupleAlignment(): Aligns couples during auto-layout
  * - Runtime validation in dev mode warns of positioning errors
- * 
+ *
  * DO NOT modify positioning logic inline - update the utility functions instead!
  * This ensures all three code paths use identical, tested, validated logic.
  */
@@ -102,60 +136,75 @@ interface FamilyTreeEditorProps {
   onBack?: () => void;
 }
 
-function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorProps) {
+function FamilyTreeEditorInner({
+  treeId,
+  notebookId,
+  onBack,
+}: FamilyTreeEditorProps) {
   const { toast } = useToast();
-  const { screenToFlowPosition, fitView, setCenter, getNode, getNodes } = useReactFlow();
+  const { screenToFlowPosition, fitView, setCenter, getNode, getNodes } =
+    useReactFlow();
   const [isAutoLayout, setIsAutoLayout] = useState(true); // Default to auto-layout with Dagre
   const prevIsAutoLayout = useRef(isAutoLayout);
   const lastComputedNodesRef = useRef<Node[]>([]);
   const lastComputedEdgesRef = useRef<Edge[]>([]);
   const isUpdatingJunctions = useRef(false);
-  
+
   // Relationship selector state
-  const [pendingConnection, setPendingConnection] = useState<Connection | null>(null);
+  const [pendingConnection, setPendingConnection] = useState<Connection | null>(
+    null,
+  );
   const [selectorOpen, setSelectorOpen] = useState(false);
-  
+
   // Add member dialog state (for inline node creation - task 3)
   const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
-  
+
   // Character edit modal state
-  const [editingMember, setEditingMember] = useState<FamilyTreeMember | null>(null);
+  const [editingMember, setEditingMember] = useState<FamilyTreeMember | null>(
+    null,
+  );
   const [editModalOpen, setEditModalOpen] = useState(false);
-  
+
   // Add relationship dialog state
-  const [addRelationshipDialogOpen, setAddRelationshipDialogOpen] = useState(false);
-  const [selectCharacterDialogOpen, setSelectCharacterDialogOpen] = useState(false);
-  const [selectedMemberForRelationship, setSelectedMemberForRelationship] = useState<FamilyTreeMember | null>(null);
-  const [selectedRelationshipType, setSelectedRelationshipType] = useState<AddRelationshipType | null>(null);
-  
+  const [addRelationshipDialogOpen, setAddRelationshipDialogOpen] =
+    useState(false);
+  const [selectCharacterDialogOpen, setSelectCharacterDialogOpen] =
+    useState(false);
+  const [selectedMemberForRelationship, setSelectedMemberForRelationship] =
+    useState<FamilyTreeMember | null>(null);
+  const [selectedRelationshipType, setSelectedRelationshipType] =
+    useState<AddRelationshipType | null>(null);
+
   // Tree metadata editing state
-  const [treeName, setTreeName] = useState('');
-  const [treeDescription, setTreeDescription] = useState('');
-  
+  const [treeName, setTreeName] = useState("");
+  const [treeDescription, setTreeDescription] = useState("");
+
   // Search state
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<FamilyTreeMember[]>([]);
   const [selectedSearchIndex, setSelectedSearchIndex] = useState(0);
-  
+
   // MiniMap visibility state
   const [showMiniMap, setShowMiniMap] = useState(true);
-  
+
   // Undo/Redo history state
   type HistoryAction = {
-    type: 'move_node' | 'add_relationship' | 'remove_relationship';
+    type: "move_node" | "add_relationship" | "remove_relationship";
     memberId?: string;
     oldPosition?: { x: number; y: number };
     newPosition?: { x: number; y: number };
     relationshipId?: string;
     relationshipData?: any;
   };
-  
+
   const [history, setHistory] = useState<HistoryAction[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const MAX_HISTORY = 20;
-  
+
   // Track node positions before drag starts for accurate history
-  const dragStartPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
+  const dragStartPositions = useRef<Map<string, { x: number; y: number }>>(
+    new Map(),
+  );
 
   // Handle member edit
   const handleEditMember = useCallback((member: FamilyTreeMember) => {
@@ -178,127 +227,166 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
 
   // Mutation to add related family member
   const addRelatedMember = useMutation({
-    mutationFn: async (data: { 
-      relativeMemberId: string; 
-      relationshipType: AddRelationshipType; 
+    mutationFn: async (data: {
+      relativeMemberId: string;
+      relationshipType: AddRelationshipType;
       characterId?: string;
       inlineName?: string;
     }) => {
       return apiRequest(
-        'POST',
+        "POST",
         `/api/family-trees/${treeId}/members/add-related`,
-        { ...data, notebookId }
+        { ...data, notebookId },
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId, 'members'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId, 'relationships'] });
-      
+      queryClient.invalidateQueries({
+        queryKey: ["/api/family-trees", treeId, "members"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/family-trees", treeId, "relationships"],
+      });
+
       setSelectCharacterDialogOpen(false);
       setAddRelationshipDialogOpen(false);
       setSelectedMemberForRelationship(null);
       setSelectedRelationshipType(null);
-      
+
       toast({
-        title: 'Success',
-        description: 'Related family member added successfully',
+        title: "Success",
+        description: "Related family member added successfully",
       });
     },
     onError: (error) => {
       toast({
-        title: 'Failed to add related member',
-        description: error instanceof Error ? error.message : 'Unknown error occurred',
-        variant: 'destructive',
+        title: "Failed to add related member",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
       });
     },
   });
 
   // Handle selecting existing character
-  const onSelectExisting = useCallback((characterId: string) => {
-    if (!selectedMemberForRelationship || !selectedRelationshipType) {
-      toast({
-        title: 'Error',
-        description: 'Missing required information',
-        variant: 'destructive',
-      });
-      return;
-    }
+  const onSelectExisting = useCallback(
+    (characterId: string) => {
+      if (!selectedMemberForRelationship || !selectedRelationshipType) {
+        toast({
+          title: "Error",
+          description: "Missing required information",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    addRelatedMember.mutate({
-      relativeMemberId: selectedMemberForRelationship.id,
-      relationshipType: selectedRelationshipType,
-      characterId: characterId,
-    });
-  }, [selectedMemberForRelationship, selectedRelationshipType, addRelatedMember, toast]);
+      addRelatedMember.mutate({
+        relativeMemberId: selectedMemberForRelationship.id,
+        relationshipType: selectedRelationshipType,
+        characterId: characterId,
+      });
+    },
+    [
+      selectedMemberForRelationship,
+      selectedRelationshipType,
+      addRelatedMember,
+      toast,
+    ],
+  );
 
   // Handle creating new character
-  const onCreateNew = useCallback((name: string) => {
-    if (!selectedMemberForRelationship || !selectedRelationshipType) {
-      toast({
-        title: 'Error',
-        description: 'Missing required information',
-        variant: 'destructive',
-      });
-      return;
-    }
+  const onCreateNew = useCallback(
+    (name: string) => {
+      if (!selectedMemberForRelationship || !selectedRelationshipType) {
+        toast({
+          title: "Error",
+          description: "Missing required information",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    addRelatedMember.mutate({
-      relativeMemberId: selectedMemberForRelationship.id,
-      relationshipType: selectedRelationshipType,
-      inlineName: name,
-    });
-  }, [selectedMemberForRelationship, selectedRelationshipType, addRelatedMember, toast]);
+      addRelatedMember.mutate({
+        relativeMemberId: selectedMemberForRelationship.id,
+        relationshipType: selectedRelationshipType,
+        inlineName: name,
+      });
+    },
+    [
+      selectedMemberForRelationship,
+      selectedRelationshipType,
+      addRelatedMember,
+      toast,
+    ],
+  );
 
   // Define custom node and edge types
-  const nodeTypes: NodeTypes = useMemo(() => ({
-    familyMember: FamilyMemberNode,
-    junction: JunctionNode,
-  }), []);
+  const nodeTypes: NodeTypes = useMemo(
+    () => ({
+      familyMember: FamilyMemberNode,
+      junction: JunctionNode,
+    }),
+    [],
+  );
 
-  const edgeTypes: EdgeTypes = useMemo(() => ({
-    familyRelationship: FamilyRelationshipEdge,
-    junction: JunctionEdge,
-  }), []);
+  const edgeTypes: EdgeTypes = useMemo(
+    () => ({
+      familyRelationship: FamilyRelationshipEdge,
+      junction: JunctionEdge,
+    }),
+    [],
+  );
 
   // Fetch tree data
   const { data: tree, isLoading: treeLoading } = useQuery<FamilyTree>({
-    queryKey: ['/api/family-trees', treeId],
-    queryFn: () => fetch(`/api/family-trees/${treeId}?notebookId=${notebookId}`).then(r => r.json()),
-    enabled: !!treeId && !!notebookId
+    queryKey: ["/api/family-trees", treeId],
+    queryFn: () =>
+      fetch(`/api/family-trees/${treeId}?notebookId=${notebookId}`).then((r) =>
+        r.json(),
+      ),
+    enabled: !!treeId && !!notebookId,
   });
 
   // Fetch members
-  const { data: members = [], isLoading: membersLoading } = useQuery<FamilyTreeMember[]>({
-    queryKey: ['/api/family-trees', treeId, 'members'],
-    queryFn: () => fetch(`/api/family-trees/${treeId}/members?notebookId=${notebookId}`).then(r => r.json()),
-    enabled: !!treeId && !!notebookId
+  const { data: members = [], isLoading: membersLoading } = useQuery<
+    FamilyTreeMember[]
+  >({
+    queryKey: ["/api/family-trees", treeId, "members"],
+    queryFn: () =>
+      fetch(
+        `/api/family-trees/${treeId}/members?notebookId=${notebookId}`,
+      ).then((r) => r.json()),
+    enabled: !!treeId && !!notebookId,
   });
 
   // Fetch relationships
-  const { data: relationships = [], isLoading: relationshipsLoading } = useQuery<FamilyTreeRelationship[]>({
-    queryKey: ['/api/family-trees', treeId, 'relationships'],
-    queryFn: () => fetch(`/api/family-trees/${treeId}/relationships?notebookId=${notebookId}`).then(r => r.json()),
-    enabled: !!treeId && !!notebookId
-  });
+  const { data: relationships = [], isLoading: relationshipsLoading } =
+    useQuery<FamilyTreeRelationship[]>({
+      queryKey: ["/api/family-trees", treeId, "relationships"],
+      queryFn: () =>
+        fetch(
+          `/api/family-trees/${treeId}/relationships?notebookId=${notebookId}`,
+        ).then((r) => r.json()),
+      enabled: !!treeId && !!notebookId,
+    });
 
   // Fetch characters for SelectCharacterDialog
   const { data: rawCharacters = [] } = useQuery<Character[]>({
-    queryKey: ['/api/characters', notebookId],
+    queryKey: ["/api/characters", notebookId],
     queryFn: async () => {
       const response = await fetch(`/api/characters?notebookId=${notebookId}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch characters');
+        throw new Error("Failed to fetch characters");
       }
       return response.json();
     },
     enabled: !!notebookId,
-    staleTime: 0,  // Always fetch fresh data
-    gcTime: 0,      // Don't cache results
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache results
   });
-  
+
   // Deduplicate characters by ID (in case database has duplicates)
   const characters = rawCharacters.reduce((acc: Character[], character) => {
-    if (!acc.find(c => c.id === character.id)) {
+    if (!acc.find((c) => c.id === character.id)) {
       acc.push(character);
     }
     return acc;
@@ -307,30 +395,37 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   // Sync tree metadata to local state when tree data loads
   useEffect(() => {
     if (tree) {
-      setTreeName(tree.name || '');
-      setTreeDescription(tree.description || '');
+      setTreeName(tree.name || "");
+      setTreeDescription(tree.description || "");
       // Sync layout mode from database
-      setIsAutoLayout(tree.layoutMode === 'auto');
+      setIsAutoLayout(tree.layoutMode === "auto");
     }
   }, [tree]);
 
   // Mutation to update tree metadata
   const updateTreeMetadata = useMutation({
-    mutationFn: async (data: { name?: string; description?: string; layoutMode?: string }) => {
+    mutationFn: async (data: {
+      name?: string;
+      description?: string;
+      layoutMode?: string;
+    }) => {
       return apiRequest(
-        'PUT',
+        "PUT",
         `/api/family-trees/${treeId}?notebookId=${notebookId}`,
-        { ...data, notebookId }
+        { ...data, notebookId },
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/family-trees", treeId],
+      });
     },
     onError: (error) => {
       toast({
-        title: 'Failed to save changes',
-        description: error instanceof Error ? error.message : 'Unknown error occurred',
-        variant: 'destructive',
+        title: "Failed to save changes",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
       });
     },
   });
@@ -339,16 +434,16 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   const metadataSave = useDebouncedSave({
     getData: () => {
       if (!tree) return null;
-      
+
       const nameChanged = treeName !== tree.name;
       const descriptionChanged = treeDescription !== tree.description;
-      
+
       if (!nameChanged && !descriptionChanged) return null;
-      
+
       const updates: { name?: string; description?: string } = {};
       if (nameChanged) updates.name = treeName;
       if (descriptionChanged) updates.description = treeDescription;
-      
+
       return updates;
     },
     saveFn: async (data) => {
@@ -360,16 +455,16 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
 
   // Trigger save when treeName or treeDescription changes (but only after initial sync)
   const initialSyncDone = useRef(false);
-  
+
   useEffect(() => {
     if (!tree) return;
-    
+
     // Skip the first sync when component mounts
     if (!initialSyncDone.current) {
       initialSyncDone.current = true;
       return;
     }
-    
+
     // Only trigger save if values actually differ from server
     if (treeName !== tree.name || treeDescription !== tree.description) {
       metadataSave.triggerSave();
@@ -383,293 +478,349 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
       setSelectedSearchIndex(0);
       return;
     }
-    
+
     const query = searchQuery.toLowerCase();
-    const results = members.filter(member => {
+    const results = members.filter((member) => {
       // Search in inline name or character data if available
-      const inlineName = member.inlineName || '';
+      const inlineName = member.inlineName || "";
       const charData = (member as any).character;
-      const charName = charData ? 
-        [charData.givenName, charData.middleName, charData.familyName, charData.nickname]
-          .filter(Boolean).join(' ') : '';
-      const fullName = (inlineName + ' ' + charName).toLowerCase();
+      const charName = charData
+        ? [
+            charData.givenName,
+            charData.middleName,
+            charData.familyName,
+            charData.nickname,
+          ]
+            .filter(Boolean)
+            .join(" ")
+        : "";
+      const fullName = (inlineName + " " + charName).toLowerCase();
       return fullName.includes(query);
     });
-    
+
     setSearchResults(results);
     setSelectedSearchIndex(0);
   }, [searchQuery, members]);
-  
+
   // Pan to search result
   useEffect(() => {
     if (searchResults.length > 0 && searchResults[selectedSearchIndex]) {
       const member = searchResults[selectedSearchIndex];
       const node = getNode(member.id);
       if (node) {
-        setCenter(node.position.x + 75, node.position.y + 50, { zoom: 1.5, duration: 400 });
+        setCenter(node.position.x + 75, node.position.y + 50, {
+          zoom: 1.5,
+          duration: 400,
+        });
       }
     }
   }, [selectedSearchIndex, searchResults, getNode, setCenter]);
-  
+
   // Search navigation handlers
   const handleNextResult = useCallback(() => {
     if (searchResults.length > 0) {
       setSelectedSearchIndex((prev) => (prev + 1) % searchResults.length);
     }
   }, [searchResults.length]);
-  
+
   const handlePrevResult = useCallback(() => {
     if (searchResults.length > 0) {
-      setSelectedSearchIndex((prev) => (prev - 1 + searchResults.length) % searchResults.length);
+      setSelectedSearchIndex(
+        (prev) => (prev - 1 + searchResults.length) % searchResults.length,
+      );
     }
   }, [searchResults.length]);
-  
+
   const handleClearSearch = useCallback(() => {
-    setSearchQuery('');
+    setSearchQuery("");
     setSearchResults([]);
     setSelectedSearchIndex(0);
   }, []);
-  
+
   // Add action to history
-  const addToHistory = useCallback((action: HistoryAction) => {
-    setHistory(prev => {
-      const newHistory = prev.slice(0, historyIndex + 1);
-      newHistory.push(action);
-      if (newHistory.length > MAX_HISTORY) {
-        newHistory.shift();
+  const addToHistory = useCallback(
+    (action: HistoryAction) => {
+      setHistory((prev) => {
+        const newHistory = prev.slice(0, historyIndex + 1);
+        newHistory.push(action);
+        if (newHistory.length > MAX_HISTORY) {
+          newHistory.shift();
+          return newHistory;
+        }
         return newHistory;
-      }
-      return newHistory;
-    });
-    setHistoryIndex(prev => Math.min(prev + 1, MAX_HISTORY - 1));
-  }, [historyIndex, MAX_HISTORY]);
+      });
+      setHistoryIndex((prev) => Math.min(prev + 1, MAX_HISTORY - 1));
+    },
+    [historyIndex, MAX_HISTORY],
+  );
 
   // React Flow state - using generic types as React Flow's TypeScript support for custom data is limited
   const [nodes, setNodes, defaultOnNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
   // Custom onNodesChange that enhances React Flow's default behavior with junction/spouse updates
-  const onNodesChange = useCallback((changes: any[]) => {
-    // Skip if in auto-layout mode or already updating
-    if (isAutoLayout || isUpdatingJunctions.current) {
-      defaultOnNodesChange(changes);
-      return;
-    }
-    
-    // Find position changes for family member nodes
-    const positionChanges = changes.filter(
-      change => change.type === 'position' && change.dragging
-    );
-    
-    if (positionChanges.length === 0) {
-      // No dragging happening, just apply changes normally
-      defaultOnNodesChange(changes);
-      return;
-    }
-    
-    isUpdatingJunctions.current = true;
-    
-    // Get current nodes to calculate dependent positions
-    const currentNodes = nodes;
-    const additionalChanges: any[] = [];
-    const processedSpouses = new Set<string>();
-    
-    // For each node being dragged, calculate spouse and junction updates
-    positionChanges.forEach(change => {
-      const draggedNode = currentNodes.find(n => n.id === change.id);
-      if (!draggedNode || draggedNode.type !== 'familyMember') return;
-      
-      const newPosition = change.position;
-      if (!newPosition) return;
-      
-      // Find all junctions involving this node to identify spouses
-      const spouseIds = new Set<string>();
-      currentNodes.forEach(n => {
-        if (n.type === 'junction' && n.data.parent1Id && n.data.parent2Id) {
-          const junctionData = n.data as { parent1Id: string; parent2Id: string };
-          if (junctionData.parent1Id === change.id) {
-            spouseIds.add(junctionData.parent2Id);
-          } else if (junctionData.parent2Id === change.id) {
-            spouseIds.add(junctionData.parent1Id);
-          }
-        }
-      });
-      
-      // Align spouses to the same vertical center (not just top edge)
-      // Uses calculateSpouseAlignedY utility to ensure consistent alignment logic
-      spouseIds.forEach(spouseId => {
-        if (!processedSpouses.has(spouseId)) {
-          processedSpouses.add(spouseId);
-          const spouseNode = currentNodes.find(n => n.id === spouseId);
-          if (spouseNode) {
-            const spouseY = calculateSpouseAlignedY(
-              draggedNode as ParentNodeWithDimensions,
-              spouseNode as ParentNodeWithDimensions,
-              newPosition
-            );
-            
-            additionalChanges.push({
-              id: spouseId,
-              type: 'position',
-              position: {
-                x: spouseNode.position.x,
-                y: spouseY,
-              },
-              dragging: true,
-            });
-          }
-        }
-      });
-      
-      // Update junction positions for this node and its spouses
-      currentNodes.forEach(n => {
-        if (n.type === 'junction' && n.data.parent1Id && n.data.parent2Id) {
-          const junctionData = n.data as { parent1Id: string; parent2Id: string };
-          const isInvolved = 
-            junctionData.parent1Id === change.id || 
-            junctionData.parent2Id === change.id || 
-            spouseIds.has(junctionData.parent1Id) || 
-            spouseIds.has(junctionData.parent2Id);
-            
-          if (isInvolved) {
-            // Calculate new junction position based on updated parent positions
-            let parent1Pos = currentNodes.find(cn => cn.id === junctionData.parent1Id)?.position;
-            let parent2Pos = currentNodes.find(cn => cn.id === junctionData.parent2Id)?.position;
-            
-            // Use new position if this parent is being dragged
+  const onNodesChange = useCallback(
+    (changes: any[]) => {
+      // Skip if in auto-layout mode or already updating
+      if (isAutoLayout || isUpdatingJunctions.current) {
+        defaultOnNodesChange(changes);
+        return;
+      }
+
+      // Find position changes for family member nodes
+      const positionChanges = changes.filter(
+        (change) => change.type === "position" && change.dragging,
+      );
+
+      if (positionChanges.length === 0) {
+        // No dragging happening, just apply changes normally
+        defaultOnNodesChange(changes);
+        return;
+      }
+
+      isUpdatingJunctions.current = true;
+
+      // Get current nodes to calculate dependent positions
+      const currentNodes = nodes;
+      const additionalChanges: any[] = [];
+      const processedSpouses = new Set<string>();
+
+      // For each node being dragged, calculate spouse and junction updates
+      positionChanges.forEach((change) => {
+        const draggedNode = currentNodes.find((n) => n.id === change.id);
+        if (!draggedNode || draggedNode.type !== "familyMember") return;
+
+        const newPosition = change.position;
+        if (!newPosition) return;
+
+        // Find all junctions involving this node to identify spouses
+        const spouseIds = new Set<string>();
+        currentNodes.forEach((n) => {
+          if (n.type === "junction" && n.data.parent1Id && n.data.parent2Id) {
+            const junctionData = n.data as {
+              parent1Id: string;
+              parent2Id: string;
+            };
             if (junctionData.parent1Id === change.id) {
-              parent1Pos = newPosition;
+              spouseIds.add(junctionData.parent2Id);
             } else if (junctionData.parent2Id === change.id) {
-              parent2Pos = newPosition;
+              spouseIds.add(junctionData.parent1Id);
             }
-            
-            // Check if spouse position is in additionalChanges
-            const spouse1Update = additionalChanges.find(c => c.id === junctionData.parent1Id);
-            const spouse2Update = additionalChanges.find(c => c.id === junctionData.parent2Id);
-            if (spouse1Update) parent1Pos = spouse1Update.position;
-            if (spouse2Update) parent2Pos = spouse2Update.position;
-            
-            if (parent1Pos && parent2Pos) {
-              // Get parent nodes with updated positions for junction calculation
-              const parent1Node = currentNodes.find(cn => cn.id === junctionData.parent1Id);
-              const parent2Node = currentNodes.find(cn => cn.id === junctionData.parent2Id);
-              
-              if (parent1Node && parent2Node) {
-                // Create nodes with updated positions for junction calculation
-                const parent1WithPos = { ...parent1Node, position: parent1Pos };
-                const parent2WithPos = { ...parent2Node, position: parent2Pos };
-                
-                // Calculate junction position using utility (parents are aligned during drag)
-                const junction = calculateJunctionPosition(
-                  parent1WithPos as ParentNodeWithDimensions,
-                  parent2WithPos as ParentNodeWithDimensions,
-                  true // Parents are center-aligned during drag
+          }
+        });
+
+        // Align spouses to the same vertical center (not just top edge)
+        // Uses calculateSpouseAlignedY utility to ensure consistent alignment logic
+        spouseIds.forEach((spouseId) => {
+          if (!processedSpouses.has(spouseId)) {
+            processedSpouses.add(spouseId);
+            const spouseNode = currentNodes.find((n) => n.id === spouseId);
+            if (spouseNode) {
+              const spouseY = calculateSpouseAlignedY(
+                draggedNode as ParentNodeWithDimensions,
+                spouseNode as ParentNodeWithDimensions,
+                newPosition,
+              );
+
+              additionalChanges.push({
+                id: spouseId,
+                type: "position",
+                position: {
+                  x: spouseNode.position.x,
+                  y: spouseY,
+                },
+                dragging: true,
+              });
+            }
+          }
+        });
+
+        // Update junction positions for this node and its spouses
+        currentNodes.forEach((n) => {
+          if (n.type === "junction" && n.data.parent1Id && n.data.parent2Id) {
+            const junctionData = n.data as {
+              parent1Id: string;
+              parent2Id: string;
+            };
+            const isInvolved =
+              junctionData.parent1Id === change.id ||
+              junctionData.parent2Id === change.id ||
+              spouseIds.has(junctionData.parent1Id) ||
+              spouseIds.has(junctionData.parent2Id);
+
+            if (isInvolved) {
+              // Calculate new junction position based on updated parent positions
+              let parent1Pos = currentNodes.find(
+                (cn) => cn.id === junctionData.parent1Id,
+              )?.position;
+              let parent2Pos = currentNodes.find(
+                (cn) => cn.id === junctionData.parent2Id,
+              )?.position;
+
+              // Use new position if this parent is being dragged
+              if (junctionData.parent1Id === change.id) {
+                parent1Pos = newPosition;
+              } else if (junctionData.parent2Id === change.id) {
+                parent2Pos = newPosition;
+              }
+
+              // Check if spouse position is in additionalChanges
+              const spouse1Update = additionalChanges.find(
+                (c) => c.id === junctionData.parent1Id,
+              );
+              const spouse2Update = additionalChanges.find(
+                (c) => c.id === junctionData.parent2Id,
+              );
+              if (spouse1Update) parent1Pos = spouse1Update.position;
+              if (spouse2Update) parent2Pos = spouse2Update.position;
+
+              if (parent1Pos && parent2Pos) {
+                // Get parent nodes with updated positions for junction calculation
+                const parent1Node = currentNodes.find(
+                  (cn) => cn.id === junctionData.parent1Id,
                 );
-                
-                additionalChanges.push({
-                  id: n.id,
-                  type: 'position',
-                  position: {
-                    x: junction.x - 4, // Offset X to center 8x8 junction node
-                    y: junction.y, // Y stays level with aligned parents
-                  },
-                  dragging: true,
-                });
+                const parent2Node = currentNodes.find(
+                  (cn) => cn.id === junctionData.parent2Id,
+                );
+
+                if (parent1Node && parent2Node) {
+                  // Create nodes with updated positions for junction calculation
+                  const parent1WithPos = {
+                    ...parent1Node,
+                    position: parent1Pos,
+                  };
+                  const parent2WithPos = {
+                    ...parent2Node,
+                    position: parent2Pos,
+                  };
+
+                  // Calculate junction position using utility (parents are aligned during drag)
+                  const junction = calculateJunctionPosition(
+                    parent1WithPos as ParentNodeWithDimensions,
+                    parent2WithPos as ParentNodeWithDimensions,
+                    true, // Parents are center-aligned during drag
+                  );
+
+                  additionalChanges.push({
+                    id: n.id,
+                    type: "position",
+                    position: {
+                      x: junction.x - 4, // Offset X to center 8x8 junction node
+                      y: junction.y, // Y stays level with aligned parents
+                    },
+                    dragging: true,
+                  });
+                }
               }
             }
           }
-        }
+        });
       });
-    });
-    
-    // Apply all changes together in one atomic update
-    defaultOnNodesChange([...changes, ...additionalChanges]);
-    isUpdatingJunctions.current = false;
-  }, [nodes, defaultOnNodesChange, isAutoLayout]);
 
-  // Create nodes and edges together to avoid infinite loops  
+      // Apply all changes together in one atomic update
+      defaultOnNodesChange([...changes, ...additionalChanges]);
+      isUpdatingJunctions.current = false;
+    },
+    [nodes, defaultOnNodesChange, isAutoLayout],
+  );
+
+  // Create nodes and edges together to avoid infinite loops
   useEffect(() => {
     if (members.length === 0) {
       setNodes([]);
       setEdges([]);
       return;
     }
-    
+
     // Create member nodes
     const memberNodes: Node[] = members.map((member, index) => ({
       id: member.id,
-      type: 'familyMember',
-      position: member.positionX != null && member.positionY != null
-        ? { x: member.positionX, y: member.positionY }
-        : { x: index * 200, y: index * 150 },
-      data: { 
+      type: "familyMember",
+      position:
+        member.positionX != null && member.positionY != null
+          ? { x: member.positionX, y: member.positionY }
+          : { x: index * 200, y: index * 150 },
+      data: {
         member,
         notebookId,
         treeId,
         onEdit: handleEditMember,
         onAddRelationship: handleAddRelationship,
-        onRemoveMember: handleRemoveMemberFromNode
+        onRemoveMember: handleRemoveMemberFromNode,
       },
     }));
-    
+
     // Build relationship maps
     const marriageMap = new Map<string, Set<string>>();
-    const parentChildMap = new Map<string, { targetId: string; relationship: any }[]>();
-    
-    relationships.forEach(rel => {
-      if (rel.relationshipType === 'marriage' || rel.relationshipType === 'spouse') {
+    const parentChildMap = new Map<
+      string,
+      { targetId: string; relationship: any }[]
+    >();
+
+    relationships.forEach((rel) => {
+      if (
+        rel.relationshipType === "marriage" ||
+        rel.relationshipType === "spouse"
+      ) {
         if (!marriageMap.has(rel.fromMemberId)) {
           marriageMap.set(rel.fromMemberId, new Set());
         }
         marriageMap.get(rel.fromMemberId)!.add(rel.toMemberId);
-      } else if (rel.relationshipType === 'parent' || rel.relationshipType === 'child') {
+      } else if (
+        rel.relationshipType === "parent" ||
+        rel.relationshipType === "child"
+      ) {
         if (!parentChildMap.has(rel.fromMemberId)) {
           parentChildMap.set(rel.fromMemberId, []);
         }
-        parentChildMap.get(rel.fromMemberId)!.push({ targetId: rel.toMemberId, relationship: rel });
+        parentChildMap
+          .get(rel.fromMemberId)!
+          .push({ targetId: rel.toMemberId, relationship: rel });
       }
     });
-    
+
     // Create junction nodes and edges
     const junctionNodes: Node[] = [];
     const newEdges: Edge[] = [];
     const handledParentChild = new Set<string>();
     const processedCouples = new Set<string>();
-    
+
     parentChildMap.forEach((children, parent1Id) => {
       const spouses = marriageMap.get(parent1Id);
       if (!spouses) return;
-      
-      spouses.forEach(parent2Id => {
-        const coupleKey = [parent1Id, parent2Id].sort().join('-');
+
+      spouses.forEach((parent2Id) => {
+        const coupleKey = [parent1Id, parent2Id].sort().join("-");
         if (processedCouples.has(coupleKey)) return;
         processedCouples.add(coupleKey);
-        
+
         const parent2Children = parentChildMap.get(parent2Id) || [];
-        const parent1ChildIds = new Set(children.map(c => c.targetId));
-        const sharedChildren = parent2Children.filter(c => parent1ChildIds.has(c.targetId));
-        
+        const parent1ChildIds = new Set(children.map((c) => c.targetId));
+        const sharedChildren = parent2Children.filter((c) =>
+          parent1ChildIds.has(c.targetId),
+        );
+
         if (sharedChildren.length > 0) {
-          const parent1Node = memberNodes.find(n => n.id === parent1Id);
-          const parent2Node = memberNodes.find(n => n.id === parent2Id);
-          
+          const parent1Node = memberNodes.find((n) => n.id === parent1Id);
+          const parent2Node = memberNodes.find((n) => n.id === parent2Id);
+
           if (parent1Node && parent2Node) {
             // Calculate junction position using utility (parents may not be aligned initially)
             const junction = calculateJunctionPosition(
               parent1Node as ParentNodeWithDimensions,
               parent2Node as ParentNodeWithDimensions,
-              false // Parents may not be center-aligned at initial creation
+              false, // Parents may not be center-aligned at initial creation
             );
-            
+
             const junctionId = `junction-${coupleKey}`;
             const leftParentId = junction.leftParentId;
             const rightParentId = junction.rightParentId;
-            
+
             // Offset junction position so its center (not top-left) aligns with the calculated position
             // Junction node is 8x8, so offset X by 4 to center it, but Y stays aligned with parents
             junctionNodes.push({
               id: junctionId,
-              type: 'junction',
+              type: "junction",
               position: { x: junction.x - 4, y: junction.y },
               data: {
                 parent1Id,
@@ -678,40 +829,40 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
               selectable: false,
               draggable: false,
             });
-            
+
             // Left parent uses 'right' handle (line goes right toward junction)
             newEdges.push({
               id: `${leftParentId}-${junctionId}`,
               source: leftParentId,
               target: junctionId,
-              sourceHandle: 'right',
-              targetHandle: 'left',
-              type: 'junction',
-              style: { stroke: 'hsl(var(--foreground))', strokeWidth: 2 },
+              sourceHandle: "right",
+              targetHandle: "left",
+              type: "junction",
+              style: { stroke: "hsl(var(--foreground))", strokeWidth: 2 },
             });
-            
+
             // Right parent uses 'left' handle (line goes left toward junction)
             newEdges.push({
               id: `${rightParentId}-${junctionId}`,
               source: rightParentId,
               target: junctionId,
-              sourceHandle: 'left',
-              targetHandle: 'right',
-              type: 'junction',
-              style: { stroke: 'hsl(var(--foreground))', strokeWidth: 2 },
+              sourceHandle: "left",
+              targetHandle: "right",
+              type: "junction",
+              style: { stroke: "hsl(var(--foreground))", strokeWidth: 2 },
             });
-            
-            sharedChildren.forEach(child => {
+
+            sharedChildren.forEach((child) => {
               newEdges.push({
                 id: `${junctionId}-${child.targetId}`,
                 source: junctionId,
                 target: child.targetId,
-                sourceHandle: 'bottom',
-                targetHandle: 'top-target',
-                type: 'junction',
-                style: { stroke: 'hsl(var(--foreground))', strokeWidth: 2 },
+                sourceHandle: "bottom",
+                targetHandle: "top-target",
+                type: "junction",
+                style: { stroke: "hsl(var(--foreground))", strokeWidth: 2 },
               });
-              
+
               handledParentChild.add(`${parent1Id}-${child.targetId}`);
               handledParentChild.add(`${parent2Id}-${child.targetId}`);
             });
@@ -719,83 +870,99 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         }
       });
     });
-    
+
     // Add remaining relationship edges
-    relationships.forEach(rel => {
-      if ((rel.relationshipType === 'parent' || rel.relationshipType === 'child') &&
-          handledParentChild.has(`${rel.fromMemberId}-${rel.toMemberId}`)) {
+    relationships.forEach((rel) => {
+      if (
+        (rel.relationshipType === "parent" ||
+          rel.relationshipType === "child") &&
+        handledParentChild.has(`${rel.fromMemberId}-${rel.toMemberId}`)
+      ) {
         return;
       }
-      
-      const coupleKey = [rel.fromMemberId, rel.toMemberId].sort().join('-');
-      if ((rel.relationshipType === 'marriage' || rel.relationshipType === 'spouse') &&
-          processedCouples.has(coupleKey)) {
+
+      const coupleKey = [rel.fromMemberId, rel.toMemberId].sort().join("-");
+      if (
+        (rel.relationshipType === "marriage" ||
+          rel.relationshipType === "spouse") &&
+        processedCouples.has(coupleKey)
+      ) {
         return;
       }
-      
+
       const edgeProps: any = {
         id: rel.id,
         source: rel.fromMemberId,
         target: rel.toMemberId,
-        type: 'familyRelationship',
+        type: "familyRelationship",
         data: {
           relationship: rel,
           notebookId,
-          treeId
+          treeId,
         },
-        label: rel.relationshipType === 'custom' ? rel.customLabel : rel.relationshipType,
+        label:
+          rel.relationshipType === "custom"
+            ? rel.customLabel
+            : rel.relationshipType,
       };
-      
-      if (rel.relationshipType === 'marriage' || rel.relationshipType === 'spouse') {
-        edgeProps.sourceHandle = 'right';
-        edgeProps.targetHandle = 'left-target';
+
+      if (
+        rel.relationshipType === "marriage" ||
+        rel.relationshipType === "spouse"
+      ) {
+        edgeProps.sourceHandle = "right";
+        edgeProps.targetHandle = "left-target";
       } else {
-        edgeProps.sourceHandle = 'bottom';
-        edgeProps.targetHandle = 'top-target';
+        edgeProps.sourceHandle = "bottom";
+        edgeProps.targetHandle = "top-target";
       }
-      
+
       newEdges.push(edgeProps);
     });
-    
+
     // Compute final nodes with layout
     let finalNodes = [...memberNodes, ...junctionNodes];
     if (isAutoLayout) {
       // Only layout family members with Dagre (not junctions)
-      const { nodes: layoutedMembers } = getLayoutedElements(memberNodes, newEdges, {
-        direction: 'TB',
-        nodeSep: 100,
-        rankSep: 150,
-      });
-      
+      const { nodes: layoutedMembers } = getLayoutedElements(
+        memberNodes,
+        newEdges,
+        {
+          direction: "TB",
+          nodeSep: 100,
+          rankSep: 150,
+        },
+      );
+
       // Align married couples to the same vertical center (not just top edge)
       // Uses calculateCoupleAlignment utility to ensure consistent alignment logic
       const coupleAlignments = new Map<string, { y: number }>();
       processedCouples.clear();
-      
+
       marriageMap.forEach((spouses, memberId) => {
-        spouses.forEach(spouseId => {
-          const coupleKey = [memberId, spouseId].sort().join('-');
+        spouses.forEach((spouseId) => {
+          const coupleKey = [memberId, spouseId].sort().join("-");
           if (processedCouples.has(coupleKey)) return;
           processedCouples.add(coupleKey);
-          
-          const member1 = layoutedMembers.find(n => n.id === memberId);
-          const member2 = layoutedMembers.find(n => n.id === spouseId);
-          
+
+          const member1 = layoutedMembers.find((n) => n.id === memberId);
+          const member2 = layoutedMembers.find((n) => n.id === spouseId);
+
           if (member1 && member2) {
             const alignment = calculateCoupleAlignment(
               member1 as ParentNodeWithDimensions,
-              member2 as ParentNodeWithDimensions
+              member2 as ParentNodeWithDimensions,
             );
-            
+
             // Store aligned Y positions for both members
             coupleAlignments.set(memberId, { y: alignment.parent1Y });
             coupleAlignments.set(spouseId, { y: alignment.parent2Y });
           }
         });
       });
-      
+
       // Apply alignments
-      const alignedMembers = layoutedMembers.map(node => {
+      const alignedMembers = layoutedMembers.map((node) => {
         const alignment = coupleAlignments.get(node.id);
         if (alignment !== undefined) {
           return {
@@ -805,22 +972,26 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         }
         return node;
       });
-      
+
       // Position junction nodes on the marriage line between aligned parents
       // Uses calculateJunctionPosition utility to ensure consistent positioning logic
-      const positionedJunctions = junctionNodes.map(junctionNode => {
+      const positionedJunctions = junctionNodes.map((junctionNode) => {
         if (junctionNode.data.parent1Id && junctionNode.data.parent2Id) {
-          const parent1 = alignedMembers.find(n => n.id === junctionNode.data.parent1Id);
-          const parent2 = alignedMembers.find(n => n.id === junctionNode.data.parent2Id);
-          
+          const parent1 = alignedMembers.find(
+            (n) => n.id === junctionNode.data.parent1Id,
+          );
+          const parent2 = alignedMembers.find(
+            (n) => n.id === junctionNode.data.parent2Id,
+          );
+
           if (parent1 && parent2) {
             // Calculate junction position using utility (parents are aligned in auto-layout)
             const junction = calculateJunctionPosition(
               parent1 as ParentNodeWithDimensions,
               parent2 as ParentNodeWithDimensions,
-              true // Parents are center-aligned during auto-layout
+              true, // Parents are center-aligned during auto-layout
             );
-            
+
             return {
               ...junctionNode,
               position: {
@@ -832,130 +1003,177 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         }
         return junctionNode;
       });
-      
+
       finalNodes = [...alignedMembers, ...positionedJunctions];
     }
-    
+
     // Only update state if structure changed (compare IDs and basic structure, not positions)
     const finalStructure = {
-      nodeIds: finalNodes.map(n => n.id).sort().join(','),
-      edgeIds: newEdges.map(e => e.id).sort().join(','),
-      count: `${finalNodes.length}:${newEdges.length}`
+      nodeIds: finalNodes
+        .map((n) => n.id)
+        .sort()
+        .join(","),
+      edgeIds: newEdges
+        .map((e) => e.id)
+        .sort()
+        .join(","),
+      count: `${finalNodes.length}:${newEdges.length}`,
     };
-    
+
     const lastStructure = {
-      nodeIds: lastComputedNodesRef.current.map(n => n.id).sort().join(','),
-      edgeIds: lastComputedEdgesRef.current.map(e => e.id).sort().join(','),
-      count: `${lastComputedNodesRef.current.length}:${lastComputedEdgesRef.current.length}`
+      nodeIds: lastComputedNodesRef.current
+        .map((n) => n.id)
+        .sort()
+        .join(","),
+      edgeIds: lastComputedEdgesRef.current
+        .map((e) => e.id)
+        .sort()
+        .join(","),
+      count: `${lastComputedNodesRef.current.length}:${lastComputedEdgesRef.current.length}`,
     };
-    
-    const structureChanged = 
+
+    const structureChanged =
       finalStructure.nodeIds !== lastStructure.nodeIds ||
       finalStructure.edgeIds !== lastStructure.edgeIds ||
       finalStructure.count !== lastStructure.count;
-    
+
     if (structureChanged || lastComputedNodesRef.current.length === 0) {
       lastComputedNodesRef.current = finalNodes;
       lastComputedEdgesRef.current = newEdges;
       setNodes(finalNodes);
       setEdges(newEdges);
     }
-  }, [members, relationships, isAutoLayout, setNodes, setEdges, notebookId, treeId]);
+  }, [
+    members,
+    relationships,
+    isAutoLayout,
+    setNodes,
+    setEdges,
+    notebookId,
+    treeId,
+  ]);
 
   // Re-apply layout when toggling to auto-layout mode
   useEffect(() => {
     const wasManual = !prevIsAutoLayout.current;
     const isNowAuto = isAutoLayout;
-    
+
     if (wasManual && isNowAuto) {
       const currentNodes = getNodes();
       const currentEdges = edges;
       if (currentNodes.length > 0) {
-        const { nodes: layoutedNodes } = getLayoutedElements(currentNodes, currentEdges, {
-          direction: 'TB',
-          nodeSep: 100,
-          rankSep: 150,
-        });
+        const { nodes: layoutedNodes } = getLayoutedElements(
+          currentNodes,
+          currentEdges,
+          {
+            direction: "TB",
+            nodeSep: 100,
+            rankSep: 150,
+          },
+        );
         setNodes(layoutedNodes);
       }
     }
-    
+
     prevIsAutoLayout.current = isAutoLayout;
   }, [isAutoLayout, getNodes, edges, setNodes]);
 
   // Update member position mutation with optimistic updates
   const updateMemberPosition = useMutation({
-    mutationFn: async ({ memberId, x, y }: { memberId: string; x: number; y: number }) => {
+    mutationFn: async ({
+      memberId,
+      x,
+      y,
+    }: {
+      memberId: string;
+      x: number;
+      y: number;
+    }) => {
       return apiRequest(
-        'PUT',
+        "PUT",
         `/api/family-trees/${treeId}/members/${memberId}?notebookId=${notebookId}`,
-        { positionX: x, positionY: y }
+        { positionX: x, positionY: y },
       );
     },
     onMutate: async ({ memberId, x, y }) => {
       // Optimistically update the cached members data
       queryClient.setQueryData(
-        ['/api/family-trees', treeId, 'members'],
+        ["/api/family-trees", treeId, "members"],
         (old: FamilyTreeMember[] | undefined) => {
           if (!old) return old;
-          return old.map(member => 
-            member.id === memberId 
+          return old.map((member) =>
+            member.id === memberId
               ? { ...member, positionX: x, positionY: y }
-              : member
+              : member,
           );
-        }
+        },
       );
     },
   });
 
   // Handle node drag start - capture position before drag for accurate history
-  const onNodeDragStart = useCallback((event: any, node: Node) => {
-    if (!isAutoLayout) {
-      // Capture the current position before drag starts
-      dragStartPositions.current.set(node.id, { x: node.position.x, y: node.position.y });
-    }
-  }, [isAutoLayout]);
-  
-  // Handle node drag end - save position and record in history
-  const onNodeDragStop = useCallback((event: any, node: Node) => {
-    if (!isAutoLayout) {
-      // Get old position from drag start (accurate React Flow state)
-      const oldPosition = dragStartPositions.current.get(node.id) || { x: 0, y: 0 };
-      
-      // Only record in history if position actually changed
-      if (oldPosition.x !== node.position.x || oldPosition.y !== node.position.y) {
-        addToHistory({
-          type: 'move_node',
-          memberId: node.id,
-          oldPosition,
-          newPosition: { x: node.position.x, y: node.position.y },
+  const onNodeDragStart = useCallback(
+    (event: any, node: Node) => {
+      if (!isAutoLayout) {
+        // Capture the current position before drag starts
+        dragStartPositions.current.set(node.id, {
+          x: node.position.x,
+          y: node.position.y,
         });
       }
-      
-      // Clean up the stored position
-      dragStartPositions.current.delete(node.id);
-      
-      updateMemberPosition.mutate({
-        memberId: node.id,
-        x: node.position.x,
-        y: node.position.y,
-      });
-    }
-  }, [isAutoLayout, updateMemberPosition, addToHistory]);
-  
+    },
+    [isAutoLayout],
+  );
+
+  // Handle node drag end - save position and record in history
+  const onNodeDragStop = useCallback(
+    (event: any, node: Node) => {
+      if (!isAutoLayout) {
+        // Get old position from drag start (accurate React Flow state)
+        const oldPosition = dragStartPositions.current.get(node.id) || {
+          x: 0,
+          y: 0,
+        };
+
+        // Only record in history if position actually changed
+        if (
+          oldPosition.x !== node.position.x ||
+          oldPosition.y !== node.position.y
+        ) {
+          addToHistory({
+            type: "move_node",
+            memberId: node.id,
+            oldPosition,
+            newPosition: { x: node.position.x, y: node.position.y },
+          });
+        }
+
+        // Clean up the stored position
+        dragStartPositions.current.delete(node.id);
+
+        updateMemberPosition.mutate({
+          memberId: node.id,
+          x: node.position.x,
+          y: node.position.y,
+        });
+      }
+    },
+    [isAutoLayout, updateMemberPosition, addToHistory],
+  );
+
   // Undo function - updates local state and persists to database
   const handleUndo = useCallback(() => {
     if (historyIndex < 0) return;
-    
+
     const action = history[historyIndex];
-    
-    if (action.type === 'move_node' && action.memberId && action.oldPosition) {
+
+    if (action.type === "move_node" && action.memberId && action.oldPosition) {
       // Restore old position in local state
       const node = getNode(action.memberId);
       if (node) {
         node.position = action.oldPosition;
-        setNodes(nds => [...nds]); // Trigger re-render
-        
+        setNodes((nds) => [...nds]); // Trigger re-render
+
         // Persist to database
         updateMemberPosition.mutate({
           memberId: action.memberId,
@@ -964,23 +1182,23 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         });
       }
     }
-    
-    setHistoryIndex(prev => prev - 1);
+
+    setHistoryIndex((prev) => prev - 1);
   }, [historyIndex, history, getNode, setNodes, updateMemberPosition]);
-  
+
   // Redo function - updates local state and persists to database
   const handleRedo = useCallback(() => {
     if (historyIndex >= history.length - 1) return;
-    
+
     const action = history[historyIndex + 1];
-    
-    if (action.type === 'move_node' && action.memberId && action.newPosition) {
+
+    if (action.type === "move_node" && action.memberId && action.newPosition) {
       // Apply new position in local state
       const node = getNode(action.memberId);
       if (node) {
         node.position = action.newPosition;
-        setNodes(nds => [...nds]); // Trigger re-render
-        
+        setNodes((nds) => [...nds]); // Trigger re-render
+
         // Persist to database
         updateMemberPosition.mutate({
           memberId: action.memberId,
@@ -989,112 +1207,126 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         });
       }
     }
-    
-    setHistoryIndex(prev => prev + 1);
+
+    setHistoryIndex((prev) => prev + 1);
   }, [historyIndex, history, getNode, setNodes, updateMemberPosition]);
-  
+
   // Keyboard shortcuts for undo/redo
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) {
-        if (e.key === 'z' && !e.shiftKey) {
+        if (e.key === "z" && !e.shiftKey) {
           e.preventDefault();
           handleUndo();
-        } else if ((e.key === 'y') || (e.key === 'z' && e.shiftKey)) {
+        } else if (e.key === "y" || (e.key === "z" && e.shiftKey)) {
           e.preventDefault();
           handleRedo();
         }
       }
     };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleUndo, handleRedo]);
 
   // Handle connection (create relationship)
-  const onConnect = useCallback((connection: Connection) => {
-    // Validation: Prevent self-links
-    if (connection.source === connection.target) {
-      toast({
-        title: 'Invalid relationship',
-        description: 'A family member cannot have a relationship with themselves',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    // Validation: Prevent duplicate relationships
-    const existingRelationship = relationships.find(rel => 
-      (rel.fromMemberId === connection.source && rel.toMemberId === connection.target) ||
-      (rel.fromMemberId === connection.target && rel.toMemberId === connection.source)
-    );
-    
-    if (existingRelationship) {
-      // Highlight the existing edge
-      setEdges(eds => 
-        eds.map(e => 
-          e.id === existingRelationship.id 
-            ? { ...e, animated: true, style: { stroke: '#f59e0b', strokeWidth: 3 } }
-            : e
-        )
+  const onConnect = useCallback(
+    (connection: Connection) => {
+      // Validation: Prevent self-links
+      if (connection.source === connection.target) {
+        toast({
+          title: "Invalid relationship",
+          description:
+            "A family member cannot have a relationship with themselves",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validation: Prevent duplicate relationships
+      const existingRelationship = relationships.find(
+        (rel) =>
+          (rel.fromMemberId === connection.source &&
+            rel.toMemberId === connection.target) ||
+          (rel.fromMemberId === connection.target &&
+            rel.toMemberId === connection.source),
       );
-      
-      // Get member names for better error message
-      const sourceMember = members.find(m => m.id === connection.source);
-      const targetMember = members.find(m => m.id === connection.target);
-      const sourceName = sourceMember?.inlineName || 'this member';
-      const targetName = targetMember?.inlineName || 'the other member';
-      
-      toast({
-        title: 'Relationship already exists',
-        description: `${sourceName} and ${targetName} are already connected (${existingRelationship.relationshipType})`,
-        variant: 'destructive',
-      });
-      
-      // Reset edge highlight after 2 seconds
-      setTimeout(() => {
-        setEdges(eds => 
-          eds.map(e => 
-            e.id === existingRelationship.id 
-              ? { ...e, animated: false, style: undefined }
-              : e
-          )
+
+      if (existingRelationship) {
+        // Highlight the existing edge
+        setEdges((eds) =>
+          eds.map((e) =>
+            e.id === existingRelationship.id
+              ? {
+                  ...e,
+                  animated: true,
+                  style: { stroke: "#f59e0b", strokeWidth: 3 },
+                }
+              : e,
+          ),
         );
-      }, 2000);
-      
-      return;
-    }
-    
-    setPendingConnection(connection);
-    setSelectorOpen(true);
-  }, [relationships, toast, setEdges, members]);
+
+        // Get member names for better error message
+        const sourceMember = members.find((m) => m.id === connection.source);
+        const targetMember = members.find((m) => m.id === connection.target);
+        const sourceName = sourceMember?.inlineName || "this member";
+        const targetName = targetMember?.inlineName || "the other member";
+
+        toast({
+          title: "Relationship already exists",
+          description: `${sourceName} and ${targetName} are already connected (${existingRelationship.relationshipType})`,
+          variant: "destructive",
+        });
+
+        // Reset edge highlight after 2 seconds
+        setTimeout(() => {
+          setEdges((eds) =>
+            eds.map((e) =>
+              e.id === existingRelationship.id
+                ? { ...e, animated: false, style: undefined }
+                : e,
+            ),
+          );
+        }, 2000);
+
+        return;
+      }
+
+      setPendingConnection(connection);
+      setSelectorOpen(true);
+    },
+    [relationships, toast, setEdges, members],
+  );
 
   // Mutation to create a new family tree member
   const createMember = useMutation({
     mutationFn: async (data: { characterId: string; x: number; y: number }) => {
       return apiRequest(
-        'POST',
+        "POST",
         `/api/family-trees/${treeId}/members?notebookId=${notebookId}`,
         {
           treeId,
           characterId: data.characterId,
           positionX: data.x,
           positionY: data.y,
-        }
+        },
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId, 'members'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/family-trees", treeId, "members"],
+      });
       toast({
-        title: 'Character added',
-        description: 'Character successfully added to family tree',
+        title: "Character added",
+        description: "Character successfully added to family tree",
       });
     },
     onError: (error) => {
       toast({
-        title: 'Failed to add character',
-        description: error instanceof Error ? error.message : 'Unknown error occurred',
-        variant: 'destructive',
+        title: "Failed to add character",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
       });
     },
   });
@@ -1104,17 +1336,17 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
     (event: React.DragEvent) => {
       event.preventDefault();
 
-      const data = event.dataTransfer.getData('application/json');
-      
+      const data = event.dataTransfer.getData("application/json");
+
       if (!data) return;
 
       try {
         const { type, character } = JSON.parse(data);
-        
-        if (type === 'character') {
+
+        if (type === "character") {
           // Get the bounding rect of the ReactFlow wrapper to calculate relative coordinates
           const reactFlowBounds = event.currentTarget.getBoundingClientRect();
-          
+
           // Convert to pane-relative coordinates, then to flow coordinates using viewport transform
           const position = screenToFlowPosition({
             x: event.clientX - reactFlowBounds.left,
@@ -1128,27 +1360,27 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
           });
         }
       } catch (error) {
-        console.error('Failed to parse drop data:', error);
+        console.error("Failed to parse drop data:", error);
       }
     },
-    [createMember, screenToFlowPosition]
+    [createMember, screenToFlowPosition],
   );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
-    event.dataTransfer.dropEffect = 'copy';
+    event.dataTransfer.dropEffect = "copy";
   }, []);
 
   // Mutation to create a relationship
   const createRelationship = useMutation({
-    mutationFn: async (data: { 
-      fromMemberId: string; 
-      toMemberId: string; 
+    mutationFn: async (data: {
+      fromMemberId: string;
+      toMemberId: string;
       relationshipType: RelationshipType;
       customLabel?: string;
     }) => {
       return apiRequest(
-        'POST',
+        "POST",
         `/api/family-trees/${treeId}/relationships?notebookId=${notebookId}`,
         {
           treeId,
@@ -1156,39 +1388,45 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
           toMemberId: data.toMemberId,
           relationshipType: data.relationshipType,
           customLabel: data.customLabel,
-        }
+        },
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId, 'relationships'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/family-trees", treeId, "relationships"],
+      });
       toast({
-        title: 'Relationship added',
-        description: 'Relationship successfully created',
+        title: "Relationship added",
+        description: "Relationship successfully created",
       });
     },
     onError: (error) => {
       toast({
-        title: 'Failed to create relationship',
-        description: error instanceof Error ? error.message : 'Unknown error occurred',
-        variant: 'destructive',
+        title: "Failed to create relationship",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
       });
     },
   });
 
   // Handle relationship type selection
-  const handleRelationshipConfirm = useCallback((relationshipType: RelationshipType, customLabel?: string) => {
-    if (!pendingConnection) return;
+  const handleRelationshipConfirm = useCallback(
+    (relationshipType: RelationshipType, customLabel?: string) => {
+      if (!pendingConnection) return;
 
-    createRelationship.mutate({
-      fromMemberId: pendingConnection.source,
-      toMemberId: pendingConnection.target!,
-      relationshipType,
-      customLabel,
-    });
+      createRelationship.mutate({
+        fromMemberId: pendingConnection.source,
+        toMemberId: pendingConnection.target!,
+        relationshipType,
+        customLabel,
+      });
 
-    setSelectorOpen(false);
-    setPendingConnection(null);
-  }, [pendingConnection, createRelationship]);
+      setSelectorOpen(false);
+      setPendingConnection(null);
+    },
+    [pendingConnection, createRelationship],
+  );
 
   // Handle relationship selector close (including cancel)
   const handleSelectorOpenChange = useCallback((open: boolean) => {
@@ -1202,196 +1440,243 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   const handleResetLayout = useCallback(() => {
     if (nodes.length > 0) {
       const { nodes: layoutedNodes } = getLayoutedElements(nodes, edges, {
-        direction: 'TB',
+        direction: "TB",
         nodeSep: 100,
         rankSep: 150,
       });
       setNodes(layoutedNodes);
       toast({
-        title: 'Layout reset',
-        description: 'Family tree layout has been reset',
+        title: "Layout reset",
+        description: "Family tree layout has been reset",
       });
     }
   }, [nodes, edges, setNodes, toast]);
 
   // Handle layout mode toggle - save to database
   const handleToggleLayout = useCallback(() => {
-    const newLayoutMode = isAutoLayout ? 'manual' : 'auto';
+    const newLayoutMode = isAutoLayout ? "manual" : "auto";
     setIsAutoLayout(!isAutoLayout);
     updateTreeMetadata.mutate({ layoutMode: newLayoutMode });
   }, [isAutoLayout, updateTreeMetadata]);
 
   // Mutation to create inline member
   const createInlineMember = useMutation({
-    mutationFn: async ({ name, x, y }: { name: string; x: number; y: number }) => {
+    mutationFn: async ({
+      name,
+      x,
+      y,
+    }: {
+      name: string;
+      x: number;
+      y: number;
+    }) => {
       return apiRequest(
-        'POST',
+        "POST",
         `/api/family-trees/${treeId}/members?notebookId=${notebookId}`,
         {
           treeId,
           inlineName: name,
           positionX: x,
           positionY: y,
-        }
+        },
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId, 'members'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/family-trees", treeId, "members"],
+      });
       setAddMemberDialogOpen(false);
       toast({
-        title: 'Member added',
-        description: 'Family member successfully created',
+        title: "Member added",
+        description: "Family member successfully created",
       });
     },
     onError: (error) => {
       toast({
-        title: 'Failed to create member',
-        description: error instanceof Error ? error.message : 'Unknown error occurred',
-        variant: 'destructive',
+        title: "Failed to create member",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
       });
     },
   });
 
   // Handle inline member creation
-  const handleInlineMemberCreate = useCallback((name: string) => {
-    // Calculate position to the right of existing nodes
-    const centerX = nodes.length > 0 ? Math.max(...nodes.map(n => n.position.x)) + 300 : 100;
-    const centerY = nodes.length > 0 ? nodes.reduce((sum, n) => sum + n.position.y, 0) / nodes.length : 100;
-    
-    createInlineMember.mutate({
-      name,
-      x: centerX,
-      y: centerY,
-    });
-  }, [nodes, createInlineMember]);
+  const handleInlineMemberCreate = useCallback(
+    (name: string) => {
+      // Calculate position to the right of existing nodes
+      const centerX =
+        nodes.length > 0
+          ? Math.max(...nodes.map((n) => n.position.x)) + 300
+          : 100;
+      const centerY =
+        nodes.length > 0
+          ? nodes.reduce((sum, n) => sum + n.position.y, 0) / nodes.length
+          : 100;
+
+      createInlineMember.mutate({
+        name,
+        x: centerX,
+        y: centerY,
+      });
+    },
+    [nodes, createInlineMember],
+  );
 
   // Mutation to delete a member
   const deleteMemberMutation = useMutation({
     mutationFn: async (memberId: string) => {
-      const response = await fetch(`/api/family-trees/${treeId}/members/${memberId}?notebookId=${notebookId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
+      const response = await fetch(
+        `/api/family-trees/${treeId}/members/${memberId}?notebookId=${notebookId}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        },
+      );
       if (!response.ok) {
-        throw new Error('Failed to delete member');
+        throw new Error("Failed to delete member");
       }
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId, 'members'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId, 'relationships'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/family-trees", treeId, "members"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/family-trees", treeId, "relationships"],
+      });
       toast({
-        title: 'Member removed',
-        description: 'Family member has been removed from the tree',
+        title: "Member removed",
+        description: "Family member has been removed from the tree",
       });
     },
     onError: (error) => {
       toast({
-        title: 'Failed to remove member',
-        description: error instanceof Error ? error.message : 'Unknown error occurred',
-        variant: 'destructive',
+        title: "Failed to remove member",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
       });
     },
   });
 
   // Handle removing member from tree (called from CharacterGallery with memberId string)
-  const handleRemoveMember = useCallback((memberId: string) => {
-    deleteMemberMutation.mutate(memberId);
-  }, [deleteMemberMutation]);
+  const handleRemoveMember = useCallback(
+    (memberId: string) => {
+      deleteMemberMutation.mutate(memberId);
+    },
+    [deleteMemberMutation],
+  );
 
   // Handle removing member from node (called from FamilyMemberNode with member object)
-  const handleRemoveMemberFromNode = useCallback((member: FamilyTreeMember) => {
-    // Get display name for confirmation message
-    const memberWithChar = member as any;
-    let displayName = 'this member';
-    
-    if (memberWithChar.character) {
-      const parts = [
-        memberWithChar.character.givenName,
-        memberWithChar.character.middleName,
-        memberWithChar.character.familyName
-      ].filter(Boolean);
-      if (parts.length > 0) {
-        displayName = parts.join(' ');
-      } else if (memberWithChar.character.nickname) {
-        displayName = memberWithChar.character.nickname;
+  const handleRemoveMemberFromNode = useCallback(
+    (member: FamilyTreeMember) => {
+      // Get display name for confirmation message
+      const memberWithChar = member as any;
+      let displayName = "this member";
+
+      if (memberWithChar.character) {
+        const parts = [
+          memberWithChar.character.givenName,
+          memberWithChar.character.middleName,
+          memberWithChar.character.familyName,
+        ].filter(Boolean);
+        if (parts.length > 0) {
+          displayName = parts.join(" ");
+        } else if (memberWithChar.character.nickname) {
+          displayName = memberWithChar.character.nickname;
+        }
+      } else if (member.inlineName) {
+        displayName = member.inlineName;
       }
-    } else if (member.inlineName) {
-      displayName = member.inlineName;
-    }
-    
-    // Show confirmation dialog
-    const confirmed = window.confirm(
-      `Are you sure you want to remove ${displayName} from this family tree? This will also remove their relationships.`
-    );
-    
-    if (confirmed) {
-      deleteMemberMutation.mutate(member.id);
-    }
-  }, [deleteMemberMutation]);
+
+      // Show confirmation dialog
+      const confirmed = window.confirm(
+        `Are you sure you want to remove ${displayName} from this family tree? This will also remove their relationships.`,
+      );
+
+      if (confirmed) {
+        deleteMemberMutation.mutate(member.id);
+      }
+    },
+    [deleteMemberMutation],
+  );
 
   // Mutation to update member details
   const updateMemberMutation = useMutation({
-    mutationFn: async ({ memberId, updates }: { 
-      memberId: string; 
-      updates: { 
-        inlineName?: string; 
-        inlineDateOfBirth?: string | null; 
+    mutationFn: async ({
+      memberId,
+      updates,
+    }: {
+      memberId: string;
+      updates: {
+        inlineName?: string;
+        inlineDateOfBirth?: string | null;
         inlineDateOfDeath?: string | null;
-      } 
+      };
     }) => {
       return apiRequest(
-        'PUT',
+        "PUT",
         `/api/family-trees/${treeId}/members/${memberId}?notebookId=${notebookId}`,
-        { ...updates, notebookId }
+        { ...updates, notebookId },
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/family-trees', treeId, 'members'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/family-trees", treeId, "members"],
+      });
       toast({
-        title: 'Member updated',
-        description: 'Member details have been updated',
+        title: "Member updated",
+        description: "Member details have been updated",
       });
       setEditModalOpen(false);
     },
     onError: (error) => {
       toast({
-        title: 'Failed to update member',
-        description: error instanceof Error ? error.message : 'Unknown error occurred',
-        variant: 'destructive',
+        title: "Failed to update member",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
       });
     },
   });
 
   // Handle saving member details
-  const handleSaveMemberDetails = useCallback((memberId: string, updates: {
-    inlineName?: string;
-    inlineDateOfBirth?: string | null;
-    inlineDateOfDeath?: string | null;
-  }) => {
-    updateMemberMutation.mutate({ memberId, updates });
-  }, [updateMemberMutation]);
+  const handleSaveMemberDetails = useCallback(
+    (
+      memberId: string,
+      updates: {
+        inlineName?: string;
+        inlineDateOfBirth?: string | null;
+        inlineDateOfDeath?: string | null;
+      },
+    ) => {
+      updateMemberMutation.mutate({ memberId, updates });
+    },
+    [updateMemberMutation],
+  );
 
   // Manual save handler for immediate save (moved before conditional return)
   const handleManualSave = useCallback(async () => {
     const updates: { name?: string; description?: string } = {};
     if (treeName !== tree?.name) updates.name = treeName;
-    if (treeDescription !== tree?.description) updates.description = treeDescription;
-    
+    if (treeDescription !== tree?.description)
+      updates.description = treeDescription;
+
     if (Object.keys(updates).length > 0) {
       try {
         await updateTreeMetadata.mutateAsync(updates);
         toast({
-          title: 'Saved',
-          description: 'Family tree updated successfully',
+          title: "Saved",
+          description: "Family tree updated successfully",
         });
       } catch (error) {
         // Error toast is already handled in mutation's onError
       }
     } else {
       toast({
-        title: 'No changes to save',
-        description: 'The family tree is already up to date',
+        title: "No changes to save",
+        description: "The family tree is already up to date",
       });
     }
   }, [treeName, treeDescription, tree, updateTreeMetadata, toast]);
@@ -1405,7 +1690,10 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
   }
 
   return (
-    <div className="flex h-full w-full flex-col min-h-0" data-testid="family-tree-editor">
+    <div
+      className="flex h-full w-full flex-col min-h-0"
+      data-testid="family-tree-editor"
+    >
       <div className="flex-1 min-h-0 relative">
         <ReactFlow
           nodes={nodes}
@@ -1422,13 +1710,13 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
           nodesDraggable={!isAutoLayout}
           nodesConnectable={true}
           defaultEdgeOptions={{
-            type: 'smoothstep',
+            type: "smoothstep",
             markerEnd: undefined,
           }}
           fitView
           minZoom={0.1}
           maxZoom={2}
-          style={{ width: '100%', height: '100%' }}
+          style={{ width: "100%", height: "100%" }}
         >
           <Background />
           <Controls />
@@ -1436,19 +1724,19 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
             <MiniMap
               nodeColor={(node) => {
                 // Highlight search results
-                if (searchResults.some(r => r.id === node.id)) {
-                  return '#f59e0b'; // orange for search results
+                if (searchResults.some((r) => r.id === node.id)) {
+                  return "#f59e0b"; // orange for search results
                 }
-                return '#8b5cf6'; // purple for regular nodes
+                return "#8b5cf6"; // purple for regular nodes
               }}
               maskColor="rgba(0, 0, 0, 0.4)"
               style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                backgroundColor: "rgba(255, 255, 255, 0.9)",
               }}
               className="border rounded shadow-lg"
             />
           )}
-          
+
           {/* Top-left card for tree name and description */}
           <Panel position="top-left">
             <div className="bg-card border rounded-lg shadow-lg p-4 space-y-3 w-80">
@@ -1480,27 +1768,31 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
               />
               <div className="flex items-center justify-between">
                 <div className="text-xs flex-1">
-                  {metadataSave.saveStatus === 'saving' ? (
+                  {metadataSave.saveStatus === "saving" ? (
                     <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
                       <Loader2 className="w-3 h-3 animate-spin" />
                       Saving...
                     </span>
-                  ) : metadataSave.saveStatus === 'saved' && metadataSave.lastSaveTime ? (
+                  ) : metadataSave.saveStatus === "saved" &&
+                    metadataSave.lastSaveTime ? (
                     <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
                       <Check className="w-3 h-3" />
-                      Saved {new Date(metadataSave.lastSaveTime).toLocaleTimeString()}
+                      Saved{" "}
+                      {new Date(metadataSave.lastSaveTime).toLocaleTimeString()}
                     </span>
-                  ) : metadataSave.saveStatus === 'unsaved' ? (
+                  ) : metadataSave.saveStatus === "unsaved" ? (
                     <span className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
                       <AlertCircle className="w-3 h-3" />
                       Unsaved changes
                     </span>
                   ) : (
-                    <span className="text-muted-foreground">Auto-saving enabled</span>
+                    <span className="text-muted-foreground">
+                      Auto-saving enabled
+                    </span>
                   )}
                 </div>
                 <div className="flex items-center gap-1">
-                  {metadataSave.saveStatus === 'unsaved' && (
+                  {metadataSave.saveStatus === "unsaved" && (
                     <Button
                       size="icon"
                       variant="ghost"
@@ -1528,7 +1820,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
               </div>
             </div>
           </Panel>
-          
+
           {/* Search Panel */}
           <Panel position="top-center">
             <div className="bg-card border rounded-lg shadow-lg p-2">
@@ -1588,7 +1880,7 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
               </div>
             </div>
           </Panel>
-          
+
           <Panel position="top-right" className="flex gap-2">
             <Button
               size="sm"
@@ -1665,55 +1957,67 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
           </Panel>
         </ReactFlow>
       </div>
-      
+
       {/* Character Gallery - positioned at bottom but higher up */}
       <div className="absolute bottom-0 left-0 right-0 z-10">
-        <CharacterGallery 
-          notebookId={notebookId} 
-          existingMembers={members} 
+        <CharacterGallery
+          notebookId={notebookId}
+          existingMembers={members}
           onRemoveMember={handleRemoveMember}
         />
       </div>
-      
+
       <RelationshipSelector
         open={selectorOpen}
         onOpenChange={handleSelectorOpenChange}
         onConfirm={handleRelationshipConfirm}
         sourceNodeLabel={
-          pendingConnection 
+          pendingConnection
             ? (() => {
-                const member = members.find(m => m.id === pendingConnection.source);
-                if (!member) return 'Character A';
+                const member = members.find(
+                  (m) => m.id === pendingConnection.source,
+                );
+                if (!member) return "Character A";
                 if ((member as any).character) {
                   const char = (member as any).character;
-                  return [char.givenName, char.familyName].filter(Boolean).join(' ') || 'Unknown Character';
+                  return (
+                    [char.givenName, char.familyName]
+                      .filter(Boolean)
+                      .join(" ") || "Unknown Character"
+                  );
                 }
-                return member.inlineName || 'Unknown Character';
+                return member.inlineName || "Unknown Character";
               })()
-            : 'Character A'
+            : "Character A"
         }
         targetNodeLabel={
-          pendingConnection 
+          pendingConnection
             ? (() => {
-                const member = members.find(m => m.id === pendingConnection.target);
-                if (!member) return 'Character B';
+                const member = members.find(
+                  (m) => m.id === pendingConnection.target,
+                );
+                if (!member) return "Character B";
                 if ((member as any).character) {
                   const char = (member as any).character;
-                  return [char.givenName, char.familyName].filter(Boolean).join(' ') || 'Unknown Character';
+                  return (
+                    [char.givenName, char.familyName]
+                      .filter(Boolean)
+                      .join(" ") || "Unknown Character"
+                  );
                 }
-                return member.inlineName || 'Unknown Character';
+                return member.inlineName || "Unknown Character";
               })()
-            : 'Character B'
+            : "Character B"
         }
       />
-      
+
       <InlineMemberDialog
         open={addMemberDialogOpen}
         onOpenChange={setAddMemberDialogOpen}
         onConfirm={handleInlineMemberCreate}
         isLoading={createInlineMember.isPending}
       />
-      
+
       <MemberEditDialog
         open={editModalOpen}
         onOpenChange={setEditModalOpen}
@@ -1722,14 +2026,14 @@ function FamilyTreeEditorInner({ treeId, notebookId, onBack }: FamilyTreeEditorP
         onSave={handleSaveMemberDetails}
         isLoading={updateMemberMutation.isPending}
       />
-      
+
       <AddRelationshipDialog
         open={addRelationshipDialogOpen}
         onOpenChange={setAddRelationshipDialogOpen}
         member={selectedMemberForRelationship}
         onSelectRelationshipType={onSelectRelationshipType}
       />
-      
+
       <SelectCharacterDialog
         open={selectCharacterDialogOpen}
         onOpenChange={setSelectCharacterDialogOpen}

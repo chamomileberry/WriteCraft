@@ -1,6 +1,7 @@
 # WriteCraft Production Readiness Guide
 
 ## Overview
+
 This document outlines all critical steps required before deploying WriteCraft to production. Use this as a checklist to ensure a safe, compliant, and reliable launch.
 
 ---
@@ -8,9 +9,11 @@ This document outlines all critical steps required before deploying WriteCraft t
 ## 1. Legal & Compliance ✅
 
 ### GDPR/CCPA Data Rights
+
 **Status:** ✅ Implemented
 
 #### Data Export (Right to Access)
+
 - **Endpoint:** `GET /api/export/user-data`
 - **Functionality:** Exports all user data as JSON including:
   - Account information
@@ -26,8 +29,9 @@ This document outlines all critical steps required before deploying WriteCraft t
 - **Testing:** Log in as a test user and access the endpoint to verify all data exports correctly
 
 #### Account Deletion (Right to Deletion)
+
 - **Endpoint:** `DELETE /api/users/account`
-- **Functionality:** 
+- **Functionality:**
   - Permanently deletes user account
   - Cascades to all 170+ related database tables automatically
   - Logs deletion for audit purposes
@@ -36,8 +40,9 @@ This document outlines all critical steps required before deploying WriteCraft t
 - **Testing:** Create a test user, generate content, then delete account and verify all data is removed
 
 #### Cookie Consent
+
 - **Component:** `CookieConsentBanner`
-- **Functionality:** 
+- **Functionality:**
   - Blocks analytics (PostHog) until user accepts
   - Opt-out by default approach
   - Granular controls (Necessary, Analytics, Functional)
@@ -49,13 +54,17 @@ This document outlines all critical steps required before deploying WriteCraft t
 ## 2. Security Configuration
 
 ### Content Security Policy (CSP)
+
 **Status:** ✅ Implemented
+
 - Nonce-based CSP headers configured
 - Violation reporting endpoint: `/api/csp-report`
 - Monitor CSP violations in logs
 
 ### Rate Limiting
+
 **Status:** ✅ Implemented
+
 - Redis-backed distributed rate limiting
 - General: 2000 requests/15 minutes
 - Sensitive operations: 50 requests/window
@@ -63,25 +72,31 @@ This document outlines all critical steps required before deploying WriteCraft t
 - Upload: 50 requests/15 minutes
 
 **Verification:**
+
 ```bash
 # Test rate limiting
 for i in {1..100}; do curl -X GET https://your-app.replit.app/api/health; done
 ```
 
 ### CORS Configuration
+
 **Status:** ✅ Not Required
+
 - App is served from same origin (Vite + Express on same domain)
 - No separate frontend/backend domains
 - If deploying frontend and backend separately in future:
+
   ```typescript
-  import cors from 'cors';
-  
-  app.use(cors({
-    origin: process.env.FRONTEND_URL || 'https://writecraft.com',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-  }));
+  import cors from "cors";
+
+  app.use(
+    cors({
+      origin: process.env.FRONTEND_URL || "https://writecraft.com",
+      credentials: true,
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+    }),
+  );
   ```
 
 ---
@@ -89,16 +104,20 @@ for i in {1..100}; do curl -X GET https://your-app.replit.app/api/health; done
 ## 3. Database & Backup
 
 ### PostgreSQL Configuration
+
 **Provider:** Neon Serverless PostgreSQL  
 **Connection:** Managed via `DATABASE_URL` environment variable
 
 ### Backup Strategy
-**Automated Backups:** 
+
+**Automated Backups:**
+
 - Neon provides automatic daily backups
 - Point-in-time recovery (PITR) available
 - Retention: 7 days (configurable)
 
 **Verification Steps:**
+
 1. Log into Neon dashboard: https://console.neon.tech
 2. Navigate to your project
 3. Verify "Backups" section shows recent backups
@@ -111,6 +130,7 @@ for i in {1..100}; do curl -X GET https://your-app.replit.app/api/health; done
    ```
 
 **Manual Backup (Optional):**
+
 ```bash
 # Export database to SQL file
 pg_dump $DATABASE_URL > backup-$(date +%Y%m%d).sql
@@ -119,7 +139,9 @@ pg_dump $DATABASE_URL > backup-$(date +%Y%m%d).sql
 ```
 
 ### Schema Changes
+
 **CRITICAL:** Never manually write SQL migrations
+
 ```bash
 # Always use Drizzle to push schema changes
 npm run db:push
@@ -133,8 +155,10 @@ npm run db:push --force
 ## 4. Email Deliverability
 
 ### SMTP Configuration
+
 **Provider:** Zoho Mail  
 **Environment Variables:**
+
 - `SMTP_HOST`: smtp.zoho.com
 - `SMTP_PORT`: 465
 - `SMTP_USER`: your-email@domain.com
@@ -144,7 +168,9 @@ npm run db:push --force
 ### DNS Records Required
 
 #### SPF Record
+
 Add to your domain's DNS:
+
 ```
 Type: TXT
 Name: @
@@ -152,10 +178,12 @@ Value: v=spf1 include:zoho.com ~all
 ```
 
 #### DKIM Record
+
 1. Log into Zoho Mail Admin Console
 2. Navigate to Email Configuration > Email Delivery > DKIM
 3. Copy the DKIM record provided by Zoho
 4. Add to DNS:
+
 ```
 Type: TXT
 Name: zoho._domainkey
@@ -163,6 +191,7 @@ Value: [DKIM key from Zoho]
 ```
 
 #### DMARC Record (Optional but Recommended)
+
 ```
 Type: TXT
 Name: _dmarc
@@ -170,13 +199,16 @@ Value: v=DMARC1; p=none; rua=mailto:admin@yourdomain.com
 ```
 
 ### Testing Email Deliverability
+
 1. Send test emails from production:
+
 ```bash
 # Use the email preview route (admin only)
 GET /api/email-preview/subscription-created
 ```
 
 2. Check email headers to verify SPF/DKIM pass:
+
    - Gmail: Show original > Look for "SPF: PASS" and "DKIM: PASS"
    - Use mail-tester.com for comprehensive testing
 
@@ -187,15 +219,18 @@ GET /api/email-preview/subscription-created
 ## 5. Error Monitoring & Alerts
 
 ### Sentry Configuration
+
 **Status:** ✅ Implemented  
 **DSN:** Configured via `SENTRY_DSN` environment variable
 
 ### Alert Rules Setup
+
 1. Log into Sentry: https://sentry.io
 2. Navigate to Alerts > Create Alert Rule
 3. Configure critical alerts:
 
 #### High Error Rate Alert
+
 ```
 Conditions:
 - When error count >= 10 in 5 minutes
@@ -208,6 +243,7 @@ Actions:
 ```
 
 #### Performance Degradation Alert
+
 ```
 Conditions:
 - When p95(transaction.duration) > 2000ms
@@ -219,6 +255,7 @@ Actions:
 ```
 
 #### Database Error Alert
+
 ```
 Conditions:
 - When error message contains "database"
@@ -230,6 +267,7 @@ Actions:
 ```
 
 ### Sentry Dashboard
+
 - Review errors daily
 - Set up weekly error digest email
 - Monitor release health metrics
@@ -239,14 +277,17 @@ Actions:
 ## 6. Analytics & Monitoring
 
 ### PostHog Configuration
+
 **Status:** ✅ Implemented  
 **Environment Variables:**
+
 - `VITE_POSTHOG_API_KEY`
 - `VITE_POSTHOG_HOST`
 
 **GDPR Compliance:** ✅ Consent-gated, opt-out by default
 
 **Key Metrics to Monitor:**
+
 - Daily active users (DAU)
 - Feature usage (generators, AI chat, etc.)
 - Conversion funnel (signup → onboarding → first content created)
@@ -254,12 +295,15 @@ Actions:
 - Churn rate
 
 ### Health Check Endpoints
+
 **Status:** ✅ Implemented
+
 - `GET /api/health` - Basic health check
 - `GET /api/health/detailed` - Detailed system status with database connection
 
 **Uptime Monitoring:**
 Use external service like UptimeRobot:
+
 1. Monitor `/api/health` endpoint every 5 minutes
 2. Alert if down for 2+ consecutive checks
 3. Check from multiple geographic locations
@@ -269,6 +313,7 @@ Use external service like UptimeRobot:
 ## 7. Performance & Load Testing
 
 ### Load Testing Script
+
 Create `scripts/load-test.js`:
 
 ```javascript
@@ -306,7 +351,9 @@ scenarios:
 ```
 
 ### Performance Baselines
+
 After running load test, establish baselines:
+
 - **Response Time p50:** < 200ms
 - **Response Time p95:** < 1000ms
 - **Response Time p99:** < 2000ms
@@ -314,6 +361,7 @@ After running load test, establish baselines:
 - **Database Connection Pool:** Monitor usage, ensure not maxed out
 
 ### Monitoring During Load Test
+
 ```bash
 # Watch server logs
 npm run dev
@@ -330,6 +378,7 @@ redis-cli INFO stats
 ## 8. Deployment & Rollback Procedures
 
 ### Pre-Deployment Checklist
+
 - [ ] All tests passing
 - [ ] No critical Sentry errors in staging
 - [ ] Database migrations tested (use `npm run db:push --force`)
@@ -338,11 +387,14 @@ redis-cli INFO stats
 - [ ] Rollback plan ready
 
 ### Deployment Steps
+
 1. **Create checkpoint:**
+
    - Replit automatically creates checkpoints
    - Manual checkpoint: Use Replit UI > History > Create Checkpoint
 
 2. **Deploy new code:**
+
    ```bash
    git pull origin main
    npm install  # Install new dependencies
@@ -357,15 +409,18 @@ redis-cli INFO stats
    - Test critical user flows manually
 
 ### Rollback Procedure
+
 If issues detected post-deployment:
 
 **Option 1: Replit Checkpoint Rollback (Fastest)**
+
 1. Navigate to Replit > History tab
 2. Find last known good checkpoint (before deployment)
 3. Click "Restore" on that checkpoint
 4. Database and code roll back together
 
 **Option 2: Git Rollback**
+
 ```bash
 # Find last good commit
 git log --oneline
@@ -378,10 +433,12 @@ npm run dev
 ```
 
 **Option 3: Database-Only Rollback**
+
 - Use Neon console to restore from point-in-time backup
 - Keep application code as-is
 
 **Post-Rollback:**
+
 1. Verify application is stable
 2. Document what went wrong in incident report
 3. Fix issue in separate branch
@@ -392,6 +449,7 @@ npm run dev
 ## 9. Environment Variables Checklist
 
 ### Required for Production
+
 - [ ] `DATABASE_URL` - PostgreSQL connection string
 - [ ] `SENTRY_DSN` - Sentry error tracking
 - [ ] `VITE_POSTHOG_API_KEY` - PostHog analytics
@@ -408,31 +466,33 @@ npm run dev
 - [ ] `REDIS_URL` - Redis connection (rate limiting)
 
 ### Verification
+
 ```bash
 # Check all required env vars are set
 node scripts/check-env.js
 ```
 
 Create `scripts/check-env.js`:
+
 ```javascript
 const required = [
-  'DATABASE_URL',
-  'SENTRY_DSN',
-  'VITE_POSTHOG_API_KEY',
-  'ANTHROPIC_API_KEY',
-  'STRIPE_SECRET_KEY',
-  'SMTP_HOST',
-  'SESSION_SECRET',
+  "DATABASE_URL",
+  "SENTRY_DSN",
+  "VITE_POSTHOG_API_KEY",
+  "ANTHROPIC_API_KEY",
+  "STRIPE_SECRET_KEY",
+  "SMTP_HOST",
+  "SESSION_SECRET",
 ];
 
-const missing = required.filter(key => !process.env[key]);
+const missing = required.filter((key) => !process.env[key]);
 
 if (missing.length > 0) {
-  console.error('Missing required environment variables:');
-  missing.forEach(key => console.error(`  - ${key}`));
+  console.error("Missing required environment variables:");
+  missing.forEach((key) => console.error(`  - ${key}`));
   process.exit(1);
 } else {
-  console.log('✅ All required environment variables are set');
+  console.log("✅ All required environment variables are set");
 }
 ```
 
@@ -441,6 +501,7 @@ if (missing.length > 0) {
 ## 10. Pre-Launch Final Checklist
 
 ### Legal & Compliance
+
 - [ ] Privacy Policy published and accessible
 - [ ] Terms of Service published and accessible
 - [ ] Cookie consent banner shows on first visit
@@ -449,6 +510,7 @@ if (missing.length > 0) {
 - [ ] PostHog only tracks after consent
 
 ### Security
+
 - [ ] Rate limiting enabled and tested
 - [ ] CSP headers configured
 - [ ] MFA available for admin accounts
@@ -457,6 +519,7 @@ if (missing.length > 0) {
 - [ ] HTTPS enforced
 
 ### Database & Infrastructure
+
 - [ ] Database backups verified in Neon dashboard
 - [ ] Test restore performed successfully
 - [ ] Database indexes reviewed (67 indexes present)
@@ -464,6 +527,7 @@ if (missing.length > 0) {
 - [ ] Redis configured and connected
 
 ### Email & Communications
+
 - [ ] SPF record added to DNS
 - [ ] DKIM record added to DNS
 - [ ] Test email sent and received successfully
@@ -475,6 +539,7 @@ if (missing.length > 0) {
   - [ ] Team invitation
 
 ### Monitoring & Alerts
+
 - [ ] Sentry alerts configured
 - [ ] Sentry receiving errors correctly
 - [ ] PostHog analytics collecting data
@@ -483,6 +548,7 @@ if (missing.length > 0) {
 - [ ] Error rate dashboard created
 
 ### Performance
+
 - [ ] Load test executed (100 concurrent users)
 - [ ] Performance baselines documented
 - [ ] No critical performance issues identified
@@ -490,12 +556,14 @@ if (missing.length > 0) {
 - [ ] Frontend bundle size optimized
 
 ### Error Handling
+
 - [ ] Error boundary wraps app (catches React crashes)
 - [ ] All API endpoints return appropriate error codes
 - [ ] Error messages don't leak sensitive information
 - [ ] Logging captures context for debugging
 
 ### Deployment
+
 - [ ] Rollback procedure documented and tested
 - [ ] All environment variables configured
 - [ ] Dependencies installed and locked (package-lock.json)
@@ -503,6 +571,7 @@ if (missing.length > 0) {
 - [ ] Deployment verification steps documented
 
 ### User Experience
+
 - [ ] Onboarding flow tested
 - [ ] Critical user flows tested:
   - [ ] Sign up / Login
@@ -516,6 +585,7 @@ if (missing.length > 0) {
 - [ ] Error states user-friendly
 
 ### Post-Launch Monitoring (First 48 Hours)
+
 - [ ] Monitor error rates in Sentry (check hourly)
 - [ ] Monitor server logs for anomalies
 - [ ] Check database performance metrics
@@ -530,12 +600,14 @@ if (missing.length > 0) {
 ## Emergency Contacts
 
 ### Critical Issues
+
 - **Database down:** Contact Neon support
 - **Email not sending:** Check Zoho status page
 - **Payment issues:** Stripe dashboard + support
 - **High error rate:** Check Sentry, execute rollback if needed
 
 ### Escalation Path
+
 1. Check logs and Sentry for root cause
 2. If critical user-facing issue: Execute rollback immediately
 3. If degraded performance: Monitor for 10 minutes, rollback if worsening
@@ -544,6 +616,7 @@ if (missing.length > 0) {
 ---
 
 ## Additional Resources
+
 - [Neon Documentation](https://neon.tech/docs)
 - [Sentry Documentation](https://docs.sentry.io)
 - [Stripe Testing Guide](./STRIPE_TESTING_GUIDE.md)

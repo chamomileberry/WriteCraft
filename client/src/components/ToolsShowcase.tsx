@@ -1,9 +1,28 @@
 import { useState } from "react";
 import ToolCard from "./ToolCard";
-import { Users, BookOpen, Zap, Map, FileText, Target, Lightbulb, Palette, Rabbit, Leaf, PenTool, LucideIcon } from "lucide-react";
+import {
+  Users,
+  BookOpen,
+  Zap,
+  Map,
+  FileText,
+  Target,
+  Lightbulb,
+  Palette,
+  Rabbit,
+  Leaf,
+  PenTool,
+  LucideIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Search, Filter } from "lucide-react";
 
 interface Tool {
@@ -19,153 +38,168 @@ interface Tool {
 // TODO: Replace with dynamic tool data
 const allTools: Tool[] = [
   {
-    id: 'character-generator',
-    title: 'Character Generator',
-    description: 'Create detailed, unique characters with backstories, traits, and motivations.',
+    id: "character-generator",
+    title: "Character Generator",
+    description:
+      "Create detailed, unique characters with backstories, traits, and motivations.",
     icon: Users,
-    category: 'Character Development',
+    category: "Character Development",
     features: [
-      'Randomized personality traits',
-      'Background generator',
-      'Motivation builder',
-      'Relationship dynamics'
+      "Randomized personality traits",
+      "Background generator",
+      "Motivation builder",
+      "Relationship dynamics",
     ],
-    isPopular: true
+    isPopular: true,
   },
   {
-    id: 'setting-generator',
-    title: 'Setting Generator',
-    description: 'Build immersive worlds and locations for your stories.',
+    id: "setting-generator",
+    title: "Setting Generator",
+    description: "Build immersive worlds and locations for your stories.",
     icon: Map,
-    category: 'World Building',
+    category: "World Building",
     features: [
-      'Location details',
-      'Atmosphere builder',
-      'Cultural elements',
-      'Historical context'
-    ]
-  },
-  {
-    id: 'creature-generator',
-    title: 'Creature Generator',
-    description: 'Create fascinating creatures and beings for your fantasy worlds.',
-    icon: Rabbit,
-    category: 'World Building',
-    features: [
-      'Real and fantasy creatures',
-      'Unique abilities',
-      'Behavioral patterns',
-      'Cultural significance'
-    ]
-  },
-  {
-    id: 'plant-generator',
-    title: 'Plant Generator',
-    description: 'Generate detailed plant descriptions with botanical accuracy for your stories.',
-    icon: Leaf,
-    category: 'World Building',
-    features: [
-      'Scientific names',
-      'Care instructions',
-      'Habitat details',
-      'Seasonal information'
-    ]
-  },
-  {
-    id: 'writing-prompts',
-    title: 'Writing Prompts',
-    description: 'Spark creativity with genre-specific prompts and story starters.',
-    icon: Zap,
-    category: 'Inspiration',
-    features: [
-      'Genre-specific prompts',
-      'Difficulty levels',
-      'Daily challenges',
-      'Custom themes'
+      "Location details",
+      "Atmosphere builder",
+      "Cultural elements",
+      "Historical context",
     ],
-    isPopular: true
   },
   {
-    id: 'description-generator',
-    title: 'Description Generator',
-    description: 'Create detailed, immersive descriptions for any element of your story.',
+    id: "creature-generator",
+    title: "Creature Generator",
+    description:
+      "Create fascinating creatures and beings for your fantasy worlds.",
+    icon: Rabbit,
+    category: "World Building",
+    features: [
+      "Real and fantasy creatures",
+      "Unique abilities",
+      "Behavioral patterns",
+      "Cultural significance",
+    ],
+  },
+  {
+    id: "plant-generator",
+    title: "Plant Generator",
+    description:
+      "Generate detailed plant descriptions with botanical accuracy for your stories.",
+    icon: Leaf,
+    category: "World Building",
+    features: [
+      "Scientific names",
+      "Care instructions",
+      "Habitat details",
+      "Seasonal information",
+    ],
+  },
+  {
+    id: "writing-prompts",
+    title: "Writing Prompts",
+    description:
+      "Spark creativity with genre-specific prompts and story starters.",
+    icon: Zap,
+    category: "Inspiration",
+    features: [
+      "Genre-specific prompts",
+      "Difficulty levels",
+      "Daily challenges",
+      "Custom themes",
+    ],
+    isPopular: true,
+  },
+  {
+    id: "description-generator",
+    title: "Description Generator",
+    description:
+      "Create detailed, immersive descriptions for any element of your story.",
     icon: PenTool,
-    category: 'Writing Craft',
+    category: "Writing Craft",
     features: [
-      'Equipment descriptions',
-      'Atmospheric conditions',
-      'Cultural elements',
-      'Medical conditions'
-    ]
+      "Equipment descriptions",
+      "Atmospheric conditions",
+      "Cultural elements",
+      "Medical conditions",
+    ],
   },
   {
-    id: 'name-generator',
-    title: 'Name Generator',
-    description: 'Find perfect names for characters, places, and fantasy elements.',
+    id: "name-generator",
+    title: "Name Generator",
+    description:
+      "Find perfect names for characters, places, and fantasy elements.",
     icon: FileText,
-    category: 'Character Development',
+    category: "Character Development",
     features: [
-      'Character names',
-      'Place names',
-      'Fantasy races',
-      'Cultural variations'
-    ]
+      "Character names",
+      "Place names",
+      "Fantasy races",
+      "Cultural variations",
+    ],
   },
   {
-    id: 'plot-generator',
-    title: 'Plot Generator',
-    description: 'Generate compelling plot structures and story arcs for any genre.',
+    id: "plot-generator",
+    title: "Plot Generator",
+    description:
+      "Generate compelling plot structures and story arcs for any genre.",
     icon: BookOpen,
-    category: 'Story Structure',
+    category: "Story Structure",
     features: [
-      'Customizable plot structure',
-      'Conflict scenarios',
-      'Plot twist ideas',
-      'Character arcs'
-    ]
+      "Customizable plot structure",
+      "Conflict scenarios",
+      "Plot twist ideas",
+      "Character arcs",
+    ],
   },
   {
-    id: 'conflict-generator',
-    title: 'Conflict Generator',
-    description: 'Create engaging conflicts and obstacles for your story.',
+    id: "conflict-generator",
+    title: "Conflict Generator",
+    description: "Create engaging conflicts and obstacles for your story.",
     icon: Target,
-    category: 'Story Structure',
+    category: "Story Structure",
     features: [
-      'Internal conflicts',
-      'External challenges',
-      'Relationship tensions',
-      'Plot complications'
-    ]
+      "Internal conflicts",
+      "External challenges",
+      "Relationship tensions",
+      "Plot complications",
+    ],
   },
   {
-    id: 'theme-explorer',
-    title: 'Theme Explorer',
-    description: 'Discover and develop meaningful themes for your narrative.',
+    id: "theme-explorer",
+    title: "Theme Explorer",
+    description: "Discover and develop meaningful themes for your narrative.",
     icon: Lightbulb,
-    category: 'Story Development',
+    category: "Story Development",
     features: [
-      'Theme suggestions',
-      'Symbolic elements',
-      'Thematic questions',
-      'Moral dilemmas'
-    ]
+      "Theme suggestions",
+      "Symbolic elements",
+      "Thematic questions",
+      "Moral dilemmas",
+    ],
   },
   {
-    id: 'mood-palette',
-    title: 'Mood Palette',
-    description: 'Set the perfect tone and atmosphere for your scenes.',
+    id: "mood-palette",
+    title: "Mood Palette",
+    description: "Set the perfect tone and atmosphere for your scenes.",
     icon: Palette,
-    category: 'Writing Craft',
+    category: "Writing Craft",
     features: [
-      'Mood descriptors',
-      'Sensory details',
-      'Color associations',
-      'Weather elements'
-    ]
-  }
+      "Mood descriptors",
+      "Sensory details",
+      "Color associations",
+      "Weather elements",
+    ],
+  },
 ];
 
-const categories = ['All Tools', 'Character Development', 'Story Structure', 'Inspiration', 'World Building', 'Story Development', 'Writing Craft'];
+const categories = [
+  "All Tools",
+  "Character Development",
+  "Story Structure",
+  "Inspiration",
+  "World Building",
+  "Story Development",
+  "Writing Craft",
+];
 
 interface ToolsShowcaseProps {
   onToolSelect?: (toolId: string) => void;
@@ -174,8 +208,8 @@ interface ToolsShowcaseProps {
 export default function ToolsShowcase({ onToolSelect }: ToolsShowcaseProps) {
   const [tools] = useState<Tool[]>(allTools);
   const [filteredTools, setFilteredTools] = useState<Tool[]>(allTools);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All Tools');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All Tools");
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -191,23 +225,28 @@ export default function ToolsShowcase({ onToolSelect }: ToolsShowcaseProps) {
     let filtered = tools;
 
     if (query) {
-      filtered = filtered.filter(tool => 
-        tool.title.toLowerCase().includes(query.toLowerCase()) ||
-        tool.description.toLowerCase().includes(query.toLowerCase()) ||
-        tool.category.toLowerCase().includes(query.toLowerCase())
+      filtered = filtered.filter(
+        (tool) =>
+          tool.title.toLowerCase().includes(query.toLowerCase()) ||
+          tool.description.toLowerCase().includes(query.toLowerCase()) ||
+          tool.category.toLowerCase().includes(query.toLowerCase()),
       );
     }
 
-    if (category !== 'All Tools') {
-      filtered = filtered.filter(tool => tool.category === category);
+    if (category !== "All Tools") {
+      filtered = filtered.filter((tool) => tool.category === category);
     }
 
     setFilteredTools(filtered);
-    console.log('Tools filtered:', { query, category, resultCount: filtered.length });
+    console.log("Tools filtered:", {
+      query,
+      category,
+      resultCount: filtered.length,
+    });
   };
 
   const handleToolUse = (toolId: string) => {
-    console.log('Tool selected:', toolId);
+    console.log("Tool selected:", toolId);
     onToolSelect?.(toolId);
   };
 
@@ -215,9 +254,12 @@ export default function ToolsShowcase({ onToolSelect }: ToolsShowcaseProps) {
     <section id="generators" className="py-16 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-serif font-bold mb-4">Writing Tools & Generators</h2>
+          <h2 className="text-3xl font-serif font-bold mb-4">
+            Writing Tools & Generators
+          </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Discover powerful tools to inspire your creativity and streamline your writing process
+            Discover powerful tools to inspire your creativity and streamline
+            your writing process
           </p>
         </div>
 
@@ -234,15 +276,20 @@ export default function ToolsShowcase({ onToolSelect }: ToolsShowcaseProps) {
               data-testid="input-tools-search"
             />
           </div>
-          
+
           <Select value={selectedCategory} onValueChange={handleCategoryFilter}>
-            <SelectTrigger className="lg:w-64" data-testid="select-tools-category">
+            <SelectTrigger
+              className="lg:w-64"
+              data-testid="select-tools-category"
+            >
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {categories.map(category => (
-                <SelectItem key={category} value={category}>{category}</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -276,11 +323,11 @@ export default function ToolsShowcase({ onToolSelect }: ToolsShowcaseProps) {
             <p className="text-muted-foreground mb-4">
               Try adjusting your search terms or category filter
             </p>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
-                setSearchQuery('');
-                setSelectedCategory('All Tools');
+                setSearchQuery("");
+                setSelectedCategory("All Tools");
                 setFilteredTools(tools);
               }}
               data-testid="button-clear-filters"

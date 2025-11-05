@@ -21,6 +21,7 @@ This will create a file called `migration.sql` in your project root containing a
 ## Step 2: Review the Migration File
 
 Open `migration.sql` and review it to make sure everything looks correct. The file should contain:
+
 - User accounts
 - Subscriptions and preferences
 - All projects and their content
@@ -35,18 +36,22 @@ Open `migration.sql` and review it to make sure everything looks correct. The fi
 **IMPORTANT:** Before importing data, you need to make sure your production database has the latest schema.
 
 ### Option A: Publish Your App (Easiest)
+
 1. Click the **Publish** button in Replit
 2. This automatically pushes schema changes to production
 3. Wait for the deployment to complete
 4. Skip to Step 4
 
 ### Option B: Manual Schema Push
+
 1. Get your production database URL:
+
    - Go to your published app
    - Open the Database tool
    - Copy the production connection string (looks like `postgresql://...`)
 
 2. Run the schema push script:
+
    ```bash
    DATABASE_URL='your-production-url-here' npm run db:push
    ```
@@ -58,11 +63,13 @@ Open `migration.sql` and review it to make sure everything looks correct. The fi
 You need the connection string for your **production** database. This is different from your development DATABASE_URL.
 
 To find it:
+
 1. Go to your published Replit app
 2. Click on the "Database" tool in the left sidebar
 3. Look for the production database connection string
 
 It will look something like:
+
 ```
 postgresql://username:password@hostname/database?sslmode=require
 ```
@@ -86,6 +93,7 @@ psql "YOUR_PRODUCTION_DATABASE_URL" -f migration.sql
 ```
 
 You should see output like:
+
 ```
 BEGIN
 INSERT 0 1
@@ -107,21 +115,25 @@ COMMIT
 ## Troubleshooting
 
 ### "column does not exist" or "relation does not exist" errors
+
 This means your production database schema is out of date. Follow Step 3 to update the schema first.
 
 The easiest fix:
+
 1. Click **Publish** in Replit (this automatically updates the production schema)
 2. Wait for deployment to complete
 3. Try the import again
 
 ### "Permission denied" errors
+
 Make sure you're using the correct production database URL and have the necessary permissions.
 
-
 ### Data appears duplicated
+
 The migration uses `ON CONFLICT DO NOTHING`, so if data already exists with the same ID, it won't be inserted again. This is intentional to prevent duplicates.
 
 ### Some data is missing
+
 Check the console output when you ran the export script. It shows exactly what was exported. If something is missing, it may not exist in your development database.
 
 ## Need Help?
@@ -145,6 +157,7 @@ Once your data is successfully migrated to production:
 4. The development and production databases are completely separate
 
 This workflow allows you to:
+
 - Work on your creative content in production without interruptions
 - Find bugs during real usage
 - Fix those bugs in development

@@ -1,23 +1,22 @@
-import { useLocation } from 'wouter';
-import { ProjectContainer } from '@/components/ProjectContainer';
+import { useLocation } from "wouter";
+import { ProjectContainer } from "@/components/ProjectContainer";
 
 interface ProjectEditPageWithSidebarProps {
   params: { id: string };
 }
 
-export default function ProjectEditPageWithSidebar({ params }: ProjectEditPageWithSidebarProps) {
+export default function ProjectEditPageWithSidebar({
+  params,
+}: ProjectEditPageWithSidebarProps) {
   const [, setLocation] = useLocation();
 
   const handleBack = () => {
-    setLocation('/projects');
+    setLocation("/projects");
   };
 
   return (
     <div className="h-full">
-      <ProjectContainer 
-        projectId={params.id}
-        onBack={handleBack}
-      />
+      <ProjectContainer projectId={params.id} onBack={handleBack} />
     </div>
   );
 }

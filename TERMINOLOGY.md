@@ -1,4 +1,3 @@
-
 # WriteCraft Terminology Migration Guide
 
 ## Overview
@@ -10,12 +9,14 @@ This document explains the terminology changes in WriteCraft and provides guidan
 ### Primary Writing Feature
 
 **Current (Correct):** **Projects**
+
 - User interface: "Projects"
 - Database: `projects` table
 - API routes: `/api/projects`
 - File organization: `ProjectEditor`, `ProjectPage`, etc.
 
 **Legacy (Deprecated):** ~~Manuscripts~~
+
 - Still appears in some code comments and internal types
 - Some routes may redirect from `/manuscripts/*` to `/projects/*`
 - Database may have legacy `manuscriptId` fields that map to `projectId`
@@ -23,12 +24,14 @@ This document explains the terminology changes in WriteCraft and provides guidan
 ### Content Organization Feature
 
 **Current (Correct):** **Notebooks**
+
 - User interface: "Notebooks"
 - Database: `notebooks` table
 - API routes: `/api/notebooks`
 - Purpose: Organize worldbuilding content
 
 **Legacy (Deprecated):** ~~Collections~~
+
 - Completely removed from UI
 - May appear in old comments or documentation
 
@@ -37,13 +40,14 @@ This document explains the terminology changes in WriteCraft and provides guidan
 When working with the codebase, be aware of these patterns:
 
 ### ✅ Correct Usage
+
 ```typescript
 // Good - Use "project" terminology
 const project = await storage.getProject(id, userId);
 <Route path="/projects/:id/edit" component={ProjectEditPage} />
 createProject({ title: "My Novel", userId })
 
-// Good - Use "notebook" terminology  
+// Good - Use "notebook" terminology
 const notebook = await storage.getNotebook(id, userId);
 <NotebookSwitcher />
 createNotebook({ name: "Fantasy World", userId })
@@ -71,6 +75,7 @@ if (note?.manuscriptId) {
 ```
 
 ### ❌ Avoid - Don't Use These
+
 ```typescript
 // Bad - Don't create new "manuscript" references in UI
 <h1>My Manuscripts</h1>
@@ -83,29 +88,33 @@ const collections = await storage.getCollections();
 
 ## Feature Mapping
 
-| User-Facing Feature | Technical Implementation | Legacy Name |
-|---------------------|-------------------------|-------------|
-| Project Editor | `ProjectEditor.tsx`, `project.routes.ts` | ~~Manuscript Editor~~ |
-| Project Outline | `ProjectOutline.tsx`, hierarchical sections | ~~Manuscript Structure~~ |
-| Notebooks | `NotebookManager.tsx`, `notebooks` table | ~~Collections~~ |
-| Notebook Switcher | `NotebookSwitcher.tsx` | ~~Collection Selector~~ |
-| Writing Assistant | `WritingAssistantPanel.tsx` | (No change) |
-| Content Types | Characters, Locations, etc. | (No change) |
+| User-Facing Feature | Technical Implementation                    | Legacy Name              |
+| ------------------- | ------------------------------------------- | ------------------------ |
+| Project Editor      | `ProjectEditor.tsx`, `project.routes.ts`    | ~~Manuscript Editor~~    |
+| Project Outline     | `ProjectOutline.tsx`, hierarchical sections | ~~Manuscript Structure~~ |
+| Notebooks           | `NotebookManager.tsx`, `notebooks` table    | ~~Collections~~          |
+| Notebook Switcher   | `NotebookSwitcher.tsx`                      | ~~Collection Selector~~  |
+| Writing Assistant   | `WritingAssistantPanel.tsx`                 | (No change)              |
+| Content Types       | Characters, Locations, etc.                 | (No change)              |
 
 ## Database Schema Notes
 
 ### Projects Table
+
 - Primary table: `projects`
 - Related: `projectSections` (hierarchical structure)
 - Links: `projectLinks` (references to worldbuilding content)
 
 ### Notebooks Table
+
 - Primary table: `notebooks`
 - Purpose: Organize and scope worldbuilding content
 - Content scoping: All characters, locations, etc. belong to a notebook
 
 ### Legacy Compatibility
+
 Some older data may still reference:
+
 - `manuscriptId` fields (treat as `projectId`)
 - `manuscript` type in editor context (refers to project editor)
 - `/manuscripts/*` routes (should redirect to `/projects/*`)
@@ -115,6 +124,7 @@ Some older data may still reference:
 Always use these terms in user-facing text:
 
 ✅ **Do Say:**
+
 - "Create a new project"
 - "Open project"
 - "Project outline"
@@ -122,6 +132,7 @@ Always use these terms in user-facing text:
 - "Add to notebook"
 
 ❌ **Don't Say:**
+
 - "Create a new manuscript"
 - "My manuscripts"
 - "Collection manager"

@@ -1,4 +1,4 @@
-import WritingPrompts from '../WritingPrompts';
+import WritingPrompts from "../WritingPrompts";
 
 export default function WritingPromptsExample() {
   return (

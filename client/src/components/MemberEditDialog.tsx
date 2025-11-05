@@ -1,16 +1,22 @@
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, ExternalLink, Loader2 } from 'lucide-react';
-import { useLocation } from 'wouter';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-import type { FamilyTreeMember } from '@shared/schema';
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { User, ExternalLink, Loader2 } from "lucide-react";
+import { useLocation } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import type { FamilyTreeMember } from "@shared/schema";
 
 type FamilyTreeMemberWithCharacter = FamilyTreeMember & {
   character?: {
@@ -30,43 +36,49 @@ interface MemberEditDialogProps {
   onOpenChange: (open: boolean) => void;
   member: FamilyTreeMemberWithCharacter | null;
   notebookId: string;
-  onSave: (memberId: string, updates: {
-    inlineName?: string;
-    inlineDateOfBirth?: string | null;
-    inlineDateOfDeath?: string | null;
-  }) => void;
+  onSave: (
+    memberId: string,
+    updates: {
+      inlineName?: string;
+      inlineDateOfBirth?: string | null;
+      inlineDateOfDeath?: string | null;
+    },
+  ) => void;
   isLoading?: boolean;
 }
 
-export function MemberEditDialog({ 
-  open, 
-  onOpenChange, 
+export function MemberEditDialog({
+  open,
+  onOpenChange,
   member,
   notebookId,
   onSave,
-  isLoading 
+  isLoading,
 }: MemberEditDialogProps) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  
+
   // Inline member fields
-  const [name, setName] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
-  const [dateOfDeath, setDateOfDeath] = useState('');
+  const [name, setName] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [dateOfDeath, setDateOfDeath] = useState("");
 
   // Character fields (for character-based members)
-  const [givenName, setGivenName] = useState('');
-  const [familyName, setFamilyName] = useState('');
-  const [middleName, setMiddleName] = useState('');
-  const [nickname, setNickname] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [charDateOfBirth, setCharDateOfBirth] = useState('');
-  const [charDateOfDeath, setCharDateOfDeath] = useState('');
+  const [givenName, setGivenName] = useState("");
+  const [familyName, setFamilyName] = useState("");
+  const [middleName, setMiddleName] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [charDateOfBirth, setCharDateOfBirth] = useState("");
+  const [charDateOfDeath, setCharDateOfDeath] = useState("");
 
   // Fetch full character data if character-based
   const { data: fullCharacter, isLoading: characterLoading } = useQuery({
-    queryKey: ['/api/characters', member?.characterId, { notebookId }],
-    queryFn: () => fetch(`/api/characters/${member?.characterId}?notebookId=${notebookId}`).then(r => r.json()),
+    queryKey: ["/api/characters", member?.characterId, { notebookId }],
+    queryFn: () =>
+      fetch(
+        `/api/characters/${member?.characterId}?notebookId=${notebookId}`,
+      ).then((r) => r.json()),
     enabled: !!member?.characterId && !!notebookId && open,
   });
 
@@ -74,17 +86,20 @@ export function MemberEditDialog({
     if (member) {
       // If member has character data, use that
       if (member.character) {
-        const charName = member.character.nickname || 
-          [member.character.givenName, member.character.familyName].filter(Boolean).join(' ') || 
-          'Unnamed Character';
+        const charName =
+          member.character.nickname ||
+          [member.character.givenName, member.character.familyName]
+            .filter(Boolean)
+            .join(" ") ||
+          "Unnamed Character";
         setName(charName);
-        setDateOfBirth(member.character.dateOfBirth || '');
-        setDateOfDeath(member.character.dateOfDeath || '');
+        setDateOfBirth(member.character.dateOfBirth || "");
+        setDateOfDeath(member.character.dateOfDeath || "");
       } else {
         // Use inline data
-        setName(member.inlineName || '');
-        setDateOfBirth(member.inlineDateOfBirth || '');
-        setDateOfDeath(member.inlineDateOfDeath || '');
+        setName(member.inlineName || "");
+        setDateOfBirth(member.inlineDateOfBirth || "");
+        setDateOfDeath(member.inlineDateOfDeath || "");
       }
     }
   }, [member]);
@@ -92,42 +107,49 @@ export function MemberEditDialog({
   // Update character fields when full character data loads
   useEffect(() => {
     if (fullCharacter) {
-      setGivenName(fullCharacter.givenName || '');
-      setFamilyName(fullCharacter.familyName || '');
-      setMiddleName(fullCharacter.middleName || '');
-      setNickname(fullCharacter.nickname || '');
-      setImageUrl(fullCharacter.imageUrl || '');
-      setCharDateOfBirth(fullCharacter.dateOfBirth || '');
-      setCharDateOfDeath(fullCharacter.dateOfDeath || '');
+      setGivenName(fullCharacter.givenName || "");
+      setFamilyName(fullCharacter.familyName || "");
+      setMiddleName(fullCharacter.middleName || "");
+      setNickname(fullCharacter.nickname || "");
+      setImageUrl(fullCharacter.imageUrl || "");
+      setCharDateOfBirth(fullCharacter.dateOfBirth || "");
+      setCharDateOfDeath(fullCharacter.dateOfDeath || "");
     }
   }, [fullCharacter]);
 
   // Mutation to update character
   const updateCharacterMutation = useMutation({
     mutationFn: async (updates: any) => {
-      return apiRequest('PATCH', `/api/characters/${member?.characterId}?notebookId=${notebookId}`, updates);
+      return apiRequest(
+        "PATCH",
+        `/api/characters/${member?.characterId}?notebookId=${notebookId}`,
+        updates,
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/characters', member?.characterId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/family-trees'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/characters", member?.characterId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/family-trees"] });
       toast({
-        title: 'Character updated',
-        description: 'Character details have been updated successfully',
+        title: "Character updated",
+        description: "Character details have been updated successfully",
       });
       onOpenChange(false);
     },
     onError: (error) => {
       toast({
-        title: 'Failed to update character',
-        description: error instanceof Error ? error.message : 'Unknown error occurred',
-        variant: 'destructive',
+        title: "Failed to update character",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
       });
     },
   });
 
   const handleSave = () => {
     if (!member) return;
-    
+
     if (member.characterId) {
       // Save character data
       updateCharacterMutation.mutate({
@@ -165,9 +187,9 @@ export function MemberEditDialog({
 
   const getInitials = () => {
     return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   };
@@ -181,10 +203,12 @@ export function MemberEditDialog({
       <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {isCharacterBased ? 'Edit Character Details' : 'Edit Member Details'}
+            {isCharacterBased
+              ? "Edit Character Details"
+              : "Edit Member Details"}
           </DialogTitle>
         </DialogHeader>
-        
+
         {isCharacterBased && characterLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
@@ -193,8 +217,12 @@ export function MemberEditDialog({
           <div className="space-y-4">
             <div className="flex justify-center">
               <Avatar className="w-24 h-24">
-                <AvatarImage 
-                  src={isCharacterBased ? (imageUrl || undefined) : (getDisplayImage() || undefined)} 
+                <AvatarImage
+                  src={
+                    isCharacterBased
+                      ? imageUrl || undefined
+                      : getDisplayImage() || undefined
+                  }
                   className="object-cover"
                 />
                 <AvatarFallback>
@@ -209,7 +237,7 @@ export function MemberEditDialog({
                   <TabsTrigger value="basic">Basic Info</TabsTrigger>
                   <TabsTrigger value="dates">Life Events</TabsTrigger>
                 </TabsList>
-                
+
                 <TabsContent value="basic" className="space-y-3 mt-4">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -222,7 +250,7 @@ export function MemberEditDialog({
                         data-testid="input-given-name"
                       />
                     </div>
-                    
+
                     <div>
                       <Label htmlFor="familyName">Family Name</Label>
                       <Input
@@ -293,8 +321,8 @@ export function MemberEditDialog({
                   </div>
 
                   <div className="flex items-center gap-2 pt-2">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={handleEditCharacter}
                       className="w-full"
@@ -346,21 +374,27 @@ export function MemberEditDialog({
         )}
 
         <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} data-testid="button-cancel">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            data-testid="button-cancel"
+          >
             Cancel
           </Button>
-          <Button 
-            onClick={handleSave} 
-            disabled={isLoading || updateCharacterMutation.isPending || characterLoading} 
+          <Button
+            onClick={handleSave}
+            disabled={
+              isLoading || updateCharacterMutation.isPending || characterLoading
+            }
             data-testid="button-save"
           >
-            {(isLoading || updateCharacterMutation.isPending) ? (
+            {isLoading || updateCharacterMutation.isPending ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Saving...
               </>
             ) : (
-              'Save Changes'
+              "Save Changes"
             )}
           </Button>
         </DialogFooter>

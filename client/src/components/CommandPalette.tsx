@@ -5,10 +5,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { getMappingById } from "@shared/contentTypes";
 import { CONTENT_TYPE_ICONS } from "@/config/content-types";
 import { GENERATORS } from "@/components/GeneratorDropdown";
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -30,49 +27,59 @@ interface CommandPaletteProps {
   onSelectGenerator?: (generatorId: string) => void;
 }
 
-export function CommandPalette({ open, onOpenChange, onSelectGenerator }: CommandPaletteProps) {
+export function CommandPalette({
+  open,
+  onOpenChange,
+  onSelectGenerator,
+}: CommandPaletteProps) {
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const debouncedQuery = useDebounce(query, 300);
   const [, setLocation] = useLocation();
   const inputRef = useRef<HTMLInputElement>(null);
-  
+
   // Filter generators based on search query
-  const filteredGenerators = query.trim() 
-    ? GENERATORS.filter(gen => 
-        gen.label.toLowerCase().includes(query.toLowerCase())
+  const filteredGenerators = query.trim()
+    ? GENERATORS.filter((gen) =>
+        gen.label.toLowerCase().includes(query.toLowerCase()),
       )
     : GENERATORS;
 
   // Search API call
   const { data: searchResults = [], isLoading } = useQuery({
-    queryKey: ['/api/search', debouncedQuery],
+    queryKey: ["/api/search", debouncedQuery],
     queryFn: async () => {
       if (!debouncedQuery.trim()) return [];
-      
-      const response = await fetch(`/api/search?q=${encodeURIComponent(debouncedQuery)}`, {
-        credentials: 'include'
-      });
-      
+
+      const response = await fetch(
+        `/api/search?q=${encodeURIComponent(debouncedQuery)}`,
+        {
+          credentials: "include",
+        },
+      );
+
       if (!response.ok) {
         throw new Error(`${response.status}: ${response.statusText}`);
       }
-      
+
       return response.json();
     },
     enabled: debouncedQuery.trim().length > 0,
   });
 
   // Group results by type and limit to 5 per category
-  const groupedResults: Record<string, SearchResult[]> = searchResults.reduce((acc: Record<string, SearchResult[]>, result: SearchResult) => {
-    if (!acc[result.type]) {
-      acc[result.type] = [];
-    }
-    if (acc[result.type].length < 5) {
-      acc[result.type].push(result);
-    }
-    return acc;
-  }, {} as Record<string, SearchResult[]>);
+  const groupedResults: Record<string, SearchResult[]> = searchResults.reduce(
+    (acc: Record<string, SearchResult[]>, result: SearchResult) => {
+      if (!acc[result.type]) {
+        acc[result.type] = [];
+      }
+      if (acc[result.type].length < 5) {
+        acc[result.type].push(result);
+      }
+      return acc;
+    },
+    {} as Record<string, SearchResult[]>,
+  );
 
   // Flatten for keyboard navigation
   const allResults = Object.values(groupedResults).flat() as SearchResult[];
@@ -96,54 +103,61 @@ export function CommandPalette({ open, onOpenChange, onSelectGenerator }: Comman
   // Global keyboard shortcut (⌘K / Ctrl+K)
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         onOpenChange(true);
       }
     };
-    
-    document.addEventListener('keydown', down);
-    return () => document.removeEventListener('keydown', down);
+
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
   }, [onOpenChange]);
 
   // Handle keyboard navigation
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setSelectedIndex((prev) => Math.min(prev + 1, allResults.length - 1));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setSelectedIndex((prev) => Math.max(prev - 1, 0));
-    } else if (e.key === 'Enter' && allResults[selectedIndex]) {
-      e.preventDefault();
-      handleResultClick(allResults[selectedIndex]);
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      onOpenChange(false);
-    }
-  }, [selectedIndex, allResults, onOpenChange]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex((prev) => Math.min(prev + 1, allResults.length - 1));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex((prev) => Math.max(prev - 1, 0));
+      } else if (e.key === "Enter" && allResults[selectedIndex]) {
+        e.preventDefault();
+        handleResultClick(allResults[selectedIndex]);
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        onOpenChange(false);
+      }
+    },
+    [selectedIndex, allResults, onOpenChange],
+  );
 
   const handleResultClick = (result: SearchResult) => {
     // Build URL with notebookId if available
-    const notebookParam = result.notebookId ? `?notebookId=${result.notebookId}` : '';
-    
+    const notebookParam = result.notebookId
+      ? `?notebookId=${result.notebookId}`
+      : "";
+
     // Navigate based on content type
     switch (result.type) {
-      case 'guide':
+      case "guide":
         setLocation(`/guides/${result.id}`);
         break;
-      case 'manuscript':
+      case "manuscript":
         setLocation(`/manuscripts/${result.id}/edit${notebookParam}`);
         break;
-      case 'project':
+      case "project":
         setLocation(`/projects/${result.id}`);
         break;
       default:
         const mapping = getMappingById(result.type);
         if (mapping) {
-          setLocation(`/editor/${mapping.urlSegment}/${result.id}${notebookParam}`);
+          setLocation(
+            `/editor/${mapping.urlSegment}/${result.id}${notebookParam}`,
+          );
         } else {
-          setLocation('/notebook');
+          setLocation("/notebook");
         }
     }
     onOpenChange(false);
@@ -155,18 +169,18 @@ export function CommandPalette({ open, onOpenChange, onSelectGenerator }: Comman
 
   const highlightMatch = (text: string, query: string) => {
     if (!query.trim()) return text;
-    
-    const parts = text.split(new RegExp(`(${query})`, 'gi'));
+
+    const parts = text.split(new RegExp(`(${query})`, "gi"));
     return (
       <>
-        {parts.map((part, i) => 
+        {parts.map((part, i) =>
           part.toLowerCase() === query.toLowerCase() ? (
             <mark key={i} className="bg-primary/20 text-foreground font-medium">
               {part}
             </mark>
           ) : (
             part
-          )
+          ),
         )}
       </>
     );
@@ -179,7 +193,10 @@ export function CommandPalette({ open, onOpenChange, onSelectGenerator }: Comman
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl p-0 gap-0" data-testid="command-palette">
+      <DialogContent
+        className="max-w-2xl p-0 gap-0"
+        data-testid="command-palette"
+      >
         {/* Search Input */}
         <div className="flex items-center gap-3 border-b border-border px-4 py-3">
           <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -231,7 +248,9 @@ export function CommandPalette({ open, onOpenChange, onSelectGenerator }: Comman
                         data-testid={`generator-${generator.id}`}
                       >
                         <Icon className="h-4 w-4 flex-shrink-0 text-primary" />
-                        <span className="text-sm font-medium">{generator.label}</span>
+                        <span className="text-sm font-medium">
+                          {generator.label}
+                        </span>
                       </button>
                     );
                   })}
@@ -248,22 +267,30 @@ export function CommandPalette({ open, onOpenChange, onSelectGenerator }: Comman
                   Find characters, locations, guides, and more
                 </p>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  <Badge variant="secondary" className="text-xs">Characters</Badge>
-                  <Badge variant="secondary" className="text-xs">Locations</Badge>
-                  <Badge variant="secondary" className="text-xs">Guides</Badge>
-                  <Badge variant="secondary" className="text-xs">Projects</Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    Characters
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    Locations
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    Guides
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    Projects
+                  </Badge>
                 </div>
                 <div className="mt-4 pt-4 border-t border-border">
                   <p className="text-xs text-muted-foreground">
-                    Press{' '}
+                    Press{" "}
                     <kbd className="px-1.5 py-0.5 text-xs font-semibold bg-muted border border-border rounded">
                       ⌘K
-                    </kbd>
-                    {' '}or{' '}
+                    </kbd>{" "}
+                    or{" "}
                     <kbd className="px-1.5 py-0.5 text-xs font-semibold bg-muted border border-border rounded">
                       Ctrl+K
-                    </kbd>
-                    {' '}to open anytime
+                    </kbd>{" "}
+                    to open anytime
                   </p>
                 </div>
               </div>
@@ -285,9 +312,11 @@ export function CommandPalette({ open, onOpenChange, onSelectGenerator }: Comman
               <div className="space-y-4">
                 {Object.entries(groupedResults).map(([type, results]) => {
                   const IconComponent = getIcon(type);
-                  const totalCount = searchResults.filter((r: SearchResult) => r.type === type).length;
+                  const totalCount = searchResults.filter(
+                    (r: SearchResult) => r.type === type,
+                  ).length;
                   const hasMore = totalCount > 5;
-                  
+
                   return (
                     <div key={type} className="space-y-1">
                       <div className="flex items-center justify-between px-2 py-1">
@@ -308,20 +337,20 @@ export function CommandPalette({ open, onOpenChange, onSelectGenerator }: Comman
                           </button>
                         )}
                       </div>
-                      
+
                       <div className="space-y-1">
                         {results.map((result: SearchResult, index: number) => {
                           const globalIndex = allResults.indexOf(result);
                           const isSelected = globalIndex === selectedIndex;
-                          
+
                           return (
                             <button
                               key={result.id}
                               onClick={() => handleResultClick(result)}
                               className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
                                 isSelected
-                                  ? 'bg-accent text-accent-foreground'
-                                  : 'hover-elevate'
+                                  ? "bg-accent text-accent-foreground"
+                                  : "hover-elevate"
                               }`}
                               data-testid={`search-result-${result.id}`}
                             >
@@ -338,7 +367,10 @@ export function CommandPalette({ open, onOpenChange, onSelectGenerator }: Comman
                                   )}
                                   {result.content && !result.subtitle && (
                                     <div className="text-xs text-muted-foreground line-clamp-1">
-                                      {highlightMatch(result.content.slice(0, 100), query)}
+                                      {highlightMatch(
+                                        result.content.slice(0, 100),
+                                        query,
+                                      )}
                                     </div>
                                   )}
                                 </div>
@@ -363,16 +395,24 @@ export function CommandPalette({ open, onOpenChange, onSelectGenerator }: Comman
           <div className="flex items-center justify-between border-t border-border px-4 py-2 text-xs text-muted-foreground bg-muted/50">
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 font-semibold bg-background border border-border rounded">↑</kbd>
-                <kbd className="px-1.5 py-0.5 font-semibold bg-background border border-border rounded">↓</kbd>
+                <kbd className="px-1.5 py-0.5 font-semibold bg-background border border-border rounded">
+                  ↑
+                </kbd>
+                <kbd className="px-1.5 py-0.5 font-semibold bg-background border border-border rounded">
+                  ↓
+                </kbd>
                 Navigate
               </span>
               <span className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 font-semibold bg-background border border-border rounded">↵</kbd>
+                <kbd className="px-1.5 py-0.5 font-semibold bg-background border border-border rounded">
+                  ↵
+                </kbd>
                 Select
               </span>
               <span className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 font-semibold bg-background border border-border rounded">Esc</kbd>
+                <kbd className="px-1.5 py-0.5 font-semibold bg-background border border-border rounded">
+                  Esc
+                </kbd>
                 Close
               </span>
             </div>

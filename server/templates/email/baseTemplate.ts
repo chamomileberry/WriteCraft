@@ -177,15 +177,15 @@ export function renderPlainText(content: string): string {
   // Remove all HTML tags by repeatedly applying the regex
   do {
     previous = plainText;
-    plainText = plainText.replace(/<[^>]*>/g, '');
+    plainText = plainText.replace(/<[^>]*>/g, "");
   } while (plainText !== previous);
   return plainText
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, " ")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
-    .replace(/&amp;/g, '&')
-    .replace(/\n\s*\n\s*\n/g, '\n\n')
+    .replace(/&amp;/g, "&")
+    .replace(/\n\s*\n\s*\n/g, "\n\n")
     .trim();
 }

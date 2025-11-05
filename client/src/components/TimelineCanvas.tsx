@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, useMemo } from 'react';
+import { useCallback, useState, useEffect, useMemo } from "react";
 import {
   ReactFlow,
   Background,
@@ -14,23 +14,37 @@ import {
   Connection,
   NodeTypes,
   EdgeTypes,
-  Panel
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { queryClient, apiRequest } from '@/lib/queryClient';
-import { parseDateToTimestamp } from '@/lib/timelineUtils';
-import type { Timeline, TimelineEvent, TimelineRelationship } from '@shared/schema';
-import { Button } from '@/components/ui/button';
-import { Loader2, Plus, Grid3X3, Maximize2, Save, AlertCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { TimelineEventNode, TimelineEventNodeData } from './TimelineEventNode';
-import { TimelineRelationshipEdge, TimelineRelationshipEdgeData } from './TimelineRelationshipEdge';
-import { EventEditDialog } from './EventEditDialog';
-import { RelationshipCreateDialog } from './RelationshipCreateDialog';
-import { TimelineAxis } from './TimelineAxis';
-import { getLayoutedElements } from '@/lib/dagre-layout';
-import { SwimLaneNode, SwimLaneNodeData } from './SwimLaneNode';
+  Panel,
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { parseDateToTimestamp } from "@/lib/timelineUtils";
+import type {
+  Timeline,
+  TimelineEvent,
+  TimelineRelationship,
+} from "@shared/schema";
+import { Button } from "@/components/ui/button";
+import {
+  Loader2,
+  Plus,
+  Grid3X3,
+  Maximize2,
+  Save,
+  AlertCircle,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { TimelineEventNode, TimelineEventNodeData } from "./TimelineEventNode";
+import {
+  TimelineRelationshipEdge,
+  TimelineRelationshipEdgeData,
+} from "./TimelineRelationshipEdge";
+import { EventEditDialog } from "./EventEditDialog";
+import { RelationshipCreateDialog } from "./RelationshipCreateDialog";
+import { TimelineAxis } from "./TimelineAxis";
+import { getLayoutedElements } from "@/lib/dagre-layout";
+import { SwimLaneNode, SwimLaneNodeData } from "./SwimLaneNode";
 
 interface TimelineCanvasProps {
   timelineId: string;
@@ -42,10 +56,14 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
   const { fitView } = useReactFlow();
   const [nodes, setNodes, onNodesChange] = useNodesState([] as Node[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([] as Edge[]);
-  const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(
+    null,
+  );
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
-  const [isRelationshipDialogOpen, setIsRelationshipDialogOpen] = useState(false);
-  const [relationshipSourceEvent, setRelationshipSourceEvent] = useState<TimelineEvent | null>(null);
+  const [isRelationshipDialogOpen, setIsRelationshipDialogOpen] =
+    useState(false);
+  const [relationshipSourceEvent, setRelationshipSourceEvent] =
+    useState<TimelineEvent | null>(null);
   const [isAutoLayout, setIsAutoLayout] = useState(true);
   const [previousEventCount, setPreviousEventCount] = useState(0);
 
@@ -56,28 +74,30 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
   const LANE_HEIGHT = 250;
   const LANE_PADDING = 40;
 
-
   // Define custom node and edge types
   const nodeTypes: NodeTypes = useMemo(
     () => ({
       timelineEvent: TimelineEventNode,
       swimLane: SwimLaneNode,
     }),
-    []
+    [],
   );
 
   const edgeTypes: EdgeTypes = useMemo(
     () => ({
       timelineRelationship: TimelineRelationshipEdge,
     }),
-    []
+    [],
   );
 
   // Fetch timeline data
   const { data: timeline, isLoading: isLoadingTimeline } = useQuery({
-    queryKey: ['/api/timelines', timelineId, notebookId],
+    queryKey: ["/api/timelines", timelineId, notebookId],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/timelines/${timelineId}?notebookId=${notebookId}`);
+      const response = await apiRequest(
+        "GET",
+        `/api/timelines/${timelineId}?notebookId=${notebookId}`,
+      );
       return response.json();
     },
     enabled: !!timelineId && !!notebookId,
@@ -85,9 +105,12 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
 
   // Fetch timeline events
   const { data: events, isLoading: isLoadingEvents } = useQuery({
-    queryKey: ['/api/timeline-events', timelineId, notebookId],
+    queryKey: ["/api/timeline-events", timelineId, notebookId],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/timeline-events?timelineId=${timelineId}&notebookId=${notebookId}`);
+      const response = await apiRequest(
+        "GET",
+        `/api/timeline-events?timelineId=${timelineId}&notebookId=${notebookId}`,
+      );
       return response.json();
     },
     enabled: !!timelineId && !!notebookId,
@@ -95,9 +118,12 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
 
   // Fetch timeline relationships
   const { data: relationships, isLoading: isLoadingRelationships } = useQuery({
-    queryKey: ['/api/timeline-relationships', timelineId, notebookId],
+    queryKey: ["/api/timeline-relationships", timelineId, notebookId],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/timeline-relationships?timelineId=${timelineId}&notebookId=${notebookId}`);
+      const response = await apiRequest(
+        "GET",
+        `/api/timeline-relationships?timelineId=${timelineId}&notebookId=${notebookId}`,
+      );
       return response.json();
     },
     enabled: !!timelineId && !!notebookId,
@@ -105,9 +131,12 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
 
   // Fetch characters from the notebook
   const { data: allCharacters = [] } = useQuery({
-    queryKey: ['/api/characters', notebookId],
+    queryKey: ["/api/characters", notebookId],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/characters?notebookId=${notebookId}`);
+      const response = await apiRequest(
+        "GET",
+        `/api/characters?notebookId=${notebookId}`,
+      );
       return response.json();
     },
     enabled: !!notebookId,
@@ -116,50 +145,61 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
   // Delete event mutation
   const deleteEventMutation = useMutation({
     mutationFn: async (eventId: string) => {
-      const response = await apiRequest('DELETE', `/api/timeline-events/${eventId}?timelineId=${timelineId}&notebookId=${notebookId}`);
-      if (!response.ok) throw new Error('Failed to delete event');
+      const response = await apiRequest(
+        "DELETE",
+        `/api/timeline-events/${eventId}?timelineId=${timelineId}&notebookId=${notebookId}`,
+      );
+      if (!response.ok) throw new Error("Failed to delete event");
       // 204 No Content - don't parse JSON
       return;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/timeline-events', timelineId, notebookId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/timeline-events", timelineId, notebookId],
+      });
       toast({
-        title: 'Success',
-        description: 'Event deleted successfully',
+        title: "Success",
+        description: "Event deleted successfully",
       });
     },
     onError: () => {
       toast({
-        title: 'Error',
-        description: 'Failed to delete event',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to delete event",
+        variant: "destructive",
       });
     },
   });
 
   // Create relationship mutation
   const createRelationshipMutation = useMutation({
-    mutationFn: async (data: { fromEventId: string; toEventId: string; relationshipType: string }) => {
-      const response = await apiRequest('POST', '/api/timeline-relationships', {
+    mutationFn: async (data: {
+      fromEventId: string;
+      toEventId: string;
+      relationshipType: string;
+    }) => {
+      const response = await apiRequest("POST", "/api/timeline-relationships", {
         timelineId,
         notebookId,
         ...data,
       });
-      if (!response.ok) throw new Error('Failed to create relationship');
+      if (!response.ok) throw new Error("Failed to create relationship");
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/timeline-relationships', timelineId, notebookId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/timeline-relationships", timelineId, notebookId],
+      });
       toast({
-        title: 'Success',
-        description: 'Relationship created successfully',
+        title: "Success",
+        description: "Relationship created successfully",
       });
     },
     onError: () => {
       toast({
-        title: 'Error',
-        description: 'Failed to create relationship',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to create relationship",
+        variant: "destructive",
       });
     },
   });
@@ -168,19 +208,26 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
   const savePositionMutation = useMutation({
     mutationFn: async (positions: { id: string; x: number; y: number }[]) => {
       const updates = positions.map(async ({ id, x, y }) => {
-        const response = await apiRequest('PATCH', `/api/timeline-events/${id}`, {
-          timelineId,
-          notebookId,
-          positionX: x,
-          positionY: y,
-        });
-        if (!response.ok) throw new Error(`Failed to save position for event ${id}`);
+        const response = await apiRequest(
+          "PATCH",
+          `/api/timeline-events/${id}`,
+          {
+            timelineId,
+            notebookId,
+            positionX: x,
+            positionY: y,
+          },
+        );
+        if (!response.ok)
+          throw new Error(`Failed to save position for event ${id}`);
         return response.json();
       });
       return Promise.all(updates);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/timeline-events', timelineId, notebookId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/timeline-events", timelineId, notebookId],
+      });
     },
   });
 
@@ -191,7 +238,9 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
   }, []);
 
   const handleDeleteEvent = useCallback((event: TimelineEvent) => {
-    if (confirm(`Are you sure you want to delete the event "${event.title}"?`)) {
+    if (
+      confirm(`Are you sure you want to delete the event "${event.title}"?`)
+    ) {
       deleteEventMutation.mutate(event.id);
     }
   }, []);
@@ -206,19 +255,22 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
     if (!events || events.length === 0) return [];
     const categories = new Set<string>();
     events.forEach((event: TimelineEvent) => {
-      const category = event.eventType || 'general';
+      const category = event.eventType || "general";
       categories.add(category);
     });
     return Array.from(categories).sort();
   }, [events]);
 
   // Calculate Y position based on swim lane
-  const getSwimLaneY = useCallback((eventType: string | null): number => {
-    const category = eventType || 'general';
-    const laneIndex = eventCategories.indexOf(category);
-    if (laneIndex === -1) return LANE_PADDING + (LANE_HEIGHT / 2);
-    return LANE_PADDING + (laneIndex * LANE_HEIGHT) + (LANE_HEIGHT / 2);
-  }, [eventCategories]);
+  const getSwimLaneY = useCallback(
+    (eventType: string | null): number => {
+      const category = eventType || "general";
+      const laneIndex = eventCategories.indexOf(category);
+      if (laneIndex === -1) return LANE_PADDING + LANE_HEIGHT / 2;
+      return LANE_PADDING + laneIndex * LANE_HEIGHT + LANE_HEIGHT / 2;
+    },
+    [eventCategories],
+  );
 
   // Convert events to nodes - position them chronologically on timeline in swim lanes
   useEffect(() => {
@@ -233,22 +285,27 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
       timestamp: parseDateToTimestamp(event.startDate),
     }));
 
-    const sortedEvents = eventsWithTime.sort((a: { event: TimelineEvent; timestamp: number }, b: { event: TimelineEvent; timestamp: number }) => a.timestamp - b.timestamp);
-    
+    const sortedEvents = eventsWithTime.sort(
+      (
+        a: { event: TimelineEvent; timestamp: number },
+        b: { event: TimelineEvent; timestamp: number },
+      ) => a.timestamp - b.timestamp,
+    );
+
     const minTime = sortedEvents[0].timestamp;
     const maxTime = sortedEvents[sortedEvents.length - 1].timestamp;
     const timeRange = maxTime - minTime || 1;
 
-    const axisLength = CANVAS_WIDTH - (2 * MARGIN);
+    const axisLength = CANVAS_WIDTH - 2 * MARGIN;
 
     // Create swim lane background nodes
     const laneNodes = eventCategories.map((category, index) => {
-      const y = LANE_PADDING + (index * LANE_HEIGHT);
+      const y = LANE_PADDING + index * LANE_HEIGHT;
       const isEven = index % 2 === 0;
-      
+
       return {
         id: `lane-${category}`,
-        type: 'swimLane',
+        type: "swimLane",
         position: { x: 0, y },
         data: {
           category,
@@ -262,23 +319,53 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
       } as Node;
     });
 
-    const eventNodes = sortedEvents.map(({ event }: { event: TimelineEvent }, index: number) => {
-      // Get characters for this event
-      const eventCharacters = (event.characterIds || [])
-        .map((charId: string) => allCharacters.find((c: any) => c.id === charId))
-        .filter((c: any) => c !== undefined);
-      
-      // Check if position is manually saved
-      const hasManualPosition = event.positionX !== null && event.positionX !== undefined && !isAutoLayout;
-      
-      if (hasManualPosition) {
+    const eventNodes = sortedEvents.map(
+      ({ event }: { event: TimelineEvent }, index: number) => {
+        // Get characters for this event
+        const eventCharacters = (event.characterIds || [])
+          .map((charId: string) =>
+            allCharacters.find((c: any) => c.id === charId),
+          )
+          .filter((c: any) => c !== undefined);
+
+        // Check if position is manually saved
+        const hasManualPosition =
+          event.positionX !== null &&
+          event.positionX !== undefined &&
+          !isAutoLayout;
+
+        if (hasManualPosition) {
+          return {
+            id: event.id,
+            type: "timelineEvent",
+            position: {
+              x: event.positionX!,
+              y: event.positionY ?? getSwimLaneY(event.eventType),
+            },
+            data: {
+              event,
+              notebookId,
+              timelineId,
+              characters: eventCharacters,
+              onEdit: handleEditEvent,
+              onDelete: handleDeleteEvent,
+              onAddRelationship: handleAddRelationship,
+            } as TimelineEventNodeData,
+          };
+        }
+
+        // Calculate chronological position on timeline
+        const normalizedPosition =
+          (parseDateToTimestamp(event.startDate) - minTime) / timeRange;
+        const x = MARGIN + normalizedPosition * axisLength;
+
+        // Use swim lane based on event type
+        const y = getSwimLaneY(event.eventType);
+
         return {
           id: event.id,
-          type: 'timelineEvent',
-          position: {
-            x: event.positionX!,
-            y: event.positionY ?? getSwimLaneY(event.eventType),
-          },
+          type: "timelineEvent",
+          position: { x, y },
           data: {
             event,
             notebookId,
@@ -289,34 +376,23 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
             onAddRelationship: handleAddRelationship,
           } as TimelineEventNodeData,
         };
-      }
-
-      // Calculate chronological position on timeline
-      const normalizedPosition = (parseDateToTimestamp(event.startDate) - minTime) / timeRange;
-      const x = MARGIN + (normalizedPosition * axisLength);
-      
-      // Use swim lane based on event type
-      const y = getSwimLaneY(event.eventType);
-
-      return {
-        id: event.id,
-        type: 'timelineEvent',
-        position: { x, y },
-        data: {
-          event,
-          notebookId,
-          timelineId,
-          characters: eventCharacters,
-          onEdit: handleEditEvent,
-          onDelete: handleDeleteEvent,
-          onAddRelationship: handleAddRelationship,
-        } as TimelineEventNodeData,
-      };
-    }) as Node[];
+      },
+    ) as Node[];
 
     // Combine lane background nodes with event nodes
     setNodes([...laneNodes, ...eventNodes]);
-  }, [events, notebookId, timelineId, isAutoLayout, eventCategories, getSwimLaneY, handleEditEvent, handleDeleteEvent, handleAddRelationship, allCharacters]);
+  }, [
+    events,
+    notebookId,
+    timelineId,
+    isAutoLayout,
+    eventCategories,
+    getSwimLaneY,
+    handleEditEvent,
+    handleDeleteEvent,
+    handleAddRelationship,
+    allCharacters,
+  ]);
 
   // Convert relationships to edges
   useEffect(() => {
@@ -326,7 +402,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
       id: rel.id,
       source: rel.fromEventId,
       target: rel.toEventId,
-      type: 'timelineRelationship',
+      type: "timelineRelationship",
       data: {
         relationship: rel,
         notebookId,
@@ -345,11 +421,11 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
         createRelationshipMutation.mutate({
           fromEventId: connection.source,
           toEventId: connection.target,
-          relationshipType: 'related',
+          relationshipType: "related",
         });
       }
     },
-    [createRelationshipMutation]
+    [createRelationshipMutation],
   );
 
   // Auto-layout - arrange events chronologically on timeline in swim lanes
@@ -362,31 +438,39 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
       timestamp: parseDateToTimestamp(event.startDate),
     }));
 
-    const sortedEvents = eventsWithTime.sort((a: { event: TimelineEvent; timestamp: number }, b: { event: TimelineEvent; timestamp: number }) => a.timestamp - b.timestamp);
-    
+    const sortedEvents = eventsWithTime.sort(
+      (
+        a: { event: TimelineEvent; timestamp: number },
+        b: { event: TimelineEvent; timestamp: number },
+      ) => a.timestamp - b.timestamp,
+    );
+
     const minTime = sortedEvents[0].timestamp;
     const maxTime = sortedEvents[sortedEvents.length - 1].timestamp;
     const timeRange = maxTime - minTime || 1;
-    const axisLength = CANVAS_WIDTH - (2 * MARGIN);
+    const axisLength = CANVAS_WIDTH - 2 * MARGIN;
 
     // Keep existing lane nodes
-    const laneNodes = nodes.filter(n => n.id.startsWith('lane-'));
+    const laneNodes = nodes.filter((n) => n.id.startsWith("lane-"));
 
-    const layoutedEventNodes = sortedEvents.map(({ event }: { event: TimelineEvent }, index: number) => {
-      const normalizedPosition = (parseDateToTimestamp(event.startDate) - minTime) / timeRange;
-      const x = MARGIN + (normalizedPosition * axisLength);
-      const y = getSwimLaneY(event.eventType);
+    const layoutedEventNodes = sortedEvents.map(
+      ({ event }: { event: TimelineEvent }, index: number) => {
+        const normalizedPosition =
+          (parseDateToTimestamp(event.startDate) - minTime) / timeRange;
+        const x = MARGIN + normalizedPosition * axisLength;
+        const y = getSwimLaneY(event.eventType);
 
-      return {
-        id: event.id,
-        type: 'timelineEvent',
-        position: { x, y },
-        data: nodes.find(n => n.id === event.id)?.data,
-      };
-    });
+        return {
+          id: event.id,
+          type: "timelineEvent",
+          position: { x, y },
+          data: nodes.find((n) => n.id === event.id)?.data,
+        };
+      },
+    );
 
     setNodes([...laneNodes, ...layoutedEventNodes] as Node[]);
-    
+
     // Save positions to database (only for event nodes)
     const positions = layoutedEventNodes.map((node: Node) => ({
       id: node.id,
@@ -394,7 +478,7 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
       y: node.position.y,
     }));
     savePositionMutation.mutate(positions);
-    
+
     setTimeout(() => fitView({ padding: 0.2, duration: 300 }), 0);
     setIsAutoLayout(true);
   }, [events, nodes, getSwimLaneY, fitView, setNodes, savePositionMutation]);
@@ -402,21 +486,26 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
   // Auto-layout only when new events are added (not on every events change)
   useEffect(() => {
     if (!events) return;
-    
+
     const currentEventCount = events.length;
-    
+
     // Only run auto-layout when:
     // 1. Event count increased (new event added)
     // 2. We have nodes to layout
     // 3. Auto-layout is enabled
-    if (currentEventCount > previousEventCount && nodes.length > 0 && isAutoLayout) {
+    if (
+      currentEventCount > previousEventCount &&
+      nodes.length > 0 &&
+      isAutoLayout
+    ) {
       handleAutoLayout();
     }
-    
+
     setPreviousEventCount(currentEventCount);
   }, [events?.length]);
 
-  const isLoading = isLoadingTimeline || isLoadingEvents || isLoadingRelationships;
+  const isLoading =
+    isLoadingTimeline || isLoadingEvents || isLoadingRelationships;
 
   if (isLoading) {
     return (
@@ -445,11 +534,13 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
         onConnect={onConnect}
         onNodeDragStop={(event, node) => {
           // Save position after drag
-          savePositionMutation.mutate([{
-            id: node.id,
-            x: node.position.x,
-            y: node.position.y,
-          }]);
+          savePositionMutation.mutate([
+            {
+              id: node.id,
+              x: node.position.x,
+              y: node.position.y,
+            },
+          ]);
           setIsAutoLayout(false);
         }}
         nodeTypes={nodeTypes}
@@ -458,17 +549,13 @@ function TimelineCanvasInner({ timelineId, notebookId }: TimelineCanvasProps) {
         minZoom={0.1}
         maxZoom={2}
         defaultEdgeOptions={{
-          type: 'timelineRelationship',
+          type: "timelineRelationship",
         }}
       >
         <Background color="#94a3b8" gap={16} />
         <Controls />
-        <MiniMap 
-          nodeStrokeWidth={3}
-          zoomable
-          pannable
-        />
-        
+        <MiniMap nodeStrokeWidth={3} zoomable pannable />
+
         <Panel position="top-left" className="flex gap-2">
           <Button
             size="sm"

@@ -14,27 +14,27 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
     const userEmail = req.user.claims.email || "";
 
     // Get browser and OS info from headers
-    const userAgent = req.headers['user-agent'] || '';
-    const referer = req.headers['referer'] || '';
+    const userAgent = req.headers["user-agent"] || "";
+    const referer = req.headers["referer"] || "";
 
     // Parse user agent for browser and OS (basic parsing)
     let userBrowser = "Unknown";
     let userOS = "Unknown";
-    
-    if (userAgent.includes('Chrome')) userBrowser = 'Chrome';
-    else if (userAgent.includes('Firefox')) userBrowser = 'Firefox';
-    else if (userAgent.includes('Safari')) userBrowser = 'Safari';
-    else if (userAgent.includes('Edge')) userBrowser = 'Edge';
-    
-    if (userAgent.includes('Windows')) userOS = 'Windows';
-    else if (userAgent.includes('Mac')) userOS = 'macOS';
-    else if (userAgent.includes('Linux')) userOS = 'Linux';
-    else if (userAgent.includes('Android')) userOS = 'Android';
-    else if (userAgent.includes('iOS')) userOS = 'iOS';
+
+    if (userAgent.includes("Chrome")) userBrowser = "Chrome";
+    else if (userAgent.includes("Firefox")) userBrowser = "Firefox";
+    else if (userAgent.includes("Safari")) userBrowser = "Safari";
+    else if (userAgent.includes("Edge")) userBrowser = "Edge";
+
+    if (userAgent.includes("Windows")) userOS = "Windows";
+    else if (userAgent.includes("Mac")) userOS = "macOS";
+    else if (userAgent.includes("Linux")) userOS = "Linux";
+    else if (userAgent.includes("Android")) userOS = "Android";
+    else if (userAgent.includes("iOS")) userOS = "iOS";
 
     // Validate request body
     const createSchema = z.object({
-      type: z.enum(['bug', 'feature-request', 'general-feedback']),
+      type: z.enum(["bug", "feature-request", "general-feedback"]),
       title: z.string().min(1).max(200),
       description: z.string().min(1).max(5000),
     });
@@ -48,7 +48,7 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
       type: validatedData.type,
       title: validatedData.title,
       description: validatedData.description,
-      status: 'new' as const,
+      status: "new" as const,
       userBrowser,
       userOS,
       currentPage: referer,

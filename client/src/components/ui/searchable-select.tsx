@@ -52,7 +52,7 @@ export function SearchableSelect({
   className = "w-full justify-between",
   testId,
   allowEmpty = false,
-  emptyLabel = "Any"
+  emptyLabel = "Any",
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
   const dialogContainer = useGeneratorDialogContext();
@@ -79,7 +79,9 @@ export function SearchableSelect({
           onSelect={() => handleSelect("")}
           data-testid={testId ? `${testId}-any` : undefined}
         >
-          <Check className={`mr-2 h-4 w-4 ${value === "" ? "opacity-100" : "opacity-0"}`} />
+          <Check
+            className={`mr-2 h-4 w-4 ${value === "" ? "opacity-100" : "opacity-0"}`}
+          />
           {emptyLabel}
         </CommandItem>
       )}
@@ -90,7 +92,9 @@ export function SearchableSelect({
           onSelect={() => handleSelect(option.value)}
           data-testid={testId ? `${testId}-${option.value}` : undefined}
         >
-          <Check className={`mr-2 h-4 w-4 ${value === option.value ? "opacity-100" : "opacity-0"}`} />
+          <Check
+            className={`mr-2 h-4 w-4 ${value === option.value ? "opacity-100" : "opacity-0"}`}
+          />
           {option.label}
         </CommandItem>
       ))}
@@ -105,7 +109,9 @@ export function SearchableSelect({
           onSelect={() => handleSelect("")}
           data-testid={testId ? `${testId}-any` : undefined}
         >
-          <Check className={`mr-2 h-4 w-4 ${value === "" ? "opacity-100" : "opacity-0"}`} />
+          <Check
+            className={`mr-2 h-4 w-4 ${value === "" ? "opacity-100" : "opacity-0"}`}
+          />
           {emptyLabel}
         </CommandItem>
       )}
@@ -118,7 +124,9 @@ export function SearchableSelect({
               onSelect={() => handleSelect(item)}
               data-testid={testId ? `${testId}-${item}` : undefined}
             >
-              <Check className={`mr-2 h-4 w-4 ${value === item ? "opacity-100" : "opacity-0"}`} />
+              <Check
+                className={`mr-2 h-4 w-4 ${value === item ? "opacity-100" : "opacity-0"}`}
+              />
               {displayLabel(item)}
             </CommandItem>
           ))}
@@ -146,10 +154,9 @@ export function SearchableSelect({
           <CommandInput placeholder={searchPlaceholder} />
           <CommandList className="max-h-60">
             <CommandEmpty>{emptyText}</CommandEmpty>
-            {Object.keys(categorizedOptions).length > 0 
-              ? renderCategorizedOptions() 
-              : renderFlatOptions()
-            }
+            {Object.keys(categorizedOptions).length > 0
+              ? renderCategorizedOptions()
+              : renderFlatOptions()}
           </CommandList>
         </Command>
       </PopoverContent>

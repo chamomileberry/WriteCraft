@@ -1,8 +1,8 @@
-import { getRedisClient } from './redisClient';
-import type { Request } from 'express';
+import { getRedisClient } from "./redisClient";
+import type { Request } from "express";
 
 const MAX_CONCURRENT_SESSIONS = 3;
-const SESSION_PREFIX = 'writecraft:user_sessions:';
+const SESSION_PREFIX = "writecraft:user_sessions:";
 
 interface SessionInfo {
   sessionId: string;
@@ -24,13 +24,17 @@ export class SessionManager {
    * Register a new session for a user
    * Automatically removes oldest session if limit exceeded
    */
-  async registerSession(userId: string, sessionId: string, req: Request): Promise<void> {
+  async registerSession(
+    userId: string,
+    sessionId: string,
+    req: Request,
+  ): Promise<void> {
     const sessionInfo: SessionInfo = {
       sessionId,
       userId,
       createdAt: Date.now(),
       lastActivity: Date.now(),
-      userAgent: req.headers['user-agent'],
+      userAgent: req.headers["user-agent"],
       ipAddress: req.ip || req.socket.remoteAddress,
     };
 
@@ -50,16 +54,16 @@ export class SessionManager {
     userId: string,
     sessionInfo: SessionInfo,
     redisClient: any,
-    req: Request
+    req: Request,
   ): Promise<void> {
     const key = `${SESSION_PREFIX}${userId}`;
-    
+
     // Get existing sessions
     const sessionsData = await redisClient.get(key);
     let sessions: SessionInfo[] = sessionsData ? JSON.parse(sessionsData) : [];
 
     // Remove current session if it already exists (refresh)
-    sessions = sessions.filter(s => s.sessionId !== sessionInfo.sessionId);
+    sessions = sessions.filter((s) => s.sessionId !== sessionInfo.sessionId);
 
     // Add new session
     sessions.push(sessionInfo);
@@ -71,11 +75,16 @@ export class SessionManager {
     while (sessions.length > MAX_CONCURRENT_SESSIONS) {
       const removed = sessions.shift();
       if (removed && req.sessionStore) {
-        console.log(`[SESSION] Evicting oldest session for user ${userId}: ${removed.sessionId}`);
+        console.log(
+          `[SESSION] Evicting oldest session for user ${userId}: ${removed.sessionId}`,
+        );
         // Actually destroy the session in the session store
         req.sessionStore.destroy(removed.sessionId, (err) => {
           if (err) {
-            console.error(`[SESSION] Failed to destroy session ${removed.sessionId}:`, err);
+            console.error(
+              `[SESSION] Failed to destroy session ${removed.sessionId}:`,
+              err,
+            );
           }
         });
       }
@@ -88,11 +97,15 @@ export class SessionManager {
   /**
    * Register session using in-memory storage (fallback)
    */
-  private async registerSessionMemory(userId: string, sessionInfo: SessionInfo, req: Request): Promise<void> {
+  private async registerSessionMemory(
+    userId: string,
+    sessionInfo: SessionInfo,
+    req: Request,
+  ): Promise<void> {
     let sessions = this.inMemorySessions.get(userId) || [];
 
     // Remove current session if it already exists (refresh)
-    sessions = sessions.filter(s => s.sessionId !== sessionInfo.sessionId);
+    sessions = sessions.filter((s) => s.sessionId !== sessionInfo.sessionId);
 
     // Add new session
     sessions.push(sessionInfo);
@@ -104,11 +117,16 @@ export class SessionManager {
     while (sessions.length > MAX_CONCURRENT_SESSIONS) {
       const removed = sessions.shift();
       if (removed && req.sessionStore) {
-        console.log(`[SESSION] Evicting oldest session for user ${userId}: ${removed.sessionId}`);
+        console.log(
+          `[SESSION] Evicting oldest session for user ${userId}: ${removed.sessionId}`,
+        );
         // Actually destroy the session in the session store
         req.sessionStore.destroy(removed.sessionId, (err) => {
           if (err) {
-            console.error(`[SESSION] Failed to destroy session ${removed.sessionId}:`, err);
+            console.error(
+              `[SESSION] Failed to destroy session ${removed.sessionId}:`,
+              err,
+            );
           }
         });
       }
@@ -136,15 +154,15 @@ export class SessionManager {
   private async removeSessionRedis(
     userId: string,
     sessionId: string,
-    redisClient: any
+    redisClient: any,
   ): Promise<void> {
     const key = `${SESSION_PREFIX}${userId}`;
-    
+
     const sessionsData = await redisClient.get(key);
     if (!sessionsData) return;
 
     let sessions: SessionInfo[] = JSON.parse(sessionsData);
-    sessions = sessions.filter(s => s.sessionId !== sessionId);
+    sessions = sessions.filter((s) => s.sessionId !== sessionId);
 
     if (sessions.length > 0) {
       await redisClient.setEx(key, 7 * 24 * 60 * 60, JSON.stringify(sessions));
@@ -156,12 +174,15 @@ export class SessionManager {
   /**
    * Remove session using in-memory storage
    */
-  private async removeSessionMemory(userId: string, sessionId: string): Promise<void> {
+  private async removeSessionMemory(
+    userId: string,
+    sessionId: string,
+  ): Promise<void> {
     const sessions = this.inMemorySessions.get(userId);
     if (!sessions) return;
 
-    const filtered = sessions.filter(s => s.sessionId !== sessionId);
-    
+    const filtered = sessions.filter((s) => s.sessionId !== sessionId);
+
     if (filtered.length > 0) {
       this.inMemorySessions.set(userId, filtered);
     } else {
@@ -189,7 +210,7 @@ export class SessionManager {
    */
   async isSessionValid(userId: string, sessionId: string): Promise<boolean> {
     const sessions = await this.getUserSessions(userId);
-    return sessions.some(s => s.sessionId === sessionId);
+    return sessions.some((s) => s.sessionId === sessionId);
   }
 
   /**
@@ -204,15 +225,19 @@ export class SessionManager {
       if (!sessionsData) return;
 
       let sessions: SessionInfo[] = JSON.parse(sessionsData);
-      const session = sessions.find(s => s.sessionId === sessionId);
+      const session = sessions.find((s) => s.sessionId === sessionId);
       if (session) {
         session.lastActivity = Date.now();
-        await redisClient.setEx(key, 7 * 24 * 60 * 60, JSON.stringify(sessions));
+        await redisClient.setEx(
+          key,
+          7 * 24 * 60 * 60,
+          JSON.stringify(sessions),
+        );
       }
     } else {
       const sessions = this.inMemorySessions.get(userId);
       if (sessions) {
-        const session = sessions.find(s => s.sessionId === sessionId);
+        const session = sessions.find((s) => s.sessionId === sessionId);
         if (session) {
           session.lastActivity = Date.now();
         }

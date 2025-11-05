@@ -1,11 +1,22 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Sparkles, Loader2, Wand2, Minimize2, Maximize2 } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Sparkles, Loader2, Wand2, Minimize2, Maximize2 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface AIFieldAssistProps {
   fieldName: string;
@@ -15,18 +26,18 @@ interface AIFieldAssistProps {
   onGenerated: (newValue: string) => void;
 }
 
-type AIAction = 'generate' | 'improve' | 'expand' | 'custom';
+type AIAction = "generate" | "improve" | "expand" | "custom";
 
 export default function AIFieldAssist({
   fieldName,
   fieldLabel,
   currentValue,
   getCharacterContext,
-  onGenerated
+  onGenerated,
 }: AIFieldAssistProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [customPrompt, setCustomPrompt] = useState('');
+  const [customPrompt, setCustomPrompt] = useState("");
   const [selectedAction, setSelectedAction] = useState<AIAction | null>(null);
   const { toast } = useToast();
 
@@ -34,11 +45,11 @@ export default function AIFieldAssist({
     setSelectedAction(action);
 
     // For custom action, show the prompt input
-    if (action === 'custom') {
+    if (action === "custom") {
       return;
     }
 
-    await executeAIAction(action, '');
+    await executeAIAction(action, "");
   };
 
   const handleCustomSubmit = async () => {
@@ -51,7 +62,7 @@ export default function AIFieldAssist({
       return;
     }
 
-    await executeAIAction('custom', customPrompt);
+    await executeAIAction("custom", customPrompt);
   };
 
   const executeAIAction = async (action: AIAction, prompt: string) => {
@@ -60,8 +71,8 @@ export default function AIFieldAssist({
     try {
       // Get fresh context values including any AI-generated content
       const characterContext = getCharacterContext();
-      
-      const response = await apiRequest('POST', '/api/ai/generate-field', {
+
+      const response = await apiRequest("POST", "/api/ai/generate-field", {
         fieldName,
         fieldLabel,
         action,
@@ -77,15 +88,15 @@ export default function AIFieldAssist({
 
       toast({
         title: "Content Generated",
-        description: `Successfully ${action === 'generate' ? 'generated' : action === 'improve' ? 'improved' : 'expanded'} ${fieldLabel.toLowerCase()}.`,
+        description: `Successfully ${action === "generate" ? "generated" : action === "improve" ? "improved" : "expanded"} ${fieldLabel.toLowerCase()}.`,
       });
 
       // Close dialog
       setIsOpen(false);
       setSelectedAction(null);
-      setCustomPrompt('');
+      setCustomPrompt("");
     } catch (error) {
-      console.error('AI generation error:', error);
+      console.error("AI generation error:", error);
       toast({
         title: "Generation Failed",
         description: "Failed to generate content. Please try again.",
@@ -121,17 +132,18 @@ export default function AIFieldAssist({
           <DialogHeader>
             <DialogTitle>AI Assist: {fieldLabel}</DialogTitle>
             <DialogDescription>
-              {hasContent 
-                ? 'Choose how to improve this field using AI'
-                : 'Generate content for this field using AI'
-              }
+              {hasContent
+                ? "Choose how to improve this field using AI"
+                : "Generate content for this field using AI"}
             </DialogDescription>
           </DialogHeader>
 
-          {selectedAction === 'custom' ? (
+          {selectedAction === "custom" ? (
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium">Custom Instruction</label>
+                <label className="text-sm font-medium">
+                  Custom Instruction
+                </label>
                 <Textarea
                   value={customPrompt}
                   onChange={(e) => setCustomPrompt(e.target.value)}
@@ -146,7 +158,7 @@ export default function AIFieldAssist({
                   variant="outline"
                   onClick={() => {
                     setSelectedAction(null);
-                    setCustomPrompt('');
+                    setCustomPrompt("");
                   }}
                   disabled={isLoading}
                 >
@@ -177,12 +189,12 @@ export default function AIFieldAssist({
                 <Button
                   variant="outline"
                   className="w-full justify-start"
-                  onClick={() => handleAction('generate')}
+                  onClick={() => handleAction("generate")}
                   disabled={isLoading}
                   data-testid="button-generate"
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
-                  {isLoading && selectedAction === 'generate' ? (
+                  {isLoading && selectedAction === "generate" ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       Generating...
@@ -198,36 +210,36 @@ export default function AIFieldAssist({
                   <Button
                     variant="outline"
                     className="w-full justify-start"
-                    onClick={() => handleAction('improve')}
+                    onClick={() => handleAction("improve")}
                     disabled={isLoading}
                     data-testid="button-improve"
                   >
                     <Wand2 className="h-4 w-4 mr-2" />
-                    {isLoading && selectedAction === 'improve' ? (
+                    {isLoading && selectedAction === "improve" ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Improving...
                       </>
                     ) : (
-                      'Improve'
+                      "Improve"
                     )}
                   </Button>
 
                   <Button
                     variant="outline"
                     className="w-full justify-start"
-                    onClick={() => handleAction('expand')}
+                    onClick={() => handleAction("expand")}
                     disabled={isLoading}
                     data-testid="button-expand"
                   >
                     <Maximize2 className="h-4 w-4 mr-2" />
-                    {isLoading && selectedAction === 'expand' ? (
+                    {isLoading && selectedAction === "expand" ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Expanding...
                       </>
                     ) : (
-                      'Expand (add more detail)'
+                      "Expand (add more detail)"
                     )}
                   </Button>
                 </>
@@ -236,7 +248,7 @@ export default function AIFieldAssist({
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() => handleAction('custom')}
+                onClick={() => handleAction("custom")}
                 disabled={isLoading}
                 data-testid="button-custom"
               >

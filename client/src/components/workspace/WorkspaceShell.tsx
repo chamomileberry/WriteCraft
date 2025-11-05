@@ -1,18 +1,31 @@
-import React, { useRef, useState } from 'react';
-import { Rnd } from 'react-rnd';
-import { useWorkspaceStore, type PanelDescriptor } from '@/stores/workspaceStore';
-import CharacterDetailPanel from './CharacterDetailPanel';
-import { ContentDetailPanel } from './ContentDetailPanel';
-import QuickNotePanel from './QuickNotePanel';
-import WritingAssistantPanel from './WritingAssistantPanel';
-import { FloatingLayer } from './FloatingLayer';
-import { X, GripHorizontal, Pin, Save, Minimize2, MessageSquarePlus, History, Menu, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
-import { useQueryClient } from '@tanstack/react-query';
-import { useMobileDetection } from '@/hooks/useMobileDetection';
-import { SidebarDrawer } from '@/components/ui/sidebar-drawer';
+import React, { useRef, useState } from "react";
+import { Rnd } from "react-rnd";
+import {
+  useWorkspaceStore,
+  type PanelDescriptor,
+} from "@/stores/workspaceStore";
+import CharacterDetailPanel from "./CharacterDetailPanel";
+import { ContentDetailPanel } from "./ContentDetailPanel";
+import QuickNotePanel from "./QuickNotePanel";
+import WritingAssistantPanel from "./WritingAssistantPanel";
+import { FloatingLayer } from "./FloatingLayer";
+import {
+  X,
+  GripHorizontal,
+  Pin,
+  Save,
+  Minimize2,
+  MessageSquarePlus,
+  History,
+  Menu,
+  Sparkles,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { useQueryClient } from "@tanstack/react-query";
+import { useMobileDetection } from "@/hooks/useMobileDetection";
+import { SidebarDrawer } from "@/components/ui/sidebar-drawer";
 
 interface WorkspaceShellProps {
   children: React.ReactNode;
@@ -21,11 +34,14 @@ interface WorkspaceShellProps {
 // Mobile menu hook for external components
 export const useMobileWorkspaceMenu = () => {
   const { isMobile } = useMobileDetection();
-  const { currentLayout, isMobileDrawerOpen, toggleMobileDrawer } = useWorkspaceStore();
-  
-  const dockedPanels = currentLayout.panels.filter(panel => panel.mode === 'docked' && !panel.minimized);
+  const { currentLayout, isMobileDrawerOpen, toggleMobileDrawer } =
+    useWorkspaceStore();
+
+  const dockedPanels = currentLayout.panels.filter(
+    (panel) => panel.mode === "docked" && !panel.minimized,
+  );
   const hasPanels = dockedPanels.length > 0;
-  
+
   const MobileMenuButton = () => (
     <Button
       variant="ghost"
@@ -38,45 +54,53 @@ export const useMobileWorkspaceMenu = () => {
       <Menu className="h-5 w-5" />
     </Button>
   );
-  
+
   return {
     isMobile,
     hasPanels,
     isDrawerOpen: isMobileDrawerOpen,
-    MobileMenuButton
+    MobileMenuButton,
   };
 };
 
 const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
-  const { 
-    currentLayout, 
-    removePanel, 
-    updatePanel, 
-    attachToTabBar, 
-    minimizePanel, 
-    isInManuscriptEditor, 
-    isMobileDrawerOpen, 
-    closeMobileDrawer 
+  const {
+    currentLayout,
+    removePanel,
+    updatePanel,
+    attachToTabBar,
+    minimizePanel,
+    isInManuscriptEditor,
+    isMobileDrawerOpen,
+    closeMobileDrawer,
   } = useWorkspaceStore();
   const workspaceRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isMobile } = useMobileDetection();
-  
+
   // Store save and clear functions for quick note panels
-  const quickNoteSaveFunctions = useRef<{ [panelId: string]: () => Promise<{ content: string; id: string }> }>({});
+  const quickNoteSaveFunctions = useRef<{
+    [panelId: string]: () => Promise<{ content: string; id: string }>;
+  }>({});
   const quickNoteClearFunctions = useRef<{ [panelId: string]: () => void }>({});
-  
+
   // Store functions for writing assistant panels
-  const writingAssistantClearChatFunctions = useRef<{ [panelId: string]: () => void }>({});
-  const writingAssistantToggleHistoryFunctions = useRef<{ [panelId: string]: () => void }>({});
-  
+  const writingAssistantClearChatFunctions = useRef<{
+    [panelId: string]: () => void;
+  }>({});
+  const writingAssistantToggleHistoryFunctions = useRef<{
+    [panelId: string]: () => void;
+  }>({});
+
   // Get docked panels for sidebar
-  const dockedPanels = currentLayout.panels.filter(panel => panel.mode === 'docked' && !panel.minimized);
+  const dockedPanels = currentLayout.panels.filter(
+    (panel) => panel.mode === "docked" && !panel.minimized,
+  );
 
   const renderPanelContent = (panel: PanelDescriptor) => {
     switch (panel.type) {
-      case 'characterDetail':
+      case "characterDetail":
         return (
           <CharacterDetailPanel
             characterId={panel.entityId!}
@@ -84,7 +108,7 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
             notebookId={panel.notebookId}
           />
         );
-      case 'contentDetail':
+      case "contentDetail":
         return (
           <ContentDetailPanel
             contentType={panel.contentType!}
@@ -93,7 +117,7 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
             notebookId={panel.notebookId}
           />
         );
-      case 'quickNote':
+      case "quickNote":
         return (
           <QuickNotePanel
             panelId={panel.id}
@@ -105,7 +129,7 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
             }}
           />
         );
-      case 'writingAssistant':
+      case "writingAssistant":
         return (
           <WritingAssistantPanel
             panelId={panel.id}
@@ -128,13 +152,13 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
 
   const getDefaultPanelSize = (type: string) => {
     switch (type) {
-      case 'characterDetail':
+      case "characterDetail":
         return { width: 350, height: 500 };
-      case 'searchResults':
+      case "searchResults":
         return { width: 300, height: 400 };
-      case 'quickNote':
+      case "quickNote":
         return { width: 300, height: 400 };
-      case 'writingAssistant':
+      case "writingAssistant":
         return { width: 400, height: 600 };
       default:
         return { width: 300, height: 400 };
@@ -146,7 +170,6 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
     const offset = index * 30;
     return { x: 400 + offset, y: 100 + offset };
   };
-
 
   // Render sidebar content for both desktop and mobile
   const renderSidebarContent = () => (
@@ -160,26 +183,35 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
           {/* Docked Panel Header */}
           <div className="flex items-center justify-between p-3 border-b border-border bg-muted/30 flex-shrink-0">
             <div className="flex items-center space-x-2">
-              {panel.type === 'writingAssistant' && (
-                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{background: 'linear-gradient(135deg, hsl(270, 75%, 75%) 0%, hsl(255, 69%, 71%) 100%)'}}>
+              {panel.type === "writingAssistant" && (
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, hsl(270, 75%, 75%) 0%, hsl(255, 69%, 71%) 100%)",
+                  }}
+                >
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
                 <h3 className="text-sm font-medium">{panel.title}</h3>
-                {panel.type === 'writingAssistant' && (
-                  <p className="text-xs text-muted-foreground">AI-powered writing help</p>
+                {panel.type === "writingAssistant" && (
+                  <p className="text-xs text-muted-foreground">
+                    AI-powered writing help
+                  </p>
                 )}
               </div>
             </div>
             <div className="flex items-center space-x-1">
-              {panel.type === 'writingAssistant' && (
+              {panel.type === "writingAssistant" && (
                 <>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      const clearChatFunction = writingAssistantClearChatFunctions.current[panel.id];
+                      const clearChatFunction =
+                        writingAssistantClearChatFunctions.current[panel.id];
                       if (clearChatFunction) {
                         clearChatFunction();
                       }
@@ -194,7 +226,10 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      const toggleHistoryFunction = writingAssistantToggleHistoryFunctions.current[panel.id];
+                      const toggleHistoryFunction =
+                        writingAssistantToggleHistoryFunctions.current[
+                          panel.id
+                        ];
                       if (toggleHistoryFunction) {
                         toggleHistoryFunction();
                       }
@@ -211,10 +246,10 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  if (panel.type === 'writingAssistant') {
+                  if (panel.type === "writingAssistant") {
                     minimizePanel(panel.id);
                   } else {
-                    attachToTabBar(panel.id, 'main');
+                    attachToTabBar(panel.id, "main");
                   }
                   // Close mobile drawer after action
                   if (isMobile) {
@@ -223,9 +258,13 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
                 }}
                 className="h-6 w-6 p-0"
                 data-testid={`button-undock-${panel.id}`}
-                title={panel.type === 'writingAssistant' ? "Minimize" : "Convert to Tab"}
+                title={
+                  panel.type === "writingAssistant"
+                    ? "Minimize"
+                    : "Convert to Tab"
+                }
               >
-                {panel.type === 'writingAssistant' ? (
+                {panel.type === "writingAssistant" ? (
                   <Minimize2 className="h-3 w-3" />
                 ) : (
                   <Pin className="h-3 w-3" />
@@ -249,7 +288,7 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
               </Button>
             </div>
           </div>
-          
+
           {/* Docked Panel Content */}
           <div className="flex-1 overflow-hidden min-h-0">
             {renderPanelContent(panel)}
@@ -260,15 +299,16 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
   );
 
   return (
-    <div ref={workspaceRef} className="relative w-full min-h-screen bg-background">
+    <div
+      ref={workspaceRef}
+      className="relative w-full min-h-screen bg-background"
+    >
       {isMobile ? (
         /* Mobile Layout - Full screen with drawer */
         <>
           {/* Full-width main content for mobile with bottom padding for nav */}
-          <div className="w-full min-h-screen pb-mobile-nav">
-            {children}
-          </div>
-          
+          <div className="w-full min-h-screen pb-mobile-nav">{children}</div>
+
           {/* Mobile Sidebar Drawer */}
           {dockedPanels.length > 0 && (
             <SidebarDrawer
@@ -284,13 +324,11 @@ const WorkspaceShell = ({ children }: WorkspaceShellProps) => {
         /* Desktop Layout - Full width main content with overlay sidebar */
         <>
           {/* Main Content Area - Always full width */}
-          <div className="w-full min-h-screen">
-            {children}
-          </div>
-          
+          <div className="w-full min-h-screen">{children}</div>
+
           {/* Desktop Docked Sidebar - Fixed positioned overlay */}
           {dockedPanels.length > 0 && (
-            <div 
+            <div
               className="fixed top-16 right-0 w-96 h-[calc(100vh-4rem)] border-l border-border bg-background z-40 overflow-y-auto shadow-lg"
               data-testid="docked-sidebar-container"
             >

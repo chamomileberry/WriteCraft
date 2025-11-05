@@ -1,8 +1,8 @@
-export type FormFieldType = 
-  | "text" 
-  | "textarea" 
-  | "number" 
-  | "select" 
+export type FormFieldType =
+  | "text"
+  | "textarea"
+  | "number"
+  | "select"
   | "tags"
   | "date"
   | "checkbox"

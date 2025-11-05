@@ -1,11 +1,11 @@
 /**
  * Entity Detection Cache
- * 
+ *
  * Caches entity detection results to avoid redundant AI calls
  * Uses in-memory storage with TTL expiration
  */
 
-import crypto from 'crypto';
+import crypto from "crypto";
 
 interface CacheEntry {
   data: any;
@@ -18,7 +18,7 @@ class EntityCache {
 
   constructor() {
     this.cache = new Map();
-    
+
     // Clean up expired entries every 5 minutes
     setInterval(() => this.cleanup(), 5 * 60 * 1000);
   }
@@ -28,10 +28,10 @@ class EntityCache {
    */
   private generateKey(messages: any[], userId?: string): string {
     const messageHash = crypto
-      .createHash('sha256')
+      .createHash("sha256")
       .update(JSON.stringify(messages))
-      .digest('hex');
-    
+      .digest("hex");
+
     return userId ? `${userId}:${messageHash}` : messageHash;
   }
 
@@ -64,7 +64,7 @@ class EntityCache {
 
     this.cache.set(key, {
       data,
-      expiresAt
+      expiresAt,
     });
   }
 
@@ -81,7 +81,7 @@ class EntityCache {
   private cleanup(): void {
     const now = Date.now();
     const entries = Array.from(this.cache.entries());
-    
+
     for (const [key, entry] of entries) {
       if (now > entry.expiresAt) {
         this.cache.delete(key);
@@ -95,7 +95,7 @@ class EntityCache {
   getStats(): { size: number; keys: string[] } {
     return {
       size: this.cache.size,
-      keys: Array.from(this.cache.keys())
+      keys: Array.from(this.cache.keys()),
     };
   }
 }

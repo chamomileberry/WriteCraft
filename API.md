@@ -1,4 +1,3 @@
-
 # WriteCraft API Documentation
 
 ## Overview
@@ -16,9 +15,11 @@ Development: `http://localhost:5000/api`
 ## Core Concepts
 
 ### Notebooks
+
 All worldbuilding content (characters, locations, etc.) is scoped to a **notebook**. Users create notebooks to organize content for different story universes.
 
 ### Projects
+
 Writing projects are hierarchical documents with sections (folders and pages). Projects are separate from notebooks and contain the actual manuscript content.
 
 ## Common Response Codes
@@ -36,9 +37,11 @@ Writing projects are hierarchical documents with sections (folders and pages). P
 ### Authentication
 
 #### `GET /api/auth/user`
+
 Get current authenticated user.
 
 **Response:**
+
 ```json
 {
   "id": "string",
@@ -51,9 +54,11 @@ Get current authenticated user.
 ### Notebooks
 
 #### `POST /api/notebooks`
+
 Create a new notebook.
 
 **Request Body:**
+
 ```json
 {
   "name": "string",
@@ -62,23 +67,29 @@ Create a new notebook.
 ```
 
 #### `GET /api/notebooks`
+
 Get all notebooks for the current user.
 
 #### `GET /api/notebooks/:id`
+
 Get a specific notebook.
 
 #### `PUT /api/notebooks/:id`
+
 Update a notebook.
 
 #### `DELETE /api/notebooks/:id`
+
 Delete a notebook and all associated content.
 
 ### Projects
 
 #### `POST /api/projects`
+
 Create a new project.
 
 **Request Body:**
+
 ```json
 {
   "title": "string",
@@ -88,32 +99,41 @@ Create a new project.
 ```
 
 #### `GET /api/projects`
+
 Get all projects for the current user.
 
 #### `GET /api/projects/:id`
+
 Get a specific project.
 
 #### `PUT /api/projects/:id`
+
 Update a project.
 
 #### `DELETE /api/projects/:id`
+
 Delete a project.
 
 #### `GET /api/projects/search?q=query`
+
 Search projects by content.
 
 ### Project Sections
 
 #### `GET /api/projects/:projectId/sections`
+
 Get all sections for a project (hierarchical tree structure).
 
 **Query Parameters:**
+
 - `flat=true` - Return flat list instead of tree
 
 #### `POST /api/projects/:projectId/sections`
+
 Create a new section.
 
 **Request Body:**
+
 ```json
 {
   "title": "string",
@@ -125,15 +145,19 @@ Create a new section.
 ```
 
 #### `PUT /api/projects/:projectId/sections/:sectionId`
+
 Update a section.
 
 #### `DELETE /api/projects/:projectId/sections/:sectionId`
+
 Delete a section.
 
 #### `POST /api/projects/:projectId/sections/reorder`
+
 Reorder sections.
 
 **Request Body:**
+
 ```json
 {
   "sectionOrders": [
@@ -151,33 +175,40 @@ Reorder sections.
 All worldbuilding content endpoints follow this pattern:
 
 #### `POST /api/{contentType}`
+
 Create new content.
 
 **Required Query Parameter:** `notebookId=string`
 
 **Common Request Fields:**
+
 ```json
 {
   "name": "string",
   "description": "string",
-  "genre": "Fantasy | Sci-Fi | etc.",
+  "genre": "Fantasy | Sci-Fi | etc."
   // Type-specific fields...
 }
 ```
 
 #### `GET /api/{contentType}?notebookId=string`
+
 Get all content of this type in the notebook.
 
 #### `GET /api/{contentType}/:id?notebookId=string`
+
 Get specific content by ID.
 
 #### `PUT /api/{contentType}/:id?notebookId=string`
+
 Update content.
 
 #### `DELETE /api/{contentType}/:id?notebookId=string`
+
 Delete content.
 
 **Content Types:**
+
 - characters
 - locations
 - items
@@ -226,43 +257,53 @@ Delete content.
 ### Guides
 
 #### `POST /api/guides`
+
 Create a writing guide.
 
 #### `GET /api/guides`
+
 Get all guides.
 
 **Query Parameters:**
+
 - `category=string`
 - `difficulty=Beginner | Intermediate | Advanced`
 - `search=string`
 
 #### `GET /api/guides/:id`
+
 Get specific guide.
 
 #### `PUT /api/guides/:id`
+
 Update guide.
 
 #### `DELETE /api/guides/:id`
+
 Delete guide.
 
 ### AI Generation
 
 #### `POST /api/ai/generate/{contentType}`
+
 Generate content using AI.
 
 **Request Body:**
+
 ```json
 {
   "prompt": "string",
-  "genre": "string",
+  "genre": "string"
   // Additional generation parameters
 }
 ```
 
 #### `POST /api/ai/edit`
+
 AI-powered text editing.
 
 **Request Body:**
+
 ```json
 {
   "text": "string",
@@ -272,9 +313,11 @@ AI-powered text editing.
 ```
 
 #### `POST /api/ai/chat`
+
 Writing assistant chat.
 
 **Request Body:**
+
 ```json
 {
   "message": "string",
@@ -292,9 +335,11 @@ Writing assistant chat.
 ### Saved Items
 
 #### `POST /api/saved-items`
+
 Save a generated item.
 
 **Request Body:**
+
 ```json
 {
   "itemType": "string",
@@ -305,42 +350,53 @@ Save a generated item.
 ```
 
 #### `GET /api/saved-items/:userId?notebookId=string`
+
 Get saved items for a notebook.
 
 **Query Parameters:**
+
 - `itemType=string` - Filter by type
 
 #### `DELETE /api/saved-items/:userId/:itemType/:itemId?notebookId=string`
+
 Remove a saved item.
 
 ### Notes
 
 #### `POST /api/notes`
+
 Create a note.
 
 #### `GET /api/notes`
+
 Get all notes for the user.
 
 #### `GET /api/notes/:id`
+
 Get specific note.
 
 #### `PUT /api/notes/:id`
+
 Update note.
 
 #### `DELETE /api/notes/:id`
+
 Delete note.
 
 #### `GET /api/quick-note`
+
 Get or create user's quick note.
 
 ### Search
 
 #### `GET /api/search?q=query`
+
 Universal search across projects and saved content.
 
 ## Security
 
 All content operations enforce:
+
 1. User authentication
 2. Ownership validation (userId must match)
 3. Notebook association validation (notebookId must match)

@@ -1,15 +1,18 @@
-import { renderBaseTemplate, renderPlainText } from './baseTemplate';
+import { renderBaseTemplate, renderPlainText } from "./baseTemplate";
 import type {
   SubscriptionEmailData,
   PaymentEmailData,
   SecurityEmailData,
   TeamEmailData,
   UsageLimitEmailData,
-} from '../../services/emailService';
+} from "../../services/emailService";
 
 // Subscription & Billing Templates
 
-export function renderWelcomeEmail(userName: string): { html: string; text: string } {
+export function renderWelcomeEmail(userName: string): {
+  html: string;
+  text: string;
+} {
   const content = `
     <h2>Welcome to WriteCraft, ${userName}!</h2>
     <p>We're excited to have you join our community of creative writers. WriteCraft is designed to help you bring your stories to life with powerful tools and AI assistance.</p>
@@ -31,8 +34,8 @@ export function renderWelcomeEmail(userName: string): { html: string; text: stri
   `;
 
   const html = renderBaseTemplate({
-    title: 'Welcome to WriteCraft',
-    preheader: 'Start your creative writing journey',
+    title: "Welcome to WriteCraft",
+    preheader: "Start your creative writing journey",
     content,
   });
 
@@ -62,7 +65,10 @@ https://writecraft.app
   return { html, text };
 }
 
-export function renderSubscriptionActivatedEmail(data: SubscriptionEmailData): { html: string; text: string } {
+export function renderSubscriptionActivatedEmail(data: SubscriptionEmailData): {
+  html: string;
+  text: string;
+} {
   const content = `
     <h2>Your ${data.planName} Plan is Now Active!</h2>
     <p>Hi ${data.userName},</p>
@@ -72,8 +78,8 @@ export function renderSubscriptionActivatedEmail(data: SubscriptionEmailData): {
     <div class="info-box">
       <p style="margin-bottom: 8px;"><strong>Plan Details:</strong></p>
       <p style="margin-bottom: 4px;">Plan: ${data.planName}</p>
-      ${data.amount ? `<p style="margin-bottom: 4px;">Amount: ${data.amount}</p>` : ''}
-      ${data.periodEnd ? `<p>Renews: ${data.periodEnd.toLocaleDateString()}</p>` : ''}
+      ${data.amount ? `<p style="margin-bottom: 4px;">Amount: ${data.amount}</p>` : ""}
+      ${data.periodEnd ? `<p>Renews: ${data.periodEnd.toLocaleDateString()}</p>` : ""}
     </div>
     
     <p>You now have access to all ${data.planName} features, including:</p>
@@ -90,29 +96,38 @@ export function renderSubscriptionActivatedEmail(data: SubscriptionEmailData): {
   `;
 
   const html = renderBaseTemplate({
-    title: 'Subscription Activated',
+    title: "Subscription Activated",
     preheader: `Your ${data.planName} subscription is now active`,
     content,
   });
 
-  const text = renderPlainText(content) + '\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app';
+  const text =
+    renderPlainText(content) +
+    "\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app";
 
   return { html, text };
 }
 
-export function renderSubscriptionCanceledEmail(data: SubscriptionEmailData): { html: string; text: string } {
+export function renderSubscriptionCanceledEmail(data: SubscriptionEmailData): {
+  html: string;
+  text: string;
+} {
   const content = `
     <h2>Your Subscription Has Been Canceled</h2>
     <p>Hi ${data.userName},</p>
     
     <p>We've confirmed the cancellation of your WriteCraft ${data.planName} subscription.</p>
     
-    ${data.periodEnd && data.cancelAtPeriodEnd ? `
+    ${
+      data.periodEnd && data.cancelAtPeriodEnd
+        ? `
       <div class="info-box">
         <p><strong>Your subscription will remain active until ${data.periodEnd.toLocaleDateString()}</strong></p>
         <p style="margin-top: 8px;">You'll continue to have access to all ${data.planName} features until this date.</p>
       </div>
-    ` : ''}
+    `
+        : ""
+    }
     
     <p>We're sorry to see you go! If there's anything we could have done better, we'd love to hear from you.</p>
     
@@ -124,17 +139,21 @@ export function renderSubscriptionCanceledEmail(data: SubscriptionEmailData): { 
   `;
 
   const html = renderBaseTemplate({
-    title: 'Subscription Canceled',
-    preheader: 'Your subscription has been canceled',
+    title: "Subscription Canceled",
+    preheader: "Your subscription has been canceled",
     content,
   });
 
-  const text = renderPlainText(content) + '\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app';
+  const text =
+    renderPlainText(content) +
+    "\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app";
 
   return { html, text };
 }
 
-export function renderSubscriptionReactivatedEmail(data: SubscriptionEmailData): { html: string; text: string } {
+export function renderSubscriptionReactivatedEmail(
+  data: SubscriptionEmailData,
+): { html: string; text: string } {
   const content = `
     <h2>Welcome Back!</h2>
     <p>Hi ${data.userName},</p>
@@ -144,7 +163,7 @@ export function renderSubscriptionReactivatedEmail(data: SubscriptionEmailData):
     <div class="info-box">
       <p style="margin-bottom: 8px;"><strong>Subscription Details:</strong></p>
       <p style="margin-bottom: 4px;">Plan: ${data.planName}</p>
-      ${data.periodEnd ? `<p>Next renewal: ${data.periodEnd.toLocaleDateString()}</p>` : ''}
+      ${data.periodEnd ? `<p>Next renewal: ${data.periodEnd.toLocaleDateString()}</p>` : ""}
     </div>
     
     <p>You now have full access to all ${data.planName} features again. We're glad to have you back!</p>
@@ -153,17 +172,22 @@ export function renderSubscriptionReactivatedEmail(data: SubscriptionEmailData):
   `;
 
   const html = renderBaseTemplate({
-    title: 'Subscription Reactivated',
-    preheader: 'Your subscription is active again',
+    title: "Subscription Reactivated",
+    preheader: "Your subscription is active again",
     content,
   });
 
-  const text = renderPlainText(content) + '\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app';
+  const text =
+    renderPlainText(content) +
+    "\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app";
 
   return { html, text };
 }
 
-export function renderPaymentSuccessfulEmail(data: PaymentEmailData): { html: string; text: string } {
+export function renderPaymentSuccessfulEmail(data: PaymentEmailData): {
+  html: string;
+  text: string;
+} {
   const content = `
     <h2>Payment Receipt</h2>
     <p>Hi ${data.userName},</p>
@@ -173,29 +197,38 @@ export function renderPaymentSuccessfulEmail(data: PaymentEmailData): { html: st
     <div class="info-box">
       <p style="margin-bottom: 8px;"><strong>Payment Details:</strong></p>
       <p style="margin-bottom: 4px;">Amount: ${data.amount}</p>
-      ${data.last4 ? `<p style="margin-bottom: 4px;">Card ending in: ••••${data.last4}</p>` : ''}
+      ${data.last4 ? `<p style="margin-bottom: 4px;">Card ending in: ••••${data.last4}</p>` : ""}
       <p>Date: ${new Date().toLocaleDateString()}</p>
     </div>
     
-    ${data.invoiceUrl ? `
+    ${
+      data.invoiceUrl
+        ? `
       <a href="${data.invoiceUrl}" class="button">View Invoice</a>
-    ` : ''}
+    `
+        : ""
+    }
     
     <p>Your subscription will continue uninterrupted. Thank you for your continued support!</p>
   `;
 
   const html = renderBaseTemplate({
-    title: 'Payment Receipt',
+    title: "Payment Receipt",
     preheader: `Payment of ${data.amount} received`,
     content,
   });
 
-  const text = renderPlainText(content) + '\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app';
+  const text =
+    renderPlainText(content) +
+    "\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app";
 
   return { html, text };
 }
 
-export function renderPaymentFailedEmail(data: PaymentEmailData): { html: string; text: string } {
+export function renderPaymentFailedEmail(data: PaymentEmailData): {
+  html: string;
+  text: string;
+} {
   const content = `
     <h2>Payment Failed - Action Required</h2>
     <p>Hi ${data.userName},</p>
@@ -203,7 +236,7 @@ export function renderPaymentFailedEmail(data: PaymentEmailData): { html: string
     <div class="alert-box">
       <p style="margin-bottom: 8px;"><strong>We couldn't process your payment</strong></p>
       <p>Amount: ${data.amount}</p>
-      ${data.failureReason ? `<p style="margin-top: 8px;">Reason: ${data.failureReason}</p>` : ''}
+      ${data.failureReason ? `<p style="margin-top: 8px;">Reason: ${data.failureReason}</p>` : ""}
     </div>
     
     <p>To continue enjoying WriteCraft without interruption, please update your payment method as soon as possible.</p>
@@ -221,17 +254,22 @@ export function renderPaymentFailedEmail(data: PaymentEmailData): { html: string
   `;
 
   const html = renderBaseTemplate({
-    title: 'Payment Failed',
-    preheader: 'Action required: Update your payment method',
+    title: "Payment Failed",
+    preheader: "Action required: Update your payment method",
     content,
   });
 
-  const text = renderPlainText(content) + '\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app';
+  const text =
+    renderPlainText(content) +
+    "\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app";
 
   return { html, text };
 }
 
-export function renderRefundProcessedEmail(data: PaymentEmailData): { html: string; text: string } {
+export function renderRefundProcessedEmail(data: PaymentEmailData): {
+  html: string;
+  text: string;
+} {
   const content = `
     <h2>Refund Processed</h2>
     <p>Hi ${data.userName},</p>
@@ -241,7 +279,7 @@ export function renderRefundProcessedEmail(data: PaymentEmailData): { html: stri
     <div class="info-box">
       <p style="margin-bottom: 8px;"><strong>Refund Details:</strong></p>
       <p style="margin-bottom: 4px;">Amount: ${data.amount}</p>
-      ${data.last4 ? `<p style="margin-bottom: 4px;">Refunded to card ending in: ••••${data.last4}</p>` : ''}
+      ${data.last4 ? `<p style="margin-bottom: 4px;">Refunded to card ending in: ••••${data.last4}</p>` : ""}
       <p>Processing time: 5-10 business days</p>
     </div>
     
@@ -251,19 +289,24 @@ export function renderRefundProcessedEmail(data: PaymentEmailData): { html: stri
   `;
 
   const html = renderBaseTemplate({
-    title: 'Refund Processed',
+    title: "Refund Processed",
     preheader: `Refund of ${data.amount} has been processed`,
     content,
   });
 
-  const text = renderPlainText(content) + '\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app';
+  const text =
+    renderPlainText(content) +
+    "\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app";
 
   return { html, text };
 }
 
 // Security Templates
 
-export function renderMfaEnabledEmail(data: SecurityEmailData): { html: string; text: string } {
+export function renderMfaEnabledEmail(data: SecurityEmailData): {
+  html: string;
+  text: string;
+} {
   const content = `
     <h2>Two-Factor Authentication Enabled</h2>
     <p>Hi ${data.userName},</p>
@@ -286,17 +329,22 @@ export function renderMfaEnabledEmail(data: SecurityEmailData): { html: string; 
   `;
 
   const html = renderBaseTemplate({
-    title: '2FA Enabled',
-    preheader: 'Two-factor authentication is now active',
+    title: "2FA Enabled",
+    preheader: "Two-factor authentication is now active",
     content,
   });
 
-  const text = renderPlainText(content) + '\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app';
+  const text =
+    renderPlainText(content) +
+    "\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app";
 
   return { html, text };
 }
 
-export function renderMfaDisabledEmail(data: SecurityEmailData): { html: string; text: string } {
+export function renderMfaDisabledEmail(data: SecurityEmailData): {
+  html: string;
+  text: string;
+} {
   const content = `
     <h2>Two-Factor Authentication Disabled</h2>
     <p>Hi ${data.userName},</p>
@@ -312,27 +360,32 @@ export function renderMfaDisabledEmail(data: SecurityEmailData): { html: string;
   `;
 
   const html = renderBaseTemplate({
-    title: '2FA Disabled',
-    preheader: 'Two-factor authentication has been disabled',
+    title: "2FA Disabled",
+    preheader: "Two-factor authentication has been disabled",
     content,
   });
 
-  const text = renderPlainText(content) + '\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app';
+  const text =
+    renderPlainText(content) +
+    "\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app";
 
   return { html, text };
 }
 
-export function renderNewDeviceLoginEmail(data: SecurityEmailData): { html: string; text: string } {
+export function renderNewDeviceLoginEmail(data: SecurityEmailData): {
+  html: string;
+  text: string;
+} {
   const content = `
     <h2>New Login Detected</h2>
     <p>Hi ${data.userName},</p>
     
     <div class="info-box">
       <p><strong>A new login to your WriteCraft account was detected.</strong></p>
-      ${data.device ? `<p style="margin-top: 8px;">Device: ${data.device}</p>` : ''}
-      ${data.location ? `<p>Location: ${data.location}</p>` : ''}
-      ${data.ipAddress ? `<p>IP Address: ${data.ipAddress}</p>` : ''}
-      ${data.timestamp ? `<p>Time: ${data.timestamp.toLocaleString()}</p>` : ''}
+      ${data.device ? `<p style="margin-top: 8px;">Device: ${data.device}</p>` : ""}
+      ${data.location ? `<p>Location: ${data.location}</p>` : ""}
+      ${data.ipAddress ? `<p>IP Address: ${data.ipAddress}</p>` : ""}
+      ${data.timestamp ? `<p>Time: ${data.timestamp.toLocaleString()}</p>` : ""}
     </div>
     
     <p>If this was you, no action is needed.</p>
@@ -349,24 +402,29 @@ export function renderNewDeviceLoginEmail(data: SecurityEmailData): { html: stri
   `;
 
   const html = renderBaseTemplate({
-    title: 'New Login Detected',
-    preheader: 'New login to your account',
+    title: "New Login Detected",
+    preheader: "New login to your account",
     content,
   });
 
-  const text = renderPlainText(content) + '\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app';
+  const text =
+    renderPlainText(content) +
+    "\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app";
 
   return { html, text };
 }
 
-export function renderPasswordChangedEmail(data: SecurityEmailData): { html: string; text: string } {
+export function renderPasswordChangedEmail(data: SecurityEmailData): {
+  html: string;
+  text: string;
+} {
   const content = `
     <h2>Password Changed</h2>
     <p>Hi ${data.userName},</p>
     
     <div class="info-box">
       <p><strong>Your WriteCraft password was successfully changed.</strong></p>
-      ${data.timestamp ? `<p style="margin-top: 8px;">Time: ${data.timestamp.toLocaleString()}</p>` : ''}
+      ${data.timestamp ? `<p style="margin-top: 8px;">Time: ${data.timestamp.toLocaleString()}</p>` : ""}
     </div>
     
     <p>If you made this change, no action is needed.</p>
@@ -381,17 +439,22 @@ export function renderPasswordChangedEmail(data: SecurityEmailData): { html: str
   `;
 
   const html = renderBaseTemplate({
-    title: 'Password Changed',
-    preheader: 'Your password was changed',
+    title: "Password Changed",
+    preheader: "Your password was changed",
     content,
   });
 
-  const text = renderPlainText(content) + '\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app';
+  const text =
+    renderPlainText(content) +
+    "\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app";
 
   return { html, text };
 }
 
-export function renderAccountDeletionScheduledEmail(userName: string, deletionDate: Date): { html: string; text: string } {
+export function renderAccountDeletionScheduledEmail(
+  userName: string,
+  deletionDate: Date,
+): { html: string; text: string } {
   const content = `
     <h2>Account Deletion Scheduled</h2>
     <p>Hi ${userName},</p>
@@ -418,21 +481,26 @@ export function renderAccountDeletionScheduledEmail(userName: string, deletionDa
   `;
 
   const html = renderBaseTemplate({
-    title: 'Account Deletion Scheduled',
+    title: "Account Deletion Scheduled",
     preheader: `Your account will be deleted on ${deletionDate.toLocaleDateString()}`,
     content,
   });
 
-  const text = renderPlainText(content) + '\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app';
+  const text =
+    renderPlainText(content) +
+    "\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app";
 
   return { html, text };
 }
 
 // Team Management Templates
 
-export function renderTeamInvitationEmail(data: TeamEmailData): { html: string; text: string } {
-  const appUrl = process.env.APP_URL || 'https://writecraft.app';
-  const inviteUrl = data.inviteToken 
+export function renderTeamInvitationEmail(data: TeamEmailData): {
+  html: string;
+  text: string;
+} {
+  const appUrl = process.env.APP_URL || "https://writecraft.app";
+  const inviteUrl = data.inviteToken
     ? `${appUrl}/team/invite/${data.inviteToken}`
     : `${appUrl}/teams`;
 
@@ -440,12 +508,12 @@ export function renderTeamInvitationEmail(data: TeamEmailData): { html: string; 
     <h2>You're Invited to Join a Team!</h2>
     <p>Hi ${data.recipientName},</p>
     
-    <p>${data.inviterName || 'Someone'} has invited you to join the <strong>${data.teamName}</strong> team on WriteCraft.</p>
+    <p>${data.inviterName || "Someone"} has invited you to join the <strong>${data.teamName}</strong> team on WriteCraft.</p>
     
     <div class="info-box">
       <p style="margin-bottom: 8px;"><strong>Invitation Details:</strong></p>
       <p style="margin-bottom: 4px;">Team: ${data.teamName}</p>
-      ${data.role ? `<p>Your role: ${data.role}</p>` : ''}
+      ${data.role ? `<p>Your role: ${data.role}</p>` : ""}
     </div>
     
     <p><strong>As a team member, you'll be able to:</strong></p>
@@ -462,7 +530,7 @@ export function renderTeamInvitationEmail(data: TeamEmailData): { html: string; 
   `;
 
   const html = renderBaseTemplate({
-    title: 'Team Invitation',
+    title: "Team Invitation",
     preheader: `You've been invited to join ${data.teamName}`,
     content,
   });
@@ -472,11 +540,11 @@ You're Invited to Join a Team!
 
 Hi ${data.recipientName},
 
-${data.inviterName || 'Someone'} has invited you to join the ${data.teamName} team on WriteCraft.
+${data.inviterName || "Someone"} has invited you to join the ${data.teamName} team on WriteCraft.
 
 Invitation Details:
 • Team: ${data.teamName}
-${data.role ? `• Your role: ${data.role}` : ''}
+${data.role ? `• Your role: ${data.role}` : ""}
 
 As a team member, you'll be able to:
 • Collaborate on shared projects
@@ -495,7 +563,10 @@ https://writecraft.app
   return { html, text };
 }
 
-export function renderTeamMemberRemovedEmail(data: TeamEmailData): { html: string; text: string } {
+export function renderTeamMemberRemovedEmail(data: TeamEmailData): {
+  html: string;
+  text: string;
+} {
   const content = `
     <h2>Removed from Team</h2>
     <p>Hi ${data.recipientName},</p>
@@ -515,17 +586,22 @@ export function renderTeamMemberRemovedEmail(data: TeamEmailData): { html: strin
   `;
 
   const html = renderBaseTemplate({
-    title: 'Removed from Team',
+    title: "Removed from Team",
     preheader: `You've been removed from ${data.teamName}`,
     content,
   });
 
-  const text = renderPlainText(content) + '\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app';
+  const text =
+    renderPlainText(content) +
+    "\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app";
 
   return { html, text };
 }
 
-export function renderTeamRoleChangedEmail(data: TeamEmailData): { html: string; text: string } {
+export function renderTeamRoleChangedEmail(data: TeamEmailData): {
+  html: string;
+  text: string;
+} {
   const content = `
     <h2>Your Team Role Has Changed</h2>
     <p>Hi ${data.recipientName},</p>
@@ -533,7 +609,7 @@ export function renderTeamRoleChangedEmail(data: TeamEmailData): { html: string;
     <p>Your role in the <strong>${data.teamName}</strong> team has been updated.</p>
     
     <div class="info-box">
-      <p><strong>New Role: ${data.role || 'Member'}</strong></p>
+      <p><strong>New Role: ${data.role || "Member"}</strong></p>
     </div>
     
     <p>Your permissions and access level have been adjusted according to your new role.</p>
@@ -544,19 +620,24 @@ export function renderTeamRoleChangedEmail(data: TeamEmailData): { html: string;
   `;
 
   const html = renderBaseTemplate({
-    title: 'Team Role Changed',
+    title: "Team Role Changed",
     preheader: `Your role in ${data.teamName} has changed`,
     content,
   });
 
-  const text = renderPlainText(content) + '\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app';
+  const text =
+    renderPlainText(content) +
+    "\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app";
 
   return { html, text };
 }
 
 // Usage Limit Templates
 
-export function renderUsageLimitWarningEmail(data: UsageLimitEmailData): { html: string; text: string } {
+export function renderUsageLimitWarningEmail(data: UsageLimitEmailData): {
+  html: string;
+  text: string;
+} {
   const content = `
     <h2>Usage Limit Warning</h2>
     <p>Hi ${data.userName},</p>
@@ -579,17 +660,22 @@ export function renderUsageLimitWarningEmail(data: UsageLimitEmailData): { html:
   `;
 
   const html = renderBaseTemplate({
-    title: 'Usage Limit Warning',
+    title: "Usage Limit Warning",
     preheader: `You've used ${data.percentageUsed}% of your ${data.limitType} limit`,
     content,
   });
 
-  const text = renderPlainText(content) + '\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app';
+  const text =
+    renderPlainText(content) +
+    "\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app";
 
   return { html, text };
 }
 
-export function renderGracePeriodStartedEmail(data: UsageLimitEmailData): { html: string; text: string } {
+export function renderGracePeriodStartedEmail(data: UsageLimitEmailData): {
+  html: string;
+  text: string;
+} {
   const content = `
     <h2>Grace Period Started</h2>
     <p>Hi ${data.userName},</p>
@@ -613,17 +699,22 @@ export function renderGracePeriodStartedEmail(data: UsageLimitEmailData): { html
   `;
 
   const html = renderBaseTemplate({
-    title: 'Grace Period Started',
+    title: "Grace Period Started",
     preheader: `${data.gracePeriodDays} days to upgrade or reduce usage`,
     content,
   });
 
-  const text = renderPlainText(content) + '\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app';
+  const text =
+    renderPlainText(content) +
+    "\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app";
 
   return { html, text };
 }
 
-export function renderGracePeriodEndingEmail(data: UsageLimitEmailData): { html: string; text: string } {
+export function renderGracePeriodEndingEmail(data: UsageLimitEmailData): {
+  html: string;
+  text: string;
+} {
   const content = `
     <h2>Grace Period Ending Soon</h2>
     <p>Hi ${data.userName},</p>
@@ -648,17 +739,22 @@ export function renderGracePeriodEndingEmail(data: UsageLimitEmailData): { html:
   `;
 
   const html = renderBaseTemplate({
-    title: 'Grace Period Ending',
+    title: "Grace Period Ending",
     preheader: `Only ${data.gracePeriodDays} days left in your grace period`,
     content,
   });
 
-  const text = renderPlainText(content) + '\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app';
+  const text =
+    renderPlainText(content) +
+    "\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app";
 
   return { html, text };
 }
 
-export function renderLimitExceededEmail(data: UsageLimitEmailData): { html: string; text: string } {
+export function renderLimitExceededEmail(data: UsageLimitEmailData): {
+  html: string;
+  text: string;
+} {
   const content = `
     <h2>Usage Limit Reached</h2>
     <p>Hi ${data.userName},</p>
@@ -681,12 +777,14 @@ export function renderLimitExceededEmail(data: UsageLimitEmailData): { html: str
   `;
 
   const html = renderBaseTemplate({
-    title: 'Limit Reached',
+    title: "Limit Reached",
     preheader: `You've reached your ${data.limitType} limit`,
     content,
   });
 
-  const text = renderPlainText(content) + '\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app';
+  const text =
+    renderPlainText(content) +
+    "\n\nWriteCraft - Tools for Creative Writers\nhttps://writecraft.app";
 
   return { html, text };
 }

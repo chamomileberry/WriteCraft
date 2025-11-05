@@ -3,15 +3,43 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { MapPin, Mountain, Building, Users, Star } from "lucide-react";
-import { insertLocationSchema, type InsertLocation, type Location } from "@shared/schema";
-import { LOCATION_TYPES, CLIMATE_TYPES, FORM_GENRE_OPTIONS } from "@/config/form-options";
+import {
+  insertLocationSchema,
+  type InsertLocation,
+  type Location,
+} from "@shared/schema";
+import {
+  LOCATION_TYPES,
+  CLIMATE_TYPES,
+  FORM_GENRE_OPTIONS,
+} from "@/config/form-options";
 import { useState } from "react";
 
 interface LocationFormProps {
@@ -23,30 +51,37 @@ interface LocationFormProps {
 
 // Constants moved to centralized config
 
-export default function LocationForm({ initialData, onSubmit, onGenerate, isLoading }: LocationFormProps) {
+export default function LocationForm({
+  initialData,
+  onSubmit,
+  onGenerate,
+  isLoading,
+}: LocationFormProps) {
   const [activeTab, setActiveTab] = useState("basic");
-  
+
   // String state for display in inputs
   const [notableFeaturesText, setNotableFeaturesText] = useState(
-    initialData?.notableFeatures?.join(", ") ?? ""
+    initialData?.notableFeatures?.join(", ") ?? "",
   );
   const [landmarksText, setLandmarksText] = useState(
-    initialData?.landmarks?.join(", ") ?? ""
+    initialData?.landmarks?.join(", ") ?? "",
   );
   const [threatsText, setThreatsText] = useState(
-    initialData?.threats?.join(", ") ?? ""
+    initialData?.threats?.join(", ") ?? "",
   );
   const [resourcesText, setResourcesText] = useState(
-    initialData?.resources?.join(", ") ?? ""
+    initialData?.resources?.join(", ") ?? "",
   );
-  
+
   const form = useForm<InsertLocation>({
-    resolver: zodResolver(insertLocationSchema.extend({
-      notableFeatures: insertLocationSchema.shape.notableFeatures.optional(),
-      landmarks: insertLocationSchema.shape.landmarks.optional(),
-      threats: insertLocationSchema.shape.threats.optional(),
-      resources: insertLocationSchema.shape.resources.optional(),
-    })),
+    resolver: zodResolver(
+      insertLocationSchema.extend({
+        notableFeatures: insertLocationSchema.shape.notableFeatures.optional(),
+        landmarks: insertLocationSchema.shape.landmarks.optional(),
+        threats: insertLocationSchema.shape.threats.optional(),
+        resources: insertLocationSchema.shape.resources.optional(),
+      }),
+    ),
     defaultValues: {
       name: initialData?.name ?? "",
       locationType: initialData?.locationType ?? "",
@@ -66,15 +101,34 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
     },
   });
 
-
   const handleSubmit = (data: InsertLocation) => {
     // Convert string state to arrays and merge with form data
     const formattedData = {
       ...data,
-      notableFeatures: notableFeaturesText ? notableFeaturesText.split(",").map(s => s.trim()).filter(Boolean) : [],
-      landmarks: landmarksText ? landmarksText.split(",").map(s => s.trim()).filter(Boolean) : [],
-      threats: threatsText ? threatsText.split(",").map(s => s.trim()).filter(Boolean) : [],
-      resources: resourcesText ? resourcesText.split(",").map(s => s.trim()).filter(Boolean) : [],
+      notableFeatures: notableFeaturesText
+        ? notableFeaturesText
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [],
+      landmarks: landmarksText
+        ? landmarksText
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [],
+      threats: threatsText
+        ? threatsText
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [],
+      resources: resourcesText
+        ? resourcesText
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [],
     };
     onSubmit(formattedData);
   };
@@ -94,11 +148,11 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
             </p>
           </div>
         </div>
-        
+
         {onGenerate && (
-          <Button 
-            onClick={onGenerate} 
-            variant="outline" 
+          <Button
+            onClick={onGenerate}
+            variant="outline"
             disabled={isLoading}
             data-testid="button-generate-location"
           >
@@ -138,9 +192,9 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                         <FormItem>
                           <FormLabel>Location Name *</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="Enter location name..." 
-                              {...field} 
+                            <Input
+                              placeholder="Enter location name..."
+                              {...field}
                               data-testid="input-location-name"
                             />
                           </FormControl>
@@ -155,7 +209,10 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Location Type *</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger data-testid="select-location-type">
                                 <SelectValue placeholder="Select location type" />
@@ -165,7 +222,10 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                               {LOCATION_TYPES.map((type) => {
                                 const IconComponent = type.icon;
                                 return (
-                                  <SelectItem key={type.value} value={type.value}>
+                                  <SelectItem
+                                    key={type.value}
+                                    value={type.value}
+                                  >
                                     <div className="flex items-center gap-2">
                                       <IconComponent className="w-4 h-4" />
                                       {type.label}
@@ -188,7 +248,7 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                       <FormItem>
                         <FormLabel>Description *</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Describe the location's overall appearance, feel, and significance..."
                             className="min-h-24"
                             {...field}
@@ -196,7 +256,8 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                           />
                         </FormControl>
                         <FormDescription>
-                          Paint a vivid picture of what visitors would experience
+                          Paint a vivid picture of what visitors would
+                          experience
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -210,7 +271,10 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Genre</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value || undefined}
+                          >
                             <FormControl>
                               <SelectTrigger data-testid="select-location-genre">
                                 <SelectValue placeholder="Select genre" />
@@ -235,7 +299,10 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Climate</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value || undefined}
+                          >
                             <FormControl>
                               <SelectTrigger data-testid="select-location-climate">
                                 <SelectValue placeholder="Select climate" />
@@ -274,10 +341,10 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                       <FormItem>
                         <FormLabel>Geography</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Describe the physical landscape, terrain, and natural features..."
                             {...field}
-                            value={field.value || ''}
+                            value={field.value || ""}
                             data-testid="textarea-location-geography"
                           />
                         </FormControl>
@@ -293,10 +360,10 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                       <FormItem>
                         <FormLabel>Population</FormLabel>
                         <FormControl>
-                          <Input 
+                          <Input
                             placeholder="e.g., 'About 5,000 residents' or 'Sparsely populated'"
                             {...field}
-                            value={field.value || ''}
+                            value={field.value || ""}
                             data-testid="input-location-population"
                           />
                         </FormControl>
@@ -315,10 +382,10 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                       <FormItem>
                         <FormLabel>History</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Describe the location's founding, major events, and historical significance..."
                             {...field}
-                            value={field.value || ''}
+                            value={field.value || ""}
                             data-testid="textarea-location-history"
                           />
                         </FormControl>
@@ -346,10 +413,10 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                       <FormItem>
                         <FormLabel>Government</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Describe the political system, leadership, and governance structure..."
                             {...field}
-                            value={field.value || ''}
+                            value={field.value || ""}
                             data-testid="textarea-location-government"
                           />
                         </FormControl>
@@ -365,10 +432,10 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                       <FormItem>
                         <FormLabel>Economy</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Describe trade, commerce, major industries, and economic activities..."
                             {...field}
-                            value={field.value || ''}
+                            value={field.value || ""}
                             data-testid="textarea-location-economy"
                           />
                         </FormControl>
@@ -384,10 +451,10 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                       <FormItem>
                         <FormLabel>Culture</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Describe customs, traditions, beliefs, and cultural practices..."
                             {...field}
-                            value={field.value || ''}
+                            value={field.value || ""}
                             data-testid="textarea-location-culture"
                           />
                         </FormControl>
@@ -413,33 +480,44 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="notable-features">Notable Features</Label>
-                    <Input 
+                    <Input
                       id="notable-features"
                       placeholder="Enter features separated by commas (e.g., Ancient tower, Magical fountain, Hidden passage)"
                       value={notableFeaturesText}
                       onChange={(e) => {
                         const newValue = e.target.value;
                         setNotableFeaturesText(newValue);
-                        const arrayValue = newValue ? newValue.split(",").map(s => s.trim()).filter(Boolean) : [];
+                        const arrayValue = newValue
+                          ? newValue
+                              .split(",")
+                              .map((s) => s.trim())
+                              .filter(Boolean)
+                          : [];
                         form.setValue("notableFeatures", arrayValue);
                       }}
                       data-testid="input-location-features"
                     />
                     <p className="text-sm text-muted-foreground">
-                      Unique architectural elements, magical phenomena, or distinctive characteristics
+                      Unique architectural elements, magical phenomena, or
+                      distinctive characteristics
                     </p>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="landmarks">Landmarks</Label>
-                    <Input 
+                    <Input
                       id="landmarks"
                       placeholder="Enter landmarks separated by commas (e.g., Great Library, Temple of Shadows, Market Square)"
                       value={landmarksText}
                       onChange={(e) => {
                         const newValue = e.target.value;
                         setLandmarksText(newValue);
-                        const arrayValue = newValue ? newValue.split(",").map(s => s.trim()).filter(Boolean) : [];
+                        const arrayValue = newValue
+                          ? newValue
+                              .split(",")
+                              .map((s) => s.trim())
+                              .filter(Boolean)
+                          : [];
                         form.setValue("landmarks", arrayValue);
                       }}
                       data-testid="input-location-landmarks"
@@ -451,14 +529,19 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
 
                   <div className="space-y-2">
                     <Label htmlFor="threats">Threats & Dangers</Label>
-                    <Input 
+                    <Input
                       id="threats"
                       placeholder="Enter threats separated by commas (e.g., Bandits, Wild beasts, Cursed areas)"
                       value={threatsText}
                       onChange={(e) => {
                         const newValue = e.target.value;
                         setThreatsText(newValue);
-                        const arrayValue = newValue ? newValue.split(",").map(s => s.trim()).filter(Boolean) : [];
+                        const arrayValue = newValue
+                          ? newValue
+                              .split(",")
+                              .map((s) => s.trim())
+                              .filter(Boolean)
+                          : [];
                         form.setValue("threats", arrayValue);
                       }}
                       data-testid="input-location-threats"
@@ -470,20 +553,26 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
 
                   <div className="space-y-2">
                     <Label htmlFor="resources">Resources</Label>
-                    <Input 
+                    <Input
                       id="resources"
                       placeholder="Enter resources separated by commas (e.g., Iron ore, Fertile farmland, Fresh water)"
                       value={resourcesText}
                       onChange={(e) => {
                         const newValue = e.target.value;
                         setResourcesText(newValue);
-                        const arrayValue = newValue ? newValue.split(",").map(s => s.trim()).filter(Boolean) : [];
+                        const arrayValue = newValue
+                          ? newValue
+                              .split(",")
+                              .map((s) => s.trim())
+                              .filter(Boolean)
+                          : [];
                         form.setValue("resources", arrayValue);
                       }}
                       data-testid="input-location-resources"
                     />
                     <p className="text-sm text-muted-foreground">
-                      Natural resources, valuable materials, or exploitable assets
+                      Natural resources, valuable materials, or exploitable
+                      assets
                     </p>
                   </div>
                 </CardContent>
@@ -494,7 +583,11 @@ export default function LocationForm({ initialData, onSubmit, onGenerate, isLoad
           <Separator />
 
           <div className="flex justify-end gap-3">
-            <Button type="submit" disabled={isLoading} data-testid="button-save-location">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              data-testid="button-save-location"
+            >
               {isLoading ? "Saving..." : "Save Location"}
             </Button>
           </div>

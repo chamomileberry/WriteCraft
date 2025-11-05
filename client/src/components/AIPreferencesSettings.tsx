@@ -1,10 +1,22 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -40,14 +52,37 @@ const EXPERIENCE_LEVELS = [
 ];
 
 const GENRES = [
-  "Fantasy", "Science Fiction", "Mystery", "Thriller", "Romance", "Historical Fiction",
-  "Horror", "Literary Fiction", "Young Adult", "Middle Grade", "Contemporary", "Dystopian",
-  "Urban Fantasy", "Epic Fantasy", "Space Opera", "Cyberpunk", "Steampunk", "Magical Realism"
+  "Fantasy",
+  "Science Fiction",
+  "Mystery",
+  "Thriller",
+  "Romance",
+  "Historical Fiction",
+  "Horror",
+  "Literary Fiction",
+  "Young Adult",
+  "Middle Grade",
+  "Contemporary",
+  "Dystopian",
+  "Urban Fantasy",
+  "Epic Fantasy",
+  "Space Opera",
+  "Cyberpunk",
+  "Steampunk",
+  "Magical Realism",
 ];
 
 const COMMON_WRITING_GOALS = [
-  "Finish novel", "Improve dialogue", "Develop characters", "Build world", "Master pacing",
-  "Improve prose", "Publish book", "Complete draft", "Enhance descriptions", "Write consistently"
+  "Finish novel",
+  "Improve dialogue",
+  "Develop characters",
+  "Build world",
+  "Master pacing",
+  "Improve prose",
+  "Publish book",
+  "Complete draft",
+  "Enhance descriptions",
+  "Write consistently",
 ];
 
 const FEEDBACK_STYLES = [
@@ -105,7 +140,7 @@ export function AIPreferencesSettings() {
 
   // Fetch user preferences
   const { data: preferences, isLoading } = useQuery<UserPreferences>({
-    queryKey: ['/api/user/preferences'],
+    queryKey: ["/api/user/preferences"],
   });
 
   // Update state when preferences are loaded
@@ -127,11 +162,15 @@ export function AIPreferencesSettings() {
   // Update preferences mutation
   const updatePreferencesMutation = useMutation({
     mutationFn: async (updates: Partial<UserPreferences>) => {
-      const response = await apiRequest('PATCH', '/api/user/preferences', updates);
+      const response = await apiRequest(
+        "PATCH",
+        "/api/user/preferences",
+        updates,
+      );
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user/preferences'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/preferences"] });
       toast({
         title: "Preferences saved",
         description: "Your AI preferences have been updated successfully.",
@@ -162,24 +201,20 @@ export function AIPreferencesSettings() {
   };
 
   const toggleGenre = (genre: string) => {
-    setSelectedGenres(prev =>
-      prev.includes(genre)
-        ? prev.filter(g => g !== genre)
-        : [...prev, genre]
+    setSelectedGenres((prev) =>
+      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre],
     );
   };
 
   const toggleGoal = (goal: string) => {
-    setSelectedGoals(prev =>
-      prev.includes(goal)
-        ? prev.filter(g => g !== goal)
-        : [...prev, goal]
+    setSelectedGoals((prev) =>
+      prev.includes(goal) ? prev.filter((g) => g !== goal) : [...prev, goal],
     );
   };
 
   const handleAddCustomGoal = () => {
     if (customGoal.trim() && !selectedGoals.includes(customGoal.trim())) {
-      setSelectedGoals(prev => [...prev, customGoal.trim()]);
+      setSelectedGoals((prev) => [...prev, customGoal.trim()]);
       setCustomGoal("");
     }
   };
@@ -211,7 +246,8 @@ export function AIPreferencesSettings() {
           AI Preferences
         </CardTitle>
         <CardDescription>
-          Customize how the AI writing assistant interacts with you to match your writing style and goals
+          Customize how the AI writing assistant interacts with you to match
+          your writing style and goals
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -223,7 +259,7 @@ export function AIPreferencesSettings() {
               <SelectValue placeholder="Select your experience level" />
             </SelectTrigger>
             <SelectContent>
-              {EXPERIENCE_LEVELS.map(level => (
+              {EXPERIENCE_LEVELS.map((level) => (
                 <SelectItem key={level.value} value={level.value}>
                   {level.label}
                 </SelectItem>
@@ -239,13 +275,13 @@ export function AIPreferencesSettings() {
         <div className="space-y-2">
           <Label>Preferred Genres</Label>
           <div className="flex flex-wrap gap-2">
-            {GENRES.map(genre => (
+            {GENRES.map((genre) => (
               <Badge
                 key={genre}
                 variant={selectedGenres.includes(genre) ? "default" : "outline"}
                 className="cursor-pointer hover-elevate"
                 onClick={() => toggleGenre(genre)}
-                data-testid={`badge-genre-${genre.toLowerCase().replace(/\s+/g, '-')}`}
+                data-testid={`badge-genre-${genre.toLowerCase().replace(/\s+/g, "-")}`}
               >
                 {genre}
               </Badge>
@@ -260,20 +296,20 @@ export function AIPreferencesSettings() {
         <div className="space-y-2">
           <Label>Writing Goals</Label>
           <div className="flex flex-wrap gap-2 mb-2">
-            {COMMON_WRITING_GOALS.map(goal => (
+            {COMMON_WRITING_GOALS.map((goal) => (
               <Badge
                 key={goal}
                 variant={selectedGoals.includes(goal) ? "default" : "outline"}
                 className="cursor-pointer hover-elevate"
                 onClick={() => toggleGoal(goal)}
-                data-testid={`badge-goal-${goal.toLowerCase().replace(/\s+/g, '-')}`}
+                data-testid={`badge-goal-${goal.toLowerCase().replace(/\s+/g, "-")}`}
               >
                 {goal}
               </Badge>
             ))}
             {selectedGoals
-              .filter(goal => !COMMON_WRITING_GOALS.includes(goal))
-              .map(goal => (
+              .filter((goal) => !COMMON_WRITING_GOALS.includes(goal))
+              .map((goal) => (
                 <Badge
                   key={goal}
                   variant="default"
@@ -290,7 +326,7 @@ export function AIPreferencesSettings() {
               value={customGoal}
               onChange={(e) => setCustomGoal(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === "Enter") {
                   e.preventDefault();
                   handleAddCustomGoal();
                 }
@@ -313,14 +349,20 @@ export function AIPreferencesSettings() {
 
         {/* Target Word Count */}
         <div className="space-y-2">
-          <Label htmlFor="target-word-count">Target Word Count (Optional)</Label>
+          <Label htmlFor="target-word-count">
+            Target Word Count (Optional)
+          </Label>
           <Input
             id="target-word-count"
             type="number"
             min="0"
             placeholder="e.g., 80000"
             value={targetWordCount || ""}
-            onChange={(e) => setTargetWordCount(e.target.value ? parseInt(e.target.value) : undefined)}
+            onChange={(e) =>
+              setTargetWordCount(
+                e.target.value ? parseInt(e.target.value) : undefined,
+              )
+            }
             data-testid="input-target-word-count"
           />
           <p className="text-xs text-muted-foreground">
@@ -336,7 +378,7 @@ export function AIPreferencesSettings() {
               <SelectValue placeholder="How often do you write?" />
             </SelectTrigger>
             <SelectContent>
-              {WRITING_SCHEDULES.map(schedule => (
+              {WRITING_SCHEDULES.map((schedule) => (
                 <SelectItem key={schedule.value} value={schedule.value}>
                   {schedule.label}
                 </SelectItem>
@@ -353,7 +395,7 @@ export function AIPreferencesSettings() {
               <SelectValue placeholder="How should the AI provide feedback?" />
             </SelectTrigger>
             <SelectContent>
-              {FEEDBACK_STYLES.map(style => (
+              {FEEDBACK_STYLES.map((style) => (
                 <SelectItem key={style.value} value={style.value}>
                   {style.label}
                 </SelectItem>
@@ -373,7 +415,7 @@ export function AIPreferencesSettings() {
               <SelectValue placeholder="What tone should the AI use?" />
             </SelectTrigger>
             <SelectContent>
-              {TONE_OPTIONS.map(tone => (
+              {TONE_OPTIONS.map((tone) => (
                 <SelectItem key={tone.value} value={tone.value}>
                   {tone.label}
                 </SelectItem>
@@ -390,7 +432,7 @@ export function AIPreferencesSettings() {
               <SelectValue placeholder="How should responses be formatted?" />
             </SelectTrigger>
             <SelectContent>
-              {RESPONSE_FORMATS.map(format => (
+              {RESPONSE_FORMATS.map((format) => (
                 <SelectItem key={format.value} value={format.value}>
                   {format.label}
                 </SelectItem>
@@ -407,7 +449,7 @@ export function AIPreferencesSettings() {
               <SelectValue placeholder="How detailed should responses be?" />
             </SelectTrigger>
             <SelectContent>
-              {DETAIL_LEVELS.map(level => (
+              {DETAIL_LEVELS.map((level) => (
                 <SelectItem key={level.value} value={level.value}>
                   {level.label}
                 </SelectItem>
@@ -419,12 +461,15 @@ export function AIPreferencesSettings() {
         {/* Examples Preference */}
         <div className="space-y-2">
           <Label>Examples Preference</Label>
-          <Select value={examplesPreference} onValueChange={setExamplesPreference}>
+          <Select
+            value={examplesPreference}
+            onValueChange={setExamplesPreference}
+          >
             <SelectTrigger data-testid="select-examples-preference">
               <SelectValue placeholder="How often should the AI provide examples?" />
             </SelectTrigger>
             <SelectContent>
-              {EXAMPLES_PREFERENCES.map(pref => (
+              {EXAMPLES_PREFERENCES.map((pref) => (
                 <SelectItem key={pref.value} value={pref.value}>
                   {pref.label}
                 </SelectItem>

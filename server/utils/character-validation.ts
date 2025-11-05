@@ -16,7 +16,7 @@ export const aiCharacterSchema = z.object({
   honorificTitle: z.string().optional().default(""),
   suffix: z.string().optional().default(""),
   prefix: z.string().optional().default(""),
-  
+
   // Core identity fields
   age: z.number().int().min(0).max(10000).optional().nullable(),
   gender: z.string().optional().default(""),
@@ -25,18 +25,18 @@ export const aiCharacterSchema = z.object({
   pronouns: z.string().optional().default(""),
   species: z.string().optional().default("Human"),
   ethnicity: z.string().optional().default(""),
-  
+
   // Personality and character traits
   personality: z.array(z.string()).optional().default([]),
   motivation: z.string().optional().default(""),
   flaw: z.string().optional().default(""),
   strength: z.string().optional().default(""),
-  
+
   // Background and story
   backstory: z.string().optional().default(""),
   occupation: z.string().optional().default(""),
   genre: z.string().optional().default(""),
-  
+
   // Physical description - basic
   height: z.string().optional().default(""),
   heightDetail: z.string().optional().default(""),
@@ -51,7 +51,7 @@ export const aiCharacterSchema = z.object({
   identifyingMarks: z.string().optional().default(""),
   physicalDescription: z.string().optional().default(""),
   physicalPresentation: z.string().optional().default(""),
-  
+
   // Location and relationships
   currentLocation: z.string().optional().default(""),
   currentResidence: z.string().optional().default(""),
@@ -59,28 +59,28 @@ export const aiCharacterSchema = z.object({
   dateOfBirth: z.string().optional().default(""),
   placeOfDeath: z.string().optional().default(""),
   dateOfDeath: z.string().optional().default(""),
-  
+
   // Health and conditions
   conditions: z.string().optional().default(""),
-  
+
   // Relationships and affiliations
   family: z.array(z.string()).optional().default([]),
   religiousBelief: z.string().optional().default(""),
   affiliatedOrganizations: z.string().optional().default(""),
-  
+
   // General description
   description: z.string().optional().default(""),
-  
+
   // Additional metadata fields
   imageUrl: z.string().url().optional().nullable(),
   imagePrompt: z.string().optional().default(""),
-  
+
   // Goals and relationships (extended)
   goals: z.string().optional().default(""),
   relationships: z.string().optional().default(""),
   allies: z.string().optional().default(""),
   enemies: z.string().optional().default(""),
-  
+
   // Voice and mannerisms
   speechPattern: z.string().optional().default(""),
   mannerisms: z.string().optional().default(""),
@@ -101,162 +101,177 @@ export function validateAndApplyFallbacks(rawData: unknown): AICharacterData {
   } catch (error) {
     // If strict validation fails, apply fallbacks field by field
     if (error instanceof z.ZodError) {
-      console.warn("Character validation errors found, applying fallbacks:", error.errors);
-      
+      console.warn(
+        "Character validation errors found, applying fallbacks:",
+        error.errors,
+      );
+
       // Create a safe copy with type coercion and fallbacks
-      const safeData: any = typeof rawData === 'object' && rawData !== null ? { ...rawData } : {};
-      
+      const safeData: any =
+        typeof rawData === "object" && rawData !== null ? { ...rawData } : {};
+
       // Apply critical fallbacks
-      if (!safeData.givenName || typeof safeData.givenName !== 'string' || safeData.givenName.trim() === '') {
-        safeData.givenName = 'Unknown';
+      if (
+        !safeData.givenName ||
+        typeof safeData.givenName !== "string" ||
+        safeData.givenName.trim() === ""
+      ) {
+        safeData.givenName = "Unknown";
       }
-      
-      if (!safeData.familyName || typeof safeData.familyName !== 'string') {
-        safeData.familyName = '';
+
+      if (!safeData.familyName || typeof safeData.familyName !== "string") {
+        safeData.familyName = "";
       }
-      
+
       // Ensure arrays are valid
       if (!Array.isArray(safeData.personality)) {
         safeData.personality = [];
       }
-      
+
       if (!Array.isArray(safeData.family)) {
         safeData.family = [];
       }
-      
+
       // Ensure age is a valid number or null
-      if (typeof safeData.age !== 'number' || isNaN(safeData.age) || safeData.age < 0) {
+      if (
+        typeof safeData.age !== "number" ||
+        isNaN(safeData.age) ||
+        safeData.age < 0
+      ) {
         safeData.age = null;
       }
-      
+
       // Default species to Human if not provided
-      if (!safeData.species || typeof safeData.species !== 'string') {
-        safeData.species = 'Human';
+      if (!safeData.species || typeof safeData.species !== "string") {
+        safeData.species = "Human";
       }
-      
+
       // Try validation again with fallbacks
       try {
         return aiCharacterSchema.parse(safeData);
       } catch (secondError) {
-        console.error("Character validation failed even with fallbacks:", secondError);
-        
+        console.error(
+          "Character validation failed even with fallbacks:",
+          secondError,
+        );
+
         // Return absolute minimal valid character
         return {
-          givenName: 'Unknown',
-          familyName: '',
-          middleName: '',
-          maidenName: '',
-          nickname: '',
-          honorificTitle: '',
-          suffix: '',
-          prefix: '',
+          givenName: "Unknown",
+          familyName: "",
+          middleName: "",
+          maidenName: "",
+          nickname: "",
+          honorificTitle: "",
+          suffix: "",
+          prefix: "",
           age: null,
-          gender: '',
-          sex: '',
-          genderIdentity: '',
-          pronouns: '',
-          species: 'Human',
-          ethnicity: '',
+          gender: "",
+          sex: "",
+          genderIdentity: "",
+          pronouns: "",
+          species: "Human",
+          ethnicity: "",
           personality: [],
-          motivation: '',
-          flaw: '',
-          strength: '',
-          backstory: '',
-          occupation: '',
-          genre: '',
-          height: '',
-          heightDetail: '',
-          weight: '',
-          build: '',
-          hairColor: '',
-          hairTexture: '',
-          hairStyle: '',
-          eyeColor: '',
-          skinTone: '',
-          facialFeatures: '',
-          identifyingMarks: '',
-          physicalDescription: '',
-          physicalPresentation: '',
-          currentLocation: '',
-          currentResidence: '',
-          placeOfBirth: '',
-          dateOfBirth: '',
-          placeOfDeath: '',
-          dateOfDeath: '',
-          conditions: '',
+          motivation: "",
+          flaw: "",
+          strength: "",
+          backstory: "",
+          occupation: "",
+          genre: "",
+          height: "",
+          heightDetail: "",
+          weight: "",
+          build: "",
+          hairColor: "",
+          hairTexture: "",
+          hairStyle: "",
+          eyeColor: "",
+          skinTone: "",
+          facialFeatures: "",
+          identifyingMarks: "",
+          physicalDescription: "",
+          physicalPresentation: "",
+          currentLocation: "",
+          currentResidence: "",
+          placeOfBirth: "",
+          dateOfBirth: "",
+          placeOfDeath: "",
+          dateOfDeath: "",
+          conditions: "",
           family: [],
-          religiousBelief: '',
-          affiliatedOrganizations: '',
-          description: '',
+          religiousBelief: "",
+          affiliatedOrganizations: "",
+          description: "",
           imageUrl: null,
-          imagePrompt: '',
-          goals: '',
-          relationships: '',
-          allies: '',
-          enemies: '',
-          speechPattern: '',
-          mannerisms: '',
+          imagePrompt: "",
+          goals: "",
+          relationships: "",
+          allies: "",
+          enemies: "",
+          speechPattern: "",
+          mannerisms: "",
         };
       }
     }
-    
+
     // For non-Zod errors, return minimal valid character
     console.error("Unexpected validation error:", error);
     return {
-      givenName: 'Unknown',
-      familyName: '',
-      middleName: '',
-      maidenName: '',
-      nickname: '',
-      honorificTitle: '',
-      suffix: '',
-      prefix: '',
+      givenName: "Unknown",
+      familyName: "",
+      middleName: "",
+      maidenName: "",
+      nickname: "",
+      honorificTitle: "",
+      suffix: "",
+      prefix: "",
       age: null,
-      gender: '',
-      sex: '',
-      genderIdentity: '',
-      pronouns: '',
-      species: 'Human',
-      ethnicity: '',
+      gender: "",
+      sex: "",
+      genderIdentity: "",
+      pronouns: "",
+      species: "Human",
+      ethnicity: "",
       personality: [],
-      motivation: '',
-      flaw: '',
-      strength: '',
-      backstory: '',
-      occupation: '',
-      genre: '',
-      height: '',
-      heightDetail: '',
-      weight: '',
-      build: '',
-      hairColor: '',
-      hairTexture: '',
-      hairStyle: '',
-      eyeColor: '',
-      skinTone: '',
-      facialFeatures: '',
-      identifyingMarks: '',
-      physicalDescription: '',
-      physicalPresentation: '',
-      currentLocation: '',
-      currentResidence: '',
-      placeOfBirth: '',
-      dateOfBirth: '',
-      placeOfDeath: '',
-      dateOfDeath: '',
-      conditions: '',
+      motivation: "",
+      flaw: "",
+      strength: "",
+      backstory: "",
+      occupation: "",
+      genre: "",
+      height: "",
+      heightDetail: "",
+      weight: "",
+      build: "",
+      hairColor: "",
+      hairTexture: "",
+      hairStyle: "",
+      eyeColor: "",
+      skinTone: "",
+      facialFeatures: "",
+      identifyingMarks: "",
+      physicalDescription: "",
+      physicalPresentation: "",
+      currentLocation: "",
+      currentResidence: "",
+      placeOfBirth: "",
+      dateOfBirth: "",
+      placeOfDeath: "",
+      dateOfDeath: "",
+      conditions: "",
       family: [],
-      religiousBelief: '',
-      affiliatedOrganizations: '',
-      description: '',
+      religiousBelief: "",
+      affiliatedOrganizations: "",
+      description: "",
       imageUrl: null,
-      imagePrompt: '',
-      goals: '',
-      relationships: '',
-      allies: '',
-      enemies: '',
-      speechPattern: '',
-      mannerisms: '',
+      imagePrompt: "",
+      goals: "",
+      relationships: "",
+      allies: "",
+      enemies: "",
+      speechPattern: "",
+      mannerisms: "",
     };
   }
 }
@@ -275,6 +290,8 @@ export function getCharacterFullName(data: AICharacterData): string {
     data.familyName,
     data.suffix,
   ].filter(Boolean);
-  
-  return parts.length > 0 ? parts.join(' ') : data.nickname || 'Unknown Character';
+
+  return parts.length > 0
+    ? parts.join(" ")
+    : data.nickname || "Unknown Character";
 }

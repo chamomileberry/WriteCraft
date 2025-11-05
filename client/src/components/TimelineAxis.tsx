@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
-import { useViewport } from '@xyflow/react';
-import { parseDateToTimestamp } from '@/lib/timelineUtils';
-import type { TimelineEvent } from '@shared/schema';
+import { useMemo } from "react";
+import { useViewport } from "@xyflow/react";
+import { parseDateToTimestamp } from "@/lib/timelineUtils";
+import type { TimelineEvent } from "@shared/schema";
 
 interface TimelineAxisProps {
   events: TimelineEvent[];
@@ -11,22 +11,30 @@ interface TimelineAxisProps {
   margin: number;
 }
 
-export function TimelineAxis({ events, canvasWidth, canvasHeight, axisY, margin }: TimelineAxisProps) {
+export function TimelineAxis({
+  events,
+  canvasWidth,
+  canvasHeight,
+  axisY,
+  margin,
+}: TimelineAxisProps) {
   const viewport = useViewport();
-  
+
   const timelineData = useMemo(() => {
     if (!events || events.length === 0) {
       return { sortedEvents: [], positions: new Map(), minTime: 0, maxTime: 1 };
     }
 
     // Parse and sort events by date
-    const eventsWithTime = events.map(event => ({
+    const eventsWithTime = events.map((event) => ({
       event,
       timestamp: parseDateToTimestamp(event.startDate),
     }));
 
-    const sortedEvents = eventsWithTime.sort((a, b) => a.timestamp - b.timestamp);
-    
+    const sortedEvents = eventsWithTime.sort(
+      (a, b) => a.timestamp - b.timestamp,
+    );
+
     const minTime = sortedEvents[0].timestamp;
     const maxTime = sortedEvents[sortedEvents.length - 1].timestamp;
     const timeRange = maxTime - minTime || 1; // Avoid division by zero
@@ -38,7 +46,12 @@ export function TimelineAxis({ events, canvasWidth, canvasHeight, axisY, margin 
       positions.set(event.id, normalizedPosition);
     });
 
-    return { sortedEvents: sortedEvents.map(e => e.event), positions, minTime, maxTime };
+    return {
+      sortedEvents: sortedEvents.map((e) => e.event),
+      positions,
+      minTime,
+      maxTime,
+    };
   }, [events]);
 
   const axisStartX = margin;
@@ -49,110 +62,110 @@ export function TimelineAxis({ events, canvasWidth, canvasHeight, axisY, margin 
   const transform = `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`;
 
   return (
-    <div 
+    <div
       className="absolute inset-0 pointer-events-none overflow-hidden"
       style={{ zIndex: 0 }}
     >
       <svg
         className="absolute"
-        style={{ 
+        style={{
           transform,
-          transformOrigin: '0 0',
+          transformOrigin: "0 0",
         }}
         width={canvasWidth}
         height={canvasHeight}
       >
-      <defs>
-        <marker
-          id="timeline-arrow"
-          markerWidth="8"
-          markerHeight="8"
-          refX="7"
-          refY="4"
-          orient="auto"
+        <defs>
+          <marker
+            id="timeline-arrow"
+            markerWidth="8"
+            markerHeight="8"
+            refX="7"
+            refY="4"
+            orient="auto"
+          >
+            <polygon points="0 0, 8 4, 0 8" fill="#64748b" />
+          </marker>
+        </defs>
+
+        {/* Main timeline axis */}
+        <line
+          x1={axisStartX}
+          y1={axisY}
+          x2={axisEndX}
+          y2={axisY}
+          stroke="#64748b"
+          strokeWidth="3"
+          markerEnd="url(#timeline-arrow)"
+        />
+
+        {/* Event markers and connectors */}
+        {timelineData.sortedEvents.map((event, index) => {
+          const position = timelineData.positions.get(event.id) || 0;
+          const x = axisStartX + position * axisLength;
+
+          // Alternate events above and below the axis
+          const isAbove = index % 2 === 0;
+          const eventY = isAbove ? axisY - 180 : axisY + 180;
+          const connectorStartY = isAbove ? axisY - 10 : axisY + 10;
+
+          return (
+            <g key={event.id}>
+              {/* Vertical connector line */}
+              <line
+                x1={x}
+                y1={connectorStartY}
+                x2={x}
+                y2={eventY}
+                stroke="#9333ea"
+                strokeWidth="2"
+                strokeDasharray="4 4"
+                opacity="0.6"
+              />
+
+              {/* Tick mark on axis */}
+              <circle
+                cx={x}
+                cy={axisY}
+                r="6"
+                fill="#9333ea"
+                stroke="#ffffff"
+                strokeWidth="2"
+              />
+
+              {/* Date label */}
+              <text
+                x={x}
+                y={axisY + (isAbove ? 30 : -20)}
+                textAnchor="middle"
+                className="fill-muted-foreground text-xs font-medium"
+              >
+                {event.startDate}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* Start label */}
+        <text
+          x={axisStartX - 40}
+          y={axisY + 5}
+          textAnchor="end"
+          className="fill-muted-foreground text-sm font-medium"
         >
-          <polygon points="0 0, 8 4, 0 8" fill="#64748b" />
-        </marker>
-      </defs>
+          Past
+        </text>
 
-      {/* Main timeline axis */}
-      <line
-        x1={axisStartX}
-        y1={axisY}
-        x2={axisEndX}
-        y2={axisY}
-        stroke="#64748b"
-        strokeWidth="3"
-        markerEnd="url(#timeline-arrow)"
-      />
-
-      {/* Event markers and connectors */}
-      {timelineData.sortedEvents.map((event, index) => {
-        const position = timelineData.positions.get(event.id) || 0;
-        const x = axisStartX + (position * axisLength);
-        
-        // Alternate events above and below the axis
-        const isAbove = index % 2 === 0;
-        const eventY = isAbove ? axisY - 180 : axisY + 180;
-        const connectorStartY = isAbove ? axisY - 10 : axisY + 10;
-
-        return (
-          <g key={event.id}>
-            {/* Vertical connector line */}
-            <line
-              x1={x}
-              y1={connectorStartY}
-              x2={x}
-              y2={eventY}
-              stroke="#9333ea"
-              strokeWidth="2"
-              strokeDasharray="4 4"
-              opacity="0.6"
-            />
-            
-            {/* Tick mark on axis */}
-            <circle
-              cx={x}
-              cy={axisY}
-              r="6"
-              fill="#9333ea"
-              stroke="#ffffff"
-              strokeWidth="2"
-            />
-
-            {/* Date label */}
-            <text
-              x={x}
-              y={axisY + (isAbove ? 30 : -20)}
-              textAnchor="middle"
-              className="fill-muted-foreground text-xs font-medium"
-            >
-              {event.startDate}
-            </text>
-          </g>
-        );
-      })}
-
-      {/* Start label */}
-      <text
-        x={axisStartX - 40}
-        y={axisY + 5}
-        textAnchor="end"
-        className="fill-muted-foreground text-sm font-medium"
-      >
-        Past
-      </text>
-
-      {/* End label */}
-      <text
-        x={axisEndX + 50}
-        y={axisY + 5}
-        textAnchor="start"
-        className="fill-muted-foreground text-sm font-medium"
-      >
-        Future
-      </text>
-    </svg>
+        {/* End label */}
+        <text
+          x={axisEndX + 50}
+          y={axisY + 5}
+          textAnchor="start"
+          className="fill-muted-foreground text-sm font-medium"
+        >
+          Future
+        </text>
+      </svg>
     </div>
   );
 }

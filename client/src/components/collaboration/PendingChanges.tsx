@@ -33,20 +33,36 @@ export function PendingChanges({ projectId, onClose }: PendingChangesProps) {
   const { toast } = useToast();
 
   const { data, isLoading } = useQuery<{ changes: PendingChange[] }>({
-    queryKey: ['/api/collaboration/projects', projectId, 'pending-changes'],
+    queryKey: ["/api/collaboration/projects", projectId, "pending-changes"],
     enabled: !!projectId,
   });
 
   const reviewChangeMutation = useMutation({
-    mutationFn: async ({ changeId, action }: { changeId: string; action: 'approve' | 'reject' }) => {
-      return await apiRequest("POST", `/api/collaboration/projects/${projectId}/pending-changes/${changeId}/${action}`);
+    mutationFn: async ({
+      changeId,
+      action,
+    }: {
+      changeId: string;
+      action: "approve" | "reject";
+    }) => {
+      return await apiRequest(
+        "POST",
+        `/api/collaboration/projects/${projectId}/pending-changes/${changeId}/${action}`,
+      );
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/collaboration/projects', projectId, 'pending-changes'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/collaboration/projects', projectId, 'activity'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/collaboration/projects", projectId, "pending-changes"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/collaboration/projects", projectId, "activity"],
+      });
       toast({
-        title: variables.action === 'approve' ? "Change approved" : "Change rejected",
-        description: `The suggested change has been ${variables.action === 'approve' ? 'approved' : 'rejected'}`,
+        title:
+          variables.action === "approve"
+            ? "Change approved"
+            : "Change rejected",
+        description: `The suggested change has been ${variables.action === "approve" ? "approved" : "rejected"}`,
       });
     },
     onError: () => {
@@ -59,7 +75,7 @@ export function PendingChanges({ projectId, onClose }: PendingChangesProps) {
   });
 
   const getUserInitials = (name: string) => {
-    const parts = name.split(' ');
+    const parts = name.split(" ");
     if (parts.length >= 2) {
       return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
     }
@@ -68,34 +84,39 @@ export function PendingChanges({ projectId, onClose }: PendingChangesProps) {
 
   const getChangeTypeLabel = (type: string) => {
     switch (type) {
-      case 'insert':
-        return 'Addition';
-      case 'delete':
-        return 'Deletion';
-      case 'replace':
-        return 'Replacement';
-      case 'format':
-        return 'Formatting';
+      case "insert":
+        return "Addition";
+      case "delete":
+        return "Deletion";
+      case "replace":
+        return "Replacement";
+      case "format":
+        return "Formatting";
       default:
         return type;
     }
   };
 
-  const getChangeTypeBadgeVariant = (type: string): "default" | "secondary" | "destructive" | "outline" => {
+  const getChangeTypeBadgeVariant = (
+    type: string,
+  ): "default" | "secondary" | "destructive" | "outline" => {
     switch (type) {
-      case 'insert':
-        return 'default';
-      case 'delete':
-        return 'destructive';
-      case 'replace':
-        return 'secondary';
+      case "insert":
+        return "default";
+      case "delete":
+        return "destructive";
+      case "replace":
+        return "secondary";
       default:
-        return 'outline';
+        return "outline";
     }
   };
 
   return (
-    <div className="fixed right-0 top-0 h-full w-96 bg-card border-l border-border shadow-lg z-50 flex flex-col" data-testid="pending-changes-sidebar">
+    <div
+      className="fixed right-0 top-0 h-full w-96 bg-card border-l border-border shadow-lg z-50 flex flex-col"
+      data-testid="pending-changes-sidebar"
+    >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center gap-2">
@@ -116,7 +137,7 @@ export function PendingChanges({ projectId, onClose }: PendingChangesProps) {
       <div className="flex-1 overflow-y-auto p-4">
         {isLoading ? (
           <div className="space-y-4">
-            {[1, 2].map(i => (
+            {[1, 2].map((i) => (
               <div key={i} className="animate-pulse rounded-lg border p-4">
                 <div className="h-4 bg-muted rounded w-3/4 mb-2" />
                 <div className="h-16 bg-muted rounded mb-2" />
@@ -126,7 +147,7 @@ export function PendingChanges({ projectId, onClose }: PendingChangesProps) {
           </div>
         ) : data?.changes && data.changes.length > 0 ? (
           <div className="space-y-4">
-            {data.changes.map(change => (
+            {data.changes.map((change) => (
               <div
                 key={change.id}
                 className="rounded-lg border border-border p-4"
@@ -134,7 +155,10 @@ export function PendingChanges({ projectId, onClose }: PendingChangesProps) {
               >
                 <div className="flex items-start gap-3 mb-3">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={change.userAvatar} alt={change.userName} />
+                    <AvatarImage
+                      src={change.userAvatar}
+                      alt={change.userName}
+                    />
                     <AvatarFallback className="text-xs">
                       {getUserInitials(change.userName)}
                     </AvatarFallback>
@@ -142,33 +166,50 @@ export function PendingChanges({ projectId, onClose }: PendingChangesProps) {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium text-sm">{change.userName}</span>
-                      <Badge variant={getChangeTypeBadgeVariant(change.changeType)} className="text-xs">
+                      <span className="font-medium text-sm">
+                        {change.userName}
+                      </span>
+                      <Badge
+                        variant={getChangeTypeBadgeVariant(change.changeType)}
+                        className="text-xs"
+                      >
                         {getChangeTypeLabel(change.changeType)}
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {formatDistanceToNow(new Date(change.createdAt), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(change.createdAt), {
+                        addSuffix: true,
+                      })}
                     </p>
                   </div>
                 </div>
 
                 {change.description && (
-                  <p className="text-sm text-muted-foreground mb-3">{change.description}</p>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {change.description}
+                  </p>
                 )}
 
                 <div className="space-y-2 mb-3">
                   {change.originalContent && (
                     <div className="p-2 bg-destructive/10 border border-destructive/20 rounded text-sm">
-                      <span className="text-xs text-destructive font-medium">Original:</span>
-                      <p className="mt-1 line-clamp-2">{change.originalContent}</p>
+                      <span className="text-xs text-destructive font-medium">
+                        Original:
+                      </span>
+                      <p className="mt-1 line-clamp-2">
+                        {change.originalContent}
+                      </p>
                     </div>
                   )}
 
                   {change.proposedContent && (
                     <div className="p-2 bg-green-500/10 border border-green-500/20 rounded text-sm">
-                      <span className="text-xs text-green-600 dark:text-green-400 font-medium">Proposed:</span>
-                      <p className="mt-1 line-clamp-2">{change.proposedContent}</p>
+                      <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                        Proposed:
+                      </span>
+                      <p className="mt-1 line-clamp-2">
+                        {change.proposedContent}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -178,7 +219,12 @@ export function PendingChanges({ projectId, onClose }: PendingChangesProps) {
                     variant="default"
                     size="sm"
                     className="flex-1"
-                    onClick={() => reviewChangeMutation.mutate({ changeId: change.id, action: 'approve' })}
+                    onClick={() =>
+                      reviewChangeMutation.mutate({
+                        changeId: change.id,
+                        action: "approve",
+                      })
+                    }
                     disabled={reviewChangeMutation.isPending}
                     data-testid={`button-approve-${change.id}`}
                   >
@@ -189,7 +235,12 @@ export function PendingChanges({ projectId, onClose }: PendingChangesProps) {
                     variant="outline"
                     size="sm"
                     className="flex-1"
-                    onClick={() => reviewChangeMutation.mutate({ changeId: change.id, action: 'reject' })}
+                    onClick={() =>
+                      reviewChangeMutation.mutate({
+                        changeId: change.id,
+                        action: "reject",
+                      })
+                    }
                     disabled={reviewChangeMutation.isPending}
                     data-testid={`button-reject-${change.id}`}
                   >

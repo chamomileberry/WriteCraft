@@ -1,15 +1,22 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Button } from '@/components/ui/button';
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Bell, X, CheckCircle2, AlertCircle, AlertTriangle, Info } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
+} from "@/components/ui/dropdown-menu";
+import {
+  Bell,
+  X,
+  CheckCircle2,
+  AlertCircle,
+  AlertTriangle,
+  Info,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { formatDistanceToNow } from "date-fns";
 
 interface BillingAlert {
   id: string;
@@ -24,68 +31,96 @@ interface BillingAlert {
 }
 
 const severityConfig = {
-  low: { icon: Info, color: 'text-blue-500', bgColor: 'bg-blue-50 dark:bg-blue-950' },
-  medium: { icon: AlertTriangle, color: 'text-yellow-500', bgColor: 'bg-yellow-50 dark:bg-yellow-950' },
-  high: { icon: AlertCircle, color: 'text-orange-500', bgColor: 'bg-orange-50 dark:bg-orange-950' },
-  critical: { icon: AlertCircle, color: 'text-destructive', bgColor: 'bg-destructive/10' },
+  low: {
+    icon: Info,
+    color: "text-blue-500",
+    bgColor: "bg-blue-50 dark:bg-blue-950",
+  },
+  medium: {
+    icon: AlertTriangle,
+    color: "text-yellow-500",
+    bgColor: "bg-yellow-50 dark:bg-yellow-950",
+  },
+  high: {
+    icon: AlertCircle,
+    color: "text-orange-500",
+    bgColor: "bg-orange-50 dark:bg-orange-950",
+  },
+  critical: {
+    icon: AlertCircle,
+    color: "text-destructive",
+    bgColor: "bg-destructive/10",
+  },
 };
 
 export function BillingAlertsDropdown() {
   const { data: alertsData } = useQuery<{ alerts: BillingAlert[] }>({
-    queryKey: ['/api/billing-alerts'],
+    queryKey: ["/api/billing-alerts"],
     refetchInterval: 60000, // Refresh every minute
   });
 
   const { data: countData } = useQuery<{ count: number }>({
-    queryKey: ['/api/billing-alerts/unread-count'],
+    queryKey: ["/api/billing-alerts/unread-count"],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   const markAsReadMutation = useMutation({
-    mutationFn: (alertId: string) => apiRequest('PATCH', `/api/billing-alerts/${alertId}/read`),
+    mutationFn: (alertId: string) =>
+      apiRequest("PATCH", `/api/billing-alerts/${alertId}/read`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/billing-alerts'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/billing-alerts/unread-count'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/billing-alerts"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/billing-alerts/unread-count"],
+      });
     },
   });
 
   const dismissMutation = useMutation({
-    mutationFn: (alertId: string) => apiRequest('PATCH', `/api/billing-alerts/${alertId}/dismiss`),
+    mutationFn: (alertId: string) =>
+      apiRequest("PATCH", `/api/billing-alerts/${alertId}/dismiss`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/billing-alerts'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/billing-alerts/unread-count'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/billing-alerts"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/billing-alerts/unread-count"],
+      });
     },
   });
 
   const alerts = alertsData?.alerts || [];
   const unreadCount = countData?.count || 0;
-  const activeAlerts = alerts.filter(a => a.status !== 'dismissed' && a.status !== 'resolved');
+  const activeAlerts = alerts.filter(
+    (a) => a.status !== "dismissed" && a.status !== "resolved",
+  );
 
   const getSeverityIcon = (severity: string) => {
-    const config = severityConfig[severity as keyof typeof severityConfig] || severityConfig.medium;
+    const config =
+      severityConfig[severity as keyof typeof severityConfig] ||
+      severityConfig.medium;
     const Icon = config.icon;
-    return <Icon className={cn('h-4 w-4', config.color)} />;
+    return <Icon className={cn("h-4 w-4", config.color)} />;
   };
 
   const getSeverityBgColor = (severity: string) => {
-    const config = severityConfig[severity as keyof typeof severityConfig] || severityConfig.medium;
+    const config =
+      severityConfig[severity as keyof typeof severityConfig] ||
+      severityConfig.medium;
     return config.bgColor;
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           className="relative"
           data-testid="button-billing-alerts"
           aria-label="Billing alerts"
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <Badge 
-              variant="destructive" 
+            <Badge
+              variant="destructive"
               className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
               data-testid="badge-unread-count"
             >
@@ -94,10 +129,14 @@ export function BillingAlertsDropdown() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-96 max-h-[500px] overflow-y-auto" data-testid="dropdown-billing-alerts">
+      <DropdownMenuContent
+        align="end"
+        className="w-96 max-h-[500px] overflow-y-auto"
+        data-testid="dropdown-billing-alerts"
+      >
         <div className="p-4">
           <h3 className="font-semibold mb-3">Billing Alerts</h3>
-          
+
           {activeAlerts.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Bell className="h-12 w-12 mx-auto mb-2 opacity-50" />
@@ -109,9 +148,11 @@ export function BillingAlertsDropdown() {
                 <div
                   key={alert.id}
                   className={cn(
-                    'p-3 rounded-lg border',
+                    "p-3 rounded-lg border",
                     getSeverityBgColor(alert.severity),
-                    alert.status === 'unread' ? 'border-primary' : 'border-border'
+                    alert.status === "unread"
+                      ? "border-primary"
+                      : "border-border",
                   )}
                   data-testid={`alert-${alert.id}`}
                 >
@@ -122,14 +163,22 @@ export function BillingAlertsDropdown() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1">
-                          <p className="font-medium text-sm" data-testid={`text-alert-title-${alert.id}`}>
+                          <p
+                            className="font-medium text-sm"
+                            data-testid={`text-alert-title-${alert.id}`}
+                          >
                             {alert.title}
                           </p>
-                          <p className="text-xs text-muted-foreground mt-1" data-testid={`text-alert-message-${alert.id}`}>
+                          <p
+                            className="text-xs text-muted-foreground mt-1"
+                            data-testid={`text-alert-message-${alert.id}`}
+                          >
                             {alert.message}
                           </p>
                           <p className="text-xs text-muted-foreground mt-2">
-                            {formatDistanceToNow(new Date(alert.createdAt), { addSuffix: true })}
+                            {formatDistanceToNow(new Date(alert.createdAt), {
+                              addSuffix: true,
+                            })}
                           </p>
                         </div>
                         <Button
@@ -143,7 +192,7 @@ export function BillingAlertsDropdown() {
                           <X className="h-3 w-3" />
                         </Button>
                       </div>
-                      {alert.status === 'unread' && (
+                      {alert.status === "unread" && (
                         <Button
                           variant="ghost"
                           size="sm"

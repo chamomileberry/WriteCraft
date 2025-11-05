@@ -1,13 +1,17 @@
-import { memo } from 'react';
-import { NodeProps, Handle, Position } from '@xyflow/react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { 
-  Edit, 
-  Trash2, 
+import { memo } from "react";
+import { NodeProps, Handle, Position } from "@xyflow/react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Edit,
+  Trash2,
   Plus,
   Calendar,
   Sparkles,
@@ -18,11 +22,11 @@ import {
   Users,
   Zap,
   Star,
-  AlertCircle
-} from 'lucide-react';
-import * as LucideIcons from 'lucide-react';
-import type { TimelineEvent, Character } from '@shared/schema';
-import { getEventTypeIcon, getEventTypeColor } from '@/lib/eventTypeConfig';
+  AlertCircle,
+} from "lucide-react";
+import * as LucideIcons from "lucide-react";
+import type { TimelineEvent, Character } from "@shared/schema";
+import { getEventTypeIcon, getEventTypeColor } from "@/lib/eventTypeConfig";
 
 export interface TimelineEventNodeData {
   event: TimelineEvent;
@@ -36,35 +40,41 @@ export interface TimelineEventNodeData {
 
 // Map importance to visual indicators
 const importanceColors: Record<string, string> = {
-  major: 'border-l-4 border-l-primary',
-  moderate: 'border-l-2 border-l-secondary',
-  minor: 'border-l border-l-muted-foreground',
+  major: "border-l-4 border-l-primary",
+  moderate: "border-l-2 border-l-secondary",
+  minor: "border-l border-l-muted-foreground",
 };
 
 function TimelineEventNodeComponent({ data }: NodeProps) {
-  const { event, characters = [], onEdit, onDelete, onAddRelationship } = data as unknown as TimelineEventNodeData;
-  
+  const {
+    event,
+    characters = [],
+    onEdit,
+    onDelete,
+    onAddRelationship,
+  } = data as unknown as TimelineEventNodeData;
+
   // Get the icon - use custom icon if available, otherwise fall back to event type icon
-  const EventIcon = event.icon 
+  const EventIcon = event.icon
     ? (LucideIcons as any)[event.icon] || getEventTypeIcon(event.eventType)
     : getEventTypeIcon(event.eventType);
-  
+
   // Get the color - use custom color if available, otherwise fall back to event type color
   const eventColor = event.color || getEventTypeColor(event.eventType);
-  
+
   // Get importance styling
-  const importanceClass = importanceColors[event.importance || 'moderate'];
-  
+  const importanceClass = importanceColors[event.importance || "moderate"];
+
   // Format dates
   const formatDate = (date: string | null) => {
-    if (!date) return '';
+    if (!date) return "";
     return date;
   };
 
-  const dateDisplay = event.endDate 
+  const dateDisplay = event.endDate
     ? `${formatDate(event.startDate)} - ${formatDate(event.endDate)}`
     : formatDate(event.startDate);
-  
+
   // Display up to 3 character avatars, with +N indicator for more
   const maxAvatars = 3;
   const displayCharacters = characters.slice(0, maxAvatars);
@@ -72,26 +82,25 @@ function TimelineEventNodeComponent({ data }: NodeProps) {
 
   return (
     <>
-      <Card 
+      <Card
         className={`p-3 w-[220px] min-h-[140px] hover-elevate cursor-move flex flex-col ${importanceClass}`}
         data-testid={`node-event-${event.id}`}
       >
         <div className="flex flex-col gap-2 flex-1">
           {/* Header with icon and title */}
           <div className="flex items-start gap-2">
-            <div 
+            <div
               className="p-1.5 rounded-md flex-shrink-0"
-              style={{ 
+              style={{
                 backgroundColor: `${eventColor}15`, // 15 is ~8% opacity in hex
               }}
             >
-              <EventIcon 
-                className="w-4 h-4" 
-                style={{ color: eventColor }}
-              />
+              <EventIcon className="w-4 h-4" style={{ color: eventColor }} />
             </div>
             <div className="flex-1 min-w-0">
-              <h4 className="font-medium text-sm leading-tight line-clamp-2">{event.title}</h4>
+              <h4 className="font-medium text-sm leading-tight line-clamp-2">
+                {event.title}
+              </h4>
             </div>
           </div>
 
@@ -103,19 +112,31 @@ function TimelineEventNodeComponent({ data }: NodeProps) {
 
           {/* Character Avatars */}
           {characters.length > 0 && (
-            <div className="flex items-center gap-1" data-testid={`characters-${event.id}`}>
+            <div
+              className="flex items-center gap-1"
+              data-testid={`characters-${event.id}`}
+            >
               {displayCharacters.map((character) => {
-                const initials = character.givenName && character.familyName
-                  ? `${character.givenName[0]}${character.familyName[0]}`
-                  : character.givenName?.[0] || character.familyName?.[0] || '?';
-                const fullName = `${character.givenName || ''} ${character.familyName || ''}`.trim();
-                
+                const initials =
+                  character.givenName && character.familyName
+                    ? `${character.givenName[0]}${character.familyName[0]}`
+                    : character.givenName?.[0] ||
+                      character.familyName?.[0] ||
+                      "?";
+                const fullName =
+                  `${character.givenName || ""} ${character.familyName || ""}`.trim();
+
                 return (
                   <Tooltip key={character.id}>
                     <TooltipTrigger asChild>
-                      <Avatar className="h-6 w-6 border-2 border-background" data-testid={`avatar-${character.id}`}>
+                      <Avatar
+                        className="h-6 w-6 border-2 border-background"
+                        data-testid={`avatar-${character.id}`}
+                      >
                         <AvatarImage src={character.imageUrl || undefined} />
-                        <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
+                        <AvatarFallback className="text-[10px]">
+                          {initials}
+                        </AvatarFallback>
                       </Avatar>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="text-xs">
@@ -132,7 +153,8 @@ function TimelineEventNodeComponent({ data }: NodeProps) {
                     </div>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="text-xs">
-                    {remainingCount} more character{remainingCount > 1 ? 's' : ''}
+                    {remainingCount} more character
+                    {remainingCount > 1 ? "s" : ""}
                   </TooltipContent>
                 </Tooltip>
               )}
@@ -160,10 +182,10 @@ function TimelineEventNodeComponent({ data }: NodeProps) {
             )}
           </div>
         </div>
-        
+
         {/* Action buttons */}
         <div className="flex gap-1 w-full justify-center mt-2 pt-2 border-t">
-          <Button 
+          <Button
             size="icon"
             variant="ghost"
             onClick={(e) => {
@@ -177,7 +199,7 @@ function TimelineEventNodeComponent({ data }: NodeProps) {
           >
             <Plus className="w-3.5 h-3.5" />
           </Button>
-          <Button 
+          <Button
             size="icon"
             variant="ghost"
             onClick={(e) => {
@@ -191,7 +213,7 @@ function TimelineEventNodeComponent({ data }: NodeProps) {
           >
             <Edit className="w-3.5 h-3.5" />
           </Button>
-          <Button 
+          <Button
             size="icon"
             variant="ghost"
             onClick={(e) => {
@@ -207,29 +229,29 @@ function TimelineEventNodeComponent({ data }: NodeProps) {
           </Button>
         </div>
       </Card>
-      
+
       {/* Handles for React Flow connections */}
-      <Handle 
-        type="source" 
-        position={Position.Right} 
+      <Handle
+        type="source"
+        position={Position.Right}
         id="right"
         style={{ opacity: 0 }}
       />
-      <Handle 
-        type="target" 
-        position={Position.Left} 
+      <Handle
+        type="target"
+        position={Position.Left}
         id="left"
         style={{ opacity: 0 }}
       />
-      <Handle 
-        type="source" 
-        position={Position.Top} 
+      <Handle
+        type="source"
+        position={Position.Top}
         id="top"
         style={{ opacity: 0 }}
       />
-      <Handle 
-        type="target" 
-        position={Position.Bottom} 
+      <Handle
+        type="target"
+        position={Position.Bottom}
         id="bottom"
         style={{ opacity: 0 }}
       />

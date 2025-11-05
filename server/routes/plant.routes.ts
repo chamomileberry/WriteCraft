@@ -2,7 +2,11 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { insertPlantSchema, updatePlantSchema } from "@shared/schema";
 import { z } from "zod";
-import { aiRateLimiter, writeRateLimiter, readRateLimiter } from "../security/rateLimiters";
+import {
+  aiRateLimiter,
+  writeRateLimiter,
+  readRateLimiter,
+} from "../security/rateLimiters";
 
 const router = Router();
 
@@ -10,39 +14,45 @@ router.post("/generate", aiRateLimiter, async (req: any, res) => {
   try {
     const { genre, type, notebookId } = req.body;
     const userId = req.user.claims.sub;
-    
-    const { generatePlantWithAI } = await import('../ai-generation');
+
+    const { generatePlantWithAI } = await import("../ai-generation");
     const plantData = await generatePlantWithAI({ genre, type });
-    
+
     // Save the generated plant
     const savedPlant = await storage.createPlant({
       ...plantData,
       userId,
-      notebookId: notebookId || null
+      notebookId: notebookId || null,
     });
-    
+
     // Create a saved item entry for the notebook
     if (notebookId) {
       await storage.saveItem({
         userId,
         notebookId,
-        itemType: 'plant',
+        itemType: "plant",
         itemId: savedPlant.id,
-        itemData: savedPlant
+        itemData: savedPlant,
       });
     }
-    
+
     res.json(savedPlant);
   } catch (error) {
-    console.error('Error generating plant:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
-      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
-      return res.status(404).json({ error: 'Not found' });
+    console.error("Error generating plant:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const notebookId =
+        req.query.notebookId || req.body.notebookId || "unknown";
+      console.warn(
+        `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: `Failed to generate plant: ${errorMessage}` });
+    res
+      .status(500)
+      .json({ error: `Failed to generate plant: ${errorMessage}` });
   }
 });
 
@@ -50,25 +60,32 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.body.notebookId;
-    
+
     // Validate notebook ownership before allowing write
     if (notebookId) {
-      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, userId);
+      const ownsNotebook = await storage.validateNotebookOwnership(
+        notebookId,
+        userId,
+      );
       if (!ownsNotebook) {
-        console.warn(`[Security] Unauthorized notebook access attempt - userId: ${userId}, notebookId: ${notebookId}`);
-        return res.status(404).json({ error: 'Notebook not found' });
+        console.warn(
+          `[Security] Unauthorized notebook access attempt - userId: ${userId}, notebookId: ${notebookId}`,
+        );
+        return res.status(404).json({ error: "Notebook not found" });
       }
     }
-    
+
     const validatedPlant = insertPlantSchema.parse(req.body);
     const savedPlant = await storage.createPlant(validatedPlant);
     res.json(savedPlant);
   } catch (error) {
-    console.error('Error saving plant:', error);
+    console.error("Error saving plant:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    res.status(500).json({ error: 'Failed to save plant' });
+    res.status(500).json({ error: "Failed to save plant" });
   }
 });
 
@@ -76,16 +93,18 @@ router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     const plants = await storage.getUserPlants(userId, notebookId);
     res.json(plants);
   } catch (error) {
-    console.error('Error fetching plants:', error);
-    res.status(500).json({ error: 'Failed to fetch plants' });
+    console.error("Error fetching plants:", error);
+    res.status(500).json({ error: "Failed to fetch plants" });
   }
 });
 
@@ -93,19 +112,21 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     const plant = await storage.getPlant(req.params.id, userId, notebookId);
     if (!plant) {
-      return res.status(404).json({ error: 'Plant not found' });
+      return res.status(404).json({ error: "Plant not found" });
     }
     res.json(plant);
   } catch (error) {
-    console.error('Error fetching plant:', error);
-    res.status(500).json({ error: 'Failed to fetch plant' });
+    console.error("Error fetching plant:", error);
+    res.status(500).json({ error: "Failed to fetch plant" });
   }
 });
 
@@ -113,25 +134,38 @@ router.patch("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     const validatedUpdates = updatePlantSchema.parse(req.body);
-    const updatedPlant = await storage.updatePlant(req.params.id, userId, validatedUpdates, notebookId);
+    const updatedPlant = await storage.updatePlant(
+      req.params.id,
+      userId,
+      validatedUpdates,
+      notebookId,
+    );
     res.json(updatedPlant);
   } catch (error) {
-    console.error('Error updating plant:', error);
+    console.error("Error updating plant:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
-      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
-      return res.status(404).json({ error: 'Not found' });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const notebookId =
+        req.query.notebookId || req.body.notebookId || "unknown";
+      console.warn(
+        `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -141,25 +175,38 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     const validatedUpdates = updatePlantSchema.parse(req.body);
-    const updatedPlant = await storage.updatePlant(req.params.id, userId, validatedUpdates, notebookId);
+    const updatedPlant = await storage.updatePlant(
+      req.params.id,
+      userId,
+      validatedUpdates,
+      notebookId,
+    );
     res.json(updatedPlant);
   } catch (error) {
-    console.error('Error updating plant:', error);
+    console.error("Error updating plant:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
-      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
-      return res.status(404).json({ error: 'Not found' });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const notebookId =
+        req.query.notebookId || req.body.notebookId || "unknown";
+      console.warn(
+        `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -169,22 +216,27 @@ router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     await storage.deletePlant(req.params.id, userId, notebookId);
     res.json({ success: true });
   } catch (error) {
-    console.error('Error deleting plant:', error);
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
-      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
-      return res.status(404).json({ error: 'Not found' });
+    console.error("Error deleting plant:", error);
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const notebookId =
+        req.query.notebookId || req.body.notebookId || "unknown";
+      console.warn(
+        `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to delete plant' });
+    res.status(500).json({ error: "Failed to delete plant" });
   }
 });
 
@@ -192,29 +244,35 @@ router.post("/:id/generate-article", aiRateLimiter, async (req: any, res) => {
   try {
     const notebookId = req.query.notebookId as string;
     const userId = req.user.claims.sub;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     // Use centralized secure article generation service
-    const { generateArticleForContent } = await import('../article-generation');
+    const { generateArticleForContent } = await import("../article-generation");
     const updatedPlant = await generateArticleForContent(
-      'plants',
+      "plants",
       req.params.id,
       userId,
-      notebookId
+      notebookId,
     );
-    
+
     res.json(updatedPlant);
   } catch (error) {
-    console.error('Error generating plant article:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
-      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
-      return res.status(404).json({ error: 'Not found' });
+    console.error("Error generating plant article:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const notebookId =
+        req.query.notebookId || req.body.notebookId || "unknown";
+      console.warn(
+        `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
     res.status(500).json({ error: errorMessage });
   }

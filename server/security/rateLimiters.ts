@@ -1,10 +1,10 @@
 /**
  * Centralized Rate Limiting Configuration
- * 
+ *
  * This module provides pre-configured rate limiters for different endpoint types
  * across the WriteCraft platform. All rate limiters use Redis when available for
  * distributed rate limiting, falling back to in-memory storage.
- * 
+ *
  * Rate Limiting Tiers:
  * - Strict: 5-10 req/min - Authentication, MFA, billing, admin operations
  * - Moderate: 30-50 req/min - Database write operations (POST, PATCH, DELETE)
@@ -13,8 +13,8 @@
  * - Generous: 200 req/min - Low-cost operations
  */
 
-import { createRateLimiter } from './middleware';
-import type { RequestHandler } from 'express';
+import { createRateLimiter } from "./middleware";
+import type { RequestHandler } from "express";
 
 // ============================================================================
 // AUTHENTICATION & SECURITY
@@ -39,9 +39,9 @@ export const mfaRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 5,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `mfa:${userId}`;
-  }
+  },
 });
 
 /**
@@ -55,7 +55,7 @@ export const passwordRateLimiter: RequestHandler = createRateLimiter({
   keyGenerator: ((req: any) => {
     const userId = req.user?.claims?.sub;
     return userId ? `password:${userId}` : undefined;
-  }) as any
+  }) as any,
 });
 
 /**
@@ -67,9 +67,9 @@ export const sessionRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 10,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `session:${userId}`;
-  }
+  },
 });
 
 // ============================================================================
@@ -84,9 +84,9 @@ export const writeRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 50,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `write:${userId}`;
-  }
+  },
 });
 
 /**
@@ -97,9 +97,9 @@ export const batchRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 10,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `batch:${userId}`;
-  }
+  },
 });
 
 // ============================================================================
@@ -114,9 +114,9 @@ export const aiRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 10,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `ai:${userId}`;
-  }
+  },
 });
 
 /**
@@ -127,9 +127,9 @@ export const aiChatRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 20,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `ai-chat:${userId}`;
-  }
+  },
 });
 
 /**
@@ -140,9 +140,9 @@ export const importRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 3,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `import:${userId}`;
-  }
+  },
 });
 
 /**
@@ -153,9 +153,9 @@ export const exportRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 5,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `export:${userId}`;
-  }
+  },
 });
 
 /**
@@ -166,9 +166,9 @@ export const imageGenerationRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 5,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `image-gen:${userId}`;
-  }
+  },
 });
 
 /**
@@ -179,9 +179,9 @@ export const imageSearchRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 30,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `image-search:${userId}`;
-  }
+  },
 });
 
 // ============================================================================
@@ -196,9 +196,9 @@ export const readRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 100,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `read:${userId}`;
-  }
+  },
 });
 
 /**
@@ -209,9 +209,9 @@ export const generousRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 200,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `generous:${userId}`;
-  }
+  },
 });
 
 /**
@@ -222,9 +222,9 @@ export const searchRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 30,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `search:${userId}`;
-  }
+  },
 });
 
 // ============================================================================
@@ -239,9 +239,9 @@ export const teamRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 20,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `team:${userId}`;
-  }
+  },
 });
 
 /**
@@ -252,9 +252,9 @@ export const inviteRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 10,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `invite:${userId}`;
-  }
+  },
 });
 
 /**
@@ -265,9 +265,9 @@ export const shareRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 30,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `share:${userId}`;
-  }
+  },
 });
 
 /**
@@ -278,9 +278,9 @@ export const collaborationRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 200,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `collab:${userId}`;
-  }
+  },
 });
 
 // ============================================================================
@@ -295,9 +295,9 @@ export const billingRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 10,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `billing:${userId}`;
-  }
+  },
 });
 
 /**
@@ -308,9 +308,9 @@ export const subscriptionChangeRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 5,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `subscription-change:${userId}`;
-  }
+  },
 });
 
 // ============================================================================
@@ -325,9 +325,9 @@ export const adminRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 30,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `admin:${userId}`;
-  }
+  },
 });
 
 /**
@@ -338,9 +338,9 @@ export const adminDestructiveRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 5,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `admin-destructive:${userId}`;
-  }
+  },
 });
 
 // ============================================================================
@@ -355,9 +355,9 @@ export const profileRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 20,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `profile:${userId}`;
-  }
+  },
 });
 
 /**
@@ -368,9 +368,9 @@ export const userSearchRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 10,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `user-search:${userId}`;
-  }
+  },
 });
 
 /**
@@ -381,9 +381,9 @@ export const accountDeletionRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 2,
   windowMs: 60 * 60 * 1000, // 1 hour window
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `account-deletion:${userId}`;
-  }
+  },
 });
 
 // ============================================================================
@@ -401,7 +401,7 @@ export const feedbackRateLimiter: RequestHandler = createRateLimiter({
   keyGenerator: ((req: any) => {
     const userId = req.user?.claims?.sub;
     return userId ? `feedback:${userId}` : undefined;
-  }) as any
+  }) as any,
 });
 
 /**
@@ -412,9 +412,9 @@ export const analyticsRateLimiter: RequestHandler = createRateLimiter({
   maxRequests: 50,
   windowMs: 60 * 1000,
   keyGenerator: (req: any) => {
-    const userId = req.user?.claims?.sub || 'anonymous';
+    const userId = req.user?.claims?.sub || "anonymous";
     return `analytics:${userId}`;
-  }
+  },
 });
 
 // ============================================================================
@@ -428,15 +428,15 @@ export const analyticsRateLimiter: RequestHandler = createRateLimiter({
 export function createCustomRateLimiter(
   name: string,
   maxRequests: number,
-  windowMs: number = 60 * 1000
+  windowMs: number = 60 * 1000,
 ): RequestHandler {
   return createRateLimiter({
     maxRequests,
     windowMs,
     keyGenerator: (req: any) => {
-      const userId = req.user?.claims?.sub || 'anonymous';
+      const userId = req.user?.claims?.sub || "anonymous";
       return `${name}:${userId}`;
-    }
+    },
   });
 }
 
@@ -449,13 +449,13 @@ export const rateLimiters = {
   mfa: mfaRateLimiter,
   password: passwordRateLimiter,
   session: sessionRateLimiter,
-  
+
   // Database Operations
   write: writeRateLimiter,
   batch: batchRateLimiter,
   read: readRateLimiter,
   search: searchRateLimiter,
-  
+
   // Expensive Operations
   ai: aiRateLimiter,
   aiChat: aiChatRateLimiter,
@@ -463,33 +463,33 @@ export const rateLimiters = {
   export: exportRateLimiter,
   imageGeneration: imageGenerationRateLimiter,
   imageSearch: imageSearchRateLimiter,
-  
+
   // Collaboration & Teams
   team: teamRateLimiter,
   invite: inviteRateLimiter,
   share: shareRateLimiter,
   collaboration: collaborationRateLimiter,
-  
+
   // Billing
   billing: billingRateLimiter,
   subscriptionChange: subscriptionChangeRateLimiter,
-  
+
   // Admin
   admin: adminRateLimiter,
   adminDestructive: adminDestructiveRateLimiter,
-  
+
   // User Operations
   profile: profileRateLimiter,
   userSearch: userSearchRateLimiter,
   accountDeletion: accountDeletionRateLimiter,
-  
+
   // Feedback & Analytics
   feedback: feedbackRateLimiter,
   analytics: analyticsRateLimiter,
-  
+
   // General
   generous: generousRateLimiter,
-  
+
   // Custom
   createCustom: createCustomRateLimiter,
 };

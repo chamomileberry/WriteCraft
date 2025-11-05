@@ -1,38 +1,55 @@
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { 
-  BarChart, 
-  Bar, 
-  LineChart, 
-  Line, 
-  PieChart, 
-  Pie, 
+import { useQuery } from "@tanstack/react-query";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
   Cell,
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer 
-} from 'recharts';
-import { 
-  Users, 
-  Sparkles, 
-  DollarSign, 
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import {
+  Users,
+  Sparkles,
+  DollarSign,
   Activity,
   TrendingUp,
   Calendar,
   Crown,
   Shield,
   Edit,
-  Eye
-} from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useState } from 'react';
+  Eye,
+} from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useState } from "react";
 
-const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
+const COLORS = [
+  "hsl(var(--primary))",
+  "hsl(var(--secondary))",
+  "hsl(var(--accent))",
+  "hsl(var(--muted))",
+];
 
 const ROLE_ICONS = {
   owner: Crown,
@@ -42,7 +59,7 @@ const ROLE_ICONS = {
 };
 
 export default function TeamAnalytics() {
-  const [timeRange, setTimeRange] = useState('30');
+  const [timeRange, setTimeRange] = useState("30");
 
   const { data: analytics, isLoading } = useQuery<{
     summary: {
@@ -72,7 +89,7 @@ export default function TeamAnalytics() {
       joinedAt: string;
     }>;
   }>({
-    queryKey: ['/api/team/analytics', { days: timeRange }],
+    queryKey: ["/api/team/analytics", { days: timeRange }],
     refetchInterval: 60000, // Refresh every minute
   });
 
@@ -101,18 +118,23 @@ export default function TeamAnalytics() {
   // Format operation types for display
   const formatOperationType = (type: string) => {
     return type
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   };
 
   // Calculate team growth trend
-  const avgDailyOperations = dailyUsage.length > 0 
-    ? dailyUsage.reduce((sum, day) => sum + day.operations, 0) / dailyUsage.length 
-    : 0;
+  const avgDailyOperations =
+    dailyUsage.length > 0
+      ? dailyUsage.reduce((sum, day) => sum + day.operations, 0) /
+        dailyUsage.length
+      : 0;
 
   return (
-    <div className="container mx-auto p-6 space-y-6" data-testid="page-team-analytics">
+    <div
+      className="container mx-auto p-6 space-y-6"
+      data-testid="page-team-analytics"
+    >
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -187,9 +209,7 @@ export default function TeamAnalytics() {
             <div className="text-2xl font-bold">
               {(summary.totalTokens / 1000).toFixed(1)}K
             </div>
-            <p className="text-xs text-muted-foreground">
-              Input + output
-            </p>
+            <p className="text-xs text-muted-foreground">Input + output</p>
           </CardContent>
         </Card>
       </div>
@@ -220,21 +240,31 @@ export default function TeamAnalytics() {
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={dailyUsage}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="date" 
+                  <XAxis
+                    dataKey="date"
                     tick={{ fontSize: 12 }}
-                    tickFormatter={(date) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    tickFormatter={(date) =>
+                      new Date(date).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })
+                    }
                   />
                   <YAxis />
-                  <Tooltip 
-                    labelFormatter={(date) => new Date(date).toLocaleDateString()}
-                    formatter={(value: number) => [value.toLocaleString(), 'Operations']}
+                  <Tooltip
+                    labelFormatter={(date) =>
+                      new Date(date).toLocaleDateString()
+                    }
+                    formatter={(value: number) => [
+                      value.toLocaleString(),
+                      "Operations",
+                    ]}
                   />
                   <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="operations" 
-                    stroke="hsl(var(--primary))" 
+                  <Line
+                    type="monotone"
+                    dataKey="operations"
+                    stroke="hsl(var(--primary))"
                     strokeWidth={2}
                     name="AI Operations"
                   />
@@ -254,19 +284,29 @@ export default function TeamAnalytics() {
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={dailyUsage}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="date" 
+                  <XAxis
+                    dataKey="date"
                     tick={{ fontSize: 12 }}
-                    tickFormatter={(date) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    tickFormatter={(date) =>
+                      new Date(date).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })
+                    }
                   />
                   <YAxis />
-                  <Tooltip 
-                    labelFormatter={(date) => new Date(date).toLocaleDateString()}
-                    formatter={(value: number) => [`$${Number(value).toFixed(2)}`, 'Cost']}
+                  <Tooltip
+                    labelFormatter={(date) =>
+                      new Date(date).toLocaleDateString()
+                    }
+                    formatter={(value: number) => [
+                      `$${Number(value).toFixed(2)}`,
+                      "Cost",
+                    ]}
                   />
                   <Legend />
-                  <Bar 
-                    dataKey="costDollars" 
+                  <Bar
+                    dataKey="costDollars"
                     fill="hsl(var(--secondary))"
                     name="Cost (USD)"
                   />
@@ -293,17 +333,25 @@ export default function TeamAnalytics() {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={(entry) => formatOperationType(entry.operationType)}
+                      label={(entry) =>
+                        formatOperationType(entry.operationType)
+                      }
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="count"
                     >
                       {topOperations.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
                       ))}
                     </Pie>
-                    <Tooltip 
-                      formatter={(value: number) => [value.toLocaleString(), 'Count']}
+                    <Tooltip
+                      formatter={(value: number) => [
+                        value.toLocaleString(),
+                        "Count",
+                      ]}
                       labelFormatter={(label) => formatOperationType(label)}
                     />
                   </PieChart>
@@ -321,12 +369,18 @@ export default function TeamAnalytics() {
               <CardContent>
                 <div className="space-y-3">
                   {usageByOperation.map((op, index) => (
-                    <div key={index} className="flex items-center justify-between gap-4">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between gap-4"
+                    >
                       <span className="text-sm flex-1 truncate">
                         {formatOperationType(op.operationType)}
                       </span>
                       <div className="flex items-center gap-2">
-                        <Badge variant="secondary" data-testid={`badge-operation-count-${index}`}>
+                        <Badge
+                          variant="secondary"
+                          data-testid={`badge-operation-count-${index}`}
+                        >
                           {op.count.toLocaleString()}
                         </Badge>
                         <span className="text-xs text-muted-foreground w-16 text-right">
@@ -352,10 +406,11 @@ export default function TeamAnalytics() {
             <CardContent>
               <div className="space-y-4">
                 {memberActivity.map((member) => {
-                  const RoleIcon = ROLE_ICONS[member.role as keyof typeof ROLE_ICONS] || Eye;
+                  const RoleIcon =
+                    ROLE_ICONS[member.role as keyof typeof ROLE_ICONS] || Eye;
                   return (
-                    <div 
-                      key={member.userId} 
+                    <div
+                      key={member.userId}
                       className="flex items-center justify-between p-4 rounded-lg border gap-4"
                       data-testid={`member-activity-${member.userId}`}
                     >
@@ -372,12 +427,20 @@ export default function TeamAnalytics() {
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-right">
-                          <p className="text-sm font-medium">{member.aiOperations}</p>
-                          <p className="text-xs text-muted-foreground">AI ops</p>
+                          <p className="text-sm font-medium">
+                            {member.aiOperations}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            AI ops
+                          </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-medium">{member.activities}</p>
-                          <p className="text-xs text-muted-foreground">Actions</p>
+                          <p className="text-sm font-medium">
+                            {member.activities}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Actions
+                          </p>
                         </div>
                       </div>
                     </div>

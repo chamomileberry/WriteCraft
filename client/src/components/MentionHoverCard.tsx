@@ -1,15 +1,21 @@
-import { useState, useMemo, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useMemo, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
-} from '@/components/ui/hover-card';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { FEATURES } from '@/lib/features-config';
+} from "@/components/ui/hover-card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { FEATURES } from "@/lib/features-config";
 
 interface MentionHoverCardProps {
   contentType: string;
@@ -26,9 +32,13 @@ interface ContentPreview {
   imageUrl?: string;
 }
 
-export default function MentionHoverCard({ contentType, contentId, children }: MentionHoverCardProps) {
+export default function MentionHoverCard({
+  contentType,
+  contentId,
+  children,
+}: MentionHoverCardProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [side, setSide] = useState<'top' | 'bottom'>('top');
+  const [side, setSide] = useState<"top" | "bottom">("top");
   const triggerRef = useRef<HTMLElement | null>(null);
 
   // Detect position when hover card opens to decide if we should show above or below
@@ -37,9 +47,9 @@ export default function MentionHoverCard({ contentType, contentId, children }: M
       const rect = triggerRef.current.getBoundingClientRect();
       // If within 300px of top of viewport, show below; otherwise show above
       if (rect.top < 300) {
-        setSide('bottom');
+        setSide("bottom");
       } else {
-        setSide('top');
+        setSide("top");
       }
     }
     setIsOpen(open);
@@ -47,12 +57,12 @@ export default function MentionHoverCard({ contentType, contentId, children }: M
 
   // For features, get data from client-side config instead of fetching
   const featurePreview = useMemo((): ContentPreview | null => {
-    if (contentType === 'feature') {
-      const feature = FEATURES.find(f => f.id === contentId);
+    if (contentType === "feature") {
+      const feature = FEATURES.find((f) => f.id === contentId);
       if (feature) {
         return {
           id: feature.id,
-          type: 'Feature',
+          type: "Feature",
           title: feature.title,
           subtitle: feature.category,
           description: feature.description,
@@ -62,19 +72,23 @@ export default function MentionHoverCard({ contentType, contentId, children }: M
     return null;
   }, [contentType, contentId]);
 
-  const { data: preview, isLoading, error } = useQuery<ContentPreview>({
-    queryKey: ['/api/content/preview', contentType, contentId],
+  const {
+    data: preview,
+    isLoading,
+    error,
+  } = useQuery<ContentPreview>({
+    queryKey: ["/api/content/preview", contentType, contentId],
     queryFn: async () => {
       const response = await fetch(
         `/api/content/preview?type=${encodeURIComponent(contentType)}&id=${encodeURIComponent(contentId)}`,
-        { credentials: 'include' }
+        { credentials: "include" },
       );
       if (!response.ok) {
-        throw new Error('Failed to fetch preview');
+        throw new Error("Failed to fetch preview");
       }
       return response.json();
     },
-    enabled: isOpen && contentType !== 'feature', // Only fetch when hover card is opened and not a feature
+    enabled: isOpen && contentType !== "feature", // Only fetch when hover card is opened and not a feature
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
@@ -84,12 +98,10 @@ export default function MentionHoverCard({ contentType, contentId, children }: M
   return (
     <HoverCard open={isOpen} onOpenChange={handleOpenChange} openDelay={300}>
       <HoverCardTrigger asChild>
-        <span ref={triggerRef as any}>
-          {children}
-        </span>
+        <span ref={triggerRef as any}>{children}</span>
       </HoverCardTrigger>
-      <HoverCardContent 
-        className="w-80" 
+      <HoverCardContent
+        className="w-80"
         style={{ zIndex: 99999 }}
         side={side}
         align="start"
@@ -120,7 +132,10 @@ export default function MentionHoverCard({ contentType, contentId, children }: M
             <div className="flex items-start gap-3">
               {displayPreview.imageUrl ? (
                 <Avatar className="h-12 w-12">
-                  <AvatarImage src={displayPreview.imageUrl} alt={displayPreview.title} />
+                  <AvatarImage
+                    src={displayPreview.imageUrl}
+                    alt={displayPreview.title}
+                  />
                   <AvatarFallback>
                     {displayPreview.title.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
@@ -132,7 +147,7 @@ export default function MentionHoverCard({ contentType, contentId, children }: M
                   </span>
                 </div>
               )}
-              
+
               <div className="flex-1 min-w-0 space-y-1">
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="text-xs">

@@ -1,5 +1,9 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Users } from "lucide-react";
 
 // Predefined colors for user indicators
@@ -29,9 +33,12 @@ interface PresenceIndicatorsProps {
   currentUserId: string;
 }
 
-export function PresenceIndicators({ activeUsers, currentUserId }: PresenceIndicatorsProps) {
+export function PresenceIndicators({
+  activeUsers,
+  currentUserId,
+}: PresenceIndicatorsProps) {
   // Filter out current user
-  const otherUsers = activeUsers.filter(user => user.id !== currentUserId);
+  const otherUsers = activeUsers.filter((user) => user.id !== currentUserId);
 
   if (otherUsers.length === 0) {
     return null;
@@ -39,20 +46,23 @@ export function PresenceIndicators({ activeUsers, currentUserId }: PresenceIndic
 
   // Assign colors to users based on their ID
   const getUserColor = (userId: string) => {
-    const index = Math.abs(userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)) % USER_COLORS.length;
+    const index =
+      Math.abs(
+        userId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0),
+      ) % USER_COLORS.length;
     return USER_COLORS[index];
   };
 
   const getUserName = (user: ActiveUser) => {
     if (user.firstName || user.lastName) {
-      return `${user.firstName || ''} ${user.lastName || ''}`.trim();
+      return `${user.firstName || ""} ${user.lastName || ""}`.trim();
     }
     return user.email;
   };
 
   const getUserInitials = (user: ActiveUser) => {
     if (user.firstName || user.lastName) {
-      return `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase();
+      return `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase();
     }
     return user.email[0].toUpperCase();
   };
@@ -63,19 +73,22 @@ export function PresenceIndicators({ activeUsers, currentUserId }: PresenceIndic
         <Users className="h-4 w-4" />
         <span>{otherUsers.length + 1} editing</span>
       </div>
-      
+
       <div className="flex items-center -space-x-2">
-        {otherUsers.slice(0, 5).map(user => {
+        {otherUsers.slice(0, 5).map((user) => {
           const colorClass = getUserColor(user.id);
           return (
             <Tooltip key={user.id}>
               <TooltipTrigger asChild>
-                <div 
+                <div
                   className={`relative ring-2 ring-background rounded-full ${colorClass}`}
                   data-testid={`presence-avatar-${user.id}`}
                 >
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.profileImageUrl} alt={getUserName(user)} />
+                    <AvatarImage
+                      src={user.profileImageUrl}
+                      alt={getUserName(user)}
+                    />
                     <AvatarFallback className="text-xs bg-transparent text-white">
                       {getUserInitials(user)}
                     </AvatarFallback>
@@ -88,7 +101,7 @@ export function PresenceIndicators({ activeUsers, currentUserId }: PresenceIndic
             </Tooltip>
           );
         })}
-        
+
         {otherUsers.length > 5 && (
           <Tooltip>
             <TooltipTrigger asChild>
@@ -98,7 +111,7 @@ export function PresenceIndicators({ activeUsers, currentUserId }: PresenceIndic
             </TooltipTrigger>
             <TooltipContent>
               <div className="space-y-1">
-                {otherUsers.slice(5).map(user => (
+                {otherUsers.slice(5).map((user) => (
                   <p key={user.id}>{getUserName(user)}</p>
                 ))}
               </div>

@@ -1,17 +1,23 @@
-import { useEffect, useRef } from 'react';
-import { useMutation, useQueryClient, UseMutationOptions } from '@tanstack/react-query';
-import { apiRequest, ApiError } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/lib/logger';
+import { useEffect, useRef } from "react";
+import {
+  useMutation,
+  useQueryClient,
+  UseMutationOptions,
+} from "@tanstack/react-query";
+import { apiRequest, ApiError } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/lib/logger";
 
-type HttpMethod = 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+type HttpMethod = "POST" | "PUT" | "PATCH" | "DELETE";
 
 interface ApiMutationConfig<TData = any, TVariables = any> {
   method: HttpMethod;
   endpoint: string | ((variables: TVariables) => string);
   successMessage?: string;
   errorMessage?: string;
-  invalidateQueries?: string[] | ((data: TData, variables: TVariables) => string[]);
+  invalidateQueries?:
+    | string[]
+    | ((data: TData, variables: TVariables) => string[]);
   onSuccess?: (data: TData, variables: TVariables) => void;
   onError?: (error: Error, variables: TVariables) => void;
   transformPayload?: (variables: TVariables) => any;
@@ -22,14 +28,17 @@ interface ApiMutationConfig<TData = any, TVariables = any> {
 
 export function useApiMutation<TData = any, TVariables = any>(
   config: ApiMutationConfig<TData, TVariables>,
-  options?: Omit<UseMutationOptions<TData, Error, TVariables>, 'mutationFn' | 'onSuccess' | 'onError'>
+  options?: Omit<
+    UseMutationOptions<TData, Error, TVariables>,
+    "mutationFn" | "onSuccess" | "onError"
+  >,
 ) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const mutation = useMutation<TData, Error, TVariables>({
-    retry: config.retry === true ? 3 : (config.retry || false),
+    retry: config.retry === true ? 3 : config.retry || false,
     retryDelay: config.retryDelay || 1000,
     mutationFn: async (variables: TVariables) => {
       // Abort previous request if still pending
@@ -41,30 +50,35 @@ export function useApiMutation<TData = any, TVariables = any>(
       abortControllerRef.current = new AbortController();
       const signal = abortControllerRef.current.signal;
 
-      const endpoint = typeof config.endpoint === 'function'
-        ? config.endpoint(variables)
-        : config.endpoint;
+      const endpoint =
+        typeof config.endpoint === "function"
+          ? config.endpoint(variables)
+          : config.endpoint;
 
       const payload = config.transformPayload
         ? config.transformPayload(variables)
         : variables;
 
       try {
-        const response = await apiRequest(config.method, endpoint, payload, { signal });
+        const response = await apiRequest(config.method, endpoint, payload, {
+          signal,
+        });
 
         if (config.transformResponse) {
           return config.transformResponse(response);
         }
 
         // Default response handling
-        if (response.headers.get('content-type')?.includes('application/json')) {
+        if (
+          response.headers.get("content-type")?.includes("application/json")
+        ) {
           return response.json() as Promise<TData>;
         }
         return response as TData;
       } catch (error) {
         // Don't throw AbortError to user
-        if (error instanceof Error && error.name === 'AbortError') {
-          throw new Error('Request cancelled');
+        if (error instanceof Error && error.name === "AbortError") {
+          throw new Error("Request cancelled");
         }
         throw error;
       }
@@ -83,8 +97,8 @@ export function useApiMutation<TData = any, TVariables = any>(
         const queriesToInvalidate = Array.isArray(config.invalidateQueries)
           ? config.invalidateQueries
           : config.invalidateQueries(data, variables);
-        
-        queriesToInvalidate.forEach(queryKey => {
+
+        queriesToInvalidate.forEach((queryKey) => {
           queryClient.invalidateQueries({ queryKey: [queryKey] });
         });
       }
@@ -95,8 +109,9 @@ export function useApiMutation<TData = any, TVariables = any>(
     onError: (error: Error, variables: TVariables) => {
       // Enhanced error message based on error type
       let errorTitle = "Error";
-      let errorDescription = config.errorMessage || "Operation failed. Please try again.";
-      
+      let errorDescription =
+        config.errorMessage || "Operation failed. Please try again.";
+
       // Parse API error response for better messages
       if (error instanceof ApiError) {
         // Handle different HTTP status codes
@@ -111,7 +126,8 @@ export function useApiMutation<TData = any, TVariables = any>(
             break;
           case 403:
             errorTitle = "Forbidden";
-            errorDescription = "You don't have permission to perform this action.";
+            errorDescription =
+              "You don't have permission to perform this action.";
             break;
           case 404:
             errorTitle = "Not Found";
@@ -119,7 +135,8 @@ export function useApiMutation<TData = any, TVariables = any>(
             break;
           case 409:
             errorTitle = "Conflict";
-            errorDescription = "This item already exists or conflicts with existing data.";
+            errorDescription =
+              "This item already exists or conflicts with existing data.";
             break;
           case 422:
             errorTitle = "Validation Error";
@@ -131,26 +148,32 @@ export function useApiMutation<TData = any, TVariables = any>(
             break;
           case 500:
             errorTitle = "Server Error";
-            errorDescription = "Something went wrong on our end. Please try again later.";
+            errorDescription =
+              "Something went wrong on our end. Please try again later.";
             break;
           case 503:
             errorTitle = "Service Unavailable";
-            errorDescription = "The service is temporarily unavailable. Please try again later.";
+            errorDescription =
+              "The service is temporarily unavailable. Please try again later.";
             break;
         }
       }
-      
+
       // Handle network errors
-      if (error.message.includes('fetch') || error.message.includes('network')) {
+      if (
+        error.message.includes("fetch") ||
+        error.message.includes("network")
+      ) {
         errorTitle = "Network Error";
-        errorDescription = "Please check your internet connection and try again.";
+        errorDescription =
+          "Please check your internet connection and try again.";
       }
-      
+
       // Use custom error message if provided
       if (config.errorMessage) {
         errorDescription = config.errorMessage;
       }
-      
+
       // Show error toast with enhanced messaging
       toast({
         title: errorTitle,
@@ -162,9 +185,12 @@ export function useApiMutation<TData = any, TVariables = any>(
       config.onError?.(error, variables);
 
       // Log error for debugging with more context
-      logger.error('API Mutation Error:', {
+      logger.error("API Mutation Error:", {
         error,
-        endpoint: typeof config.endpoint === 'function' ? config.endpoint(variables) : config.endpoint,
+        endpoint:
+          typeof config.endpoint === "function"
+            ? config.endpoint(variables)
+            : config.endpoint,
         method: config.method,
         variables,
       });
@@ -187,10 +213,10 @@ export function useApiMutation<TData = any, TVariables = any>(
 // Convenience hooks for common patterns
 export function useCreateMutation<TData = any, TVariables = any>(
   endpoint: string,
-  config?: Partial<ApiMutationConfig<TData, TVariables>>
+  config?: Partial<ApiMutationConfig<TData, TVariables>>,
 ) {
   return useApiMutation({
-    method: 'POST',
+    method: "POST",
     endpoint,
     successMessage: "Item created successfully!",
     errorMessage: "Failed to create item. Please try again.",
@@ -200,10 +226,10 @@ export function useCreateMutation<TData = any, TVariables = any>(
 
 export function useUpdateMutation<TData = any, TVariables = any>(
   endpoint: string | ((variables: TVariables) => string),
-  config?: Partial<ApiMutationConfig<TData, TVariables>>
+  config?: Partial<ApiMutationConfig<TData, TVariables>>,
 ) {
   return useApiMutation({
-    method: 'PUT',
+    method: "PUT",
     endpoint,
     successMessage: "Item updated successfully!",
     errorMessage: "Failed to update item. Please try again.",
@@ -213,10 +239,10 @@ export function useUpdateMutation<TData = any, TVariables = any>(
 
 export function useDeleteMutation<TVariables = any>(
   endpoint: string | ((variables: TVariables) => string),
-  config?: Partial<ApiMutationConfig<any, TVariables>>
+  config?: Partial<ApiMutationConfig<any, TVariables>>,
 ) {
   return useApiMutation({
-    method: 'DELETE',
+    method: "DELETE",
     endpoint,
     successMessage: "Item deleted successfully!",
     errorMessage: "Failed to delete item. Please try again.",
@@ -225,25 +251,25 @@ export function useDeleteMutation<TVariables = any>(
 }
 
 export function useSaveMutation<TData = any, TVariables = any>(
-  endpoint: string = '/api/saved-items',
-  config?: Partial<ApiMutationConfig<TData, TVariables>>
+  endpoint: string = "/api/saved-items",
+  config?: Partial<ApiMutationConfig<TData, TVariables>>,
 ) {
   return useApiMutation({
-    method: 'POST',
+    method: "POST",
     endpoint,
     successMessage: "Item saved to your collection!",
     errorMessage: "Failed to save item. Please try again.",
-    invalidateQueries: ['/api/saved-items'],
+    invalidateQueries: ["/api/saved-items"],
     ...config,
   });
 }
 
 export function useGenerateMutation<TData = any, TVariables = any>(
   endpoint: string,
-  config?: Partial<ApiMutationConfig<TData, TVariables>>
+  config?: Partial<ApiMutationConfig<TData, TVariables>>,
 ) {
   return useApiMutation({
-    method: 'POST',
+    method: "POST",
     endpoint,
     errorMessage: "Failed to generate content. Please try again.",
     ...config,

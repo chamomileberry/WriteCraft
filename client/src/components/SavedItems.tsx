@@ -1,14 +1,40 @@
 // Version: 2025-10-27-fix-apiRequest-params v2
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Search, Edit, Trash2, Copy, Package, BookOpen, Lightbulb, Plus, ChevronDown, ChevronRight, FileText, AlertCircle, PanelLeft, Map as MapIcon } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Search,
+  Edit,
+  Trash2,
+  Copy,
+  Package,
+  BookOpen,
+  Lightbulb,
+  Plus,
+  ChevronDown,
+  ChevronRight,
+  FileText,
+  AlertCircle,
+  PanelLeft,
+  Map as MapIcon,
+} from "lucide-react";
 import { CONTENT_TYPE_ICONS } from "@/config/content-types";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -27,37 +53,37 @@ import { Link } from "wouter";
 // Helper function to get display name for different content types
 const getDisplayName = (item: SavedItem, actualItemData?: any): string => {
   // For quick notes (handle both itemType and contentType for compatibility)
-  if (item.itemType === 'quickNote' || item.contentType === 'quickNote') {
-    return item.itemData?.title || item.title || 'Quick Note';
+  if (item.itemType === "quickNote" || item.contentType === "quickNote") {
+    return item.itemData?.title || item.title || "Quick Note";
   }
 
   // For characters, ALWAYS prefer fresh fetched data over stale itemData
   // This ensures names update immediately after character edits
-  if (item.itemType === 'character') {
+  if (item.itemType === "character") {
     const dataSource = actualItemData || item.itemData;
     if (dataSource) {
-      const givenName = dataSource.givenName || '';
-      const familyName = dataSource.familyName || '';
-      const fullName = [givenName, familyName].filter(Boolean).join(' ').trim();
-      return fullName || dataSource.name || 'Untitled Character';
+      const givenName = dataSource.givenName || "";
+      const familyName = dataSource.familyName || "";
+      const fullName = [givenName, familyName].filter(Boolean).join(" ").trim();
+      return fullName || dataSource.name || "Untitled Character";
     }
-    return 'Untitled Character';
+    return "Untitled Character";
   }
 
   // For other types, use itemData if available, otherwise use actualItemData
   const dataSource = item.itemData || actualItemData;
 
-  if (item.itemType === 'profession') {
-    return dataSource?.name || 'Untitled';
+  if (item.itemType === "profession") {
+    return dataSource?.name || "Untitled";
   }
 
-  return dataSource?.name || 'Untitled';
+  return dataSource?.name || "Untitled";
 };
 
 // Helper function to get image URL from item data
 const getImageUrl = (item: SavedItem, actualItemData?: any): string | null => {
   // For characters, prefer fresh fetched data to ensure consistency
-  if (item.itemType === 'character') {
+  if (item.itemType === "character") {
     const dataSource = actualItemData || item.itemData;
     return dataSource?.imageUrl || null;
   }
@@ -67,10 +93,18 @@ const getImageUrl = (item: SavedItem, actualItemData?: any): string | null => {
 };
 
 // Helper function to get description from item data
-const getDescription = (item: SavedItem, actualItemData?: any): string | null => {
+const getDescription = (
+  item: SavedItem,
+  actualItemData?: any,
+): string | null => {
   const dataSource = actualItemData || item.itemData;
   // Try different common description fields
-  return dataSource?.description || dataSource?.backstory || dataSource?.content || null;
+  return (
+    dataSource?.description ||
+    dataSource?.backstory ||
+    dataSource?.content ||
+    null
+  );
 };
 
 interface SavedItem {
@@ -93,14 +127,50 @@ interface SavedItem {
 // Content type categories for filtering
 const CONTENT_CATEGORIES: { [key: string]: string[] } = {
   "Quick Notes": ["quickNote"],
-  "People": ["character", "ethnicity", "culture", "profession", "role", "title"],
-  "Places": ["location", "settlement", "building", "geography", "territory", "district", "city", "country"],
-  "Groups": ["organization", "society", "faction", "militaryunit"],
-  "Life": ["species", "creature", "animal", "plant"],
-  "Items": ["item", "weapon", "armor", "accessory", "clothing", "food", "drink", "material", "resource"],
-  "Knowledge": ["document", "language", "religion", "myth", "legend", "tradition", "ritual", "deity"],
-  "Story": ["plot", "conflict", "theme", "mood", "prompt", "event", "timeline"],
-  "World": ["condition", "naturallaw", "technology", "spell", "transportation", "cuisine", "familytree"]
+  People: ["character", "ethnicity", "culture", "profession", "role", "title"],
+  Places: [
+    "location",
+    "settlement",
+    "building",
+    "geography",
+    "territory",
+    "district",
+    "city",
+    "country",
+  ],
+  Groups: ["organization", "society", "faction", "militaryunit"],
+  Life: ["species", "creature", "animal", "plant"],
+  Items: [
+    "item",
+    "weapon",
+    "armor",
+    "accessory",
+    "clothing",
+    "food",
+    "drink",
+    "material",
+    "resource",
+  ],
+  Knowledge: [
+    "document",
+    "language",
+    "religion",
+    "myth",
+    "legend",
+    "tradition",
+    "ritual",
+    "deity",
+  ],
+  Story: ["plot", "conflict", "theme", "mood", "prompt", "event", "timeline"],
+  World: [
+    "condition",
+    "naturallaw",
+    "technology",
+    "spell",
+    "transportation",
+    "cuisine",
+    "familytree",
+  ],
 };
 
 interface SavedItemsProps {
@@ -109,90 +179,139 @@ interface SavedItemsProps {
   onNotebookPopoverOpenChange?: (open: boolean) => void;
 }
 
-export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNotebookPopoverOpenChange }: SavedItemsProps = {}) {
+export default function SavedItems({
+  onCreateNew,
+  notebookPopoverOpen,
+  onNotebookPopoverOpenChange,
+}: SavedItemsProps = {}) {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isContentModalOpen, setIsContentModalOpen] = useState(false);
-  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
-  const [fetchedItemData, setFetchedItemData] = useState<{ [key: string]: any }>({});
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
+    new Set(),
+  );
+  const [fetchedItemData, setFetchedItemData] = useState<{
+    [key: string]: any;
+  }>({});
   const fetchedItemsRef = useRef<Set<string>>(new Set());
   const isMobile = useIsMobile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const { activeNotebookId, getActiveNotebook, setActiveNotebook, notebooks, setNotebooks } = useNotebookStore();
+  const {
+    activeNotebookId,
+    getActiveNotebook,
+    setActiveNotebook,
+    notebooks,
+    setNotebooks,
+  } = useNotebookStore();
   const { openQuickNote } = useWorkspaceStore();
 
   // Fetch notebooks to ensure we have a list
   const { data: fetchedNotebooks, error: notebooksError } = useQuery({
-    queryKey: ['/api/notebooks'],
+    queryKey: ["/api/notebooks"],
     queryFn: async () => {
-      console.log('[SavedItems] Fetching notebooks list');
+      console.log("[SavedItems] Fetching notebooks list");
       try {
-        const response = await apiRequest('GET', '/api/notebooks');
-        console.log('[SavedItems] Notebooks response:', response.status, response.statusText);
+        const response = await apiRequest("GET", "/api/notebooks");
+        console.log(
+          "[SavedItems] Notebooks response:",
+          response.status,
+          response.statusText,
+        );
         const notebooks = await response.json();
-        console.log('[SavedItems] Fetched notebooks:', notebooks);
+        console.log("[SavedItems] Fetched notebooks:", notebooks);
         return notebooks;
       } catch (error) {
-        console.error('[SavedItems] Error fetching notebooks:', error);
+        console.error("[SavedItems] Error fetching notebooks:", error);
         throw error;
       }
-    }
+    },
   });
-  
+
   // Log notebook fetch errors
   if (notebooksError) {
-    console.error('[SavedItems] Notebooks query error:', notebooksError);
+    console.error("[SavedItems] Notebooks query error:", notebooksError);
   }
 
   // Initialize notebooks in store and select first one if none is active
   useEffect(() => {
     if (fetchedNotebooks && fetchedNotebooks.length > 0) {
-      console.log('[SavedItems] Initializing notebooks, current activeNotebookId:', activeNotebookId);
+      console.log(
+        "[SavedItems] Initializing notebooks, current activeNotebookId:",
+        activeNotebookId,
+      );
       setNotebooks(fetchedNotebooks);
 
       // Check if current activeNotebookId is valid
-      const isValidNotebook = fetchedNotebooks.some((nb: any) => nb.id === activeNotebookId);
+      const isValidNotebook = fetchedNotebooks.some(
+        (nb: any) => nb.id === activeNotebookId,
+      );
 
       // If no active notebook or invalid notebook, select the first one
       if (!activeNotebookId || !isValidNotebook) {
-        console.log('[SavedItems] Setting active notebook to first one:', fetchedNotebooks[0].id);
+        console.log(
+          "[SavedItems] Setting active notebook to first one:",
+          fetchedNotebooks[0].id,
+        );
         setActiveNotebook(fetchedNotebooks[0].id);
       }
     }
   }, [fetchedNotebooks, activeNotebookId, setNotebooks, setActiveNotebook]);
 
   // Fetch saved items for the active notebook
-  const { data: savedItems = [], isLoading, error, dataUpdatedAt } = useQuery({
-    queryKey: ['/api/saved-items', user?.id, activeNotebookId], // Include user ID and activeNotebookId in query key
+  const {
+    data: savedItems = [],
+    isLoading,
+    error,
+    dataUpdatedAt,
+  } = useQuery({
+    queryKey: ["/api/saved-items", user?.id, activeNotebookId], // Include user ID and activeNotebookId in query key
     queryFn: async () => {
       if (!activeNotebookId) {
-        console.error('[SavedItems] No active notebook selected');
-        throw new Error('No active notebook selected');
+        console.error("[SavedItems] No active notebook selected");
+        throw new Error("No active notebook selected");
       }
       if (!user?.id) {
-        console.error('[SavedItems] No user authenticated');
-        throw new Error('User not authenticated');
+        console.error("[SavedItems] No user authenticated");
+        throw new Error("User not authenticated");
       }
-      console.log('[SavedItems] Fetching items for notebook:', activeNotebookId);
+      console.log(
+        "[SavedItems] Fetching items for notebook:",
+        activeNotebookId,
+      );
       try {
         // Use notebook-specific endpoint to get fresh data
-        const response = await apiRequest('GET', `/api/saved-items/notebook/${activeNotebookId}`);
-        console.log('[SavedItems] Saved items response:', response.status, response.statusText);
+        const response = await apiRequest(
+          "GET",
+          `/api/saved-items/notebook/${activeNotebookId}`,
+        );
+        console.log(
+          "[SavedItems] Saved items response:",
+          response.status,
+          response.statusText,
+        );
         if (!response.ok) {
           const text = await response.text();
-          console.error('[SavedItems] Failed response body:', text.substring(0, 200));
+          console.error(
+            "[SavedItems] Failed response body:",
+            text.substring(0, 200),
+          );
           throw new Error(`Failed to fetch saved items: ${response.status}`);
         }
-        const data = await response.json() as SavedItem[];
-        console.log('[SavedItems] Fetched', data.length, 'items for notebook', activeNotebookId);
+        const data = (await response.json()) as SavedItem[];
+        console.log(
+          "[SavedItems] Fetched",
+          data.length,
+          "items for notebook",
+          activeNotebookId,
+        );
         return data;
       } catch (error) {
-        console.error('[SavedItems] Error fetching saved items:', error);
+        console.error("[SavedItems] Error fetching saved items:", error);
         throw error;
       }
     },
@@ -201,16 +320,16 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
     staleTime: 0, // Always consider data stale
     refetchOnMount: true, // Refetch when component mounts
     refetchOnWindowFocus: true, // Refetch when user returns to tab
-    refetchInterval: 60000 // Poll every 60 seconds to catch imports (reduced frequency for better performance)
+    refetchInterval: 60000, // Poll every 60 seconds to catch imports (reduced frequency for better performance)
   });
 
   // Fetch quick note separately
   const { data: quickNote } = useQuery({
-    queryKey: ['/api/quick-note', 'guest'],
+    queryKey: ["/api/quick-note", "guest"],
     queryFn: async () => {
       try {
         const response = await fetch(`/api/quick-note?userId=guest`, {
-          credentials: 'include'
+          credentials: "include",
         });
         if (response.status === 404) {
           return null;
@@ -234,7 +353,7 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
   const fetchMissingItemData = async (items: SavedItem[]) => {
     // Only fetch item data if itemData is missing
     // Trust the itemData that's already stored in saved_items table
-    const missingDataItems = items.filter(item => {
+    const missingDataItems = items.filter((item) => {
       const itemKey = item.itemId || item.id;
       // Only fetch if itemData is missing and we haven't already fetched it
       return !item.itemData && itemKey && !fetchedItemsRef.current.has(itemKey);
@@ -250,46 +369,49 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
       fetchedItemsRef.current.add(itemKey);
 
       try {
-        let endpoint = '';
+        let endpoint = "";
         const notebookIdParam = item.notebookId || activeNotebookId;
-        
+
         // Map content types to their API endpoints
         const endpointMap: { [key: string]: string } = {
-          'character': `/api/characters/${item.itemId}?notebookId=${notebookIdParam}`,
-          'profession': `/api/professions/${item.itemId}?notebookId=${notebookIdParam}`,
-          'species': `/api/species/${item.itemId}?notebookId=${notebookIdParam}`,
-          'location': `/api/locations/${item.itemId}?notebookId=${notebookIdParam}`,
-          'settlement': `/api/settlements/${item.itemId}?notebookId=${notebookIdParam}`,
-          'organization': `/api/organizations/${item.itemId}?notebookId=${notebookIdParam}`,
-          'ethnicity': `/api/ethnicities/${item.itemId}?notebookId=${notebookIdParam}`,
-          'item': `/api/items/${item.itemId}?notebookId=${notebookIdParam}`,
-          'document': `/api/documents/${item.itemId}?notebookId=${notebookIdParam}`,
-          'language': `/api/languages/${item.itemId}?notebookId=${notebookIdParam}`,
-          'building': `/api/buildings/${item.itemId}?notebookId=${notebookIdParam}`,
-          'material': `/api/materials/${item.itemId}?notebookId=${notebookIdParam}`,
-          'transportation': `/api/transportation/${item.itemId}?notebookId=${notebookIdParam}`,
-          'rank': `/api/ranks/${item.itemId}?notebookId=${notebookIdParam}`,
-          'condition': `/api/conditions/${item.itemId}?notebookId=${notebookIdParam}`,
-          'ritual': `/api/rituals/${item.itemId}?notebookId=${notebookIdParam}`,
-          'law': `/api/laws/${item.itemId}?notebookId=${notebookIdParam}`
+          character: `/api/characters/${item.itemId}?notebookId=${notebookIdParam}`,
+          profession: `/api/professions/${item.itemId}?notebookId=${notebookIdParam}`,
+          species: `/api/species/${item.itemId}?notebookId=${notebookIdParam}`,
+          location: `/api/locations/${item.itemId}?notebookId=${notebookIdParam}`,
+          settlement: `/api/settlements/${item.itemId}?notebookId=${notebookIdParam}`,
+          organization: `/api/organizations/${item.itemId}?notebookId=${notebookIdParam}`,
+          ethnicity: `/api/ethnicities/${item.itemId}?notebookId=${notebookIdParam}`,
+          item: `/api/items/${item.itemId}?notebookId=${notebookIdParam}`,
+          document: `/api/documents/${item.itemId}?notebookId=${notebookIdParam}`,
+          language: `/api/languages/${item.itemId}?notebookId=${notebookIdParam}`,
+          building: `/api/buildings/${item.itemId}?notebookId=${notebookIdParam}`,
+          material: `/api/materials/${item.itemId}?notebookId=${notebookIdParam}`,
+          transportation: `/api/transportation/${item.itemId}?notebookId=${notebookIdParam}`,
+          rank: `/api/ranks/${item.itemId}?notebookId=${notebookIdParam}`,
+          condition: `/api/conditions/${item.itemId}?notebookId=${notebookIdParam}`,
+          ritual: `/api/rituals/${item.itemId}?notebookId=${notebookIdParam}`,
+          law: `/api/laws/${item.itemId}?notebookId=${notebookIdParam}`,
         };
-        
-        endpoint = endpointMap[item.itemType || ''] || '';
+
+        endpoint = endpointMap[item.itemType || ""] || "";
 
         if (endpoint) {
-          const response = await apiRequest('GET', endpoint);
+          const response = await apiRequest("GET", endpoint);
           if (response.ok) {
             const data = await response.json();
-            newFetchedData[item.itemId || ''] = data;
+            newFetchedData[item.itemId || ""] = data;
           }
         }
       } catch (error) {
-        console.warn(`Failed to fetch data for ${item.itemType} ${item.itemId}:`, error);
+        console.warn(
+          `Failed to fetch data for ${item.itemType} ${item.itemId}:`,
+          error,
+        );
       }
     }
 
     if (Object.keys(newFetchedData).length > 0) {
-      setFetchedItemData(prev => ({ ...prev, ...newFetchedData }));
+      setFetchedItemData((prev) => ({ ...prev, ...newFetchedData }));
     }
   };
 
@@ -319,34 +441,43 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
     mutationFn: async (item: SavedItem) => {
       // Include notebookId to prevent cross-notebook deletions
       const body = {
-        itemType: item.itemType || item.contentType || '',
+        itemType: item.itemType || item.contentType || "",
         itemId: item.itemId || item.contentId || item.id,
-        notebookId: item.notebookId || activeNotebookId
+        notebookId: item.notebookId || activeNotebookId,
       };
 
-      console.log('[SavedItems] Deleting item:', {
+      console.log("[SavedItems] Deleting item:", {
         itemFromState: item,
-        deleteBody: body
+        deleteBody: body,
       });
 
-      const response = await apiRequest('DELETE', '/api/saved-items', body);
+      const response = await apiRequest("DELETE", "/api/saved-items", body);
       const result = await response.json();
-      console.log('[SavedItems] Delete response:', result);
+      console.log("[SavedItems] Delete response:", result);
       return result;
     },
     onMutate: async (deletedItem) => {
       if (!user?.id) return;
 
       // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['/api/saved-items', user.id, activeNotebookId] });
+      await queryClient.cancelQueries({
+        queryKey: ["/api/saved-items", user.id, activeNotebookId],
+      });
 
       // Snapshot the previous value
-      const previousItems = queryClient.getQueryData(['/api/saved-items', user.id, activeNotebookId]);
+      const previousItems = queryClient.getQueryData([
+        "/api/saved-items",
+        user.id,
+        activeNotebookId,
+      ]);
 
       // Optimistically update to remove the item
-      queryClient.setQueryData(['/api/saved-items', user.id, activeNotebookId], (old: SavedItem[] = []) => {
-        return old.filter(item => item.id !== deletedItem.id);
-      });
+      queryClient.setQueryData(
+        ["/api/saved-items", user.id, activeNotebookId],
+        (old: SavedItem[] = []) => {
+          return old.filter((item) => item.id !== deletedItem.id);
+        },
+      );
 
       // Return context with the previous value
       return { previousItems };
@@ -362,7 +493,10 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
 
       // Rollback to previous value on error
       if (context?.previousItems) {
-        queryClient.setQueryData(['/api/saved-items', user.id, activeNotebookId], context.previousItems);
+        queryClient.setQueryData(
+          ["/api/saved-items", user.id, activeNotebookId],
+          context.previousItems,
+        );
       }
       toast({
         title: "Error",
@@ -374,9 +508,9 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
       if (!user?.id) return;
 
       // Force a fresh refetch (not from cache) to ensure we get the updated list
-      queryClient.refetchQueries({ 
-        queryKey: ['/api/saved-items', user.id, activeNotebookId],
-        type: 'active'
+      queryClient.refetchQueries({
+        queryKey: ["/api/saved-items", user.id, activeNotebookId],
+        type: "active",
       });
     },
   });
@@ -386,13 +520,13 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
   };
 
   const handleCopy = async (item: SavedItem) => {
-    let content = '';
-    if (item.itemType === 'quickNote' || item.contentType === 'quickNote') {
-      const title = item.itemData?.title || item.title || 'Quick Note';
-      const noteContent = item.itemData?.content || item.content || '';
+    let content = "";
+    if (item.itemType === "quickNote" || item.contentType === "quickNote") {
+      const title = item.itemData?.title || item.title || "Quick Note";
+      const noteContent = item.itemData?.content || item.content || "";
       content = `${title}\n\n${noteContent}`;
     } else {
-      const id = item.itemId || item.contentId || '';
+      const id = item.itemId || item.contentId || "";
       content = `${getDisplayName(item, fetchedItemData[id])}\n\n${JSON.stringify(item.itemData || fetchedItemData[id], null, 2)}`;
     }
     await navigator.clipboard.writeText(content);
@@ -404,28 +538,28 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
 
   const handleEdit = (item: SavedItem) => {
     // Open Quick Note panel for editing
-    if (item.itemType === 'quickNote' || item.contentType === 'quickNote') {
+    if (item.itemType === "quickNote" || item.contentType === "quickNote") {
       // Pass the saved item ID and the itemData for the quick note panel to load
       const noteId = item.id; // Use saved item ID as noteId
-      const savedNoteData = item.itemData || { 
-        title: item.title || 'Quick Note', 
-        content: item.content || '',
-        notebookId: item.notebookId // Include notebook ID for dropdown
+      const savedNoteData = item.itemData || {
+        title: item.title || "Quick Note",
+        content: item.content || "",
+        notebookId: item.notebookId, // Include notebook ID for dropdown
       };
-      
+
       // Use workspace store to open quick note with saved data in metadata
       const { openQuickNote } = useWorkspaceStore.getState();
       openQuickNote(noteId, savedNoteData);
       return;
     }
 
-    const type = item.itemType || item.contentType || '';
-    const id = item.itemId || item.contentId || '';
+    const type = item.itemType || item.contentType || "";
+    const id = item.itemId || item.contentId || "";
     const mapping = getMappingById(type);
 
     // Include notebookId query parameter for API endpoints that require it
     const notebookIdParam = item.notebookId || activeNotebookId;
-    const queryParam = notebookIdParam ? `?notebookId=${notebookIdParam}` : '';
+    const queryParam = notebookIdParam ? `?notebookId=${notebookIdParam}` : "";
 
     if (mapping) {
       setLocation(`/${mapping.urlSegment}/${id}/edit${queryParam}`);
@@ -438,7 +572,9 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
   const handleContentTypeSelect = (contentTypeId: string) => {
     const mapping = getMappingById(contentTypeId);
     if (mapping) {
-      const notebookParam = activeNotebookId ? `?notebookId=${activeNotebookId}` : '';
+      const notebookParam = activeNotebookId
+        ? `?notebookId=${activeNotebookId}`
+        : "";
       // Navigate to editor route (not direct content route) to allow auto-creation logic
       setLocation(`/editor/${mapping.urlSegment}/new${notebookParam}`);
     }
@@ -456,19 +592,28 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
   };
 
   // Filter all items (saved items + quick note)
-  const filteredItems = allItems.filter(item => {
-    const type = item.contentType || item.itemType || 'unknown';
-    const displayName = getDisplayName(item, fetchedItemData[item.itemId || item.contentId || '']);
-    const matchesSearch = !searchQuery || 
-      (displayName.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (type.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (getCategoryForType(type)?.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredItems = allItems.filter((item) => {
+    const type = item.contentType || item.itemType || "unknown";
+    const displayName = getDisplayName(
+      item,
+      fetchedItemData[item.itemId || item.contentId || ""],
+    );
+    const matchesSearch =
+      !searchQuery ||
+      displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      getCategoryForType(type)
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase());
 
-    const matchesTab = activeTab === "all" || 
-      (activeTab === "recent" && new Date(item.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
+    const matchesTab =
+      activeTab === "all" ||
+      (activeTab === "recent" &&
+        new Date(item.createdAt) >
+          new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
 
-    const matchesCategory = !selectedCategory || 
-      (CONTENT_CATEGORIES[selectedCategory]?.includes(type));
+    const matchesCategory =
+      !selectedCategory || CONTENT_CATEGORIES[selectedCategory]?.includes(type);
 
     const matchesType = !selectedType || type === selectedType;
 
@@ -476,12 +621,15 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
   });
 
   // Group items by type for better organization
-  const groupedItems = filteredItems.reduce((acc, item) => {
-    const type = item.contentType || item.itemType || 'unknown';
-    if (!acc[type]) acc[type] = [];
-    acc[type].push(item);
-    return acc;
-  }, {} as Record<string, SavedItem[]>);
+  const groupedItems = filteredItems.reduce(
+    (acc, item) => {
+      const type = item.contentType || item.itemType || "unknown";
+      if (!acc[type]) acc[type] = [];
+      acc[type].push(item);
+      return acc;
+    },
+    {} as Record<string, SavedItem[]>,
+  );
 
   if (isLoading) {
     return (
@@ -526,16 +674,23 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
             <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
               <BookOpen className="h-10 w-10 text-primary" />
             </div>
-            <h2 className="text-2xl font-semibold mb-3">Create Your First Notebook</h2>
+            <h2 className="text-2xl font-semibold mb-3">
+              Create Your First Notebook
+            </h2>
             <p className="text-muted-foreground mb-6 max-w-md">
-              Notebooks help you organize your worldbuilding content. Create one for each story, setting, or creative project to keep your characters, locations, and ideas neatly organized.
+              Notebooks help you organize your worldbuilding content. Create one
+              for each story, setting, or creative project to keep your
+              characters, locations, and ideas neatly organized.
             </p>
             <div className="w-full max-w-md">
               <NotebookSwitcher showActiveInfo={false} />
             </div>
             <p className="text-sm text-muted-foreground mt-6 flex items-center gap-2 justify-center">
               <Lightbulb className="h-4 w-4" />
-              <span><strong>Tip:</strong> You can switch between notebooks anytime to work on different projects.</span>
+              <span>
+                <strong>Tip:</strong> You can switch between notebooks anytime
+                to work on different projects.
+              </span>
             </p>
           </CardContent>
         </Card>
@@ -556,16 +711,20 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
 
   // Calculate statistics
   const totalItems = allItems.length;
-  const recentItems = allItems.filter(item => 
-    new Date(item.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  const recentItems = allItems.filter(
+    (item) =>
+      new Date(item.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
   ).length;
-  const categoryStats = Object.keys(CONTENT_CATEGORIES).reduce((acc, category) => {
-    acc[category] = allItems.filter(item => {
-      const type = item.contentType || item.itemType || '';
-      return CONTENT_CATEGORIES[category].includes(type);
-    }).length;
-    return acc;
-  }, {} as Record<string, number>);
+  const categoryStats = Object.keys(CONTENT_CATEGORIES).reduce(
+    (acc, category) => {
+      acc[category] = allItems.filter((item) => {
+        const type = item.contentType || item.itemType || "";
+        return CONTENT_CATEGORIES[category].includes(type);
+      }).length;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
 
   const activeNotebook = getActiveNotebook();
 
@@ -633,7 +792,7 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
             </div>
             <div className="flex items-center gap-2">
               <Button
-                onClick={() => setLocation('/maps')}
+                onClick={() => setLocation("/maps")}
                 variant="default"
                 className="flex items-center gap-2"
                 data-testid="button-open-map-studio"
@@ -643,450 +802,572 @@ export default function SavedItems({ onCreateNew, notebookPopoverOpen, onNoteboo
               </Button>
             </div>
           </div>
-      {/* Notebook Switcher */}
-      <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-        <NotebookSwitcher 
-          showActiveInfo={true} 
-          showHeader={false}
-          isPopoverOpen={notebookPopoverOpen}
-          onPopoverOpenChange={onNotebookPopoverOpenChange}
-        />
-        {!activeNotebookId && (
-          <div className="text-sm text-muted-foreground">
-            💡 Create or select a notebook to organize your content by world or project.
-          </div>
-        )}
-      </div>
-
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="all" data-testid="tab-all-items">
-            All Items ({filteredItems.length})
-          </TabsTrigger>
-          <TabsTrigger value="recent" data-testid="tab-recent-items">
-            Recent ({filteredItems.filter(item => new Date(item.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length})
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Search and Filters - moved below tabs for quick access */}
-        <div className="space-y-4 mt-4">
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder="Search your content by name, type, or category..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-                data-testid="input-search-content"
-              />
-            </div>
-            <Button 
-              variant="outline"
-              onClick={() => {
-                queryClient.invalidateQueries({ queryKey: ['/api/saved-items', user?.id, activeNotebookId] });
-                toast({
-                  title: "Refreshing...",
-                  description: "Reloading notebook content",
-                });
-              }}
-              className="gap-2"
-            >
-              <Search className="w-4 h-4" />
-              Refresh
-            </Button>
-            <Button 
-              onClick={() => setIsContentModalOpen(true)}
-              className="gap-2"
-              data-testid="button-create-new-content"
-            >
-              <Plus className="w-4 h-4" />
-              Create New Content
-            </Button>
-            {activeNotebookId && (
-              <Button 
-                variant="outline"
-                onClick={() => setLocation('/notebook/consolidate')}
-                className="gap-2"
-                data-testid="button-consolidate-characters"
-              >
-                <AlertCircle className="w-4 h-4" />
-                Data Issues
-              </Button>
+          {/* Notebook Switcher */}
+          <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+            <NotebookSwitcher
+              showActiveInfo={true}
+              showHeader={false}
+              isPopoverOpen={notebookPopoverOpen}
+              onPopoverOpenChange={onNotebookPopoverOpenChange}
+            />
+            {!activeNotebookId && (
+              <div className="text-sm text-muted-foreground">
+                💡 Create or select a notebook to organize your content by world
+                or project.
+              </div>
             )}
           </div>
 
-          {/* Category Filter Buttons */}
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant={selectedCategory === null ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedCategory(null)}
-              data-testid="filter-all-categories"
-            >
-              All Categories ({totalItems})
-            </Button>
-            {Object.entries(CONTENT_CATEGORIES).map(([category, types]) => {
-              const count = categoryStats[category] || 0;
-              return (
-                <Button
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(category)}
-                  disabled={count === 0}
-                  data-testid={`filter-category-${category.toLowerCase()}`}
-                >
-                  {category} ({count})
-                </Button>
-              );
-            })}
-          </div>
-        </div>
-
-        <TabsContent value="all" className="space-y-6">
-          {Object.keys(groupedItems).length === 0 ? (
-            <div className="text-center py-12">
-              <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
-                <Package className="w-12 h-12 text-muted-foreground" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">
-                {activeNotebook ? `No saved content in "${activeNotebook.name}"` : 'No saved content'}
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                {activeNotebook 
-                  ? `Start creating and saving content to "${activeNotebook.name}" to see it here.`
-                  : 'Create a notebook and start saving content to see it here.'
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList>
+              <TabsTrigger value="all" data-testid="tab-all-items">
+                All Items ({filteredItems.length})
+              </TabsTrigger>
+              <TabsTrigger value="recent" data-testid="tab-recent-items">
+                Recent (
+                {
+                  filteredItems.filter(
+                    (item) =>
+                      new Date(item.createdAt) >
+                      new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+                  ).length
                 }
-              </p>
-              <Button onClick={() => onCreateNew?.()} data-testid="button-create-content">
-                Create Content
-              </Button>
-            </div>
-          ) : (
-            Object.entries(groupedItems).map(([type, items]) => {
-              const mapping = getMappingById(type);
-              const IconComponent = CONTENT_TYPE_ICONS[type] || CONTENT_TYPE_ICONS.default;
-              const isCollapsed = collapsedCategories.has(type);
+                )
+              </TabsTrigger>
+            </TabsList>
 
-              const toggleCollapse = () => {
-                setCollapsedCategories(prev => {
-                  const newSet = new Set(Array.from(prev));
-                  if (newSet.has(type)) {
-                    newSet.delete(type);
-                  } else {
-                    newSet.add(type);
-                  }
-                  return newSet;
-                });
-              };
-
-              // Group items by type for better organization
-              const groupedItems = items.reduce((acc, item) => {
-                const type = item.itemType || 'other';
-                if (!acc[type]) {
-                  acc[type] = [];
-                }
-                acc[type].push(item);
-                return acc;
-              }, {} as Record<string, typeof items>);
-
-              const handleItemClick = (item: SavedItem) => {
-                const itemType = item.itemType || item.contentType;
-                if (!itemType) return;
-                const mapping = getMappingById(itemType);
-                if (mapping) {
-                  // Include notebookId query parameter for all content navigation
-                  const itemId = item.itemId || item.contentId;
-                  const url = activeNotebookId 
-                    ? `/${mapping.urlSegment}/${itemId}?notebookId=${activeNotebookId}`
-                    : `/${mapping.urlSegment}/${itemId}`;
-                  setLocation(url);
-                } else {
-                  console.warn(`No mapping found for item type: ${itemType}`);
-                }
-              };
-
-              return (
-                <div key={type} className="space-y-3">
-                  <button 
-                    onClick={toggleCollapse}
-                    className="flex items-center gap-2 hover-elevate rounded-md px-2 py-1 -mx-2 w-full"
-                    data-testid={`toggle-category-${type}`}
-                  >
-                    {isCollapsed ? (
-                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                    )}
-                    <IconComponent className="w-5 h-5 text-primary" />
-                    <h2 className="text-xl font-semibold capitalize">
-                      {mapping?.name || type} ({items.length})
-                    </h2>
-                  </button>
-
-                  {!isCollapsed && (
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    {items.map((item) => {
-                      const imageUrl = getImageUrl(item, fetchedItemData[item.itemId || item.contentId || '']);
-                      return (
-                        <Card key={item.id} className="group hover-elevate relative" data-testid={`card-content-${item.id}`}>
-                          {/* Content type icon - top right corner */}
-                          <div className="absolute top-3 right-3 z-10">
-                            <IconComponent className="w-6 h-6 text-primary" />
-                          </div>
-
-                          <div className="flex gap-4 p-4">
-                            {/* Left side - Image */}
-                            <div className="flex-shrink-0">
-                              {imageUrl ? (
-                                <div className="w-32 h-32 rounded-lg overflow-hidden bg-muted">
-                                  <img
-                                    src={imageUrl}
-                                    alt={getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
-                                    className="w-full h-full object-cover"
-                                    data-testid={`image-content-${item.id}`}
-                                  />
-                                </div>
-                              ) : (
-                                <div className="w-32 h-32 rounded-lg bg-muted flex items-center justify-center">
-                                  <IconComponent className="w-12 h-12 text-muted-foreground" />
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Right side - Content */}
-                            <div className="flex-1 min-w-0 flex flex-col pr-8 pb-12">
-                              <h3 className="text-lg font-semibold line-clamp-1" data-testid={`title-content-${item.id}`}>
-                                {getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
-                              </h3>
-
-                              <span className="text-xs text-muted-foreground mb-2">
-                                Created {new Date(item.createdAt).toLocaleDateString()}
-                              </span>
-
-                              {(() => {
-                                // For quick notes, use content field
-                                if (item.itemType === 'quickNote' || item.contentType === 'quickNote') {
-                                  const content = item.itemData?.content || item.content;
-                                  if (content) {
-                                    return (
-                                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                                        {content}
-                                      </p>
-                                    );
-                                  }
-                                }
-
-                                // For other content types, use displayFields mapping
-                                const descriptionField = mapping?.displayFields?.description;
-                                if (descriptionField) {
-                                  const dataSource = fetchedItemData[item.itemId || ''] || item.itemData;
-                                  const description = dataSource?.[descriptionField];
-                                  if (description) {
-                                    return (
-                                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                                        {description}
-                                      </p>
-                                    );
-                                  }
-                                }
-
-                                return null;
-                              })()}
-
-                              <div className="mt-auto">
-                                <Badge variant="secondary" className="text-xs">
-                                  {mapping?.name || type}
-                                </Badge>
-                              </div>
-
-                              {/* Action buttons - hidden until hover */}
-                              <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleEdit(item)}
-                                  data-testid={`button-edit-${item.id}`}
-                                >
-                                  <Edit className="w-3 h-3" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleCopy(item)}
-                                  data-testid={`button-copy-${item.id}`}
-                                >
-                                  <Copy className="w-3 h-3" />
-                                </Button>
-                                {activeNotebookId && (
-                                  <ContentTypeSwitcherModal
-                                    savedItemId={item.id}
-                                    currentType={item.itemType || item.contentType || 'unknown'}
-                                    notebookId={activeNotebookId}
-                                    userId={user?.id}
-                                    itemName={getDisplayName(item, fetchedItemData[item.id])}
-                                    itemDescription={getDescription(item, fetchedItemData[item.id]) || undefined}
-                                  />
-                                )}
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleUnsave(item)}
-                                  disabled={unsaveMutation.isPending}
-                                  data-testid={`button-delete-${item.id}`}
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </Card>
-                      );
-                  })}
-                  </div>
-                  )}
+            {/* Search and Filters - moved below tabs for quick access */}
+            <div className="space-y-4 mt-4">
+              <div className="flex gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Input
+                    placeholder="Search your content by name, type, or category..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                    data-testid="input-search-content"
+                  />
                 </div>
-              );
-            })
-          )}
-        </TabsContent>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    queryClient.invalidateQueries({
+                      queryKey: [
+                        "/api/saved-items",
+                        user?.id,
+                        activeNotebookId,
+                      ],
+                    });
+                    toast({
+                      title: "Refreshing...",
+                      description: "Reloading notebook content",
+                    });
+                  }}
+                  className="gap-2"
+                >
+                  <Search className="w-4 h-4" />
+                  Refresh
+                </Button>
+                <Button
+                  onClick={() => setIsContentModalOpen(true)}
+                  className="gap-2"
+                  data-testid="button-create-new-content"
+                >
+                  <Plus className="w-4 h-4" />
+                  Create New Content
+                </Button>
+                {activeNotebookId && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setLocation("/notebook/consolidate")}
+                    className="gap-2"
+                    data-testid="button-consolidate-characters"
+                  >
+                    <AlertCircle className="w-4 h-4" />
+                    Data Issues
+                  </Button>
+                )}
+              </div>
 
-        <TabsContent value="recent" className="space-y-4">
-          {filteredItems.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No recent items found.</p>
+              {/* Category Filter Buttons */}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={selectedCategory === null ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(null)}
+                  data-testid="filter-all-categories"
+                >
+                  All Categories ({totalItems})
+                </Button>
+                {Object.entries(CONTENT_CATEGORIES).map(([category, types]) => {
+                  const count = categoryStats[category] || 0;
+                  return (
+                    <Button
+                      key={category}
+                      variant={
+                        selectedCategory === category ? "default" : "outline"
+                      }
+                      size="sm"
+                      onClick={() => setSelectedCategory(category)}
+                      disabled={count === 0}
+                      data-testid={`filter-category-${category.toLowerCase()}`}
+                    >
+                      {category} ({count})
+                    </Button>
+                  );
+                })}
+              </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {filteredItems.slice(0, 12).map((item) => {
-                const type = item.contentType || item.itemType || 'unknown';
-                const mapping = getMappingById(type);
-                const IconComponent = CONTENT_TYPE_ICONS[type] || CONTENT_TYPE_ICONS.default;
-                const imageUrl = getImageUrl(item, fetchedItemData[item.itemId || item.contentId || '']);
 
-                return (
-                  <Card key={item.id} className="group hover-elevate relative" data-testid={`card-recent-${item.id}`}>
-                    {/* Content type icon - top right corner */}
-                    <div className="absolute top-3 right-3 z-10">
-                      <IconComponent className="w-6 h-6 text-primary" />
-                    </div>
+            <TabsContent value="all" className="space-y-6">
+              {Object.keys(groupedItems).length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
+                    <Package className="w-12 h-12 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">
+                    {activeNotebook
+                      ? `No saved content in "${activeNotebook.name}"`
+                      : "No saved content"}
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    {activeNotebook
+                      ? `Start creating and saving content to "${activeNotebook.name}" to see it here.`
+                      : "Create a notebook and start saving content to see it here."}
+                  </p>
+                  <Button
+                    onClick={() => onCreateNew?.()}
+                    data-testid="button-create-content"
+                  >
+                    Create Content
+                  </Button>
+                </div>
+              ) : (
+                Object.entries(groupedItems).map(([type, items]) => {
+                  const mapping = getMappingById(type);
+                  const IconComponent =
+                    CONTENT_TYPE_ICONS[type] || CONTENT_TYPE_ICONS.default;
+                  const isCollapsed = collapsedCategories.has(type);
 
-                    <div className="flex gap-4 p-4">
-                      {/* Left side - Image */}
-                      <div className="flex-shrink-0">
-                        {imageUrl ? (
-                          <div className="w-32 h-32 rounded-lg overflow-hidden bg-muted">
-                            <img
-                              src={imageUrl}
-                              alt={getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
-                              className="w-full h-full object-cover"
-                              data-testid={`image-recent-${item.id}`}
-                            />
-                          </div>
+                  const toggleCollapse = () => {
+                    setCollapsedCategories((prev) => {
+                      const newSet = new Set(Array.from(prev));
+                      if (newSet.has(type)) {
+                        newSet.delete(type);
+                      } else {
+                        newSet.add(type);
+                      }
+                      return newSet;
+                    });
+                  };
+
+                  // Group items by type for better organization
+                  const groupedItems = items.reduce(
+                    (acc, item) => {
+                      const type = item.itemType || "other";
+                      if (!acc[type]) {
+                        acc[type] = [];
+                      }
+                      acc[type].push(item);
+                      return acc;
+                    },
+                    {} as Record<string, typeof items>,
+                  );
+
+                  const handleItemClick = (item: SavedItem) => {
+                    const itemType = item.itemType || item.contentType;
+                    if (!itemType) return;
+                    const mapping = getMappingById(itemType);
+                    if (mapping) {
+                      // Include notebookId query parameter for all content navigation
+                      const itemId = item.itemId || item.contentId;
+                      const url = activeNotebookId
+                        ? `/${mapping.urlSegment}/${itemId}?notebookId=${activeNotebookId}`
+                        : `/${mapping.urlSegment}/${itemId}`;
+                      setLocation(url);
+                    } else {
+                      console.warn(
+                        `No mapping found for item type: ${itemType}`,
+                      );
+                    }
+                  };
+
+                  return (
+                    <div key={type} className="space-y-3">
+                      <button
+                        onClick={toggleCollapse}
+                        className="flex items-center gap-2 hover-elevate rounded-md px-2 py-1 -mx-2 w-full"
+                        data-testid={`toggle-category-${type}`}
+                      >
+                        {isCollapsed ? (
+                          <ChevronRight className="w-5 h-5 text-muted-foreground" />
                         ) : (
-                          <div className="w-32 h-32 rounded-lg bg-muted flex items-center justify-center">
-                            <IconComponent className="w-12 h-12 text-muted-foreground" />
-                          </div>
+                          <ChevronDown className="w-5 h-5 text-muted-foreground" />
                         )}
-                      </div>
+                        <IconComponent className="w-5 h-5 text-primary" />
+                        <h2 className="text-xl font-semibold capitalize">
+                          {mapping?.name || type} ({items.length})
+                        </h2>
+                      </button>
 
-                      {/* Right side - Content */}
-                      <div className="flex-1 min-w-0 flex flex-col pr-8 pb-12">
-                        <h3 className="text-lg font-semibold line-clamp-1" data-testid={`title-recent-${item.id}`}>
-                          {getDisplayName(item, fetchedItemData[item.itemId || item.contentId || ''])}
-                        </h3>
+                      {!isCollapsed && (
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                          {items.map((item) => {
+                            const imageUrl = getImageUrl(
+                              item,
+                              fetchedItemData[
+                                item.itemId || item.contentId || ""
+                              ],
+                            );
+                            return (
+                              <Card
+                                key={item.id}
+                                className="group hover-elevate relative"
+                                data-testid={`card-content-${item.id}`}
+                              >
+                                {/* Content type icon - top right corner */}
+                                <div className="absolute top-3 right-3 z-10">
+                                  <IconComponent className="w-6 h-6 text-primary" />
+                                </div>
 
-                        <span className="text-xs text-muted-foreground mb-2">
-                          Created {new Date(item.createdAt).toLocaleDateString()}
-                        </span>
+                                <div className="flex gap-4 p-4">
+                                  {/* Left side - Image */}
+                                  <div className="flex-shrink-0">
+                                    {imageUrl ? (
+                                      <div className="w-32 h-32 rounded-lg overflow-hidden bg-muted">
+                                        <img
+                                          src={imageUrl}
+                                          alt={getDisplayName(
+                                            item,
+                                            fetchedItemData[
+                                              item.itemId ||
+                                                item.contentId ||
+                                                ""
+                                            ],
+                                          )}
+                                          className="w-full h-full object-cover"
+                                          data-testid={`image-content-${item.id}`}
+                                        />
+                                      </div>
+                                    ) : (
+                                      <div className="w-32 h-32 rounded-lg bg-muted flex items-center justify-center">
+                                        <IconComponent className="w-12 h-12 text-muted-foreground" />
+                                      </div>
+                                    )}
+                                  </div>
 
-                        {(() => {
-                          // For quick notes, use content field
-                          if (item.itemType === 'quickNote' || item.contentType === 'quickNote') {
-                            const content = item.itemData?.content || item.content;
-                            if (content) {
-                              return (
-                                <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                                  {content}
-                                </p>
-                              );
-                            }
-                          }
+                                  {/* Right side - Content */}
+                                  <div className="flex-1 min-w-0 flex flex-col pr-8 pb-12">
+                                    <h3
+                                      className="text-lg font-semibold line-clamp-1"
+                                      data-testid={`title-content-${item.id}`}
+                                    >
+                                      {getDisplayName(
+                                        item,
+                                        fetchedItemData[
+                                          item.itemId || item.contentId || ""
+                                        ],
+                                      )}
+                                    </h3>
 
-                          // For other content types, use displayFields mapping
-                          const descriptionField = mapping?.displayFields?.description;
-                          if (descriptionField) {
-                            const dataSource = fetchedItemData[item.itemId || ''] || item.itemData;
-                            const description = dataSource?.[descriptionField];
-                            if (description) {
-                              return (
-                                <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                                  {description}
-                                </p>
-                              );
-                            }
-                          }
+                                    <span className="text-xs text-muted-foreground mb-2">
+                                      Created{" "}
+                                      {new Date(
+                                        item.createdAt,
+                                      ).toLocaleDateString()}
+                                    </span>
 
-                          return null;
-                        })()}
+                                    {(() => {
+                                      // For quick notes, use content field
+                                      if (
+                                        item.itemType === "quickNote" ||
+                                        item.contentType === "quickNote"
+                                      ) {
+                                        const content =
+                                          item.itemData?.content ||
+                                          item.content;
+                                        if (content) {
+                                          return (
+                                            <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                              {content}
+                                            </p>
+                                          );
+                                        }
+                                      }
 
-                        <div className="mt-auto">
-                          <Badge variant="secondary" className="text-xs">
-                            {mapping?.name || type}
-                          </Badge>
+                                      // For other content types, use displayFields mapping
+                                      const descriptionField =
+                                        mapping?.displayFields?.description;
+                                      if (descriptionField) {
+                                        const dataSource =
+                                          fetchedItemData[item.itemId || ""] ||
+                                          item.itemData;
+                                        const description =
+                                          dataSource?.[descriptionField];
+                                        if (description) {
+                                          return (
+                                            <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                              {description}
+                                            </p>
+                                          );
+                                        }
+                                      }
+
+                                      return null;
+                                    })()}
+
+                                    <div className="mt-auto">
+                                      <Badge
+                                        variant="secondary"
+                                        className="text-xs"
+                                      >
+                                        {mapping?.name || type}
+                                      </Badge>
+                                    </div>
+
+                                    {/* Action buttons - hidden until hover */}
+                                    <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleEdit(item)}
+                                        data-testid={`button-edit-${item.id}`}
+                                      >
+                                        <Edit className="w-3 h-3" />
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleCopy(item)}
+                                        data-testid={`button-copy-${item.id}`}
+                                      >
+                                        <Copy className="w-3 h-3" />
+                                      </Button>
+                                      {activeNotebookId && (
+                                        <ContentTypeSwitcherModal
+                                          savedItemId={item.id}
+                                          currentType={
+                                            item.itemType ||
+                                            item.contentType ||
+                                            "unknown"
+                                          }
+                                          notebookId={activeNotebookId}
+                                          userId={user?.id}
+                                          itemName={getDisplayName(
+                                            item,
+                                            fetchedItemData[item.id],
+                                          )}
+                                          itemDescription={
+                                            getDescription(
+                                              item,
+                                              fetchedItemData[item.id],
+                                            ) || undefined
+                                          }
+                                        />
+                                      )}
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleUnsave(item)}
+                                        disabled={unsaveMutation.isPending}
+                                        data-testid={`button-delete-${item.id}`}
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </Card>
+                            );
+                          })}
                         </div>
-
-                        {/* Action buttons - hidden until hover */}
-                        <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleEdit(item)}
-                            data-testid={`button-edit-recent-${item.id}`}
-                          >
-                            <Edit className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleCopy(item)}
-                            data-testid={`button-copy-recent-${item.id}`}
-                          >
-                            <Copy className="w-3 h-3" />
-                          </Button>
-                          {activeNotebookId && (
-                            <ContentTypeSwitcherModal
-                              savedItemId={item.id}
-                              currentType={item.itemType || item.contentType || 'unknown'}
-                              notebookId={activeNotebookId}
-                              userId={user?.id}
-                              itemName={getDisplayName(item, fetchedItemData[item.id])}
-                              itemDescription={getDescription(item, fetchedItemData[item.id]) || undefined}
-                            />
-                          )}
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleUnsave(item)}
-                            disabled={unsaveMutation.isPending}
-                            data-testid={`button-delete-recent-${item.id}`}
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </div>
+                      )}
                     </div>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+                  );
+                })
+              )}
+            </TabsContent>
 
-          <ContentTypeModal 
+            <TabsContent value="recent" className="space-y-4">
+              {filteredItems.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">
+                    No recent items found.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {filteredItems.slice(0, 12).map((item) => {
+                    const type = item.contentType || item.itemType || "unknown";
+                    const mapping = getMappingById(type);
+                    const IconComponent =
+                      CONTENT_TYPE_ICONS[type] || CONTENT_TYPE_ICONS.default;
+                    const imageUrl = getImageUrl(
+                      item,
+                      fetchedItemData[item.itemId || item.contentId || ""],
+                    );
+
+                    return (
+                      <Card
+                        key={item.id}
+                        className="group hover-elevate relative"
+                        data-testid={`card-recent-${item.id}`}
+                      >
+                        {/* Content type icon - top right corner */}
+                        <div className="absolute top-3 right-3 z-10">
+                          <IconComponent className="w-6 h-6 text-primary" />
+                        </div>
+
+                        <div className="flex gap-4 p-4">
+                          {/* Left side - Image */}
+                          <div className="flex-shrink-0">
+                            {imageUrl ? (
+                              <div className="w-32 h-32 rounded-lg overflow-hidden bg-muted">
+                                <img
+                                  src={imageUrl}
+                                  alt={getDisplayName(
+                                    item,
+                                    fetchedItemData[
+                                      item.itemId || item.contentId || ""
+                                    ],
+                                  )}
+                                  className="w-full h-full object-cover"
+                                  data-testid={`image-recent-${item.id}`}
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-32 h-32 rounded-lg bg-muted flex items-center justify-center">
+                                <IconComponent className="w-12 h-12 text-muted-foreground" />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Right side - Content */}
+                          <div className="flex-1 min-w-0 flex flex-col pr-8 pb-12">
+                            <h3
+                              className="text-lg font-semibold line-clamp-1"
+                              data-testid={`title-recent-${item.id}`}
+                            >
+                              {getDisplayName(
+                                item,
+                                fetchedItemData[
+                                  item.itemId || item.contentId || ""
+                                ],
+                              )}
+                            </h3>
+
+                            <span className="text-xs text-muted-foreground mb-2">
+                              Created{" "}
+                              {new Date(item.createdAt).toLocaleDateString()}
+                            </span>
+
+                            {(() => {
+                              // For quick notes, use content field
+                              if (
+                                item.itemType === "quickNote" ||
+                                item.contentType === "quickNote"
+                              ) {
+                                const content =
+                                  item.itemData?.content || item.content;
+                                if (content) {
+                                  return (
+                                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                      {content}
+                                    </p>
+                                  );
+                                }
+                              }
+
+                              // For other content types, use displayFields mapping
+                              const descriptionField =
+                                mapping?.displayFields?.description;
+                              if (descriptionField) {
+                                const dataSource =
+                                  fetchedItemData[item.itemId || ""] ||
+                                  item.itemData;
+                                const description =
+                                  dataSource?.[descriptionField];
+                                if (description) {
+                                  return (
+                                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                      {description}
+                                    </p>
+                                  );
+                                }
+                              }
+
+                              return null;
+                            })()}
+
+                            <div className="mt-auto">
+                              <Badge variant="secondary" className="text-xs">
+                                {mapping?.name || type}
+                              </Badge>
+                            </div>
+
+                            {/* Action buttons - hidden until hover */}
+                            <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleEdit(item)}
+                                data-testid={`button-edit-recent-${item.id}`}
+                              >
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleCopy(item)}
+                                data-testid={`button-copy-recent-${item.id}`}
+                              >
+                                <Copy className="w-3 h-3" />
+                              </Button>
+                              {activeNotebookId && (
+                                <ContentTypeSwitcherModal
+                                  savedItemId={item.id}
+                                  currentType={
+                                    item.itemType ||
+                                    item.contentType ||
+                                    "unknown"
+                                  }
+                                  notebookId={activeNotebookId}
+                                  userId={user?.id}
+                                  itemName={getDisplayName(
+                                    item,
+                                    fetchedItemData[item.id],
+                                  )}
+                                  itemDescription={
+                                    getDescription(
+                                      item,
+                                      fetchedItemData[item.id],
+                                    ) || undefined
+                                  }
+                                />
+                              )}
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleUnsave(item)}
+                                disabled={unsaveMutation.isPending}
+                                data-testid={`button-delete-recent-${item.id}`}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+
+          <ContentTypeModal
             isOpen={isContentModalOpen}
             onClose={() => setIsContentModalOpen(false)}
             onSelectType={handleContentTypeSelect}

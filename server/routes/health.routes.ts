@@ -9,11 +9,11 @@ const router = Router();
  * Basic health check - returns OK if server is responding
  * Use this for uptime monitoring
  */
-router.get('/', readRateLimiter, (req, res) => {
+router.get("/", readRateLimiter, (req, res) => {
   res.json({
-    status: 'ok',
+    status: "ok",
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
+    environment: process.env.NODE_ENV || "development",
   });
 });
 
@@ -21,21 +21,21 @@ router.get('/', readRateLimiter, (req, res) => {
  * Database health check - verifies database connectivity
  * Use this to detect database issues separately from app issues
  */
-router.get('/db', readRateLimiter, async (req, res) => {
+router.get("/db", readRateLimiter, async (req, res) => {
   try {
     // Simple query to verify database is responding
     await db.execute(sql`SELECT 1 as health_check`);
-    
+
     res.json({
-      status: 'ok',
-      database: 'connected',
+      status: "ok",
+      database: "connected",
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     res.status(503).json({
-      status: 'error',
-      database: 'disconnected',
-      error: error instanceof Error ? error.message : 'Unknown error',
+      status: "error",
+      database: "disconnected",
+      error: error instanceof Error ? error.message : "Unknown error",
       timestamp: new Date().toISOString(),
     });
   }
@@ -45,15 +45,15 @@ router.get('/db', readRateLimiter, async (req, res) => {
  * Detailed health check - requires authentication (admin only)
  * Provides comprehensive system status information
  */
-router.get('/detailed', readRateLimiter, async (req, res) => {
+router.get("/detailed", readRateLimiter, async (req, res) => {
   // Only allow in development or for authenticated admins
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  const isAdmin = req.user && (req.user as any).role === 'admin';
-  
+  const isDevelopment = process.env.NODE_ENV === "development";
+  const isAdmin = req.user && (req.user as any).role === "admin";
+
   if (!isDevelopment && !isAdmin) {
     return res.status(403).json({
-      status: 'error',
-      message: 'Forbidden - Admin access required',
+      status: "error",
+      message: "Forbidden - Admin access required",
     });
   }
 
@@ -68,12 +68,12 @@ router.get('/detailed', readRateLimiter, async (req, res) => {
     const memory = process.memoryUsage();
 
     res.json({
-      status: 'ok',
+      status: "ok",
       timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development',
-      version: process.env.npm_package_version || 'unknown',
+      environment: process.env.NODE_ENV || "development",
+      version: process.env.npm_package_version || "unknown",
       database: {
-        status: 'connected',
+        status: "connected",
         latency: `${dbLatency}ms`,
       },
       system: {
@@ -92,9 +92,9 @@ router.get('/detailed', readRateLimiter, async (req, res) => {
     });
   } catch (error) {
     res.status(503).json({
-      status: 'error',
-      message: 'Health check failed',
-      error: error instanceof Error ? error.message : 'Unknown error',
+      status: "error",
+      message: "Health check failed",
+      error: error instanceof Error ? error.message : "Unknown error",
       timestamp: new Date().toISOString(),
     });
   }

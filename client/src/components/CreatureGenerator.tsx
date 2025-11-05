@@ -1,11 +1,28 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Label } from "@/components/ui/label";
-import { Rabbit, MapPin, Eye, Zap, Heart, Copy, Loader2, Sparkles, Brain, Globe } from "lucide-react";
+import {
+  Rabbit,
+  MapPin,
+  Eye,
+  Zap,
+  Heart,
+  Copy,
+  Loader2,
+  Sparkles,
+  Brain,
+  Globe,
+} from "lucide-react";
 import type { Creature } from "@shared/schema";
 import { GENRE_CATEGORIES, CREATURE_TYPE_CATEGORIES } from "@shared/genres";
 import { useGenerator } from "@/hooks/useGenerator";
@@ -20,17 +37,22 @@ export default function CreatureGenerator() {
   const [selectedCreatureType, setSelectedCreatureType] = useState<string>("");
   const { user } = useAuth();
   const { notebookId, validateNotebook } = useRequireNotebook({
-    errorMessage: 'Please create or select a notebook before generating creatures.'
+    errorMessage:
+      "Please create or select a notebook before generating creatures.",
   });
 
   const generator = useGenerator<Creature>({
-    generateEndpoint: '/api/creatures/generate',
+    generateEndpoint: "/api/creatures/generate",
     getGenerateParams: () => ({
-      genre: selectedGenre && selectedGenre !== "any" ? selectedGenre : undefined,
-      creatureType: selectedCreatureType && selectedCreatureType !== "any" ? selectedCreatureType : undefined,
-      notebookId: notebookId || undefined
+      genre:
+        selectedGenre && selectedGenre !== "any" ? selectedGenre : undefined,
+      creatureType:
+        selectedCreatureType && selectedCreatureType !== "any"
+          ? selectedCreatureType
+          : undefined,
+      notebookId: notebookId || undefined,
     }),
-    itemTypeName: 'creature',
+    itemTypeName: "creature",
     userId: user?.id,
     notebookId: notebookId || undefined,
     validateBeforeGenerate: validateNotebook,
@@ -46,11 +68,11 @@ ${creature.physicalDescription}
 ${creature.behavior}
 
 **Abilities:**
-${creature.abilities.join(', ')}
+${creature.abilities.join(", ")}
 
 **Cultural Significance:**
 ${creature.culturalSignificance}`,
-    invalidateOnSave: [['/api/saved-items']],
+    invalidateOnSave: [["/api/saved-items"]],
   });
 
   const generatedCreature = generator.result;
@@ -58,7 +80,9 @@ ${creature.culturalSignificance}`,
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-serif font-bold mb-4">Creature Generator</h1>
+        <h1 className="text-4xl font-serif font-bold mb-4">
+          Creature Generator
+        </h1>
         <p className="text-muted-foreground text-lg">
           Create fantastical beasts and creatures for your stories
         </p>
@@ -77,7 +101,7 @@ ${creature.culturalSignificance}`,
         </CardHeader>
         <CardContent className="space-y-6">
           <GeneratorNotebookControls />
-          
+
           {/* Genre Selection */}
           <div className="space-y-2">
             <Label>Genre (Optional)</Label>
@@ -114,10 +138,10 @@ ${creature.culturalSignificance}`,
             />
           </div>
 
-          <Button 
-            onClick={generator.generate} 
-            disabled={generator.isGenerating} 
-            className="w-full" 
+          <Button
+            onClick={generator.generate}
+            disabled={generator.isGenerating}
+            className="w-full"
             size="lg"
             data-testid="button-generate-creature"
           >
@@ -166,21 +190,21 @@ ${creature.culturalSignificance}`,
                   onPolished={(polished) => {
                     generator.setResult({
                       ...generatedCreature,
-                      physicalDescription: polished
+                      physicalDescription: polished,
                     });
                   }}
                 />
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={generator.copyToClipboard}
                   data-testid="button-copy-creature"
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={generator.saveToCollection}
                   disabled={generator.isSaving || !generatedCreature?.id}
                   data-testid="button-save-creature"
@@ -236,7 +260,9 @@ ${creature.culturalSignificance}`,
             <Separator />
 
             <div>
-              <h4 className="font-semibold mb-2 text-lg">Cultural Significance</h4>
+              <h4 className="font-semibold mb-2 text-lg">
+                Cultural Significance
+              </h4>
               <p className="text-muted-foreground leading-relaxed">
                 {generatedCreature.culturalSignificance}
               </p>

@@ -1,17 +1,40 @@
-import { Editor } from '@tiptap/react';
-import { useState, useCallback, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
-import { useMobileDetection } from '@/hooks/useMobileDetection';
+import { Editor } from "@tiptap/react";
+import { useState, useCallback, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { useMobileDetection } from "@/hooks/useMobileDetection";
 import {
   Bold,
   Italic,
@@ -53,7 +76,7 @@ import {
   History,
   GitBranch,
   MessageSquare,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface EditorToolbarProps {
   editor: Editor | null;
@@ -83,29 +106,32 @@ function useEditorSelection(editor: Editor | null) {
     }
   }, [editor]);
 
-  const restoreSelectionAndExecute = useCallback((command: () => void) => {
-    if (editor && storedSelection) {
-      // Restore the selection
-      editor.commands.setTextSelection({
-        from: storedSelection.from,
-        to: storedSelection.to,
-      });
-      // Execute the command
-      command();
-      // Clear stored selection
-      setStoredSelection(null);
-    } else if (editor) {
-      // No stored selection, just execute command
-      command();
-    }
-  }, [editor, storedSelection]);
+  const restoreSelectionAndExecute = useCallback(
+    (command: () => void) => {
+      if (editor && storedSelection) {
+        // Restore the selection
+        editor.commands.setTextSelection({
+          from: storedSelection.from,
+          to: storedSelection.to,
+        });
+        // Execute the command
+        command();
+        // Clear stored selection
+        setStoredSelection(null);
+      } else if (editor) {
+        // No stored selection, just execute command
+        command();
+      }
+    },
+    [editor, storedSelection],
+  );
 
   return { preserveSelection, restoreSelectionAndExecute };
 }
 
-export function EditorToolbar({ 
-  editor, 
-  title = 'Untitled',
+export function EditorToolbar({
+  editor,
+  title = "Untitled",
   isFocusMode = false,
   onFocusModeToggle,
   zoomLevel = 1,
@@ -115,39 +141,40 @@ export function EditorToolbar({
   onTogglePresence,
   onToggleActivityLog,
   onToggleVersionHistory,
-  onTogglePendingChanges
+  onTogglePendingChanges,
 }: EditorToolbarProps) {
   const { toast } = useToast();
   const { isMobile } = useMobileDetection();
-  const { preserveSelection, restoreSelectionAndExecute } = useEditorSelection(editor);
-  
+  const { preserveSelection, restoreSelectionAndExecute } =
+    useEditorSelection(editor);
+
   // Dialog states
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
   const [videoDialogOpen, setVideoDialogOpen] = useState(false);
   const [footnoteDialogOpen, setFootnoteDialogOpen] = useState(false);
   const [specialCharDialogOpen, setSpecialCharDialogOpen] = useState(false);
-  
+
   // Input states
-  const [linkUrl, setLinkUrl] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [videoUrl, setVideoUrl] = useState('');
-  const [footnoteText, setFootnoteText] = useState('');
-  const [selectedSpecialChar, setSelectedSpecialChar] = useState('');
+  const [linkUrl, setLinkUrl] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [footnoteText, setFootnoteText] = useState("");
+  const [selectedSpecialChar, setSelectedSpecialChar] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState('');
+  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Stock photo states
-  const [stockSearchQuery, setStockSearchQuery] = useState('');
+  const [stockSearchQuery, setStockSearchQuery] = useState("");
   const [stockImages, setStockImages] = useState<any[]>([]);
   const [searchingStock, setSearchingStock] = useState(false);
-  const [selectedStockImage, setSelectedStockImage] = useState('');
-  
+  const [selectedStockImage, setSelectedStockImage] = useState("");
+
   // AI generation states
-  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiPrompt, setAiPrompt] = useState("");
   const [generatingAI, setGeneratingAI] = useState(false);
-  const [generatedAIImage, setGeneratedAIImage] = useState('');
+  const [generatedAIImage, setGeneratedAIImage] = useState("");
 
   // Toolbar functions
   const toggleBold = () => {
@@ -165,11 +192,11 @@ export function EditorToolbar({
   const handleLinkSubmit = () => {
     if (linkUrl.trim()) {
       editor?.chain().focus().setLink({ href: linkUrl.trim() }).run();
-      setLinkUrl('');
+      setLinkUrl("");
       setLinkDialogOpen(false);
       toast({
         title: "Link added",
-        description: "The link has been successfully inserted."
+        description: "The link has been successfully inserted.",
       });
     }
   };
@@ -187,29 +214,33 @@ export function EditorToolbar({
   };
 
   const toggleHighlight = () => {
-    editor?.chain().focus().toggleHighlight({ color: '#ffff00' }).run();
+    editor?.chain().focus().toggleHighlight({ color: "#ffff00" }).run();
   };
 
-  const setTextAlign = (alignment: 'left' | 'center' | 'right' | 'justify') => {
+  const setTextAlign = (alignment: "left" | "center" | "right" | "justify") => {
     if (!editor) return;
-    
+
     // Check if an image is selected
     const { selection } = editor.state;
     let hasImageSelected = false;
-    
+
     editor.state.doc.descendants((node, pos) => {
       if (hasImageSelected) return false;
-      if (node.type.name === 'image') {
+      if (node.type.name === "image") {
         if (pos >= selection.from - 1 && pos <= selection.to) {
           hasImageSelected = true;
           return false;
         }
       }
     });
-    
+
     // Apply alignment to image or text based on selection
-    if (hasImageSelected && alignment !== 'justify') {
-      editor.chain().focus().setImageAlign(alignment as 'left' | 'center' | 'right').run();
+    if (hasImageSelected && alignment !== "justify") {
+      editor
+        .chain()
+        .focus()
+        .setImageAlign(alignment as "left" | "center" | "right")
+        .run();
     } else {
       editor.chain().focus().setTextAlign(alignment).run();
     }
@@ -228,7 +259,7 @@ export function EditorToolbar({
   };
 
   const setFontFamily = (fontFamily: string) => {
-    if (fontFamily === 'unset') {
+    if (fontFamily === "unset") {
       editor?.chain().focus().unsetFontFamily().run();
     } else {
       editor?.chain().focus().setFontFamily(fontFamily).run();
@@ -239,26 +270,28 @@ export function EditorToolbar({
     const finalImageUrl = imagePreviewUrl || imageUrl.trim();
     if (finalImageUrl) {
       editor?.chain().focus().setImage({ src: finalImageUrl }).run();
-      setImageUrl('');
-      setImagePreviewUrl('');
+      setImageUrl("");
+      setImagePreviewUrl("");
       setImageDialogOpen(false);
       toast({
         title: "Image added",
-        description: "The image has been successfully inserted."
+        description: "The image has been successfully inserted.",
       });
     }
   };
 
-  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const maxFileSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxFileSize) {
       toast({
-        title: 'File too large',
-        description: 'Image must be less than 5MB',
-        variant: 'destructive'
+        title: "File too large",
+        description: "Image must be less than 5MB",
+        variant: "destructive",
       });
       return;
     }
@@ -266,122 +299,123 @@ export function EditorToolbar({
     setUploadingImage(true);
     try {
       // Get presigned upload URL and object path from server
-      const uploadUrlResponse = await fetch('/api/upload/image', {
-        method: 'POST',
-        credentials: 'include',
+      const uploadUrlResponse = await fetch("/api/upload/image", {
+        method: "POST",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       });
 
       if (!uploadUrlResponse.ok) {
-        throw new Error('Failed to get upload URL');
+        throw new Error("Failed to get upload URL");
       }
 
       const { uploadURL, objectPath } = await uploadUrlResponse.json();
 
       // Upload file directly to object storage
       const uploadResponse = await fetch(uploadURL, {
-        method: 'PUT',
+        method: "PUT",
         body: file,
         headers: {
-          'Content-Type': file.type,
-        }
+          "Content-Type": file.type,
+        },
       });
 
       if (!uploadResponse.ok) {
-        throw new Error('Upload failed');
+        throw new Error("Upload failed");
       }
 
       // Finalize upload by setting ACL metadata
-      const finalizeResponse = await fetch('/api/upload/finalize', {
-        method: 'POST',
-        credentials: 'include',
+      const finalizeResponse = await fetch("/api/upload/finalize", {
+        method: "POST",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ objectPath })
+        body: JSON.stringify({ objectPath }),
       });
 
       if (!finalizeResponse.ok) {
-        throw new Error('Failed to finalize upload');
+        throw new Error("Failed to finalize upload");
       }
 
       const { objectPath: finalPath } = await finalizeResponse.json();
 
       setImagePreviewUrl(finalPath);
-      setImageUrl(''); // Clear URL input when file is uploaded
+      setImageUrl(""); // Clear URL input when file is uploaded
 
       toast({
-        title: 'Upload successful',
-        description: 'Your image has been uploaded'
+        title: "Upload successful",
+        description: "Your image has been uploaded",
       });
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error("Upload error:", error);
       toast({
-        title: 'Upload failed',
-        description: 'Failed to upload image. Please try again.',
-        variant: 'destructive'
+        title: "Upload failed",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setUploadingImage(false);
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
 
   const handleRemoveImagePreview = () => {
-    setImagePreviewUrl('');
+    setImagePreviewUrl("");
   };
 
   const handleStockSearch = async () => {
     if (!stockSearchQuery.trim()) {
       toast({
-        title: 'Enter search query',
-        description: 'Please enter keywords to search for stock photos',
-        variant: 'destructive'
+        title: "Enter search query",
+        description: "Please enter keywords to search for stock photos",
+        variant: "destructive",
       });
       return;
     }
 
     // Clear previous results and selection before searching
     setStockImages([]);
-    setSelectedStockImage('');
+    setSelectedStockImage("");
     setSearchingStock(true);
-    
+
     try {
-      const response = await fetch('/api/stock-images/search', {
-        method: 'POST',
-        credentials: 'include',
+      const response = await fetch("/api/stock-images/search", {
+        method: "POST",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           query: stockSearchQuery,
-          limit: 12
-        })
+          limit: 12,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to search stock images');
+        throw new Error("Failed to search stock images");
       }
 
       const data = await response.json();
       setStockImages(data.images || []);
-      
+
       if (data.images?.length === 0) {
         toast({
-          title: 'No results',
-          description: 'No stock photos found for your query. Try different keywords.',
+          title: "No results",
+          description:
+            "No stock photos found for your query. Try different keywords.",
         });
       }
     } catch (error) {
-      console.error('Stock search error:', error);
+      console.error("Stock search error:", error);
       toast({
-        title: 'Search failed',
-        description: 'Failed to search stock photos. Please try again.',
-        variant: 'destructive'
+        title: "Search failed",
+        description: "Failed to search stock photos. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setSearchingStock(false);
@@ -396,12 +430,12 @@ export function EditorToolbar({
     if (selectedStockImage) {
       editor?.chain().focus().setImage({ src: selectedStockImage }).run();
       setImageDialogOpen(false);
-      setStockSearchQuery('');
+      setStockSearchQuery("");
       setStockImages([]);
-      setSelectedStockImage('');
+      setSelectedStockImage("");
       toast({
         title: "Image added",
-        description: "The stock photo has been successfully inserted."
+        description: "The stock photo has been successfully inserted.",
       });
     }
   };
@@ -409,46 +443,47 @@ export function EditorToolbar({
   const handleGenerateAI = async () => {
     if (!aiPrompt.trim()) {
       toast({
-        title: 'Enter prompt',
-        description: 'Please describe the image you want to generate',
-        variant: 'destructive'
+        title: "Enter prompt",
+        description: "Please describe the image you want to generate",
+        variant: "destructive",
       });
       return;
     }
 
     setGeneratingAI(true);
     try {
-      const response = await fetch('/api/ideogram/generate', {
-        method: 'POST',
-        credentials: 'include',
+      const response = await fetch("/api/ideogram/generate", {
+        method: "POST",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           prompt: aiPrompt,
-          quality: 'standard',
-          size: '1024x1024'
-        })
+          quality: "standard",
+          size: "1024x1024",
+        }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to generate image');
+        throw new Error(error.error || "Failed to generate image");
       }
 
       const data = await response.json();
       setGeneratedAIImage(data.imageUrl);
-      
+
       toast({
-        title: 'Image generated',
-        description: 'Your AI-generated image is ready'
+        title: "Image generated",
+        description: "Your AI-generated image is ready",
       });
     } catch (error: any) {
-      console.error('AI generation error:', error);
+      console.error("AI generation error:", error);
       toast({
-        title: 'Generation failed',
-        description: error.message || 'Failed to generate image. Please try again.',
-        variant: 'destructive'
+        title: "Generation failed",
+        description:
+          error.message || "Failed to generate image. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setGeneratingAI(false);
@@ -459,27 +494,31 @@ export function EditorToolbar({
     if (generatedAIImage) {
       editor?.chain().focus().setImage({ src: generatedAIImage }).run();
       setImageDialogOpen(false);
-      setAiPrompt('');
-      setGeneratedAIImage('');
+      setAiPrompt("");
+      setGeneratedAIImage("");
       toast({
         title: "Image added",
-        description: "The AI-generated image has been successfully inserted."
+        description: "The AI-generated image has been successfully inserted.",
       });
     }
   };
 
   const handleVideoSubmit = () => {
     if (videoUrl.trim()) {
-      editor?.chain().focus().setYoutubeVideo({
-        src: videoUrl.trim(),
-        width: 640,
-        height: 480,
-      }).run();
-      setVideoUrl('');
+      editor
+        ?.chain()
+        .focus()
+        .setYoutubeVideo({
+          src: videoUrl.trim(),
+          width: 640,
+          height: 480,
+        })
+        .run();
+      setVideoUrl("");
       setVideoDialogOpen(false);
       toast({
         title: "Video added",
-        description: "The YouTube video has been successfully inserted."
+        description: "The YouTube video has been successfully inserted.",
       });
     }
   };
@@ -491,91 +530,129 @@ export function EditorToolbar({
       const footnote = `<div id="footnote-${footnoteId}" class="footnote" style="border-top: 1px solid #ccc; margin-top: 2rem; padding-top: 1rem; font-size: 0.875rem;"><p><a href="#ref-${footnoteId}">${footnoteId}.</a> ${footnoteText.trim()}</p></div>`;
       editor?.chain().focus().insertContent(footnoteRef).run();
       editor?.commands.insertContentAt(editor.state.doc.content.size, footnote);
-      setFootnoteText('');
+      setFootnoteText("");
       setFootnoteDialogOpen(false);
       toast({
         title: "Footnote added",
-        description: "The footnote has been successfully inserted."
+        description: "The footnote has been successfully inserted.",
       });
     }
   };
 
   const handleSpecialCharSubmit = () => {
     if (selectedSpecialChar.trim()) {
-      const specialChars = ['©', '®', '™', '§', '¶', '†', '‡', '•', '…', '"', '"', "'", "'", '—', '–', '½', '¼', '¾', '±', '×', '÷', '°', 'α', 'β', 'γ', 'δ', 'π', 'Σ', '∞'];
+      const specialChars = [
+        "©",
+        "®",
+        "™",
+        "§",
+        "¶",
+        "†",
+        "‡",
+        "•",
+        "…",
+        '"',
+        '"',
+        "'",
+        "'",
+        "—",
+        "–",
+        "½",
+        "¼",
+        "¾",
+        "±",
+        "×",
+        "÷",
+        "°",
+        "α",
+        "β",
+        "γ",
+        "δ",
+        "π",
+        "Σ",
+        "∞",
+      ];
       const charIndex = parseInt(selectedSpecialChar) - 1;
-      const charToInsert = (!isNaN(charIndex) && specialChars[charIndex]) ? specialChars[charIndex] : selectedSpecialChar;
+      const charToInsert =
+        !isNaN(charIndex) && specialChars[charIndex]
+          ? specialChars[charIndex]
+          : selectedSpecialChar;
       editor?.chain().focus().insertContent(charToInsert).run();
-      setSelectedSpecialChar('');
+      setSelectedSpecialChar("");
       setSpecialCharDialogOpen(false);
       toast({
         title: "Character inserted",
-        description: "The special character has been successfully inserted."
+        description: "The special character has been successfully inserted.",
       });
     }
   };
 
   const handleExport = (option: string) => {
-    const content = editor?.getHTML() || '';
-    const guideTitle = title || 'Untitled';
-    
-    switch(option) {
-      case 'html':
-        const htmlFile = new Blob([content], { type: 'text/html' });
-        const htmlLink = document.createElement('a');
+    const content = editor?.getHTML() || "";
+    const guideTitle = title || "Untitled";
+
+    switch (option) {
+      case "html":
+        const htmlFile = new Blob([content], { type: "text/html" });
+        const htmlLink = document.createElement("a");
         htmlLink.href = URL.createObjectURL(htmlFile);
         htmlLink.download = `${guideTitle}.html`;
         htmlLink.click();
         toast({
           title: "Export complete",
-          description: "Your document has been exported as HTML."
+          description: "Your document has been exported as HTML.",
         });
         break;
-        
-      case 'pdf':
+
+      case "pdf":
         toast({
           title: "PDF Export",
-          description: "Opening print dialog - select 'Save as PDF' to export."
+          description: "Opening print dialog - select 'Save as PDF' to export.",
         });
         setTimeout(() => window.print(), 500);
         break;
-        
-      case 'docx':
+
+      case "docx":
         try {
-          const textContent = editor?.getText() || '';
-          const docxBlob = new Blob([`${guideTitle}\n\n${textContent}`], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-          const docxLink = document.createElement('a');
+          const textContent = editor?.getText() || "";
+          const docxBlob = new Blob([`${guideTitle}\n\n${textContent}`], {
+            type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          });
+          const docxLink = document.createElement("a");
           docxLink.href = URL.createObjectURL(docxBlob);
           docxLink.download = `${guideTitle}.docx`;
           docxLink.click();
           toast({
             title: "Export complete",
-            description: "Your document has been exported as DOCX (text format)."
+            description:
+              "Your document has been exported as DOCX (text format).",
           });
         } catch (error) {
-          const textBlob = new Blob([editor?.getText() || ''], { type: 'text/plain' });
-          const textLink = document.createElement('a');
+          const textBlob = new Blob([editor?.getText() || ""], {
+            type: "text/plain",
+          });
+          const textLink = document.createElement("a");
           textLink.href = URL.createObjectURL(textBlob);
           textLink.download = `${guideTitle}.txt`;
           textLink.click();
           toast({
             title: "Export fallback",
-            description: "Exported as text file instead of DOCX."
+            description: "Exported as text file instead of DOCX.",
           });
         }
         break;
-        
-      case 'email':
+
+      case "email":
         toast({
           title: "Coming soon",
-          description: "Email export feature is in development."
+          description: "Email export feature is in development.",
         });
         break;
-        
-      case 'collaboration':
+
+      case "collaboration":
         toast({
           title: "Coming soon",
-          description: "Collaboration sharing feature is in development."
+          description: "Collaboration sharing feature is in development.",
         });
         break;
     }
@@ -588,7 +665,7 @@ export function EditorToolbar({
         <div className="flex items-center gap-1">
           {/* Essential Tools */}
           <Button
-            variant={editor?.isActive('bold') ? 'default' : 'outline'}
+            variant={editor?.isActive("bold") ? "default" : "outline"}
             size="sm"
             onClick={toggleBold}
             data-testid="button-bold"
@@ -597,7 +674,7 @@ export function EditorToolbar({
             <Bold className="h-4 w-4" />
           </Button>
           <Button
-            variant={editor?.isActive('italic') ? 'default' : 'outline'}
+            variant={editor?.isActive("italic") ? "default" : "outline"}
             size="sm"
             onClick={toggleItalic}
             data-testid="button-italic"
@@ -640,14 +717,17 @@ export function EditorToolbar({
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 max-h-96 overflow-y-auto">
+            <DropdownMenuContent
+              align="end"
+              className="w-56 max-h-96 overflow-y-auto"
+            >
               {/* Text Formatting */}
               <DropdownMenuItem onClick={toggleHighlight}>
                 <Highlighter className="h-4 w-4 mr-2" />
                 Highlight
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              
+
               {/* Headings */}
               <DropdownMenuItem onClick={() => toggleHeading(1)}>
                 <Heading1 className="h-4 w-4 mr-2" />
@@ -674,7 +754,7 @@ export function EditorToolbar({
                 Heading 6
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              
+
               {/* Lists */}
               <DropdownMenuItem onClick={toggleBulletList}>
                 <List className="h-4 w-4 mr-2" />
@@ -685,26 +765,26 @@ export function EditorToolbar({
                 Numbered List
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              
+
               {/* Alignment */}
-              <DropdownMenuItem onClick={() => setTextAlign('left')}>
+              <DropdownMenuItem onClick={() => setTextAlign("left")}>
                 <AlignLeft className="h-4 w-4 mr-2" />
                 Align Left
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTextAlign('center')}>
+              <DropdownMenuItem onClick={() => setTextAlign("center")}>
                 <AlignCenter className="h-4 w-4 mr-2" />
                 Align Center
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTextAlign('right')}>
+              <DropdownMenuItem onClick={() => setTextAlign("right")}>
                 <AlignRight className="h-4 w-4 mr-2" />
                 Align Right
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTextAlign('justify')}>
+              <DropdownMenuItem onClick={() => setTextAlign("justify")}>
                 <AlignJustify className="h-4 w-4 mr-2" />
                 Justify
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              
+
               {/* Links and Media */}
               <DropdownMenuItem onClick={addLink}>
                 <Link className="h-4 w-4 mr-2" />
@@ -718,21 +798,31 @@ export function EditorToolbar({
                 <Video className="h-4 w-4 mr-2" />
                 Insert Video
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {
-                editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
-              }}>
+              <DropdownMenuItem
+                onClick={() => {
+                  editor
+                    ?.chain()
+                    .focus()
+                    .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                    .run();
+                }}
+              >
                 <Table className="h-4 w-4 mr-2" />
                 Insert Table
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {
-                editor?.chain().focus().toggleCodeBlock().run();
-              }}>
+              <DropdownMenuItem
+                onClick={() => {
+                  editor?.chain().focus().toggleCodeBlock().run();
+                }}
+              >
                 <Code className="h-4 w-4 mr-2" />
                 Code Block
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {
-                editor?.chain().focus().setHorizontalRule().run();
-              }}>
+              <DropdownMenuItem
+                onClick={() => {
+                  editor?.chain().focus().setHorizontalRule().run();
+                }}
+              >
                 <Minus className="h-4 w-4 mr-2" />
                 Horizontal Rule
               </DropdownMenuItem>
@@ -745,21 +835,23 @@ export function EditorToolbar({
                 Special Characters
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              
+
               {/* Font Controls */}
               <div className="px-2 py-1.5 space-y-2">
-                <div className="text-sm font-medium text-muted-foreground">Font Size</div>
+                <div className="text-sm font-medium text-muted-foreground">
+                  Font Size
+                </div>
                 <select
                   className="w-full px-2 py-1 text-sm border rounded-md bg-background"
                   onChange={(e) => {
                     const size = e.target.value;
-                    
+
                     // Preserve selection and apply formatting
                     restoreSelectionAndExecute(() => {
                       editor?.chain().focus().setFontSize(size).run();
                     });
                   }}
-                  value={editor?.getAttributes('textStyle').fontSize || '16px'}
+                  value={editor?.getAttributes("textStyle").fontSize || "16px"}
                   data-testid="mobile-select-font-size"
                 >
                   <option value="12px">12px</option>
@@ -774,24 +866,28 @@ export function EditorToolbar({
                   <option value="48px">48px</option>
                 </select>
               </div>
-              
+
               <div className="px-2 py-1.5 space-y-2">
-                <div className="text-sm font-medium text-muted-foreground">Font Family</div>
+                <div className="text-sm font-medium text-muted-foreground">
+                  Font Family
+                </div>
                 <select
                   className="w-full px-2 py-1 text-sm border rounded-md bg-background"
                   onChange={(e) => {
                     const family = e.target.value;
-                    
+
                     // Preserve selection and apply formatting
                     restoreSelectionAndExecute(() => {
-                      if (family === 'unset') {
+                      if (family === "unset") {
                         editor?.chain().focus().unsetFontFamily().run();
                       } else {
                         editor?.chain().focus().setFontFamily(family).run();
                       }
                     });
                   }}
-                  value={editor?.getAttributes('textStyle').fontFamily || 'unset'}
+                  value={
+                    editor?.getAttributes("textStyle").fontFamily || "unset"
+                  }
                   data-testid="mobile-select-font-family"
                 >
                   <option value="unset">Default</option>
@@ -807,51 +903,63 @@ export function EditorToolbar({
                   <option value="Montserrat">Montserrat</option>
                 </select>
               </div>
-              
+
               <div className="px-2 py-1.5 space-y-2">
-                <div className="text-sm font-medium text-muted-foreground">Colors</div>
+                <div className="text-sm font-medium text-muted-foreground">
+                  Colors
+                </div>
                 <div className="flex gap-2">
                   <div className="flex-1">
-                    <label className="block text-xs text-muted-foreground mb-1">Text Color</label>
+                    <label className="block text-xs text-muted-foreground mb-1">
+                      Text Color
+                    </label>
                     <input
                       type="color"
                       className="w-full h-8 border rounded cursor-pointer"
                       onChange={(e) => {
                         const color = e.target.value;
-                        
+
                         // Preserve selection and apply formatting
                         restoreSelectionAndExecute(() => {
                           editor?.chain().focus().setColor(color).run();
                         });
                       }}
-                      value={editor?.getAttributes('textStyle').color || '#000000'}
+                      value={
+                        editor?.getAttributes("textStyle").color || "#000000"
+                      }
                       data-testid="mobile-input-text-color"
                       title="Text Color"
                     />
                   </div>
                   <div className="flex-1">
-                    <label className="block text-xs text-muted-foreground mb-1">Highlight</label>
+                    <label className="block text-xs text-muted-foreground mb-1">
+                      Highlight
+                    </label>
                     <input
                       type="color"
                       className="w-full h-8 border rounded cursor-pointer"
                       onChange={(e) => {
                         const color = e.target.value;
-                        
+
                         // Preserve selection and apply formatting
                         restoreSelectionAndExecute(() => {
                           editor?.chain().focus().setHighlight({ color }).run();
                         });
                       }}
-                      value={editor?.getAttributes('highlight').color || '#ffff00'}
+                      value={
+                        editor?.getAttributes("highlight").color || "#ffff00"
+                      }
                       data-testid="mobile-input-highlight-color"
                       title="Highlight Color"
                     />
                   </div>
                 </div>
               </div>
-              
+
               <div className="px-2 py-1.5 space-y-2">
-                <div className="text-sm font-medium text-muted-foreground">Zoom Level</div>
+                <div className="text-sm font-medium text-muted-foreground">
+                  Zoom Level
+                </div>
                 <select
                   className="w-full px-2 py-1 text-sm border rounded-md bg-background"
                   onChange={(e) => {
@@ -871,7 +979,7 @@ export function EditorToolbar({
                 </select>
               </div>
               <DropdownMenuSeparator />
-              
+
               {/* Utilities */}
               <DropdownMenuItem onClick={() => window.print()}>
                 <Printer className="h-4 w-4 mr-2" />
@@ -879,13 +987,13 @@ export function EditorToolbar({
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onFocusModeToggle?.()}>
                 <FocusIcon className="h-4 w-4 mr-2" />
-                {isFocusMode ? 'Exit Focus Mode' : 'Focus Mode'}
+                {isFocusMode ? "Exit Focus Mode" : "Focus Mode"}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('html')}>
+              <DropdownMenuItem onClick={() => handleExport("html")}>
                 <Download className="h-4 w-4 mr-2" />
                 Export as HTML
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('pdf')}>
+              <DropdownMenuItem onClick={() => handleExport("pdf")}>
                 <Download className="h-4 w-4 mr-2" />
                 Export as PDF
               </DropdownMenuItem>
@@ -916,36 +1024,64 @@ export function EditorToolbar({
               <DropdownMenuContent align="start" className="w-64">
                 {/* Text Alignment */}
                 <div className="px-2 py-1.5">
-                  <div className="text-xs font-medium text-muted-foreground mb-2">Text Alignment</div>
+                  <div className="text-xs font-medium text-muted-foreground mb-2">
+                    Text Alignment
+                  </div>
                   <div className="flex gap-1">
                     <Button
-                      variant={editor?.isActive({ textAlign: 'left' }) ? 'default' : 'outline'}
+                      variant={
+                        editor?.isActive({ textAlign: "left" })
+                          ? "default"
+                          : "outline"
+                      }
                       size="sm"
-                      onClick={() => restoreSelectionAndExecute(() => setTextAlign('left'))}
+                      onClick={() =>
+                        restoreSelectionAndExecute(() => setTextAlign("left"))
+                      }
                       className="flex-1"
                     >
                       <AlignLeft className="h-4 w-4" />
                     </Button>
                     <Button
-                      variant={editor?.isActive({ textAlign: 'center' }) ? 'default' : 'outline'}
+                      variant={
+                        editor?.isActive({ textAlign: "center" })
+                          ? "default"
+                          : "outline"
+                      }
                       size="sm"
-                      onClick={() => restoreSelectionAndExecute(() => setTextAlign('center'))}
+                      onClick={() =>
+                        restoreSelectionAndExecute(() => setTextAlign("center"))
+                      }
                       className="flex-1"
                     >
                       <AlignCenter className="h-4 w-4" />
                     </Button>
                     <Button
-                      variant={editor?.isActive({ textAlign: 'right' }) ? 'default' : 'outline'}
+                      variant={
+                        editor?.isActive({ textAlign: "right" })
+                          ? "default"
+                          : "outline"
+                      }
                       size="sm"
-                      onClick={() => restoreSelectionAndExecute(() => setTextAlign('right'))}
+                      onClick={() =>
+                        restoreSelectionAndExecute(() => setTextAlign("right"))
+                      }
                       className="flex-1"
                     >
                       <AlignRight className="h-4 w-4" />
                     </Button>
                     <Button
-                      variant={editor?.isActive({ textAlign: 'justify' }) ? 'default' : 'outline'}
+                      variant={
+                        editor?.isActive({ textAlign: "justify" })
+                          ? "default"
+                          : "outline"
+                      }
                       size="sm"
-                      onClick={() => restoreSelectionAndExecute(() => setTextAlign('justify'))}
+                      onClick={() =>
+                        restoreSelectionAndExecute(() =>
+                          setTextAlign("justify"),
+                        )
+                      }
                       className="flex-1"
                     >
                       <AlignJustify className="h-4 w-4" />
@@ -953,17 +1089,21 @@ export function EditorToolbar({
                   </div>
                 </div>
                 <DropdownMenuSeparator />
-                
+
                 {/* Font Controls */}
                 <div className="px-2 py-1.5 space-y-2">
-                  <div className="text-xs font-medium text-muted-foreground">Font Size</div>
+                  <div className="text-xs font-medium text-muted-foreground">
+                    Font Size
+                  </div>
                   <select
                     className="w-full px-2 py-1 text-sm border rounded-md bg-background"
                     onChange={(e) => {
                       const size = e.target.value;
                       restoreSelectionAndExecute(() => setFontSize(size));
                     }}
-                    value={editor?.getAttributes('textStyle').fontSize || '16px'}
+                    value={
+                      editor?.getAttributes("textStyle").fontSize || "16px"
+                    }
                     data-testid="select-font-size"
                   >
                     <option value="12px">12px</option>
@@ -980,14 +1120,18 @@ export function EditorToolbar({
                 </div>
 
                 <div className="px-2 py-1.5 space-y-2">
-                  <div className="text-xs font-medium text-muted-foreground">Font Family</div>
+                  <div className="text-xs font-medium text-muted-foreground">
+                    Font Family
+                  </div>
                   <select
                     className="w-full px-2 py-1 text-sm border rounded-md bg-background"
                     onChange={(e) => {
                       const family = e.target.value;
                       restoreSelectionAndExecute(() => setFontFamily(family));
                     }}
-                    value={editor?.getAttributes('textStyle').fontFamily || 'unset'}
+                    value={
+                      editor?.getAttributes("textStyle").fontFamily || "unset"
+                    }
                     data-testid="select-font-family"
                   >
                     <option value="unset">Default</option>
@@ -1007,14 +1151,22 @@ export function EditorToolbar({
 
                 {/* Colors */}
                 <div className="px-2 py-1.5 space-y-2">
-                  <div className="text-xs font-medium text-muted-foreground">Colors</div>
+                  <div className="text-xs font-medium text-muted-foreground">
+                    Colors
+                  </div>
                   <div className="flex items-center gap-2">
                     <Label className="text-xs flex-shrink-0">Text:</Label>
                     <input
                       type="color"
                       className="w-full h-8 border rounded cursor-pointer"
-                      onChange={(e) => restoreSelectionAndExecute(() => setColor(e.target.value))}
-                      value={editor?.getAttributes('textStyle').color || '#000000'}
+                      onChange={(e) =>
+                        restoreSelectionAndExecute(() =>
+                          setColor(e.target.value),
+                        )
+                      }
+                      value={
+                        editor?.getAttributes("textStyle").color || "#000000"
+                      }
                       data-testid="input-text-color"
                     />
                   </div>
@@ -1023,8 +1175,14 @@ export function EditorToolbar({
                     <input
                       type="color"
                       className="w-full h-8 border rounded cursor-pointer"
-                      onChange={(e) => restoreSelectionAndExecute(() => setHighlightColor(e.target.value))}
-                      value={editor?.getAttributes('highlight').color || '#ffff00'}
+                      onChange={(e) =>
+                        restoreSelectionAndExecute(() =>
+                          setHighlightColor(e.target.value),
+                        )
+                      }
+                      value={
+                        editor?.getAttributes("highlight").color || "#ffff00"
+                      }
                       data-testid="input-highlight-color"
                     />
                   </div>
@@ -1052,27 +1210,51 @@ export function EditorToolbar({
                 <TooltipContent>Headings</TooltipContent>
               </Tooltip>
               <DropdownMenuContent align="start">
-                <DropdownMenuItem onClick={() => restoreSelectionAndExecute(() => toggleHeading(1))}>
+                <DropdownMenuItem
+                  onClick={() =>
+                    restoreSelectionAndExecute(() => toggleHeading(1))
+                  }
+                >
                   <Heading1 className="h-4 w-4 mr-2" />
                   Heading 1
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => restoreSelectionAndExecute(() => toggleHeading(2))}>
+                <DropdownMenuItem
+                  onClick={() =>
+                    restoreSelectionAndExecute(() => toggleHeading(2))
+                  }
+                >
                   <Heading2 className="h-4 w-4 mr-2" />
                   Heading 2
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => restoreSelectionAndExecute(() => toggleHeading(3))}>
+                <DropdownMenuItem
+                  onClick={() =>
+                    restoreSelectionAndExecute(() => toggleHeading(3))
+                  }
+                >
                   <Heading3 className="h-4 w-4 mr-2" />
                   Heading 3
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => restoreSelectionAndExecute(() => toggleHeading(4))}>
+                <DropdownMenuItem
+                  onClick={() =>
+                    restoreSelectionAndExecute(() => toggleHeading(4))
+                  }
+                >
                   <Heading4 className="h-4 w-4 mr-2" />
                   Heading 4
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => restoreSelectionAndExecute(() => toggleHeading(5))}>
+                <DropdownMenuItem
+                  onClick={() =>
+                    restoreSelectionAndExecute(() => toggleHeading(5))
+                  }
+                >
                   <Heading5 className="h-4 w-4 mr-2" />
                   Heading 5
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => restoreSelectionAndExecute(() => toggleHeading(6))}>
+                <DropdownMenuItem
+                  onClick={() =>
+                    restoreSelectionAndExecute(() => toggleHeading(6))
+                  }
+                >
                   <Heading6 className="h-4 w-4 mr-2" />
                   Heading 6
                 </DropdownMenuItem>
@@ -1085,7 +1267,7 @@ export function EditorToolbar({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant={editor?.isActive('bold') ? 'default' : 'outline'}
+                  variant={editor?.isActive("bold") ? "default" : "outline"}
                   size="sm"
                   onClick={toggleBold}
                   data-testid="button-bold"
@@ -1098,7 +1280,7 @@ export function EditorToolbar({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant={editor?.isActive('italic') ? 'default' : 'outline'}
+                  variant={editor?.isActive("italic") ? "default" : "outline"}
                   size="sm"
                   onClick={toggleItalic}
                   data-testid="button-italic"
@@ -1111,7 +1293,9 @@ export function EditorToolbar({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant={editor?.isActive('highlight') ? 'default' : 'outline'}
+                  variant={
+                    editor?.isActive("highlight") ? "default" : "outline"
+                  }
                   size="sm"
                   onClick={toggleHighlight}
                   data-testid="button-highlight"
@@ -1128,7 +1312,9 @@ export function EditorToolbar({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant={editor?.isActive('bulletList') ? 'default' : 'outline'}
+                  variant={
+                    editor?.isActive("bulletList") ? "default" : "outline"
+                  }
                   size="sm"
                   onClick={toggleBulletList}
                   data-testid="button-bullet-list"
@@ -1141,7 +1327,9 @@ export function EditorToolbar({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant={editor?.isActive('orderedList') ? 'default' : 'outline'}
+                  variant={
+                    editor?.isActive("orderedList") ? "default" : "outline"
+                  }
                   size="sm"
                   onClick={toggleOrderedList}
                   data-testid="button-ordered-list"
@@ -1158,7 +1346,7 @@ export function EditorToolbar({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant={editor?.isActive('link') ? 'default' : 'outline'}
+                  variant={editor?.isActive("link") ? "default" : "outline"}
                   size="sm"
                   onClick={addLink}
                   data-testid="button-link"
@@ -1228,21 +1416,37 @@ export function EditorToolbar({
                   <Video className="h-4 w-4 mr-2" />
                   Insert Video
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => restoreSelectionAndExecute(() => {
-                  editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
-                })}>
+                <DropdownMenuItem
+                  onClick={() =>
+                    restoreSelectionAndExecute(() => {
+                      editor
+                        ?.chain()
+                        .focus()
+                        .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                        .run();
+                    })
+                  }
+                >
                   <Table className="h-4 w-4 mr-2" />
                   Insert Table
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => restoreSelectionAndExecute(() => {
-                  editor?.chain().focus().toggleCodeBlock().run();
-                })}>
+                <DropdownMenuItem
+                  onClick={() =>
+                    restoreSelectionAndExecute(() => {
+                      editor?.chain().focus().toggleCodeBlock().run();
+                    })
+                  }
+                >
                   <Code className="h-4 w-4 mr-2" />
                   Code Block
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => restoreSelectionAndExecute(() => {
-                  editor?.chain().focus().setHorizontalRule().run();
-                })}>
+                <DropdownMenuItem
+                  onClick={() =>
+                    restoreSelectionAndExecute(() => {
+                      editor?.chain().focus().setHorizontalRule().run();
+                    })
+                  }
+                >
                   <Minus className="h-4 w-4 mr-2" />
                   Horizontal Rule
                 </DropdownMenuItem>
@@ -1250,14 +1454,14 @@ export function EditorToolbar({
                   <Hash className="h-4 w-4 mr-2" />
                   Insert Footnote
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSpecialCharDialogOpen(true)}>
+                <DropdownMenuItem
+                  onClick={() => setSpecialCharDialogOpen(true)}
+                >
                   <SpecialChar className="h-4 w-4 mr-2" />
                   Special Characters
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-
-            
 
             {/* Export Menu */}
             <DropdownMenu>
@@ -1276,19 +1480,25 @@ export function EditorToolbar({
                 <TooltipContent>Export</TooltipContent>
               </Tooltip>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={() => handleExport('html')}>
+                <DropdownMenuItem onClick={() => handleExport("html")}>
                   Export as HTML
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                <DropdownMenuItem onClick={() => handleExport("pdf")}>
                   Export as PDF (Print)
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('docx')}>
+                <DropdownMenuItem onClick={() => handleExport("docx")}>
                   Export as DOCX (Text)
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('email')} disabled>
+                <DropdownMenuItem
+                  onClick={() => handleExport("email")}
+                  disabled
+                >
                   Send via Email (Coming Soon)
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('collaboration')} disabled>
+                <DropdownMenuItem
+                  onClick={() => handleExport("collaboration")}
+                  disabled
+                >
                   Share for Collaboration (Coming Soon)
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -1317,11 +1527,13 @@ export function EditorToolbar({
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onFocusModeToggle?.()}>
                   <FocusIcon className="h-4 w-4 mr-2" />
-                  {isFocusMode ? 'Exit Focus Mode' : 'Focus Mode'}
+                  {isFocusMode ? "Exit Focus Mode" : "Focus Mode"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <div className="px-2 py-1.5 space-y-2">
-                  <div className="text-xs font-medium text-muted-foreground">Zoom Level</div>
+                  <div className="text-xs font-medium text-muted-foreground">
+                    Zoom Level
+                  </div>
                   <select
                     className="w-full px-2 py-1 text-sm border rounded-md bg-background"
                     onChange={(e) => {
@@ -1346,7 +1558,7 @@ export function EditorToolbar({
             {projectId && (
               <>
                 <Separator orientation="vertical" className="mx-1 h-6" />
-                
+
                 {/* Active Users */}
                 {onTogglePresence && (
                   <Tooltip>
@@ -1440,7 +1652,7 @@ export function EditorToolbar({
                 value={linkUrl}
                 onChange={(e) => setLinkUrl(e.target.value)}
                 placeholder="https://example.com"
-                onKeyDown={(e) => e.key === 'Enter' && handleLinkSubmit()}
+                onKeyDown={(e) => e.key === "Enter" && handleLinkSubmit()}
               />
             </div>
           </div>
@@ -1461,18 +1673,24 @@ export function EditorToolbar({
           </DialogHeader>
           <Tabs defaultValue="upload" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="upload" data-testid="tab-upload">Upload File</TabsTrigger>
-              <TabsTrigger value="stock" data-testid="tab-stock">Stock Photos</TabsTrigger>
-              <TabsTrigger value="ai" data-testid="tab-ai">AI Generate</TabsTrigger>
+              <TabsTrigger value="upload" data-testid="tab-upload">
+                Upload File
+              </TabsTrigger>
+              <TabsTrigger value="stock" data-testid="tab-stock">
+                Stock Photos
+              </TabsTrigger>
+              <TabsTrigger value="ai" data-testid="tab-ai">
+                AI Generate
+              </TabsTrigger>
             </TabsList>
-            
+
             {/* Tab 1: Upload File */}
             <TabsContent value="upload" className="space-y-4">
               {imagePreviewUrl ? (
                 <div className="relative inline-block max-w-full">
-                  <img 
-                    src={imagePreviewUrl} 
-                    alt="Preview" 
+                  <img
+                    src={imagePreviewUrl}
+                    alt="Preview"
                     className="max-w-full h-auto max-h-64 rounded-lg border"
                   />
                   <Button
@@ -1488,7 +1706,7 @@ export function EditorToolbar({
                 </div>
               ) : (
                 <>
-                  <div 
+                  <div
                     className="border-2 border-dashed rounded-lg p-6 text-center bg-muted/50"
                     onDragOver={(e) => {
                       e.preventDefault();
@@ -1497,15 +1715,15 @@ export function EditorToolbar({
                     onDrop={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      
+
                       const file = e.dataTransfer?.files?.[0];
-                      if (file && file.type.startsWith('image/')) {
+                      if (file && file.type.startsWith("image/")) {
                         // Create a synthetic event with the dropped file
                         // Note: We can't use DataTransfer constructor (not available in Firefox)
                         const syntheticEvent = {
                           target: {
                             files: [file] as any, // Minimal FileList-like object
-                          }
+                          },
                         };
                         handleImageFileChange(syntheticEvent as any);
                       }
@@ -1565,7 +1783,11 @@ export function EditorToolbar({
                       value={imageUrl}
                       onChange={(e) => setImageUrl(e.target.value)}
                       placeholder="https://example.com/image.jpg"
-                      onKeyDown={(e) => e.key === 'Enter' && !uploadingImage && handleImageSubmit()}
+                      onKeyDown={(e) =>
+                        e.key === "Enter" &&
+                        !uploadingImage &&
+                        handleImageSubmit()
+                      }
                       disabled={uploadingImage}
                       data-testid="input-image-url-editor"
                     />
@@ -1573,14 +1795,17 @@ export function EditorToolbar({
                 </>
               )}
               <DialogFooter>
-                <Button variant="outline" onClick={() => {
-                  setImageDialogOpen(false);
-                  setImageUrl('');
-                  setImagePreviewUrl('');
-                }}>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setImageDialogOpen(false);
+                    setImageUrl("");
+                    setImagePreviewUrl("");
+                  }}
+                >
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   onClick={handleImageSubmit}
                   disabled={!imagePreviewUrl && !imageUrl.trim()}
                   data-testid="button-insert-image-editor"
@@ -1589,7 +1814,7 @@ export function EditorToolbar({
                 </Button>
               </DialogFooter>
             </TabsContent>
-            
+
             {/* Tab 2: Stock Photos */}
             <TabsContent value="stock" className="space-y-4">
               <div className="flex gap-2">
@@ -1597,11 +1822,11 @@ export function EditorToolbar({
                   placeholder="Search stock photos..."
                   value={stockSearchQuery}
                   onChange={(e) => setStockSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleStockSearch()}
+                  onKeyDown={(e) => e.key === "Enter" && handleStockSearch()}
                   disabled={searchingStock}
                   data-testid="input-stock-search"
                 />
-                <Button 
+                <Button
                   onClick={handleStockSearch}
                   disabled={searchingStock || !stockSearchQuery.trim()}
                   data-testid="button-stock-search"
@@ -1612,11 +1837,11 @@ export function EditorToolbar({
                       Searching...
                     </>
                   ) : (
-                    'Search'
+                    "Search"
                   )}
                 </Button>
               </div>
-              
+
               {stockImages.length > 0 && (
                 <>
                   <div className="grid grid-cols-3 gap-3 max-h-96 overflow-y-auto p-1">
@@ -1624,44 +1849,47 @@ export function EditorToolbar({
                       <div
                         key={image.url}
                         className={`relative cursor-pointer rounded-lg border-2 transition-all hover-elevate ${
-                          selectedStockImage === image.url 
-                            ? 'border-primary ring-2 ring-primary' 
-                            : 'border-transparent'
+                          selectedStockImage === image.url
+                            ? "border-primary ring-2 ring-primary"
+                            : "border-transparent"
                         }`}
                         onClick={() => handleStockImageSelect(image.url)}
                         data-testid={`stock-image-${index}`}
                       >
-                        <img 
-                          src={image.url} 
+                        <img
+                          src={image.url}
                           alt={image.alt || `Stock photo ${index + 1}`}
                           className="w-full h-32 object-cover rounded-lg"
                         />
                       </div>
                     ))}
                   </div>
-                  
+
                   {selectedStockImage && (
                     <div className="border rounded-lg p-2">
-                      <img 
-                        src={selectedStockImage} 
-                        alt="Selected preview" 
+                      <img
+                        src={selectedStockImage}
+                        alt="Selected preview"
                         className="max-w-full h-auto max-h-48 mx-auto rounded"
                       />
                     </div>
                   )}
                 </>
               )}
-              
+
               <DialogFooter>
-                <Button variant="outline" onClick={() => {
-                  setImageDialogOpen(false);
-                  setStockSearchQuery('');
-                  setStockImages([]);
-                  setSelectedStockImage('');
-                }}>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setImageDialogOpen(false);
+                    setStockSearchQuery("");
+                    setStockImages([]);
+                    setSelectedStockImage("");
+                  }}
+                >
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   onClick={handleStockImageInsert}
                   disabled={!selectedStockImage}
                   data-testid="button-insert-stock-image"
@@ -1670,11 +1898,13 @@ export function EditorToolbar({
                 </Button>
               </DialogFooter>
             </TabsContent>
-            
+
             {/* Tab 3: AI Generate */}
             <TabsContent value="ai" className="space-y-4">
               <div>
-                <Label htmlFor="ai-prompt">Describe the image you want to generate</Label>
+                <Label htmlFor="ai-prompt">
+                  Describe the image you want to generate
+                </Label>
                 <Textarea
                   id="ai-prompt"
                   placeholder="A serene mountain landscape at sunset with a lake in the foreground..."
@@ -1685,8 +1915,8 @@ export function EditorToolbar({
                   data-testid="textarea-ai-prompt"
                 />
               </div>
-              
-              <Button 
+
+              <Button
                 onClick={handleGenerateAI}
                 disabled={generatingAI || !aiPrompt.trim()}
                 className="w-full"
@@ -1698,15 +1928,15 @@ export function EditorToolbar({
                     Generating Image...
                   </>
                 ) : (
-                  'Generate Image'
+                  "Generate Image"
                 )}
               </Button>
-              
+
               {generatedAIImage && (
                 <div className="border rounded-lg p-4 space-y-2">
-                  <img 
-                    src={generatedAIImage} 
-                    alt="AI generated" 
+                  <img
+                    src={generatedAIImage}
+                    alt="AI generated"
                     className="max-w-full h-auto max-h-64 mx-auto rounded-lg"
                   />
                   <Button
@@ -1714,7 +1944,7 @@ export function EditorToolbar({
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      const link = document.createElement('a');
+                      const link = document.createElement("a");
                       link.href = generatedAIImage;
                       link.download = `ai-generated-${Date.now()}.png`;
                       document.body.appendChild(link);
@@ -1727,16 +1957,19 @@ export function EditorToolbar({
                   </Button>
                 </div>
               )}
-              
+
               <DialogFooter>
-                <Button variant="outline" onClick={() => {
-                  setImageDialogOpen(false);
-                  setAiPrompt('');
-                  setGeneratedAIImage('');
-                }}>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setImageDialogOpen(false);
+                    setAiPrompt("");
+                    setGeneratedAIImage("");
+                  }}
+                >
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   onClick={handleAIImageInsert}
                   disabled={!generatedAIImage}
                   data-testid="button-insert-ai-image"
@@ -1763,7 +1996,7 @@ export function EditorToolbar({
                 value={videoUrl}
                 onChange={(e) => setVideoUrl(e.target.value)}
                 placeholder="https://www.youtube.com/watch?v=..."
-                onKeyDown={(e) => e.key === 'Enter' && handleVideoSubmit()}
+                onKeyDown={(e) => e.key === "Enter" && handleVideoSubmit()}
               />
             </div>
           </div>
@@ -1790,12 +2023,15 @@ export function EditorToolbar({
                 value={footnoteText}
                 onChange={(e) => setFootnoteText(e.target.value)}
                 placeholder="Enter footnote text..."
-                onKeyDown={(e) => e.key === 'Enter' && handleFootnoteSubmit()}
+                onKeyDown={(e) => e.key === "Enter" && handleFootnoteSubmit()}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setFootnoteDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setFootnoteDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button onClick={handleFootnoteSubmit}>Insert Footnote</Button>
@@ -1804,7 +2040,10 @@ export function EditorToolbar({
       </Dialog>
 
       {/* Special Character Dialog */}
-      <Dialog open={specialCharDialogOpen} onOpenChange={setSpecialCharDialogOpen}>
+      <Dialog
+        open={specialCharDialogOpen}
+        onOpenChange={setSpecialCharDialogOpen}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Insert Special Character</DialogTitle>
@@ -1817,18 +2056,29 @@ export function EditorToolbar({
                 value={selectedSpecialChar}
                 onChange={(e) => setSelectedSpecialChar(e.target.value)}
                 placeholder="Enter character or number (1-29)"
-                onKeyDown={(e) => e.key === 'Enter' && handleSpecialCharSubmit()}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && handleSpecialCharSubmit()
+                }
               />
             </div>
             <div className="text-sm text-muted-foreground">
               <p>Available characters:</p>
-              <p>1. © 2. ® 3. ™ 4. § 5. ¶ 6. † 7. ‡ 8. • 9. … 10. " 11. " 12. ' 13. ' 14. — 15. –</p>
-              <p>16. ½ 17. ¼ 18. ¾ 19. ± 20. × 21. ÷ 22. ° 23. α 24. β 25. γ 26. δ 27. π 28. Σ 29. ∞</p>
+              <p>
+                1. © 2. ® 3. ™ 4. § 5. ¶ 6. † 7. ‡ 8. • 9. … 10. " 11. " 12.
+                ' 13. ' 14. — 15. –
+              </p>
+              <p>
+                16. ½ 17. ¼ 18. ¾ 19. ± 20. × 21. ÷ 22. ° 23. α 24. β 25. γ 26.
+                δ 27. π 28. Σ 29. ∞
+              </p>
               <p>Enter the number (1-29) or type the character directly.</p>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSpecialCharDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setSpecialCharDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button onClick={handleSpecialCharSubmit}>Insert Character</Button>

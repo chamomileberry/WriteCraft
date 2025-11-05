@@ -10,31 +10,41 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.body.notebookId;
-    
+
     // Validate notebook ownership before allowing write
     if (notebookId) {
-      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, userId);
+      const ownsNotebook = await storage.validateNotebookOwnership(
+        notebookId,
+        userId,
+      );
       if (!ownsNotebook) {
-        console.warn(`[Security] Unauthorized notebook access attempt - userId: ${userId}, notebookId: ${notebookId}`);
-        return res.status(404).json({ error: 'Notebook not found' });
+        console.warn(
+          `[Security] Unauthorized notebook access attempt - userId: ${userId}, notebookId: ${notebookId}`,
+        );
+        return res.status(404).json({ error: "Notebook not found" });
       }
     }
-    
+
     const validatedFood = insertFoodSchema.parse(req.body);
     const savedFood = await storage.createFood(validatedFood);
     res.json(savedFood);
   } catch (error) {
-    console.error('Error saving food:', error);
+    console.error("Error saving food:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
-      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
-      return res.status(404).json({ error: 'Not found' });
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const notebookId =
+        req.query.notebookId || req.body.notebookId || "unknown";
+      console.warn(
+        `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to save food' });
+    res.status(500).json({ error: "Failed to save food" });
   }
 });
 
@@ -43,24 +53,26 @@ router.get("/", readRateLimiter, async (req: any, res) => {
     const search = req.query.search as string;
     const notebookId = req.query.notebookId as string;
     const userId = req.user.claims.sub;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     const foods = await storage.getUserFoods(userId, notebookId);
-    
+
     if (search) {
-      const filtered = foods.filter(food =>
-        food.name?.toLowerCase().includes(search.toLowerCase())
+      const filtered = foods.filter((food) =>
+        food.name?.toLowerCase().includes(search.toLowerCase()),
       );
       res.json(filtered);
     } else {
       res.json(foods);
     }
   } catch (error) {
-    console.error('Error fetching foods:', error);
-    res.status(500).json({ error: 'Failed to fetch foods' });
+    console.error("Error fetching foods:", error);
+    res.status(500).json({ error: "Failed to fetch foods" });
   }
 });
 
@@ -68,16 +80,18 @@ router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     const foods = await storage.getUserFoods(userId, notebookId);
     res.json(foods);
   } catch (error) {
-    console.error('Error fetching foods:', error);
-    res.status(500).json({ error: 'Failed to fetch foods' });
+    console.error("Error fetching foods:", error);
+    res.status(500).json({ error: "Failed to fetch foods" });
   }
 });
 
@@ -85,19 +99,21 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     const food = await storage.getFood(req.params.id, userId, notebookId);
     if (!food) {
-      return res.status(404).json({ error: 'Food not found' });
+      return res.status(404).json({ error: "Food not found" });
     }
     res.json(food);
   } catch (error) {
-    console.error('Error fetching food:', error);
-    res.status(500).json({ error: 'Failed to fetch food' });
+    console.error("Error fetching food:", error);
+    res.status(500).json({ error: "Failed to fetch food" });
   }
 });
 
@@ -105,20 +121,29 @@ router.patch("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const updates = insertFoodSchema.partial().parse(req.body);
-    const updatedFood = await storage.updateFood(req.params.id, userId, updates);
+    const updatedFood = await storage.updateFood(
+      req.params.id,
+      userId,
+      updates,
+    );
     res.json(updatedFood);
   } catch (error) {
-    console.error('Error updating food:', error);
+    console.error("Error updating food:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
-      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
-      return res.status(404).json({ error: 'Not found' });
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const notebookId =
+        req.query.notebookId || req.body.notebookId || "unknown";
+      console.warn(
+        `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to update food' });
+    res.status(500).json({ error: "Failed to update food" });
   }
 });
 
@@ -128,14 +153,17 @@ router.delete("/:id", writeRateLimiter, async (req: any, res) => {
     await storage.deleteFood(req.params.id, userId);
     res.status(204).send();
   } catch (error) {
-    console.error('Error deleting food:', error);
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
-      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
-      return res.status(404).json({ error: 'Not found' });
+    console.error("Error deleting food:", error);
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const notebookId =
+        req.query.notebookId || req.body.notebookId || "unknown";
+      console.warn(
+        `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to delete food' });
+    res.status(500).json({ error: "Failed to delete food" });
   }
 });
 

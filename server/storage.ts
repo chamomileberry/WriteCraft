@@ -1,102 +1,258 @@
 import {
-  type User, type InsertUser, type UpsertUser,
-  type Character, type UpdateCharacter, type InsertCharacter,
-  type Plot, type InsertPlot,
-  type Prompt, type InsertPrompt,
-  type Location, type InsertLocation,
-  type Setting, type InsertSetting,
-  type Item, type InsertItem,
-  type Organization, type InsertOrganization,
-  type Creature, type InsertCreature,
-  type Species, type InsertSpecies,
-  type Culture, type InsertCulture,
-  type Document, type InsertDocument,
-  type Food, type InsertFood,
-  type Language, type InsertLanguage,
-  type Religion, type InsertReligion,
-  type Technology, type InsertTechnology,
-  type Weapon, type InsertWeapon,
-  type Profession, type InsertProfession,
-  type Rank, type InsertRank,
-  type Condition, type InsertCondition,
-  type SavedItem, type InsertSavedItem,
-  type GeneratedName, type InsertName,
-  type Theme, type InsertTheme,
-  type Mood, type InsertMood,
-  type Conflict, type InsertConflict,
-  type InsertGuide, type Guide,
-  type GuideCategory, type InsertGuideCategory,
-  type GuideReference, type InsertGuideReference,
-  type Project, type InsertProject,
-  type ProjectSection, type InsertProjectSection,
-  type ProjectLink, type InsertProjectLink,
-  type Folder, type InsertFolder,
-  type Note, type InsertNote,
+  type User,
+  type InsertUser,
+  type UpsertUser,
+  type Character,
+  type UpdateCharacter,
+  type InsertCharacter,
+  type Plot,
+  type InsertPlot,
+  type Prompt,
+  type InsertPrompt,
+  type Location,
+  type InsertLocation,
+  type Setting,
+  type InsertSetting,
+  type Item,
+  type InsertItem,
+  type Organization,
+  type InsertOrganization,
+  type Creature,
+  type InsertCreature,
+  type Species,
+  type InsertSpecies,
+  type Culture,
+  type InsertCulture,
+  type Document,
+  type InsertDocument,
+  type Food,
+  type InsertFood,
+  type Language,
+  type InsertLanguage,
+  type Religion,
+  type InsertReligion,
+  type Technology,
+  type InsertTechnology,
+  type Weapon,
+  type InsertWeapon,
+  type Profession,
+  type InsertProfession,
+  type Rank,
+  type InsertRank,
+  type Condition,
+  type InsertCondition,
+  type SavedItem,
+  type InsertSavedItem,
+  type GeneratedName,
+  type InsertName,
+  type Theme,
+  type InsertTheme,
+  type Mood,
+  type InsertMood,
+  type Conflict,
+  type InsertConflict,
+  type InsertGuide,
+  type Guide,
+  type GuideCategory,
+  type InsertGuideCategory,
+  type GuideReference,
+  type InsertGuideReference,
+  type Project,
+  type InsertProject,
+  type ProjectSection,
+  type InsertProjectSection,
+  type ProjectLink,
+  type InsertProjectLink,
+  type Folder,
+  type InsertFolder,
+  type Note,
+  type InsertNote,
   // Missing content types - Import types
-  type Plant, type InsertPlant,
-  type Description, type InsertDescription,
-  type Ethnicity, type InsertEthnicity,
-  type Drink, type InsertDrink,
-  type Armor, type InsertArmor,
-  type Accessory, type InsertAccessory,
-  type Clothing, type InsertClothing,
-  type Material, type InsertMaterial,
-  type Settlement, type InsertSettlement,
-  type Society, type InsertSociety,
-  type Faction, type InsertFaction,
-  type MilitaryUnit, type InsertMilitaryUnit,
-  type Myth, type InsertMyth,
-  type Legend, type InsertLegend,
-  type Event, type InsertEvent,
-  type Spell, type InsertSpell,
-  type Resource, type InsertResource,
-  type Building, type InsertBuilding,
-  type Animal, type InsertAnimal,
-  type Transportation, type InsertTransportation,
-  type NaturalLaw, type InsertNaturalLaw,
-  type Tradition, type InsertTradition,
-  type Ritual, type InsertRitual,
-  type FamilyTree, type InsertFamilyTree,
-  type FamilyTreeMember, type InsertFamilyTreeMember,
-  type FamilyTreeRelationship, type InsertFamilyTreeRelationship,
-  type Timeline, type InsertTimeline, type TimelineEvent, type InsertTimelineEvent,
-  type TimelineRelationship, type InsertTimelineRelationship,
-  type Ceremony, type InsertCeremony,
-  type Map, type InsertMap,
-  type Music, type InsertMusic,
-  type Dance, type InsertDance,
-  type Law, type InsertLaw,
-  type Policy, type InsertPolicy,
-  type Potion, type InsertPotion,
-  type ChatMessage, type InsertChatMessage,
-  type ConversationThread, type InsertConversationThread,
-  type Notebook, type InsertNotebook, type UpdateNotebook,
-  type ImportJob, type InsertImportJob, type UpdateImportJob,
-  type UserPreferences, type InsertUserPreferences,
-  type ConversationSummary, type InsertConversationSummary,
-  type Feedback, type InsertFeedback,
-  users, characters,
-  plots, prompts, locations, settings, items, organizations,
-  creatures, species, cultures, documents, foods,
-  languages, religions, technologies, weapons, professions, ranks, conditions,
-  savedItems, names, themes, moods, conflicts, guides, guideCategories, guideReferences,
-  projects, projectSections, projectLinks,
-  folders, notes, notebooks, importJobs,
+  type Plant,
+  type InsertPlant,
+  type Description,
+  type InsertDescription,
+  type Ethnicity,
+  type InsertEthnicity,
+  type Drink,
+  type InsertDrink,
+  type Armor,
+  type InsertArmor,
+  type Accessory,
+  type InsertAccessory,
+  type Clothing,
+  type InsertClothing,
+  type Material,
+  type InsertMaterial,
+  type Settlement,
+  type InsertSettlement,
+  type Society,
+  type InsertSociety,
+  type Faction,
+  type InsertFaction,
+  type MilitaryUnit,
+  type InsertMilitaryUnit,
+  type Myth,
+  type InsertMyth,
+  type Legend,
+  type InsertLegend,
+  type Event,
+  type InsertEvent,
+  type Spell,
+  type InsertSpell,
+  type Resource,
+  type InsertResource,
+  type Building,
+  type InsertBuilding,
+  type Animal,
+  type InsertAnimal,
+  type Transportation,
+  type InsertTransportation,
+  type NaturalLaw,
+  type InsertNaturalLaw,
+  type Tradition,
+  type InsertTradition,
+  type Ritual,
+  type InsertRitual,
+  type FamilyTree,
+  type InsertFamilyTree,
+  type FamilyTreeMember,
+  type InsertFamilyTreeMember,
+  type FamilyTreeRelationship,
+  type InsertFamilyTreeRelationship,
+  type Timeline,
+  type InsertTimeline,
+  type TimelineEvent,
+  type InsertTimelineEvent,
+  type TimelineRelationship,
+  type InsertTimelineRelationship,
+  type Ceremony,
+  type InsertCeremony,
+  type Map,
+  type InsertMap,
+  type Music,
+  type InsertMusic,
+  type Dance,
+  type InsertDance,
+  type Law,
+  type InsertLaw,
+  type Policy,
+  type InsertPolicy,
+  type Potion,
+  type InsertPotion,
+  type ChatMessage,
+  type InsertChatMessage,
+  type ConversationThread,
+  type InsertConversationThread,
+  type Notebook,
+  type InsertNotebook,
+  type UpdateNotebook,
+  type ImportJob,
+  type InsertImportJob,
+  type UpdateImportJob,
+  type UserPreferences,
+  type InsertUserPreferences,
+  type ConversationSummary,
+  type InsertConversationSummary,
+  type Feedback,
+  type InsertFeedback,
+  users,
+  characters,
+  plots,
+  prompts,
+  locations,
+  settings,
+  items,
+  organizations,
+  creatures,
+  species,
+  cultures,
+  documents,
+  foods,
+  languages,
+  religions,
+  technologies,
+  weapons,
+  professions,
+  ranks,
+  conditions,
+  savedItems,
+  names,
+  themes,
+  moods,
+  conflicts,
+  guides,
+  guideCategories,
+  guideReferences,
+  projects,
+  projectSections,
+  projectLinks,
+  folders,
+  notes,
+  notebooks,
+  importJobs,
   // Missing content types - Import tables
-  plants, descriptions, ethnicities, drinks, armor, accessories, clothing, materials,
-  settlements, societies, factions, militaryUnits, myths, legends, events, spells,
-  resources, buildings, animals, transportation, naturalLaws, traditions, rituals,
-  familyTrees, familyTreeMembers, familyTreeRelationships, timelines, timelineEvents, 
-  timelineRelationships, ceremonies, maps, music, dances, laws, policies, potions,
-  type PinnedContent, type InsertPinnedContent, pinnedContent,
-  type Canvas, type InsertCanvas, canvases,
-  chatMessages, conversationThreads,
-  userPreferences, conversationSummaries,
+  plants,
+  descriptions,
+  ethnicities,
+  drinks,
+  armor,
+  accessories,
+  clothing,
+  materials,
+  settlements,
+  societies,
+  factions,
+  militaryUnits,
+  myths,
+  legends,
+  events,
+  spells,
+  resources,
+  buildings,
+  animals,
+  transportation,
+  naturalLaws,
+  traditions,
+  rituals,
+  familyTrees,
+  familyTreeMembers,
+  familyTreeRelationships,
+  timelines,
+  timelineEvents,
+  timelineRelationships,
+  ceremonies,
+  maps,
+  music,
+  dances,
+  laws,
+  policies,
+  potions,
+  type PinnedContent,
+  type InsertPinnedContent,
+  pinnedContent,
+  type Canvas,
+  type InsertCanvas,
+  canvases,
+  chatMessages,
+  conversationThreads,
+  userPreferences,
+  conversationSummaries,
   feedback,
-  shares
+  shares,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, ilike, isNull, isNotNull, inArray, sql } from "drizzle-orm";
+import {
+  eq,
+  desc,
+  and,
+  or,
+  ilike,
+  isNull,
+  isNotNull,
+  inArray,
+  sql,
+} from "drizzle-orm";
 
 // Types for content mapping
 export interface ContentMapping {
@@ -114,99 +270,211 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(insertUser: InsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
-  updateUser(id: string, updates: Partial<InsertUser>): Promise<User | undefined>;
+  updateUser(
+    id: string,
+    updates: Partial<InsertUser>,
+  ): Promise<User | undefined>;
   searchUsers(query: string): Promise<User[]>;
 
   // Notebook methods
   createNotebook(notebook: InsertNotebook): Promise<Notebook>;
   getNotebook(id: string, userId: string): Promise<Notebook | undefined>;
   getUserNotebooks(userId: string): Promise<Notebook[]>;
-  updateNotebook(id: string, userId: string, updates: UpdateNotebook): Promise<Notebook | undefined>;
+  updateNotebook(
+    id: string,
+    userId: string,
+    updates: UpdateNotebook,
+  ): Promise<Notebook | undefined>;
   deleteNotebook(id: string, userId: string): Promise<void>;
-  validateNotebookOwnership(notebookId: string, userId: string): Promise<boolean>;
+  validateNotebookOwnership(
+    notebookId: string,
+    userId: string,
+  ): Promise<boolean>;
 
   // Import Job methods
   createImportJob(job: InsertImportJob): Promise<ImportJob>;
   getImportJob(id: string, userId: string): Promise<ImportJob | undefined>;
   getUserImportJobs(userId: string): Promise<ImportJob[]>;
-  updateImportJob(id: string, updates: UpdateImportJob): Promise<ImportJob | undefined>;
+  updateImportJob(
+    id: string,
+    updates: UpdateImportJob,
+  ): Promise<ImportJob | undefined>;
 
   // Generic content ownership validation
-  validateContentOwnership<T extends { userId?: string | null, notebookId?: string | null }>(
+  validateContentOwnership<
+    T extends { userId?: string | null; notebookId?: string | null },
+  >(
     content: T | undefined,
-    userId: string
+    userId: string,
   ): boolean;
 
   // Character methods
   createCharacter(character: InsertCharacter): Promise<Character>;
-  getCharacter(id: string, userId: string, notebookId: string): Promise<Character | undefined>;
+  getCharacter(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Character | undefined>;
   getUserCharacters(userId: string, notebookId: string): Promise<Character[]>;
-  updateCharacter(id: string, userId: string, updates: UpdateCharacter, notebookId: string): Promise<Character>;
-  deleteCharacter(id: string, userId: string, notebookId: string): Promise<void>;
-  getCharactersWithIssues(userId: string, notebookId: string): Promise<{
+  updateCharacter(
+    id: string,
+    userId: string,
+    updates: UpdateCharacter,
+    notebookId: string,
+  ): Promise<Character>;
+  deleteCharacter(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<void>;
+  getCharactersWithIssues(
+    userId: string,
+    notebookId: string,
+  ): Promise<{
     missingFamilyName: Character[];
     missingDescription: Character[];
     missingImage: Character[];
   }>;
-  getPotentialDuplicates(userId: string, notebookId: string): Promise<Character[][]>;
+  getPotentialDuplicates(
+    userId: string,
+    notebookId: string,
+  ): Promise<Character[][]>;
 
   // Plot methods
   createPlot(plot: InsertPlot): Promise<Plot>;
-  getPlot(id: string, userId: string, notebookId: string): Promise<Plot | undefined>;
+  getPlot(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Plot | undefined>;
   getUserPlots(userId: string, notebookId: string): Promise<Plot[]>;
 
   // Prompt methods
   createPrompt(prompt: InsertPrompt): Promise<Prompt>;
-  getPrompt(id: string, userId: string, notebookId: string): Promise<Prompt | undefined>;
+  getPrompt(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Prompt | undefined>;
   getUserPrompts(userId: string, notebookId: string): Promise<Prompt[]>;
   getRandomPrompts(count?: number): Promise<Prompt[]>;
 
   // Location methods
   createLocation(location: InsertLocation): Promise<Location>;
-  getLocation(id: string, userId: string, notebookId: string): Promise<Location | undefined>;
+  getLocation(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Location | undefined>;
   getUserLocations(userId: string, notebookId: string): Promise<Location[]>;
-  updateLocation(id: string, userId: string, updates: Partial<InsertLocation>, notebookId: string): Promise<Location>;
+  updateLocation(
+    id: string,
+    userId: string,
+    updates: Partial<InsertLocation>,
+    notebookId: string,
+  ): Promise<Location>;
   deleteLocation(id: string, userId: string, notebookId: string): Promise<void>;
 
   // Setting methods
   createSetting(setting: InsertSetting): Promise<Setting>;
-  getSetting(id: string, userId: string, notebookId: string): Promise<Setting | undefined>;
+  getSetting(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Setting | undefined>;
   getUserSettings(userId: string, notebookId: string): Promise<Setting[]>;
-  updateSetting(id: string, userId: string, updates: Partial<InsertSetting>): Promise<Setting>;
+  updateSetting(
+    id: string,
+    userId: string,
+    updates: Partial<InsertSetting>,
+  ): Promise<Setting>;
 
   // Item methods
   createItem(item: InsertItem): Promise<Item>;
-  getItem(id: string, userId: string, notebookId: string): Promise<Item | undefined>;
+  getItem(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Item | undefined>;
   getUserItems(userId: string, notebookId: string): Promise<Item[]>;
-  updateItem(id: string, userId: string, updates: Partial<InsertItem>, notebookId: string): Promise<Item>;
+  updateItem(
+    id: string,
+    userId: string,
+    updates: Partial<InsertItem>,
+    notebookId: string,
+  ): Promise<Item>;
   deleteItem(id: string, userId: string, notebookId: string): Promise<void>;
 
   // Organization methods
   createOrganization(organization: InsertOrganization): Promise<Organization>;
-  getOrganization(id: string, userId: string, notebookId: string): Promise<Organization | undefined>;
-  getUserOrganizations(userId: string, notebookId: string): Promise<Organization[]>;
-  updateOrganization(id: string, userId: string, updates: Partial<InsertOrganization>, notebookId: string): Promise<Organization>;
-  deleteOrganization(id: string, userId: string, notebookId: string): Promise<void>;
+  getOrganization(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Organization | undefined>;
+  getUserOrganizations(
+    userId: string,
+    notebookId: string,
+  ): Promise<Organization[]>;
+  updateOrganization(
+    id: string,
+    userId: string,
+    updates: Partial<InsertOrganization>,
+    notebookId: string,
+  ): Promise<Organization>;
+  deleteOrganization(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<void>;
 
   // Creature methods
   createCreature(creature: InsertCreature): Promise<Creature>;
-  getCreature(id: string, userId: string, notebookId: string): Promise<Creature | undefined>;
+  getCreature(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Creature | undefined>;
   getUserCreatures(userId: string, notebookId: string): Promise<Creature[]>;
-  updateCreature(id: string, userId: string, updates: Partial<InsertCreature>): Promise<Creature>;
+  updateCreature(
+    id: string,
+    userId: string,
+    updates: Partial<InsertCreature>,
+  ): Promise<Creature>;
 
   // Species methods
   createSpecies(species: InsertSpecies): Promise<Species>;
-  getSpecies(id: string, userId: string, notebookId: string): Promise<Species | undefined>;
+  getSpecies(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Species | undefined>;
   getUserSpecies(userId: string, notebookId: string): Promise<Species[]>;
-  findSpeciesByName(name: string, notebookId: string): Promise<Species | undefined>;
-  updateSpecies(id: string, userId: string, updates: Partial<InsertSpecies>): Promise<Species>;
+  findSpeciesByName(
+    name: string,
+    notebookId: string,
+  ): Promise<Species | undefined>;
+  updateSpecies(
+    id: string,
+    userId: string,
+    updates: Partial<InsertSpecies>,
+  ): Promise<Species>;
   deleteSpecies(id: string, userId: string): Promise<void>;
 
   // Culture methods
   createCulture(culture: InsertCulture): Promise<Culture>;
-  getCulture(id: string, userId: string, notebookId: string): Promise<Culture | undefined>;
+  getCulture(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Culture | undefined>;
   getUserCultures(userId: string, notebookId: string): Promise<Culture[]>;
-  updateCulture(id: string, userId: string, updates: Partial<InsertCulture>, notebookId: string): Promise<Culture>;
+  updateCulture(
+    id: string,
+    userId: string,
+    updates: Partial<InsertCulture>,
+    notebookId: string,
+  ): Promise<Culture>;
   deleteCulture(id: string, userId: string, notebookId: string): Promise<void>;
 
   // Magic system methods
@@ -217,389 +485,871 @@ export interface IStorage {
 
   // Document methods
   createDocument(document: InsertDocument): Promise<Document>;
-  getDocument(id: string, userId: string, notebookId: string): Promise<Document | undefined>;
+  getDocument(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Document | undefined>;
   getUserDocuments(userId: string, notebookId: string): Promise<Document[]>;
-  updateDocument(id: string, userId: string, updates: Partial<InsertDocument>): Promise<Document>;
+  updateDocument(
+    id: string,
+    userId: string,
+    updates: Partial<InsertDocument>,
+  ): Promise<Document>;
   deleteDocument(id: string, userId: string): Promise<void>;
 
   // Food methods
   createFood(food: InsertFood): Promise<Food>;
-  getFood(id: string, userId: string, notebookId: string): Promise<Food | undefined>;
+  getFood(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Food | undefined>;
   getUserFoods(userId: string, notebookId: string): Promise<Food[]>;
-  updateFood(id: string, userId: string, updates: Partial<InsertFood>): Promise<Food>;
+  updateFood(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFood>,
+  ): Promise<Food>;
   deleteFood(id: string, userId: string): Promise<void>;
 
   // Language methods
   createLanguage(language: InsertLanguage): Promise<Language>;
-  getLanguage(id: string, userId: string, notebookId: string): Promise<Language | undefined>;
+  getLanguage(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Language | undefined>;
   getUserLanguages(userId: string, notebookId: string): Promise<Language[]>;
-  updateLanguage(id: string, userId: string, updates: Partial<InsertLanguage>): Promise<Language>;
+  updateLanguage(
+    id: string,
+    userId: string,
+    updates: Partial<InsertLanguage>,
+  ): Promise<Language>;
   deleteLanguage(id: string, userId: string): Promise<void>;
 
   // Religion methods
   createReligion(religion: InsertReligion): Promise<Religion>;
-  getReligion(id: string, userId: string, notebookId: string): Promise<Religion | undefined>;
+  getReligion(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Religion | undefined>;
   getUserReligions(userId: string, notebookId: string): Promise<Religion[]>;
-  updateReligion(id: string, userId: string, updates: Partial<InsertReligion>): Promise<Religion>;
+  updateReligion(
+    id: string,
+    userId: string,
+    updates: Partial<InsertReligion>,
+  ): Promise<Religion>;
   deleteReligion(id: string, userId: string): Promise<void>;
 
   // Technology methods
   createTechnology(technology: InsertTechnology): Promise<Technology>;
-  getTechnology(id: string, userId: string, notebookId: string): Promise<Technology | undefined>;
-  getUserTechnologies(userId: string, notebookId: string): Promise<Technology[]>;
-  updateTechnology(id: string, userId: string, updates: Partial<InsertTechnology>): Promise<Technology>;
+  getTechnology(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Technology | undefined>;
+  getUserTechnologies(
+    userId: string,
+    notebookId: string,
+  ): Promise<Technology[]>;
+  updateTechnology(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTechnology>,
+  ): Promise<Technology>;
   deleteTechnology(id: string, userId: string): Promise<void>;
 
   // Weapon methods
   createWeapon(weapon: InsertWeapon): Promise<Weapon>;
-  getWeapon(id: string, userId: string, notebookId: string): Promise<Weapon | undefined>;
+  getWeapon(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Weapon | undefined>;
   getUserWeapons(userId: string, notebookId: string): Promise<Weapon[]>;
-  updateWeapon(id: string, userId: string, notebookId: string, updates: Partial<InsertWeapon>): Promise<Weapon>;
+  updateWeapon(
+    id: string,
+    userId: string,
+    notebookId: string,
+    updates: Partial<InsertWeapon>,
+  ): Promise<Weapon>;
   deleteWeapon(id: string, userId: string, notebookId: string): Promise<void>;
-
 
   // Profession methods
   createProfession(profession: InsertProfession): Promise<Profession>;
-  getProfession(id: string, userId: string, notebookId: string): Promise<Profession | undefined>;
+  getProfession(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Profession | undefined>;
   getUserProfessions(userId: string, notebookId: string): Promise<Profession[]>;
-  updateProfession(id: string, userId: string, updates: Partial<InsertProfession>): Promise<Profession>;
+  updateProfession(
+    id: string,
+    userId: string,
+    updates: Partial<InsertProfession>,
+  ): Promise<Profession>;
   deleteProfession(id: string, userId: string): Promise<void>;
 
   // Rank methods
   createRank(rank: InsertRank): Promise<Rank>;
-  getRank(id: string, userId: string, notebookId: string): Promise<Rank | undefined>;
+  getRank(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Rank | undefined>;
   getUserRanks(userId: string, notebookId: string): Promise<Rank[]>;
-  updateRank(id: string, userId: string, updates: Partial<InsertRank>): Promise<Rank>;
+  updateRank(
+    id: string,
+    userId: string,
+    updates: Partial<InsertRank>,
+  ): Promise<Rank>;
   deleteRank(id: string, userId: string): Promise<void>;
 
   // Condition methods
   createCondition(condition: InsertCondition): Promise<Condition>;
-  getCondition(id: string, userId: string, notebookId: string): Promise<Condition | undefined>;
+  getCondition(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Condition | undefined>;
   getUserConditions(userId: string, notebookId: string): Promise<Condition[]>;
-  updateCondition(id: string, userId: string, updates: Partial<InsertCondition>): Promise<Condition>;
+  updateCondition(
+    id: string,
+    userId: string,
+    updates: Partial<InsertCondition>,
+  ): Promise<Condition>;
   deleteCondition(id: string, userId: string): Promise<void>;
 
   // Plant methods
   createPlant(plant: InsertPlant): Promise<Plant>;
-  getPlant(id: string, userId: string, notebookId: string): Promise<Plant | undefined>;
+  getPlant(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Plant | undefined>;
   getUserPlants(userId: string, notebookId: string): Promise<Plant[]>;
-  updatePlant(id: string, userId: string, updates: Partial<InsertPlant>, notebookId: string): Promise<Plant>;
+  updatePlant(
+    id: string,
+    userId: string,
+    updates: Partial<InsertPlant>,
+    notebookId: string,
+  ): Promise<Plant>;
   deletePlant(id: string, userId: string, notebookId: string): Promise<void>;
 
   // Description methods
   createDescription(description: InsertDescription): Promise<Description>;
-  getDescription(id: string, userId: string, notebookId: string): Promise<Description | undefined>;
-  getUserDescriptions(userId: string, notebookId: string): Promise<Description[]>;
-  updateDescription(id: string, userId: string, updates: Partial<InsertDescription>): Promise<Description>;
+  getDescription(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Description | undefined>;
+  getUserDescriptions(
+    userId: string,
+    notebookId: string,
+  ): Promise<Description[]>;
+  updateDescription(
+    id: string,
+    userId: string,
+    updates: Partial<InsertDescription>,
+  ): Promise<Description>;
   deleteDescription(id: string, userId: string): Promise<void>;
 
   // Ethnicity methods
   createEthnicity(ethnicity: InsertEthnicity): Promise<Ethnicity>;
-  getEthnicity(id: string, userId: string, notebookId: string): Promise<Ethnicity | undefined>;
+  getEthnicity(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Ethnicity | undefined>;
   getUserEthnicities(userId: string, notebookId: string): Promise<Ethnicity[]>;
-  updateEthnicity(id: string, userId: string, updates: Partial<InsertEthnicity>): Promise<Ethnicity>;
+  updateEthnicity(
+    id: string,
+    userId: string,
+    updates: Partial<InsertEthnicity>,
+  ): Promise<Ethnicity>;
   deleteEthnicity(id: string, userId: string): Promise<void>;
 
   // Drink methods
   createDrink(drink: InsertDrink): Promise<Drink>;
-  getDrink(id: string, userId: string, notebookId: string): Promise<Drink | undefined>;
+  getDrink(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Drink | undefined>;
   getUserDrinks(userId: string, notebookId: string): Promise<Drink[]>;
-  updateDrink(id: string, userId: string, updates: Partial<InsertDrink>): Promise<Drink>;
+  updateDrink(
+    id: string,
+    userId: string,
+    updates: Partial<InsertDrink>,
+  ): Promise<Drink>;
   deleteDrink(id: string, userId: string): Promise<void>;
 
   // Armor methods
   createArmor(armor: InsertArmor): Promise<Armor>;
-  getArmor(id: string, userId: string, notebookId: string): Promise<Armor | undefined>;
+  getArmor(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Armor | undefined>;
   getUserArmor(userId: string, notebookId: string): Promise<Armor[]>;
-  updateArmor(id: string, userId: string, updates: Partial<InsertArmor>): Promise<Armor>;
+  updateArmor(
+    id: string,
+    userId: string,
+    updates: Partial<InsertArmor>,
+  ): Promise<Armor>;
   deleteArmor(id: string, userId: string): Promise<void>;
 
   // Accessory methods
   createAccessory(accessory: InsertAccessory): Promise<Accessory>;
-  getAccessory(id: string, userId: string, notebookId: string): Promise<Accessory | undefined>;
+  getAccessory(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Accessory | undefined>;
   getUserAccessories(userId: string, notebookId: string): Promise<Accessory[]>;
-  updateAccessory(id: string, userId: string, updates: Partial<InsertAccessory>): Promise<Accessory>;
+  updateAccessory(
+    id: string,
+    userId: string,
+    updates: Partial<InsertAccessory>,
+  ): Promise<Accessory>;
   deleteAccessory(id: string, userId: string): Promise<void>;
 
   // Clothing methods
   createClothing(clothing: InsertClothing): Promise<Clothing>;
-  getClothing(id: string, userId: string, notebookId: string): Promise<Clothing | undefined>;
+  getClothing(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Clothing | undefined>;
   getUserClothing(userId: string, notebookId: string): Promise<Clothing[]>;
-  updateClothing(id: string, userId: string, updates: Partial<InsertClothing>): Promise<Clothing>;
+  updateClothing(
+    id: string,
+    userId: string,
+    updates: Partial<InsertClothing>,
+  ): Promise<Clothing>;
   deleteClothing(id: string, userId: string): Promise<void>;
 
   // Material methods
   createMaterial(material: InsertMaterial): Promise<Material>;
-  getMaterial(id: string, userId: string, notebookId: string): Promise<Material | undefined>;
+  getMaterial(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Material | undefined>;
   getUserMaterials(userId: string, notebookId: string): Promise<Material[]>;
-  updateMaterial(id: string, userId: string, updates: Partial<InsertMaterial>): Promise<Material>;
+  updateMaterial(
+    id: string,
+    userId: string,
+    updates: Partial<InsertMaterial>,
+  ): Promise<Material>;
   deleteMaterial(id: string, userId: string): Promise<void>;
 
   // Settlement methods
   createSettlement(settlement: InsertSettlement): Promise<Settlement>;
-  getSettlement(id: string, userId: string, notebookId: string): Promise<Settlement | undefined>;
+  getSettlement(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Settlement | undefined>;
   getUserSettlements(userId: string, notebookId: string): Promise<Settlement[]>;
-  updateSettlement(id: string, userId: string, updates: Partial<InsertSettlement>): Promise<Settlement>;
+  updateSettlement(
+    id: string,
+    userId: string,
+    updates: Partial<InsertSettlement>,
+  ): Promise<Settlement>;
   deleteSettlement(id: string, userId: string): Promise<void>;
 
   // Society methods
   createSociety(society: InsertSociety): Promise<Society>;
-  getSociety(id: string, userId: string, notebookId: string): Promise<Society | undefined>;
+  getSociety(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Society | undefined>;
   getUserSocieties(userId: string, notebookId: string): Promise<Society[]>;
-  updateSociety(id: string, userId: string, updates: Partial<InsertSociety>): Promise<Society>;
+  updateSociety(
+    id: string,
+    userId: string,
+    updates: Partial<InsertSociety>,
+  ): Promise<Society>;
   deleteSociety(id: string, userId: string): Promise<void>;
 
   // Faction methods
   createFaction(faction: InsertFaction): Promise<Faction>;
-  getFaction(id: string, userId: string, notebookId: string): Promise<Faction | undefined>;
+  getFaction(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Faction | undefined>;
   getUserFaction(userId: string, notebookId: string): Promise<Faction[]>;
-  updateFaction(id: string, userId: string, updates: Partial<InsertFaction>, notebookId: string): Promise<Faction>;
+  updateFaction(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFaction>,
+    notebookId: string,
+  ): Promise<Faction>;
   deleteFaction(id: string, userId: string, notebookId: string): Promise<void>;
 
   // Military Unit methods
   createMilitaryUnit(militaryUnit: InsertMilitaryUnit): Promise<MilitaryUnit>;
-  getMilitaryUnit(id: string, userId: string, notebookId: string): Promise<MilitaryUnit | undefined>;
-  getUserMilitaryUnits(userId: string, notebookId: string): Promise<MilitaryUnit[]>;
-  updateMilitaryUnit(id: string, userId: string, updates: Partial<InsertMilitaryUnit>): Promise<MilitaryUnit>;
+  getMilitaryUnit(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<MilitaryUnit | undefined>;
+  getUserMilitaryUnits(
+    userId: string,
+    notebookId: string,
+  ): Promise<MilitaryUnit[]>;
+  updateMilitaryUnit(
+    id: string,
+    userId: string,
+    updates: Partial<InsertMilitaryUnit>,
+  ): Promise<MilitaryUnit>;
   deleteMilitaryUnit(id: string, userId: string): Promise<void>;
 
   // Myth methods
   createMyth(myth: InsertMyth): Promise<Myth>;
-  getMyth(id: string, userId: string, notebookId: string): Promise<Myth | undefined>;
+  getMyth(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Myth | undefined>;
   getUserMyths(userId: string, notebookId: string): Promise<Myth[]>;
-  updateMyth(id: string, userId: string, updates: Partial<InsertMyth>): Promise<Myth>;
+  updateMyth(
+    id: string,
+    userId: string,
+    updates: Partial<InsertMyth>,
+  ): Promise<Myth>;
   deleteMyth(id: string, userId: string): Promise<void>;
 
   // Legend methods
   createLegend(legend: InsertLegend): Promise<Legend>;
-  getLegend(id: string, userId: string, notebookId: string): Promise<Legend | undefined>;
+  getLegend(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Legend | undefined>;
   getUserLegends(userId: string, notebookId: string): Promise<Legend[]>;
-  updateLegend(id: string, userId: string, updates: Partial<InsertLegend>): Promise<Legend>;
+  updateLegend(
+    id: string,
+    userId: string,
+    updates: Partial<InsertLegend>,
+  ): Promise<Legend>;
   deleteLegend(id: string, userId: string): Promise<void>;
 
   // Event methods
   createEvent(event: InsertEvent): Promise<Event>;
-  getEvent(id: string, userId: string, notebookId: string): Promise<Event | undefined>;
+  getEvent(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Event | undefined>;
   getUserEvents(userId: string, notebookId: string): Promise<Event[]>;
-  updateEvent(id: string, userId: string, updates: Partial<InsertEvent>): Promise<Event>;
+  updateEvent(
+    id: string,
+    userId: string,
+    updates: Partial<InsertEvent>,
+  ): Promise<Event>;
   deleteEvent(id: string, userId: string): Promise<void>;
 
   // Spell methods
   createSpell(spell: InsertSpell): Promise<Spell>;
-  getSpell(id: string, userId: string, notebookId: string): Promise<Spell | undefined>;
+  getSpell(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Spell | undefined>;
   getUserSpells(userId: string, notebookId: string): Promise<Spell[]>;
-  updateSpell(id: string, userId: string, updates: Partial<InsertSpell>): Promise<Spell>;
+  updateSpell(
+    id: string,
+    userId: string,
+    updates: Partial<InsertSpell>,
+  ): Promise<Spell>;
   deleteSpell(id: string, userId: string): Promise<void>;
 
   // Resource methods
   createResource(resource: InsertResource): Promise<Resource>;
-  getResource(id: string, userId: string, notebookId: string): Promise<Resource | undefined>;
+  getResource(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Resource | undefined>;
   getUserResources(userId: string, notebookId: string): Promise<Resource[]>;
-  updateResource(id: string, userId: string, updates: Partial<InsertResource>): Promise<Resource>;
+  updateResource(
+    id: string,
+    userId: string,
+    updates: Partial<InsertResource>,
+  ): Promise<Resource>;
   deleteResource(id: string, userId: string): Promise<void>;
 
   // Building methods
   createBuilding(building: InsertBuilding): Promise<Building>;
-  getBuilding(id: string, userId: string, notebookId: string): Promise<Building | undefined>;
+  getBuilding(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Building | undefined>;
   getUserBuildings(userId: string, notebookId: string): Promise<Building[]>;
-  updateBuilding(id: string, userId: string, updates: Partial<InsertBuilding>): Promise<Building>;
+  updateBuilding(
+    id: string,
+    userId: string,
+    updates: Partial<InsertBuilding>,
+  ): Promise<Building>;
   deleteBuilding(id: string, userId: string): Promise<void>;
 
   // Animal methods
   createAnimal(animal: InsertAnimal): Promise<Animal>;
-  getAnimal(id: string, userId: string, notebookId: string): Promise<Animal | undefined>;
+  getAnimal(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Animal | undefined>;
   getUserAnimals(userId: string, notebookId: string): Promise<Animal[]>;
-  updateAnimal(id: string, userId: string, updates: Partial<InsertAnimal>): Promise<Animal>;
+  updateAnimal(
+    id: string,
+    userId: string,
+    updates: Partial<InsertAnimal>,
+  ): Promise<Animal>;
   deleteAnimal(id: string, userId: string): Promise<void>;
 
   // Transportation methods
-  createTransportation(transportation: InsertTransportation): Promise<Transportation>;
-  getTransportation(id: string, userId: string, notebookId: string): Promise<Transportation | undefined>;
-  getUserTransportation(userId: string, notebookId: string): Promise<Transportation[]>;
-  updateTransportation(id: string, userId: string, updates: Partial<InsertTransportation>): Promise<Transportation>;
+  createTransportation(
+    transportation: InsertTransportation,
+  ): Promise<Transportation>;
+  getTransportation(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Transportation | undefined>;
+  getUserTransportation(
+    userId: string,
+    notebookId: string,
+  ): Promise<Transportation[]>;
+  updateTransportation(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTransportation>,
+  ): Promise<Transportation>;
   deleteTransportation(id: string, userId: string): Promise<void>;
 
   // Natural Law methods
   createNaturalLaw(naturalLaw: InsertNaturalLaw): Promise<NaturalLaw>;
-  getNaturalLaw(id: string, userId: string, notebookId: string): Promise<NaturalLaw | undefined>;
+  getNaturalLaw(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<NaturalLaw | undefined>;
   getUserNaturalLaws(userId: string, notebookId: string): Promise<NaturalLaw[]>;
-  updateNaturalLaw(id: string, userId: string, updates: Partial<InsertNaturalLaw>): Promise<NaturalLaw>;
+  updateNaturalLaw(
+    id: string,
+    userId: string,
+    updates: Partial<InsertNaturalLaw>,
+  ): Promise<NaturalLaw>;
   deleteNaturalLaw(id: string, userId: string): Promise<void>;
 
   // Tradition methods
   createTradition(tradition: InsertTradition): Promise<Tradition>;
-  getTradition(id: string, userId: string, notebookId: string): Promise<Tradition | undefined>;
+  getTradition(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Tradition | undefined>;
   getUserTraditions(userId: string, notebookId: string): Promise<Tradition[]>;
-  updateTradition(id: string, userId: string, updates: Partial<InsertTradition>): Promise<Tradition>;
+  updateTradition(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTradition>,
+  ): Promise<Tradition>;
   deleteTradition(id: string, userId: string): Promise<void>;
 
   // Ritual methods
   createRitual(ritual: InsertRitual): Promise<Ritual>;
-  getRitual(id: string, userId: string, notebookId: string): Promise<Ritual | undefined>;
+  getRitual(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Ritual | undefined>;
   getUserRituals(userId: string, notebookId: string): Promise<Ritual[]>;
-  updateRitual(id: string, userId: string, updates: Partial<InsertRitual>): Promise<Ritual>;
+  updateRitual(
+    id: string,
+    userId: string,
+    updates: Partial<InsertRitual>,
+  ): Promise<Ritual>;
   deleteRitual(id: string, userId: string): Promise<void>;
 
   // Family Tree methods
   createFamilyTree(familyTree: InsertFamilyTree): Promise<FamilyTree>;
-  getFamilyTree(id: string, userId: string, notebookId: string): Promise<FamilyTree | undefined>;
+  getFamilyTree(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<FamilyTree | undefined>;
   getUserFamilyTrees(userId: string, notebookId: string): Promise<FamilyTree[]>;
-  updateFamilyTree(id: string, userId: string, updates: Partial<InsertFamilyTree>): Promise<FamilyTree>;
+  updateFamilyTree(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFamilyTree>,
+  ): Promise<FamilyTree>;
   deleteFamilyTree(id: string, userId: string): Promise<void>;
 
   // Family Tree Member methods
-  createFamilyTreeMember(member: InsertFamilyTreeMember): Promise<FamilyTreeMember>;
-  getFamilyTreeMembers(treeId: string, userId: string): Promise<FamilyTreeMember[]>;
-  updateFamilyTreeMember(id: string, userId: string, updates: Partial<InsertFamilyTreeMember>): Promise<FamilyTreeMember>;
-  deleteFamilyTreeMember(id: string, userId: string, treeId: string): Promise<void>;
+  createFamilyTreeMember(
+    member: InsertFamilyTreeMember,
+  ): Promise<FamilyTreeMember>;
+  getFamilyTreeMembers(
+    treeId: string,
+    userId: string,
+  ): Promise<FamilyTreeMember[]>;
+  updateFamilyTreeMember(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFamilyTreeMember>,
+  ): Promise<FamilyTreeMember>;
+  deleteFamilyTreeMember(
+    id: string,
+    userId: string,
+    treeId: string,
+  ): Promise<void>;
 
   // Family Tree Relationship methods
-  createFamilyTreeRelationship(relationship: InsertFamilyTreeRelationship): Promise<FamilyTreeRelationship>;
-  getFamilyTreeRelationships(treeId: string, userId: string): Promise<FamilyTreeRelationship[]>;
-  updateFamilyTreeRelationship(id: string, userId: string, updates: Partial<InsertFamilyTreeRelationship>): Promise<FamilyTreeRelationship>;
-  deleteFamilyTreeRelationship(id: string, userId: string, treeId: string): Promise<void>;
+  createFamilyTreeRelationship(
+    relationship: InsertFamilyTreeRelationship,
+  ): Promise<FamilyTreeRelationship>;
+  getFamilyTreeRelationships(
+    treeId: string,
+    userId: string,
+  ): Promise<FamilyTreeRelationship[]>;
+  updateFamilyTreeRelationship(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFamilyTreeRelationship>,
+  ): Promise<FamilyTreeRelationship>;
+  deleteFamilyTreeRelationship(
+    id: string,
+    userId: string,
+    treeId: string,
+  ): Promise<void>;
 
   // Timeline methods
   createTimeline(timeline: InsertTimeline): Promise<Timeline>;
-  getTimeline(id: string, userId: string, notebookId: string): Promise<Timeline | undefined>;
+  getTimeline(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Timeline | undefined>;
   getUserTimelines(userId: string, notebookId: string): Promise<Timeline[]>;
-  updateTimeline(id: string, userId: string, updates: Partial<InsertTimeline>): Promise<Timeline>;
+  updateTimeline(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTimeline>,
+  ): Promise<Timeline>;
   deleteTimeline(id: string, userId: string): Promise<void>;
-  
+
   // Timeline Event methods
   createTimelineEvent(event: InsertTimelineEvent): Promise<TimelineEvent>;
-  getTimelineEvent(id: string, userId: string, timelineId: string): Promise<TimelineEvent | undefined>;
-  getTimelineEvents(timelineId: string, userId: string): Promise<TimelineEvent[]>;
-  getTimelineEventsForNotebook(notebookId: string, userId: string): Promise<TimelineEvent[]>;
-  updateTimelineEvent(id: string, userId: string, updates: Partial<InsertTimelineEvent>): Promise<TimelineEvent>;
-  deleteTimelineEvent(id: string, userId: string, timelineId: string): Promise<void>;
+  getTimelineEvent(
+    id: string,
+    userId: string,
+    timelineId: string,
+  ): Promise<TimelineEvent | undefined>;
+  getTimelineEvents(
+    timelineId: string,
+    userId: string,
+  ): Promise<TimelineEvent[]>;
+  getTimelineEventsForNotebook(
+    notebookId: string,
+    userId: string,
+  ): Promise<TimelineEvent[]>;
+  updateTimelineEvent(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTimelineEvent>,
+  ): Promise<TimelineEvent>;
+  deleteTimelineEvent(
+    id: string,
+    userId: string,
+    timelineId: string,
+  ): Promise<void>;
 
   // Timeline Relationship methods
-  createTimelineRelationship(relationship: InsertTimelineRelationship): Promise<TimelineRelationship>;
-  getTimelineRelationships(timelineId: string, userId: string): Promise<TimelineRelationship[]>;
-  updateTimelineRelationship(id: string, userId: string, updates: Partial<InsertTimelineRelationship>): Promise<TimelineRelationship>;
-  deleteTimelineRelationship(id: string, userId: string, timelineId: string): Promise<void>;
+  createTimelineRelationship(
+    relationship: InsertTimelineRelationship,
+  ): Promise<TimelineRelationship>;
+  getTimelineRelationships(
+    timelineId: string,
+    userId: string,
+  ): Promise<TimelineRelationship[]>;
+  updateTimelineRelationship(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTimelineRelationship>,
+  ): Promise<TimelineRelationship>;
+  deleteTimelineRelationship(
+    id: string,
+    userId: string,
+    timelineId: string,
+  ): Promise<void>;
 
   // Ceremony methods
   createCeremony(ceremony: InsertCeremony): Promise<Ceremony>;
-  getCeremony(id: string, userId: string, notebookId: string): Promise<Ceremony | undefined>;
+  getCeremony(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Ceremony | undefined>;
   getUserCeremonies(userId: string, notebookId: string): Promise<Ceremony[]>;
-  updateCeremony(id: string, userId: string, updates: Partial<InsertCeremony>): Promise<Ceremony>;
+  updateCeremony(
+    id: string,
+    userId: string,
+    updates: Partial<InsertCeremony>,
+  ): Promise<Ceremony>;
   deleteCeremony(id: string, userId: string): Promise<void>;
 
   // Map methods
   createMap(map: InsertMap): Promise<Map>;
-  getMap(id: string, userId: string, notebookId: string): Promise<Map | undefined>;
+  getMap(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Map | undefined>;
   getUserMaps(userId: string, notebookId: string): Promise<Map[]>;
-  updateMap(id: string, userId: string, updates: Partial<InsertMap>): Promise<Map>;
+  updateMap(
+    id: string,
+    userId: string,
+    updates: Partial<InsertMap>,
+  ): Promise<Map>;
   deleteMap(id: string, userId: string): Promise<void>;
 
   // Music methods
   createMusic(music: InsertMusic): Promise<Music>;
-  getMusic(id: string, userId: string, notebookId: string): Promise<Music | undefined>;
+  getMusic(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Music | undefined>;
   getUserMusic(userId: string, notebookId: string): Promise<Music[]>;
-  updateMusic(id: string, userId: string, updates: Partial<InsertMusic>): Promise<Music>;
+  updateMusic(
+    id: string,
+    userId: string,
+    updates: Partial<InsertMusic>,
+  ): Promise<Music>;
   deleteMusic(id: string, userId: string): Promise<void>;
 
   // Dance methods
   createDance(dance: InsertDance): Promise<Dance>;
-  getDance(id: string, userId: string, notebookId: string): Promise<Dance | undefined>;
+  getDance(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Dance | undefined>;
   getUserDances(userId: string, notebookId: string): Promise<Dance[]>;
-  updateDance(id: string, userId: string, updates: Partial<InsertDance>): Promise<Dance>;
+  updateDance(
+    id: string,
+    userId: string,
+    updates: Partial<InsertDance>,
+  ): Promise<Dance>;
   deleteDance(id: string, userId: string): Promise<void>;
 
   // Law methods
   createLaw(law: InsertLaw): Promise<Law>;
-  getLaw(id: string, userId: string, notebookId: string): Promise<Law | undefined>;
+  getLaw(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Law | undefined>;
   getUserLaws(userId: string, notebookId: string): Promise<Law[]>;
-  updateLaw(id: string, userId: string, updates: Partial<InsertLaw>): Promise<Law>;
+  updateLaw(
+    id: string,
+    userId: string,
+    updates: Partial<InsertLaw>,
+  ): Promise<Law>;
   deleteLaw(id: string, userId: string): Promise<void>;
 
   // Policy methods
   createPolicy(policy: InsertPolicy): Promise<Policy>;
-  getPolicy(id: string, userId: string, notebookId: string): Promise<Policy | undefined>;
+  getPolicy(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Policy | undefined>;
   getUserPolicies(userId: string, notebookId: string): Promise<Policy[]>;
-  updatePolicy(id: string, userId: string, updates: Partial<InsertPolicy>): Promise<Policy>;
+  updatePolicy(
+    id: string,
+    userId: string,
+    updates: Partial<InsertPolicy>,
+  ): Promise<Policy>;
   deletePolicy(id: string, userId: string): Promise<void>;
 
   // Potion methods
   createPotion(potion: InsertPotion): Promise<Potion>;
-  getPotion(id: string, userId: string, notebookId: string): Promise<Potion | undefined>;
+  getPotion(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Potion | undefined>;
   getUserPotions(userId: string, notebookId: string): Promise<Potion[]>;
-  updatePotion(id: string, userId: string, updates: Partial<InsertPotion>): Promise<Potion>;
+  updatePotion(
+    id: string,
+    userId: string,
+    updates: Partial<InsertPotion>,
+  ): Promise<Potion>;
   deletePotion(id: string, userId: string): Promise<void>;
 
   // Name generator methods
   createName(name: InsertName): Promise<GeneratedName>;
-  getName(id: string, userId: string, notebookId: string): Promise<GeneratedName | undefined>;
+  getName(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<GeneratedName | undefined>;
   getUserNames(userId: string, notebookId: string): Promise<GeneratedName[]>;
 
   // Theme methods
   createTheme(theme: InsertTheme): Promise<Theme>;
-  getTheme(id: string, userId: string, notebookId: string): Promise<Theme | undefined>;
+  getTheme(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Theme | undefined>;
   getUserThemes(userId: string, notebookId: string): Promise<Theme[]>;
-  updateTheme(id: string, userId: string, updates: Partial<InsertTheme>): Promise<Theme>;
+  updateTheme(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTheme>,
+  ): Promise<Theme>;
 
   // Mood methods
   createMood(mood: InsertMood): Promise<Mood>;
-  getMood(id: string, userId: string, notebookId: string): Promise<Mood | undefined>;
+  getMood(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Mood | undefined>;
   getUserMoods(userId: string, notebookId: string): Promise<Mood[]>;
 
   // Conflict methods
   createConflict(conflict: InsertConflict): Promise<Conflict>;
-  getConflict(id: string, userId: string, notebookId: string): Promise<Conflict | undefined>;
+  getConflict(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Conflict | undefined>;
   getUserConflicts(userId: string, notebookId: string): Promise<Conflict[]>;
-  updateConflict(id: string, userId: string, updates: Partial<InsertConflict>): Promise<Conflict>;
+  updateConflict(
+    id: string,
+    userId: string,
+    updates: Partial<InsertConflict>,
+  ): Promise<Conflict>;
 
   // Guide methods
   createGuide(guide: InsertGuide): Promise<Guide>;
   getGuide(id: string): Promise<Guide | undefined>;
   getGuides(category?: string): Promise<Guide[]>;
   searchGuides(query: string, category?: string): Promise<Guide[]>;
-  updateGuide(id: string, updates: Partial<InsertGuide>): Promise<Guide | undefined>;
+  updateGuide(
+    id: string,
+    updates: Partial<InsertGuide>,
+  ): Promise<Guide | undefined>;
   deleteGuide(id: string): Promise<boolean>;
-  
+
   // Guide category methods
   createGuideCategory(category: InsertGuideCategory): Promise<GuideCategory>;
   getGuideCategories(): Promise<any[]>; // Returns hierarchical structure with children
-  updateGuideCategory(id: string, updates: Partial<InsertGuideCategory>): Promise<GuideCategory | undefined>;
+  updateGuideCategory(
+    id: string,
+    updates: Partial<InsertGuideCategory>,
+  ): Promise<GuideCategory | undefined>;
   deleteGuideCategory(id: string): Promise<boolean>;
-  reorderGuideCategories(categoryOrders: Array<{ id: string; order: number }>): Promise<void>;
-  
+  reorderGuideCategories(
+    categoryOrders: Array<{ id: string; order: number }>,
+  ): Promise<void>;
+
   // Guide reference methods
-  createGuideReference(reference: InsertGuideReference): Promise<GuideReference>;
+  createGuideReference(
+    reference: InsertGuideReference,
+  ): Promise<GuideReference>;
   getGuideReferences(sourceGuideId: string): Promise<GuideReference[]>;
   getGuideReferencedBy(targetGuideId: string): Promise<GuideReference[]>;
   deleteGuideReferences(sourceGuideId: string): Promise<void>;
-  syncGuideReferences(sourceGuideId: string, targetGuideIds: string[]): Promise<void>;
+  syncGuideReferences(
+    sourceGuideId: string,
+    targetGuideIds: string[],
+  ): Promise<void>;
 
   // Saved item methods
   saveItem(savedItem: InsertSavedItem): Promise<SavedItem>;
   unsaveItem(userId: string, itemType: string, itemId: string): Promise<void>;
-  unsaveItemFromNotebook(userId: string, itemType: string, itemId: string, notebookId: string): Promise<void>;
+  unsaveItemFromNotebook(
+    userId: string,
+    itemType: string,
+    itemId: string,
+    notebookId: string,
+  ): Promise<void>;
   getUserSavedItems(userId: string, itemType?: string): Promise<SavedItem[]>;
-  getUserSavedItemsByNotebook(userId: string, notebookId: string, itemType?: string): Promise<SavedItem[]>;
-  getSavedItemsByNotebookBatch(userId: string, notebookId: string): Promise<SavedItem[]>;
-  isItemSaved(userId: string, itemType: string, itemId: string): Promise<boolean>;
-  updateSavedItemData(savedItemId: string, userId: string, itemData: any): Promise<SavedItem | undefined>;
-  updateSavedItemDataByItem(userId: string, itemType: string, itemId: string, notebookId: string, itemData: any): Promise<SavedItem | undefined>;
-  updateSavedItemType(savedItemId: string, userId: string, newItemType: string): Promise<SavedItem | undefined>;
+  getUserSavedItemsByNotebook(
+    userId: string,
+    notebookId: string,
+    itemType?: string,
+  ): Promise<SavedItem[]>;
+  getSavedItemsByNotebookBatch(
+    userId: string,
+    notebookId: string,
+  ): Promise<SavedItem[]>;
+  isItemSaved(
+    userId: string,
+    itemType: string,
+    itemId: string,
+  ): Promise<boolean>;
+  updateSavedItemData(
+    savedItemId: string,
+    userId: string,
+    itemData: any,
+  ): Promise<SavedItem | undefined>;
+  updateSavedItemDataByItem(
+    userId: string,
+    itemType: string,
+    itemId: string,
+    notebookId: string,
+    itemData: any,
+  ): Promise<SavedItem | undefined>;
+  updateSavedItemType(
+    savedItemId: string,
+    userId: string,
+    newItemType: string,
+  ): Promise<SavedItem | undefined>;
 
   // Project methods
   createProject(project: InsertProject): Promise<Project>;
   getProject(id: string, userId: string): Promise<Project | undefined>;
   getUserProjects(userId: string): Promise<Project[]>;
-  updateProject(id: string, userId: string, updates: Partial<InsertProject>): Promise<Project>;
+  updateProject(
+    id: string,
+    userId: string,
+    updates: Partial<InsertProject>,
+  ): Promise<Project>;
   deleteProject(id: string, userId: string): Promise<void>;
   searchProjects(userId: string, query: string): Promise<Project[]>;
 
   // Project Section methods
   createProjectSection(section: InsertProjectSection): Promise<ProjectSection>;
-  getProjectSection(id: string, projectId: string): Promise<ProjectSection | undefined>;
+  getProjectSection(
+    id: string,
+    projectId: string,
+  ): Promise<ProjectSection | undefined>;
   getProjectSections(projectId: string): Promise<ProjectSection[]>;
-  updateProjectSection(id: string, projectId: string, updates: Partial<InsertProjectSection>): Promise<ProjectSection>;
+  updateProjectSection(
+    id: string,
+    projectId: string,
+    updates: Partial<InsertProjectSection>,
+  ): Promise<ProjectSection>;
   deleteProjectSection(id: string, projectId: string): Promise<void>;
-  reorderProjectSections(projectId: string, sectionOrders: { id: string; position: number; parentId?: string | null }[]): Promise<void>;
+  reorderProjectSections(
+    projectId: string,
+    sectionOrders: { id: string; position: number; parentId?: string | null }[],
+  ): Promise<void>;
 
   // Universal search method
   searchAllContent(userId: string, query: string): Promise<any[]>;
@@ -613,17 +1363,40 @@ export interface IStorage {
 
   // Pinned content methods
   pinContent(pin: InsertPinnedContent): Promise<PinnedContent>;
-  unpinContent(userId: string, itemType: string, itemId: string, notebookId: string): Promise<void>;
-  getUserPinnedContent(userId: string, notebookId: string, category?: string): Promise<PinnedContent[]>;
-  reorderPinnedContent(userId: string, itemId: string, newOrder: number, notebookId: string): Promise<void>;
-  isContentPinned(userId: string, itemType: string, itemId: string, notebookId: string): Promise<boolean>;
+  unpinContent(
+    userId: string,
+    itemType: string,
+    itemId: string,
+    notebookId: string,
+  ): Promise<void>;
+  getUserPinnedContent(
+    userId: string,
+    notebookId: string,
+    category?: string,
+  ): Promise<PinnedContent[]>;
+  reorderPinnedContent(
+    userId: string,
+    itemId: string,
+    newOrder: number,
+    notebookId: string,
+  ): Promise<void>;
+  isContentPinned(
+    userId: string,
+    itemType: string,
+    itemId: string,
+    notebookId: string,
+  ): Promise<boolean>;
 
   // Canvas methods
   createCanvas(canvas: InsertCanvas): Promise<Canvas>;
   getCanvas(id: string, userId: string): Promise<Canvas | undefined>;
   getUserCanvases(userId: string): Promise<Canvas[]>;
   getProjectCanvases(projectId: string, userId: string): Promise<Canvas[]>;
-  updateCanvas(id: string, userId: string, updates: Partial<InsertCanvas>): Promise<Canvas>;
+  updateCanvas(
+    id: string,
+    userId: string,
+    updates: Partial<InsertCanvas>,
+  ): Promise<Canvas>;
   deleteCanvas(id: string, userId: string): Promise<void>;
 
   // Folder methods
@@ -631,7 +1404,11 @@ export interface IStorage {
   getFolder(id: string, userId: string): Promise<Folder | undefined>;
   getUserFolders(userId: string, type?: string): Promise<Folder[]>;
   getDocumentFolders(documentId: string, userId: string): Promise<Folder[]>;
-  updateFolder(id: string, userId: string, updates: Partial<InsertFolder>): Promise<Folder>;
+  updateFolder(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFolder>,
+  ): Promise<Folder>;
   deleteFolder(id: string, userId: string): Promise<void>;
   getFolderHierarchy(userId: string, type: string): Promise<Folder[]>;
 
@@ -641,45 +1418,104 @@ export interface IStorage {
   getUserNotes(userId: string, type?: string): Promise<Note[]>;
   getFolderNotes(folderId: string, userId: string): Promise<Note[]>;
   getDocumentNotes(documentId: string, userId: string): Promise<Note[]>;
-  updateNote(id: string, userId: string, updates: Partial<InsertNote>): Promise<Note>;
+  updateNote(
+    id: string,
+    userId: string,
+    updates: Partial<InsertNote>,
+  ): Promise<Note>;
   deleteNote(id: string, userId: string): Promise<void>;
 
   // Quick note methods
-  createQuickNote(userId: string, title: string, content: string): Promise<Note>;
+  createQuickNote(
+    userId: string,
+    title: string,
+    content: string,
+  ): Promise<Note>;
   getUserQuickNote(userId: string): Promise<Note | undefined>;
   getQuickNoteById(id: string, userId: string): Promise<Note | undefined>;
-  updateQuickNote(id: string, userId: string, updates: { title?: string; content?: string }): Promise<Note>;
+  updateQuickNote(
+    id: string,
+    userId: string,
+    updates: { title?: string; content?: string },
+  ): Promise<Note>;
   deleteQuickNote(id: string, userId: string): Promise<void>;
 
   // Conversation thread methods
-  createConversationThread(thread: InsertConversationThread): Promise<ConversationThread>;
-  getConversationThread(id: string, userId: string): Promise<ConversationThread | undefined>;
-  getConversationThreads(filters: { userId: string, projectId?: string, guideId?: string, isActive?: boolean }): Promise<ConversationThread[]>;
-  searchConversationThreads(userId: string, query: string, filters?: { projectId?: string, guideId?: string }): Promise<ConversationThread[]>;
-  updateConversationThread(id: string, userId: string, updates: Partial<InsertConversationThread>): Promise<ConversationThread | undefined>;
+  createConversationThread(
+    thread: InsertConversationThread,
+  ): Promise<ConversationThread>;
+  getConversationThread(
+    id: string,
+    userId: string,
+  ): Promise<ConversationThread | undefined>;
+  getConversationThreads(filters: {
+    userId: string;
+    projectId?: string;
+    guideId?: string;
+    isActive?: boolean;
+  }): Promise<ConversationThread[]>;
+  searchConversationThreads(
+    userId: string,
+    query: string,
+    filters?: { projectId?: string; guideId?: string },
+  ): Promise<ConversationThread[]>;
+  updateConversationThread(
+    id: string,
+    userId: string,
+    updates: Partial<InsertConversationThread>,
+  ): Promise<ConversationThread | undefined>;
   updateThreadActivity(threadId: string, userId: string): Promise<void>;
   deleteConversationThread(id: string, userId: string): Promise<void>;
 
   // Chat message methods
   createChatMessage(chatMessage: InsertChatMessage): Promise<ChatMessage>;
-  getChatMessages(userId: string, projectId?: string, guideId?: string, limit?: number): Promise<ChatMessage[]>;
-  getChatMessagesByThread(threadId: string, userId: string, limit?: number): Promise<ChatMessage[]>;
-  deleteChatHistory(userId: string, projectId?: string, guideId?: string): Promise<void>;
+  getChatMessages(
+    userId: string,
+    projectId?: string,
+    guideId?: string,
+    limit?: number,
+  ): Promise<ChatMessage[]>;
+  getChatMessagesByThread(
+    threadId: string,
+    userId: string,
+    limit?: number,
+  ): Promise<ChatMessage[]>;
+  deleteChatHistory(
+    userId: string,
+    projectId?: string,
+    guideId?: string,
+  ): Promise<void>;
 
   // User preferences methods
   getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
-  upsertUserPreferences(userId: string, preferences: Partial<InsertUserPreferences>): Promise<UserPreferences>;
+  upsertUserPreferences(
+    userId: string,
+    preferences: Partial<InsertUserPreferences>,
+  ): Promise<UserPreferences>;
 
   // Conversation summary methods
-  getConversationSummary(userId: string, projectId?: string, guideId?: string): Promise<ConversationSummary | undefined>;
-  upsertConversationSummary(summary: InsertConversationSummary): Promise<ConversationSummary>;
-  updateConversationSummary(id: string, userId: string, updates: Partial<InsertConversationSummary>): Promise<ConversationSummary | undefined>;
+  getConversationSummary(
+    userId: string,
+    projectId?: string,
+    guideId?: string,
+  ): Promise<ConversationSummary | undefined>;
+  upsertConversationSummary(
+    summary: InsertConversationSummary,
+  ): Promise<ConversationSummary>;
+  updateConversationSummary(
+    id: string,
+    userId: string,
+    updates: Partial<InsertConversationSummary>,
+  ): Promise<ConversationSummary | undefined>;
 
   // Feedback methods
   createFeedback(feedbackData: InsertFeedback): Promise<Feedback>;
   getAllFeedback(): Promise<Feedback[]>;
   getFeedback(id: string): Promise<Feedback | undefined>;
-  updateFeedbackStatus(id: string, status: string): Promise<Feedback | undefined>;
+  updateFeedbackStatus(
+    id: string,
+    status: string,
+  ): Promise<Feedback | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -691,15 +1527,15 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     // Note: This method is deprecated - users are now identified by email with Replit Auth
-    const [user] = await db.select().from(users).where(eq(users.email, username));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, username));
     return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
@@ -718,7 +1554,10 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUser(id: string, updates: Partial<InsertUser>): Promise<User | undefined> {
+  async updateUser(
+    id: string,
+    updates: Partial<InsertUser>,
+  ): Promise<User | undefined> {
     const [updatedUser] = await db
       .update(users)
       .set({
@@ -739,8 +1578,8 @@ export class DatabaseStorage implements IStorage {
         or(
           ilike(users.email, searchPattern),
           ilike(users.firstName, searchPattern),
-          ilike(users.lastName, searchPattern)
-        )
+          ilike(users.lastName, searchPattern),
+        ),
       )
       .limit(10);
   }
@@ -768,16 +1607,16 @@ export class DatabaseStorage implements IStorage {
     // If not owner, check if shared
     const [sharedNotebook] = await db
       .select({
-        notebook: notebooks
+        notebook: notebooks,
       })
       .from(shares)
       .innerJoin(notebooks, eq(shares.resourceId, notebooks.id))
       .where(
         and(
           eq(shares.userId, userId),
-          eq(shares.resourceType, 'notebook'),
-          eq(shares.resourceId, id)
-        )
+          eq(shares.resourceType, "notebook"),
+          eq(shares.resourceId, id),
+        ),
       );
 
     return sharedNotebook?.notebook || undefined;
@@ -796,27 +1635,24 @@ export class DatabaseStorage implements IStorage {
       .select({
         notebook: notebooks,
         share: shares,
-        owner: users
+        owner: users,
       })
       .from(shares)
       .innerJoin(notebooks, eq(shares.resourceId, notebooks.id))
       .innerJoin(users, eq(notebooks.userId, users.id))
       .where(
-        and(
-          eq(shares.userId, userId),
-          eq(shares.resourceType, 'notebook')
-        )
+        and(eq(shares.userId, userId), eq(shares.resourceType, "notebook")),
       );
 
     // Add metadata to notebooks
-    const ownedWithMetadata = ownedNotebooks.map(n => ({
+    const ownedWithMetadata = ownedNotebooks.map((n) => ({
       ...n,
       isShared: false,
       sharedBy: null,
-      sharePermission: null
+      sharePermission: null,
     }));
 
-    const sharedWithMetadata = sharedNotebooks.map(s => ({
+    const sharedWithMetadata = sharedNotebooks.map((s) => ({
       ...s.notebook,
       isShared: true,
       sharedBy: {
@@ -824,20 +1660,17 @@ export class DatabaseStorage implements IStorage {
         email: s.owner.email,
         firstName: s.owner.firstName,
         lastName: s.owner.lastName,
-        profileImageUrl: s.owner.profileImageUrl
+        profileImageUrl: s.owner.profileImageUrl,
       },
-      sharePermission: s.share.permission
+      sharePermission: s.share.permission,
     }));
 
     // Combine and return, removing duplicates
-    const allNotebooks = [
-      ...ownedWithMetadata,
-      ...sharedWithMetadata
-    ];
+    const allNotebooks = [...ownedWithMetadata, ...sharedWithMetadata];
 
     // Remove duplicates based on id and sort by createdAt
     const uniqueNotebooks = Array.from(
-      new Map(allNotebooks.map(n => [n.id, n])).values()
+      new Map(allNotebooks.map((n) => [n.id, n])).values(),
     ).sort((a, b) => {
       const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
@@ -847,7 +1680,11 @@ export class DatabaseStorage implements IStorage {
     return uniqueNotebooks;
   }
 
-  async updateNotebook(id: string, userId: string, updates: UpdateNotebook): Promise<Notebook | undefined> {
+  async updateNotebook(
+    id: string,
+    userId: string,
+    updates: UpdateNotebook,
+  ): Promise<Notebook | undefined> {
     const [updatedNotebook] = await db
       .update(notebooks)
       .set(updates)
@@ -858,12 +1695,15 @@ export class DatabaseStorage implements IStorage {
 
   async deleteNotebook(id: string, userId: string): Promise<void> {
     // Validate ownership before deleting
-    const [existing] = await db.select().from(notebooks).where(eq(notebooks.id, id));
+    const [existing] = await db
+      .select()
+      .from(notebooks)
+      .where(eq(notebooks.id, id));
     if (!existing) {
-      throw new Error('Notebook not found');
+      throw new Error("Notebook not found");
     }
     if (existing.userId !== userId) {
-      throw new Error('Unauthorized: You do not own this notebook');
+      throw new Error("Unauthorized: You do not own this notebook");
     }
 
     await db
@@ -871,18 +1711,21 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(notebooks.id, id), eq(notebooks.userId, userId)));
   }
 
-  async validateNotebookOwnership(notebookId: string, userId: string): Promise<boolean> {
+  async validateNotebookOwnership(
+    notebookId: string,
+    userId: string,
+  ): Promise<boolean> {
     // Check if user owns the notebook
     const [notebook] = await db
       .select()
       .from(notebooks)
       .where(and(eq(notebooks.id, notebookId), eq(notebooks.userId, userId)))
       .limit(1);
-    
+
     if (notebook) {
       return true;
     }
-    
+
     // Check if notebook is shared with user (with Edit or Comment permissions)
     const [sharedNotebook] = await db
       .select()
@@ -890,29 +1733,26 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(shares.userId, userId),
-          eq(shares.resourceType, 'notebook'),
+          eq(shares.resourceType, "notebook"),
           eq(shares.resourceId, notebookId),
-          or(
-            eq(shares.permission, 'edit'),
-            eq(shares.permission, 'comment')
-          )
-        )
+          or(eq(shares.permission, "edit"), eq(shares.permission, "comment")),
+        ),
       )
       .limit(1);
-    
+
     return !!sharedNotebook;
   }
 
   // Import Job methods
   async createImportJob(job: InsertImportJob): Promise<ImportJob> {
-    const [newJob] = await db
-      .insert(importJobs)
-      .values(job)
-      .returning();
+    const [newJob] = await db.insert(importJobs).values(job).returning();
     return newJob;
   }
 
-  async getImportJob(id: string, userId: string): Promise<ImportJob | undefined> {
+  async getImportJob(
+    id: string,
+    userId: string,
+  ): Promise<ImportJob | undefined> {
     const [job] = await db
       .select()
       .from(importJobs)
@@ -928,7 +1768,10 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(importJobs.createdAt));
   }
 
-  async updateImportJob(id: string, updates: UpdateImportJob): Promise<ImportJob | undefined> {
+  async updateImportJob(
+    id: string,
+    updates: UpdateImportJob,
+  ): Promise<ImportJob | undefined> {
     const [updatedJob] = await db
       .update(importJobs)
       .set(updates)
@@ -937,10 +1780,9 @@ export class DatabaseStorage implements IStorage {
     return updatedJob || undefined;
   }
 
-  validateContentOwnership<T extends { userId?: string | null, notebookId?: string | null }>(
-    content: T | undefined,
-    userId: string
-  ): boolean {
+  validateContentOwnership<
+    T extends { userId?: string | null; notebookId?: string | null },
+  >(content: T | undefined, userId: string): boolean {
     if (!content) return false;
     // Content must have matching userId
     return content.userId === userId;
@@ -951,43 +1793,63 @@ export class DatabaseStorage implements IStorage {
     // Ensure description field is included if provided
     const characterData = {
       ...character,
-      description: character.description || character.backstory || '', // Fallback to backstory if no description
+      description: character.description || character.backstory || "", // Fallback to backstory if no description
     };
-    const [newCharacter] = await db.insert(characters).values(characterData).returning();
+    const [newCharacter] = await db
+      .insert(characters)
+      .values(characterData)
+      .returning();
     return newCharacter;
   }
 
-  async getCharacter(id: string, userId: string, notebookId: string): Promise<Character | undefined> {
+  async getCharacter(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Character | undefined> {
     const whereClause = and(
       eq(characters.id, id),
       eq(characters.userId, userId),
-      eq(characters.notebookId, notebookId)
+      eq(characters.notebookId, notebookId),
     );
     const [character] = await db.select().from(characters).where(whereClause);
     return character || undefined;
   }
 
-  async getUserCharacters(userId: string, notebookId: string): Promise<Character[]> {
+  async getUserCharacters(
+    userId: string,
+    notebookId: string,
+  ): Promise<Character[]> {
     const whereClause = and(
       eq(characters.userId, userId),
-      eq(characters.notebookId, notebookId)
+      eq(characters.notebookId, notebookId),
     );
-    return await db.select().from(characters)
+    return await db
+      .select()
+      .from(characters)
       .where(whereClause)
       .orderBy(desc(characters.createdAt));
   }
 
-  async updateCharacter(id: string, userId: string, updates: UpdateCharacter, notebookId: string): Promise<Character> {
+  async updateCharacter(
+    id: string,
+    userId: string,
+    updates: UpdateCharacter,
+    notebookId: string,
+  ): Promise<Character> {
     // Validate ownership
-    const [existing] = await db.select().from(characters).where(eq(characters.id, id));
+    const [existing] = await db
+      .select()
+      .from(characters)
+      .where(eq(characters.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const whereClause = and(
       eq(characters.id, id),
       eq(characters.userId, userId),
-      eq(characters.notebookId, notebookId)
+      eq(characters.notebookId, notebookId),
     );
     const [updatedCharacter] = await db
       .update(characters)
@@ -997,80 +1859,96 @@ export class DatabaseStorage implements IStorage {
     return updatedCharacter;
   }
 
-  async deleteCharacter(id: string, userId: string, notebookId: string): Promise<void> {
+  async deleteCharacter(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<void> {
     // Validate ownership and notebook association
-    const [existing] = await db.select().from(characters).where(eq(characters.id, id));
+    const [existing] = await db
+      .select()
+      .from(characters)
+      .where(eq(characters.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
     if (!existing || existing.notebookId !== notebookId) {
-      throw new Error('Character not found in the specified notebook');
+      throw new Error("Character not found in the specified notebook");
     }
 
     const whereClause = and(
       eq(characters.id, id),
       eq(characters.userId, userId),
-      eq(characters.notebookId, notebookId)
+      eq(characters.notebookId, notebookId),
     );
     await db.delete(characters).where(whereClause);
   }
 
-  async getCharactersWithIssues(userId: string, notebookId: string): Promise<{
+  async getCharactersWithIssues(
+    userId: string,
+    notebookId: string,
+  ): Promise<{
     missingFamilyName: Character[];
     missingDescription: Character[];
     missingImage: Character[];
   }> {
     const baseQuery = and(
       eq(characters.userId, userId),
-      eq(characters.notebookId, notebookId)
+      eq(characters.notebookId, notebookId),
     );
 
     // Characters with given name but missing family name
-    const missingFamilyName = await db.select().from(characters)
-      .where(and(
-        baseQuery,
-        isNotNull(characters.givenName),
-        or(
-          isNull(characters.familyName),
-          eq(characters.familyName, '')
-        )
-      ))
+    const missingFamilyName = await db
+      .select()
+      .from(characters)
+      .where(
+        and(
+          baseQuery,
+          isNotNull(characters.givenName),
+          or(isNull(characters.familyName), eq(characters.familyName, "")),
+        ),
+      )
       .orderBy(desc(characters.createdAt));
 
     // Characters missing description
-    const missingDescription = await db.select().from(characters)
-      .where(and(
-        baseQuery,
-        or(
-          isNull(characters.description),
-          eq(characters.description, '')
-        )
-      ))
+    const missingDescription = await db
+      .select()
+      .from(characters)
+      .where(
+        and(
+          baseQuery,
+          or(isNull(characters.description), eq(characters.description, "")),
+        ),
+      )
       .orderBy(desc(characters.createdAt));
 
     // Characters missing image
-    const missingImage = await db.select().from(characters)
-      .where(and(
-        baseQuery,
-        or(
-          isNull(characters.imageUrl),
-          eq(characters.imageUrl, '')
-        )
-      ))
+    const missingImage = await db
+      .select()
+      .from(characters)
+      .where(
+        and(
+          baseQuery,
+          or(isNull(characters.imageUrl), eq(characters.imageUrl, "")),
+        ),
+      )
       .orderBy(desc(characters.createdAt));
 
     return {
       missingFamilyName,
       missingDescription,
-      missingImage
+      missingImage,
     };
   }
 
-  async bulkDeleteCharactersWithIssues(userId: string, notebookId: string): Promise<{ deletedCount: number }> {
+  async bulkDeleteCharactersWithIssues(
+    userId: string,
+    notebookId: string,
+  ): Promise<{ deletedCount: number }> {
     // Get all characters with issues
     const baseQuery = and(
       eq(characters.userId, userId),
-      eq(characters.notebookId, notebookId)
+      eq(characters.notebookId, notebookId),
     );
 
     // Build condition for characters with any issue
@@ -1078,75 +1956,76 @@ export class DatabaseStorage implements IStorage {
       // Missing family name (has given name but no family name)
       and(
         isNotNull(characters.givenName),
-        or(
-          isNull(characters.familyName),
-          eq(characters.familyName, '')
-        )
+        or(isNull(characters.familyName), eq(characters.familyName, "")),
       ),
       // Missing description
-      or(
-        isNull(characters.description),
-        eq(characters.description, '')
-      ),
+      or(isNull(characters.description), eq(characters.description, "")),
       // Missing image
-      or(
-        isNull(characters.imageUrl),
-        eq(characters.imageUrl, '')
-      )
+      or(isNull(characters.imageUrl), eq(characters.imageUrl, "")),
     );
 
     // Delete characters with issues
-    const deleted = await db.delete(characters)
+    const deleted = await db
+      .delete(characters)
       .where(and(baseQuery, issuesCondition))
       .returning({ id: characters.id });
 
     // Also delete saved_items entries for these characters
     if (deleted.length > 0) {
-      const characterIds = deleted.map(c => c.id);
-      await db.delete(savedItems)
-        .where(and(
-          eq(savedItems.itemType, 'character'),
-          inArray(savedItems.itemId, characterIds)
-        ));
+      const characterIds = deleted.map((c) => c.id);
+      await db
+        .delete(savedItems)
+        .where(
+          and(
+            eq(savedItems.itemType, "character"),
+            inArray(savedItems.itemId, characterIds),
+          ),
+        );
     }
 
     return { deletedCount: deleted.length };
   }
 
-  async getPotentialDuplicates(userId: string, notebookId: string): Promise<Character[][]> {
+  async getPotentialDuplicates(
+    userId: string,
+    notebookId: string,
+  ): Promise<Character[][]> {
     // Helper function to calculate Levenshtein distance
     function levenshteinDistance(str1: string, str2: string): number {
       const len1 = str1.length;
       const len2 = str2.length;
       const matrix: number[][] = [];
-      
+
       for (let i = 0; i <= len1; i++) {
         matrix[i] = [i];
       }
       for (let j = 0; j <= len2; j++) {
         matrix[0][j] = j;
       }
-      
+
       for (let i = 1; i <= len1; i++) {
         for (let j = 1; j <= len2; j++) {
           const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
           matrix[i][j] = Math.min(
             matrix[i - 1][j] + 1,
             matrix[i][j - 1] + 1,
-            matrix[i - 1][j - 1] + cost
+            matrix[i - 1][j - 1] + cost,
           );
         }
       }
-      
+
       return matrix[len1][len2];
     }
 
     // Helper function to calculate similarity score
     function calculateSimilarity(str1: string, str2: string): number {
-      const distance = levenshteinDistance(str1.toLowerCase(), str2.toLowerCase());
+      const distance = levenshteinDistance(
+        str1.toLowerCase(),
+        str2.toLowerCase(),
+      );
       const maxLen = Math.max(str1.length, str2.length);
       if (maxLen === 0) return 1;
-      return 1 - (distance / maxLen);
+      return 1 - distance / maxLen;
     }
 
     // Helper function to get full display name
@@ -1154,19 +2033,25 @@ export class DatabaseStorage implements IStorage {
       const parts = [];
       if (character.givenName) parts.push(character.givenName);
       if (character.familyName) parts.push(character.familyName);
-      return parts.join(' ').trim();
+      return parts.join(" ").trim();
     }
 
     // Get all characters for the user's notebook
-    const allCharacters = await db.select().from(characters)
-      .where(and(
-        eq(characters.userId, userId),
-        eq(characters.notebookId, notebookId)
-      ))
+    const allCharacters = await db
+      .select()
+      .from(characters)
+      .where(
+        and(
+          eq(characters.userId, userId),
+          eq(characters.notebookId, notebookId),
+        ),
+      )
       .orderBy(characters.givenName);
 
     // Filter characters with at least a given name or family name
-    const validCharacters = allCharacters.filter(c => c.givenName || c.familyName);
+    const validCharacters = allCharacters.filter(
+      (c) => c.givenName || c.familyName,
+    );
 
     // Find similar characters using Levenshtein distance
     const similarityThreshold = 0.8;
@@ -1176,17 +2061,17 @@ export class DatabaseStorage implements IStorage {
     for (let i = 0; i < validCharacters.length; i++) {
       const char1 = validCharacters[i];
       const name1 = getDisplayName(char1);
-      
+
       if (!name1) continue;
-      
+
       for (let j = i + 1; j < validCharacters.length; j++) {
         const char2 = validCharacters[j];
         const name2 = getDisplayName(char2);
-        
+
         if (!name2) continue;
-        
+
         const similarity = calculateSimilarity(name1, name2);
-        
+
         if (similarity >= similarityThreshold) {
           // Add both characters to the same group
           if (!grouped.has(char1.id)) {
@@ -1195,15 +2080,15 @@ export class DatabaseStorage implements IStorage {
           if (!grouped.has(char2.id)) {
             grouped.set(char2.id, new Set([char2.id]));
           }
-          
+
           // Merge the groups
           const group1 = grouped.get(char1.id)!;
           const group2 = grouped.get(char2.id)!;
-          
+
           for (const id of group2) {
             group1.add(id);
           }
-          
+
           // Update all members of group2 to point to group1
           for (const id of group2) {
             grouped.set(id, group1);
@@ -1215,14 +2100,14 @@ export class DatabaseStorage implements IStorage {
     // Convert groups to character arrays
     const duplicateGroups: Character[][] = [];
     const seenGroups = new Set<Set<string>>();
-    
+
     for (const group of grouped.values()) {
       if (seenGroups.has(group)) continue;
       if (group.size <= 1) continue;
-      
+
       seenGroups.add(group);
-      
-      const groupCharacters = validCharacters.filter(c => group.has(c.id));
+
+      const groupCharacters = validCharacters.filter((c) => group.has(c.id));
       if (groupCharacters.length > 1) {
         duplicateGroups.push(groupCharacters);
       }
@@ -1233,54 +2118,72 @@ export class DatabaseStorage implements IStorage {
 
   // Plot methods
   async createPlot(plot: InsertPlot): Promise<Plot> {
-    const [newPlot] = await db
-      .insert(plots)
-      .values(plot)
-      .returning();
+    const [newPlot] = await db.insert(plots).values(plot).returning();
     return newPlot;
   }
 
-  async getPlot(id: string, userId: string, notebookId: string): Promise<Plot | undefined> {
-    const [plot] = await db.select().from(plots).where(and(
-      eq(plots.id, id),
-      eq(plots.userId, userId),
-      eq(plots.notebookId, notebookId)
-    ));
+  async getPlot(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Plot | undefined> {
+    const [plot] = await db
+      .select()
+      .from(plots)
+      .where(
+        and(
+          eq(plots.id, id),
+          eq(plots.userId, userId),
+          eq(plots.notebookId, notebookId),
+        ),
+      );
     return plot || undefined;
   }
 
   async getUserPlots(userId: string, notebookId: string): Promise<Plot[]> {
-    return await db.select().from(plots)
+    return await db
+      .select()
+      .from(plots)
       .where(eq(plots.userId, userId))
       .orderBy(desc(plots.createdAt));
   }
 
   // Prompt methods
   async createPrompt(prompt: InsertPrompt): Promise<Prompt> {
-    const [newPrompt] = await db
-      .insert(prompts)
-      .values(prompt)
-      .returning();
+    const [newPrompt] = await db.insert(prompts).values(prompt).returning();
     return newPrompt;
   }
 
-  async getPrompt(id: string, userId: string, notebookId: string): Promise<Prompt | undefined> {
-    const [prompt] = await db.select().from(prompts).where(and(
-      eq(prompts.id, id),
-      eq(prompts.userId, userId),
-      eq(prompts.notebookId, notebookId)
-    ));
+  async getPrompt(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Prompt | undefined> {
+    const [prompt] = await db
+      .select()
+      .from(prompts)
+      .where(
+        and(
+          eq(prompts.id, id),
+          eq(prompts.userId, userId),
+          eq(prompts.notebookId, notebookId),
+        ),
+      );
     return prompt || undefined;
   }
 
   async getUserPrompts(userId: string, notebookId: string): Promise<Prompt[]> {
-    return await db.select().from(prompts)
+    return await db
+      .select()
+      .from(prompts)
       .where(eq(prompts.userId, userId))
       .orderBy(desc(prompts.createdAt));
   }
 
   async getRandomPrompts(count = 5): Promise<Prompt[]> {
-    return await db.select().from(prompts)
+    return await db
+      .select()
+      .from(prompts)
       .orderBy(sql`RANDOM()`)
       .limit(count);
   }
@@ -1294,37 +2197,54 @@ export class DatabaseStorage implements IStorage {
     return newLocation;
   }
 
-  async getLocation(id: string, userId: string, notebookId: string): Promise<Location | undefined> {
+  async getLocation(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Location | undefined> {
     const whereClause = and(
       eq(locations.id, id),
       eq(locations.userId, userId),
-      eq(locations.notebookId, notebookId)
+      eq(locations.notebookId, notebookId),
     );
     const [location] = await db.select().from(locations).where(whereClause);
     return location || undefined;
   }
 
-  async getUserLocations(userId: string, notebookId: string): Promise<Location[]> {
+  async getUserLocations(
+    userId: string,
+    notebookId: string,
+  ): Promise<Location[]> {
     const whereClause = and(
       eq(locations.userId, userId),
-      eq(locations.notebookId, notebookId)
+      eq(locations.notebookId, notebookId),
     );
-    return await db.select().from(locations)
+    return await db
+      .select()
+      .from(locations)
       .where(whereClause)
       .orderBy(desc(locations.createdAt));
   }
 
-  async updateLocation(id: string, userId: string, updates: Partial<InsertLocation>, notebookId: string): Promise<Location> {
+  async updateLocation(
+    id: string,
+    userId: string,
+    updates: Partial<InsertLocation>,
+    notebookId: string,
+  ): Promise<Location> {
     // Validate ownership
-    const [existing] = await db.select().from(locations).where(eq(locations.id, id));
+    const [existing] = await db
+      .select()
+      .from(locations)
+      .where(eq(locations.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const whereClause = and(
       eq(locations.id, id),
       eq(locations.userId, userId),
-      eq(locations.notebookId, notebookId)
+      eq(locations.notebookId, notebookId),
     );
     const [updatedLocation] = await db
       .update(locations)
@@ -1334,53 +2254,77 @@ export class DatabaseStorage implements IStorage {
     return updatedLocation;
   }
 
-  async deleteLocation(id: string, userId: string, notebookId: string): Promise<void> {
+  async deleteLocation(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(locations).where(eq(locations.id, id));
+    const [existing] = await db
+      .select()
+      .from(locations)
+      .where(eq(locations.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const whereClause = and(
       eq(locations.id, id),
       eq(locations.userId, userId),
-      eq(locations.notebookId, notebookId)
+      eq(locations.notebookId, notebookId),
     );
     await db.delete(locations).where(whereClause);
   }
 
   // Setting methods
   async createSetting(setting: InsertSetting): Promise<Setting> {
-    const [newSetting] = await db
-      .insert(settings)
-      .values(setting)
-      .returning();
+    const [newSetting] = await db.insert(settings).values(setting).returning();
     return newSetting;
   }
 
-  async getSetting(id: string, userId: string, notebookId: string): Promise<Setting | undefined> {
-    const [setting] = await db.select().from(settings).where(and(
-      eq(settings.id, id),
-      eq(settings.userId, userId),
-      eq(settings.notebookId, notebookId)
-    ));
+  async getSetting(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Setting | undefined> {
+    const [setting] = await db
+      .select()
+      .from(settings)
+      .where(
+        and(
+          eq(settings.id, id),
+          eq(settings.userId, userId),
+          eq(settings.notebookId, notebookId),
+        ),
+      );
     return setting || undefined;
   }
 
-  async getUserSettings(userId: string, notebookId: string): Promise<Setting[]> {
-    return await db.select().from(settings)
-      .where(and(
-        eq(settings.userId, userId),
-        eq(settings.notebookId, notebookId)
-      ))
+  async getUserSettings(
+    userId: string,
+    notebookId: string,
+  ): Promise<Setting[]> {
+    return await db
+      .select()
+      .from(settings)
+      .where(
+        and(eq(settings.userId, userId), eq(settings.notebookId, notebookId)),
+      )
       .orderBy(desc(settings.createdAt));
   }
 
-  async updateSetting(id: string, userId: string, updates: Partial<InsertSetting>): Promise<Setting> {
+  async updateSetting(
+    id: string,
+    userId: string,
+    updates: Partial<InsertSetting>,
+  ): Promise<Setting> {
     // Validate ownership
-    const [existing] = await db.select().from(settings).where(eq(settings.id, id));
+    const [existing] = await db
+      .select()
+      .from(settings)
+      .where(eq(settings.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedSetting] = await db
@@ -1393,18 +2337,19 @@ export class DatabaseStorage implements IStorage {
 
   // Item methods
   async createItem(item: InsertItem): Promise<Item> {
-    const [newItem] = await db
-      .insert(items)
-      .values(item)
-      .returning();
+    const [newItem] = await db.insert(items).values(item).returning();
     return newItem;
   }
 
-  async getItem(id: string, userId: string, notebookId: string): Promise<Item | undefined> {
+  async getItem(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Item | undefined> {
     const whereClause = and(
       eq(items.id, id),
       eq(items.userId, userId),
-      eq(items.notebookId, notebookId)
+      eq(items.notebookId, notebookId),
     );
     const [item] = await db.select().from(items).where(whereClause);
     return item || undefined;
@@ -1413,24 +2358,31 @@ export class DatabaseStorage implements IStorage {
   async getUserItems(userId: string, notebookId: string): Promise<Item[]> {
     const whereClause = and(
       eq(items.userId, userId),
-      eq(items.notebookId, notebookId)
+      eq(items.notebookId, notebookId),
     );
-    return await db.select().from(items)
+    return await db
+      .select()
+      .from(items)
       .where(whereClause)
       .orderBy(desc(items.createdAt));
   }
 
-  async updateItem(id: string, userId: string, updates: Partial<InsertItem>, notebookId: string): Promise<Item> {
+  async updateItem(
+    id: string,
+    userId: string,
+    updates: Partial<InsertItem>,
+    notebookId: string,
+  ): Promise<Item> {
     // Validate ownership
     const [existing] = await db.select().from(items).where(eq(items.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const whereClause = and(
       eq(items.id, id),
       eq(items.userId, userId),
-      eq(items.notebookId, notebookId)
+      eq(items.notebookId, notebookId),
     );
     const [updatedItem] = await db
       .update(items)
@@ -1440,23 +2392,29 @@ export class DatabaseStorage implements IStorage {
     return updatedItem;
   }
 
-  async deleteItem(id: string, userId: string, notebookId: string): Promise<void> {
+  async deleteItem(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<void> {
     // Validate ownership
     const [existing] = await db.select().from(items).where(eq(items.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const whereClause = and(
       eq(items.id, id),
       eq(items.userId, userId),
-      eq(items.notebookId, notebookId)
+      eq(items.notebookId, notebookId),
     );
     await db.delete(items).where(whereClause);
   }
 
   // Organization methods
-  async createOrganization(organization: InsertOrganization): Promise<Organization> {
+  async createOrganization(
+    organization: InsertOrganization,
+  ): Promise<Organization> {
     const [newOrganization] = await db
       .insert(organizations)
       .values(organization)
@@ -1464,37 +2422,57 @@ export class DatabaseStorage implements IStorage {
     return newOrganization;
   }
 
-  async getOrganization(id: string, userId: string, notebookId: string): Promise<Organization | undefined> {
+  async getOrganization(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Organization | undefined> {
     const whereClause = and(
       eq(organizations.id, id),
       eq(organizations.userId, userId),
-      eq(organizations.notebookId, notebookId)
+      eq(organizations.notebookId, notebookId),
     );
-    const [organization] = await db.select().from(organizations).where(whereClause);
+    const [organization] = await db
+      .select()
+      .from(organizations)
+      .where(whereClause);
     return organization || undefined;
   }
 
-  async getUserOrganizations(userId: string, notebookId: string): Promise<Organization[]> {
+  async getUserOrganizations(
+    userId: string,
+    notebookId: string,
+  ): Promise<Organization[]> {
     const whereClause = and(
       eq(organizations.userId, userId),
-      eq(organizations.notebookId, notebookId)
+      eq(organizations.notebookId, notebookId),
     );
-    return await db.select().from(organizations)
+    return await db
+      .select()
+      .from(organizations)
       .where(whereClause)
       .orderBy(desc(organizations.createdAt));
   }
 
-  async updateOrganization(id: string, userId: string, updates: Partial<InsertOrganization>, notebookId: string): Promise<Organization> {
+  async updateOrganization(
+    id: string,
+    userId: string,
+    updates: Partial<InsertOrganization>,
+    notebookId: string,
+  ): Promise<Organization> {
     // Validate ownership
-    const [existing] = await db.select().from(organizations).where(eq(organizations.id, id));
+    const [existing] = await db
+      .select()
+      .from(organizations)
+      .where(eq(organizations.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const whereClause = and(
       eq(organizations.id, id),
       eq(organizations.userId, userId),
-      eq(organizations.notebookId, notebookId)
+      eq(organizations.notebookId, notebookId),
     );
     const [updatedOrganization] = await db
       .update(organizations)
@@ -1504,17 +2482,24 @@ export class DatabaseStorage implements IStorage {
     return updatedOrganization;
   }
 
-  async deleteOrganization(id: string, userId: string, notebookId: string): Promise<void> {
+  async deleteOrganization(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(organizations).where(eq(organizations.id, id));
+    const [existing] = await db
+      .select()
+      .from(organizations)
+      .where(eq(organizations.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const whereClause = and(
       eq(organizations.id, id),
       eq(organizations.userId, userId),
-      eq(organizations.notebookId, notebookId)
+      eq(organizations.notebookId, notebookId),
     );
     await db.delete(organizations).where(whereClause);
   }
@@ -1528,29 +2513,49 @@ export class DatabaseStorage implements IStorage {
     return newCreature;
   }
 
-  async getCreature(id: string, userId: string, notebookId: string): Promise<Creature | undefined> {
-    const [creature] = await db.select().from(creatures).where(and(
-      eq(creatures.id, id),
-      eq(creatures.userId, userId),
-      eq(creatures.notebookId, notebookId)
-    ));
+  async getCreature(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Creature | undefined> {
+    const [creature] = await db
+      .select()
+      .from(creatures)
+      .where(
+        and(
+          eq(creatures.id, id),
+          eq(creatures.userId, userId),
+          eq(creatures.notebookId, notebookId),
+        ),
+      );
     return creature || undefined;
   }
 
-  async getUserCreatures(userId: string, notebookId: string): Promise<Creature[]> {
-    return await db.select().from(creatures)
-      .where(and(
-        eq(creatures.userId, userId),
-        eq(creatures.notebookId, notebookId)
-      ))
+  async getUserCreatures(
+    userId: string,
+    notebookId: string,
+  ): Promise<Creature[]> {
+    return await db
+      .select()
+      .from(creatures)
+      .where(
+        and(eq(creatures.userId, userId), eq(creatures.notebookId, notebookId)),
+      )
       .orderBy(desc(creatures.createdAt));
   }
 
-  async updateCreature(id: string, userId: string, updates: Partial<InsertCreature>): Promise<Creature> {
+  async updateCreature(
+    id: string,
+    userId: string,
+    updates: Partial<InsertCreature>,
+  ): Promise<Creature> {
     // Validate ownership
-    const [existing] = await db.select().from(creatures).where(eq(creatures.id, id));
+    const [existing] = await db
+      .select()
+      .from(creatures)
+      .where(eq(creatures.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedCreature] = await db
@@ -1570,38 +2575,58 @@ export class DatabaseStorage implements IStorage {
     return newSpecies;
   }
 
-  async getSpecies(id: string, userId: string, notebookId: string): Promise<Species | undefined> {
-    const [sp] = await db.select().from(species).where(and(
-      eq(species.id, id),
-      eq(species.userId, userId),
-      eq(species.notebookId, notebookId)
-    ));
+  async getSpecies(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Species | undefined> {
+    const [sp] = await db
+      .select()
+      .from(species)
+      .where(
+        and(
+          eq(species.id, id),
+          eq(species.userId, userId),
+          eq(species.notebookId, notebookId),
+        ),
+      );
     return sp || undefined;
   }
 
   async getUserSpecies(userId: string, notebookId: string): Promise<Species[]> {
-    return await db.select().from(species)
-      .where(and(
-        eq(species.userId, userId),
-        eq(species.notebookId, notebookId)
-      ))
+    return await db
+      .select()
+      .from(species)
+      .where(
+        and(eq(species.userId, userId), eq(species.notebookId, notebookId)),
+      )
       .orderBy(desc(species.createdAt));
   }
 
-  async findSpeciesByName(name: string, notebookId: string): Promise<Species | undefined> {
-    const [sp] = await db.select().from(species).where(and(
-      eq(species.name, name),
-      eq(species.notebookId, notebookId)
-    ));
+  async findSpeciesByName(
+    name: string,
+    notebookId: string,
+  ): Promise<Species | undefined> {
+    const [sp] = await db
+      .select()
+      .from(species)
+      .where(and(eq(species.name, name), eq(species.notebookId, notebookId)));
     return sp || undefined;
   }
 
-  async updateSpecies(id: string, userId: string, updates: Partial<InsertSpecies>): Promise<Species> {
+  async updateSpecies(
+    id: string,
+    userId: string,
+    updates: Partial<InsertSpecies>,
+  ): Promise<Species> {
     // First, get the species to validate ownership
-    const [existing] = await db.select().from(species).where(eq(species.id, id));
+    const [existing] = await db
+      .select()
+      .from(species)
+      .where(eq(species.id, id));
 
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedSpecies] = await db
@@ -1614,10 +2639,13 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSpecies(id: string, userId: string): Promise<void> {
     // First, get the species to validate ownership
-    const [existing] = await db.select().from(species).where(eq(species.id, id));
+    const [existing] = await db
+      .select()
+      .from(species)
+      .where(eq(species.id, id));
 
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(species).where(eq(species.id, id));
@@ -1625,44 +2653,58 @@ export class DatabaseStorage implements IStorage {
 
   // Culture methods
   async createCulture(culture: InsertCulture): Promise<Culture> {
-    const [newCulture] = await db
-      .insert(cultures)
-      .values(culture)
-      .returning();
+    const [newCulture] = await db.insert(cultures).values(culture).returning();
     return newCulture;
   }
 
-  async getCulture(id: string, userId: string, notebookId: string): Promise<Culture | undefined> {
+  async getCulture(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Culture | undefined> {
     const whereClause = and(
       eq(cultures.id, id),
       eq(cultures.userId, userId),
-      eq(cultures.notebookId, notebookId)
+      eq(cultures.notebookId, notebookId),
     );
     const [culture] = await db.select().from(cultures).where(whereClause);
     return culture || undefined;
   }
 
-  async getUserCultures(userId: string, notebookId: string): Promise<Culture[]> {
+  async getUserCultures(
+    userId: string,
+    notebookId: string,
+  ): Promise<Culture[]> {
     const whereClause = and(
       eq(cultures.userId, userId),
-      eq(cultures.notebookId, notebookId)
+      eq(cultures.notebookId, notebookId),
     );
-    return await db.select().from(cultures)
+    return await db
+      .select()
+      .from(cultures)
       .where(whereClause)
       .orderBy(desc(cultures.createdAt));
   }
 
-  async updateCulture(id: string, userId: string, updates: Partial<InsertCulture>, notebookId: string): Promise<Culture> {
+  async updateCulture(
+    id: string,
+    userId: string,
+    updates: Partial<InsertCulture>,
+    notebookId: string,
+  ): Promise<Culture> {
     // Validate ownership
-    const [existing] = await db.select().from(cultures).where(eq(cultures.id, id));
+    const [existing] = await db
+      .select()
+      .from(cultures)
+      .where(eq(cultures.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const whereClause = and(
       eq(cultures.id, id),
       eq(cultures.userId, userId),
-      eq(cultures.notebookId, notebookId)
+      eq(cultures.notebookId, notebookId),
     );
     const [updatedCulture] = await db
       .update(cultures)
@@ -1672,24 +2714,31 @@ export class DatabaseStorage implements IStorage {
     return updatedCulture;
   }
 
-  async deleteCulture(id: string, userId: string, notebookId: string): Promise<void> {
+  async deleteCulture(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(cultures).where(eq(cultures.id, id));
+    const [existing] = await db
+      .select()
+      .from(cultures)
+      .where(eq(cultures.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const whereClause = and(
       eq(cultures.id, id),
       eq(cultures.userId, userId),
-      eq(cultures.notebookId, notebookId)
+      eq(cultures.notebookId, notebookId),
     );
     await db.delete(cultures).where(whereClause);
   }
 
   // Magic system methods (not implemented - table doesn't exist)
   async createMagic(): Promise<any> {
-    throw new Error('Magic system not implemented');
+    throw new Error("Magic system not implemented");
   }
 
   async getMagic(id: string): Promise<any | undefined> {
@@ -1701,7 +2750,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateMagic(id: string, userId: string, updates: any): Promise<any> {
-    throw new Error('Magic system not implemented');
+    throw new Error("Magic system not implemented");
   }
 
   // Document methods
@@ -1713,29 +2762,49 @@ export class DatabaseStorage implements IStorage {
     return newDocument;
   }
 
-  async getDocument(id: string, userId: string, notebookId: string): Promise<Document | undefined> {
-    const [document] = await db.select().from(documents).where(and(
-      eq(documents.id, id),
-      eq(documents.userId, userId),
-      eq(documents.notebookId, notebookId)
-    ));
+  async getDocument(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Document | undefined> {
+    const [document] = await db
+      .select()
+      .from(documents)
+      .where(
+        and(
+          eq(documents.id, id),
+          eq(documents.userId, userId),
+          eq(documents.notebookId, notebookId),
+        ),
+      );
     return document || undefined;
   }
 
-  async getUserDocuments(userId: string, notebookId: string): Promise<Document[]> {
-    return await db.select().from(documents)
-      .where(and(
-        eq(documents.userId, userId),
-        eq(documents.notebookId, notebookId)
-      ))
+  async getUserDocuments(
+    userId: string,
+    notebookId: string,
+  ): Promise<Document[]> {
+    return await db
+      .select()
+      .from(documents)
+      .where(
+        and(eq(documents.userId, userId), eq(documents.notebookId, notebookId)),
+      )
       .orderBy(desc(documents.createdAt));
   }
 
-  async updateDocument(id: string, userId: string, updates: Partial<InsertDocument>): Promise<Document> {
+  async updateDocument(
+    id: string,
+    userId: string,
+    updates: Partial<InsertDocument>,
+  ): Promise<Document> {
     // Validate ownership
-    const [existing] = await db.select().from(documents).where(eq(documents.id, id));
+    const [existing] = await db
+      .select()
+      .from(documents)
+      .where(eq(documents.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedDocument] = await db
@@ -1748,9 +2817,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDocument(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(documents).where(eq(documents.id, id));
+    const [existing] = await db
+      .select()
+      .from(documents)
+      .where(eq(documents.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(documents).where(eq(documents.id, id));
@@ -1758,36 +2830,45 @@ export class DatabaseStorage implements IStorage {
 
   // Food methods
   async createFood(food: InsertFood): Promise<Food> {
-    const [newFood] = await db
-      .insert(foods)
-      .values(food)
-      .returning();
+    const [newFood] = await db.insert(foods).values(food).returning();
     return newFood;
   }
 
-  async getFood(id: string, userId: string, notebookId: string): Promise<Food | undefined> {
-    const [food] = await db.select().from(foods).where(and(
-      eq(foods.id, id),
-      eq(foods.userId, userId),
-      eq(foods.notebookId, notebookId)
-    ));
+  async getFood(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Food | undefined> {
+    const [food] = await db
+      .select()
+      .from(foods)
+      .where(
+        and(
+          eq(foods.id, id),
+          eq(foods.userId, userId),
+          eq(foods.notebookId, notebookId),
+        ),
+      );
     return food || undefined;
   }
 
   async getUserFoods(userId: string, notebookId: string): Promise<Food[]> {
-    return await db.select().from(foods)
-      .where(and(
-        eq(foods.userId, userId),
-        eq(foods.notebookId, notebookId)
-      ))
+    return await db
+      .select()
+      .from(foods)
+      .where(and(eq(foods.userId, userId), eq(foods.notebookId, notebookId)))
       .orderBy(desc(foods.createdAt));
   }
 
-  async updateFood(id: string, userId: string, updates: Partial<InsertFood>): Promise<Food> {
+  async updateFood(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFood>,
+  ): Promise<Food> {
     // Validate ownership
     const [existing] = await db.select().from(foods).where(eq(foods.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedFood] = await db
@@ -1802,7 +2883,7 @@ export class DatabaseStorage implements IStorage {
     // Validate ownership
     const [existing] = await db.select().from(foods).where(eq(foods.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(foods).where(eq(foods.id, id));
@@ -1817,29 +2898,49 @@ export class DatabaseStorage implements IStorage {
     return newLanguage;
   }
 
-  async getLanguage(id: string, userId: string, notebookId: string): Promise<Language | undefined> {
-    const [language] = await db.select().from(languages).where(and(
-      eq(languages.id, id),
-      eq(languages.userId, userId),
-      eq(languages.notebookId, notebookId)
-    ));
+  async getLanguage(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Language | undefined> {
+    const [language] = await db
+      .select()
+      .from(languages)
+      .where(
+        and(
+          eq(languages.id, id),
+          eq(languages.userId, userId),
+          eq(languages.notebookId, notebookId),
+        ),
+      );
     return language || undefined;
   }
 
-  async getUserLanguages(userId: string, notebookId: string): Promise<Language[]> {
-    return await db.select().from(languages)
-      .where(and(
-        eq(languages.userId, userId),
-        eq(languages.notebookId, notebookId)
-      ))
+  async getUserLanguages(
+    userId: string,
+    notebookId: string,
+  ): Promise<Language[]> {
+    return await db
+      .select()
+      .from(languages)
+      .where(
+        and(eq(languages.userId, userId), eq(languages.notebookId, notebookId)),
+      )
       .orderBy(desc(languages.createdAt));
   }
 
-  async updateLanguage(id: string, userId: string, updates: Partial<InsertLanguage>): Promise<Language> {
+  async updateLanguage(
+    id: string,
+    userId: string,
+    updates: Partial<InsertLanguage>,
+  ): Promise<Language> {
     // Validate ownership
-    const [existing] = await db.select().from(languages).where(eq(languages.id, id));
+    const [existing] = await db
+      .select()
+      .from(languages)
+      .where(eq(languages.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedLanguage] = await db
@@ -1852,9 +2953,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteLanguage(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(languages).where(eq(languages.id, id));
+    const [existing] = await db
+      .select()
+      .from(languages)
+      .where(eq(languages.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(languages).where(eq(languages.id, id));
@@ -1869,29 +2973,49 @@ export class DatabaseStorage implements IStorage {
     return newReligion;
   }
 
-  async getReligion(id: string, userId: string, notebookId: string): Promise<Religion | undefined> {
-    const [religion] = await db.select().from(religions).where(and(
-      eq(religions.id, id),
-      eq(religions.userId, userId),
-      eq(religions.notebookId, notebookId)
-    ));
+  async getReligion(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Religion | undefined> {
+    const [religion] = await db
+      .select()
+      .from(religions)
+      .where(
+        and(
+          eq(religions.id, id),
+          eq(religions.userId, userId),
+          eq(religions.notebookId, notebookId),
+        ),
+      );
     return religion || undefined;
   }
 
-  async getUserReligions(userId: string, notebookId: string): Promise<Religion[]> {
-    return await db.select().from(religions)
-      .where(and(
-        eq(religions.userId, userId),
-        eq(religions.notebookId, notebookId)
-      ))
+  async getUserReligions(
+    userId: string,
+    notebookId: string,
+  ): Promise<Religion[]> {
+    return await db
+      .select()
+      .from(religions)
+      .where(
+        and(eq(religions.userId, userId), eq(religions.notebookId, notebookId)),
+      )
       .orderBy(desc(religions.createdAt));
   }
 
-  async updateReligion(id: string, userId: string, updates: Partial<InsertReligion>): Promise<Religion> {
+  async updateReligion(
+    id: string,
+    userId: string,
+    updates: Partial<InsertReligion>,
+  ): Promise<Religion> {
     // Validate ownership
-    const [existing] = await db.select().from(religions).where(eq(religions.id, id));
+    const [existing] = await db
+      .select()
+      .from(religions)
+      .where(eq(religions.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedReligion] = await db
@@ -1904,9 +3028,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteReligion(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(religions).where(eq(religions.id, id));
+    const [existing] = await db
+      .select()
+      .from(religions)
+      .where(eq(religions.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(religions).where(eq(religions.id, id));
@@ -1921,29 +3048,52 @@ export class DatabaseStorage implements IStorage {
     return newTechnology;
   }
 
-  async getTechnology(id: string, userId: string, notebookId: string): Promise<Technology | undefined> {
-    const [technology] = await db.select().from(technologies).where(and(
-      eq(technologies.id, id),
-      eq(technologies.userId, userId),
-      eq(technologies.notebookId, notebookId)
-    ));
+  async getTechnology(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Technology | undefined> {
+    const [technology] = await db
+      .select()
+      .from(technologies)
+      .where(
+        and(
+          eq(technologies.id, id),
+          eq(technologies.userId, userId),
+          eq(technologies.notebookId, notebookId),
+        ),
+      );
     return technology || undefined;
   }
 
-  async getUserTechnologies(userId: string, notebookId: string): Promise<Technology[]> {
-    return await db.select().from(technologies)
-      .where(and(
-        eq(technologies.userId, userId),
-        eq(technologies.notebookId, notebookId)
-      ))
+  async getUserTechnologies(
+    userId: string,
+    notebookId: string,
+  ): Promise<Technology[]> {
+    return await db
+      .select()
+      .from(technologies)
+      .where(
+        and(
+          eq(technologies.userId, userId),
+          eq(technologies.notebookId, notebookId),
+        ),
+      )
       .orderBy(desc(technologies.createdAt));
   }
 
-  async updateTechnology(id: string, userId: string, updates: Partial<InsertTechnology>): Promise<Technology> {
+  async updateTechnology(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTechnology>,
+  ): Promise<Technology> {
     // Validate ownership
-    const [existing] = await db.select().from(technologies).where(eq(technologies.id, id));
+    const [existing] = await db
+      .select()
+      .from(technologies)
+      .where(eq(technologies.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedTechnology] = await db
@@ -1956,9 +3106,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTechnology(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(technologies).where(eq(technologies.id, id));
+    const [existing] = await db
+      .select()
+      .from(technologies)
+      .where(eq(technologies.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(technologies).where(eq(technologies.id, id));
@@ -1966,18 +3119,19 @@ export class DatabaseStorage implements IStorage {
 
   // Weapon methods
   async createWeapon(weapon: InsertWeapon): Promise<Weapon> {
-    const [newWeapon] = await db
-      .insert(weapons)
-      .values(weapon)
-      .returning();
+    const [newWeapon] = await db.insert(weapons).values(weapon).returning();
     return newWeapon;
   }
 
-  async getWeapon(id: string, userId: string, notebookId: string): Promise<Weapon | undefined> {
+  async getWeapon(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Weapon | undefined> {
     const whereClause = and(
       eq(weapons.id, id),
       eq(weapons.userId, userId),
-      eq(weapons.notebookId, notebookId)
+      eq(weapons.notebookId, notebookId),
     );
     const [weapon] = await db.select().from(weapons).where(whereClause);
     return weapon || undefined;
@@ -1986,24 +3140,34 @@ export class DatabaseStorage implements IStorage {
   async getUserWeapons(userId: string, notebookId: string): Promise<Weapon[]> {
     const whereClause = and(
       eq(weapons.userId, userId),
-      eq(weapons.notebookId, notebookId)
+      eq(weapons.notebookId, notebookId),
     );
-    return await db.select().from(weapons)
+    return await db
+      .select()
+      .from(weapons)
       .where(whereClause)
       .orderBy(desc(weapons.createdAt));
   }
 
-  async updateWeapon(id: string, userId: string, notebookId: string, updates: Partial<InsertWeapon>): Promise<Weapon> {
+  async updateWeapon(
+    id: string,
+    userId: string,
+    notebookId: string,
+    updates: Partial<InsertWeapon>,
+  ): Promise<Weapon> {
     // Validate ownership
-    const [existing] = await db.select().from(weapons).where(eq(weapons.id, id));
+    const [existing] = await db
+      .select()
+      .from(weapons)
+      .where(eq(weapons.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const whereClause = and(
       eq(weapons.id, id),
       eq(weapons.userId, userId),
-      eq(weapons.notebookId, notebookId)
+      eq(weapons.notebookId, notebookId),
     );
     const [updatedWeapon] = await db
       .update(weapons)
@@ -2013,21 +3177,27 @@ export class DatabaseStorage implements IStorage {
     return updatedWeapon;
   }
 
-  async deleteWeapon(id: string, userId: string, notebookId: string): Promise<void> {
+  async deleteWeapon(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(weapons).where(eq(weapons.id, id));
+    const [existing] = await db
+      .select()
+      .from(weapons)
+      .where(eq(weapons.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const whereClause = and(
       eq(weapons.id, id),
       eq(weapons.userId, userId),
-      eq(weapons.notebookId, notebookId)
+      eq(weapons.notebookId, notebookId),
     );
     await db.delete(weapons).where(whereClause);
   }
-
 
   // Profession methods
   async createProfession(profession: InsertProfession): Promise<Profession> {
@@ -2038,29 +3208,52 @@ export class DatabaseStorage implements IStorage {
     return newProfession;
   }
 
-  async getProfession(id: string, userId: string, notebookId: string): Promise<Profession | undefined> {
-    const [profession] = await db.select().from(professions).where(and(
-      eq(professions.id, id),
-      eq(professions.userId, userId),
-      eq(professions.notebookId, notebookId)
-    ));
+  async getProfession(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Profession | undefined> {
+    const [profession] = await db
+      .select()
+      .from(professions)
+      .where(
+        and(
+          eq(professions.id, id),
+          eq(professions.userId, userId),
+          eq(professions.notebookId, notebookId),
+        ),
+      );
     return profession || undefined;
   }
 
-  async getUserProfessions(userId: string, notebookId: string): Promise<Profession[]> {
-    return await db.select().from(professions)
-      .where(and(
-        eq(professions.userId, userId),
-        eq(professions.notebookId, notebookId)
-      ))
+  async getUserProfessions(
+    userId: string,
+    notebookId: string,
+  ): Promise<Profession[]> {
+    return await db
+      .select()
+      .from(professions)
+      .where(
+        and(
+          eq(professions.userId, userId),
+          eq(professions.notebookId, notebookId),
+        ),
+      )
       .orderBy(desc(professions.createdAt));
   }
 
-  async updateProfession(id: string, userId: string, updates: Partial<InsertProfession>): Promise<Profession> {
+  async updateProfession(
+    id: string,
+    userId: string,
+    updates: Partial<InsertProfession>,
+  ): Promise<Profession> {
     // Validate ownership
-    const [existing] = await db.select().from(professions).where(eq(professions.id, id));
+    const [existing] = await db
+      .select()
+      .from(professions)
+      .where(eq(professions.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedProfession] = await db
@@ -2073,9 +3266,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProfession(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(professions).where(eq(professions.id, id));
+    const [existing] = await db
+      .select()
+      .from(professions)
+      .where(eq(professions.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(professions).where(eq(professions.id, id));
@@ -2083,35 +3279,44 @@ export class DatabaseStorage implements IStorage {
 
   // Rank methods
   async createRank(rank: InsertRank): Promise<Rank> {
-    const [newRank] = await db
-      .insert(ranks)
-      .values(rank)
-      .returning();
+    const [newRank] = await db.insert(ranks).values(rank).returning();
     return newRank;
   }
 
-  async getRank(id: string, userId: string, notebookId: string): Promise<Rank | undefined> {
-    const [rank] = await db.select().from(ranks).where(and(
-      eq(ranks.id, id),
-      eq(ranks.userId, userId),
-      eq(ranks.notebookId, notebookId)
-    ));
+  async getRank(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Rank | undefined> {
+    const [rank] = await db
+      .select()
+      .from(ranks)
+      .where(
+        and(
+          eq(ranks.id, id),
+          eq(ranks.userId, userId),
+          eq(ranks.notebookId, notebookId),
+        ),
+      );
     return rank || undefined;
   }
 
   async getUserRanks(userId: string, notebookId: string): Promise<Rank[]> {
-    return await db.select().from(ranks)
-      .where(and(
-        eq(ranks.userId, userId),
-        eq(ranks.notebookId, notebookId)
-      ))
+    return await db
+      .select()
+      .from(ranks)
+      .where(and(eq(ranks.userId, userId), eq(ranks.notebookId, notebookId)))
       .orderBy(desc(ranks.createdAt));
   }
 
-  async updateRank(id: string, userId: string, updates: Partial<InsertRank>): Promise<Rank> {
+  async updateRank(
+    id: string,
+    userId: string,
+    updates: Partial<InsertRank>,
+  ): Promise<Rank> {
     const [existing] = await db.select().from(ranks).where(eq(ranks.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedRank] = await db
@@ -2125,7 +3330,7 @@ export class DatabaseStorage implements IStorage {
   async deleteRank(id: string, userId: string): Promise<void> {
     const [existing] = await db.select().from(ranks).where(eq(ranks.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(ranks).where(eq(ranks.id, id));
@@ -2140,28 +3345,51 @@ export class DatabaseStorage implements IStorage {
     return newCondition;
   }
 
-  async getCondition(id: string, userId: string, notebookId: string): Promise<Condition | undefined> {
-    const [condition] = await db.select().from(conditions).where(and(
-      eq(conditions.id, id),
-      eq(conditions.userId, userId),
-      eq(conditions.notebookId, notebookId)
-    ));
+  async getCondition(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Condition | undefined> {
+    const [condition] = await db
+      .select()
+      .from(conditions)
+      .where(
+        and(
+          eq(conditions.id, id),
+          eq(conditions.userId, userId),
+          eq(conditions.notebookId, notebookId),
+        ),
+      );
     return condition || undefined;
   }
 
-  async getUserConditions(userId: string, notebookId: string): Promise<Condition[]> {
-    return await db.select().from(conditions)
-      .where(and(
-        eq(conditions.userId, userId),
-        eq(conditions.notebookId, notebookId)
-      ))
+  async getUserConditions(
+    userId: string,
+    notebookId: string,
+  ): Promise<Condition[]> {
+    return await db
+      .select()
+      .from(conditions)
+      .where(
+        and(
+          eq(conditions.userId, userId),
+          eq(conditions.notebookId, notebookId),
+        ),
+      )
       .orderBy(desc(conditions.createdAt));
   }
 
-  async updateCondition(id: string, userId: string, updates: Partial<InsertCondition>): Promise<Condition> {
-    const [existing] = await db.select().from(conditions).where(eq(conditions.id, id));
+  async updateCondition(
+    id: string,
+    userId: string,
+    updates: Partial<InsertCondition>,
+  ): Promise<Condition> {
+    const [existing] = await db
+      .select()
+      .from(conditions)
+      .where(eq(conditions.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedCondition] = await db
@@ -2173,9 +3401,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCondition(id: string, userId: string): Promise<void> {
-    const [existing] = await db.select().from(conditions).where(eq(conditions.id, id));
+    const [existing] = await db
+      .select()
+      .from(conditions)
+      .where(eq(conditions.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(conditions).where(eq(conditions.id, id));
@@ -2183,18 +3414,19 @@ export class DatabaseStorage implements IStorage {
 
   // Plant methods
   async createPlant(plant: InsertPlant): Promise<Plant> {
-    const [newPlant] = await db
-      .insert(plants)
-      .values(plant)
-      .returning();
+    const [newPlant] = await db.insert(plants).values(plant).returning();
     return newPlant;
   }
 
-  async getPlant(id: string, userId: string, notebookId: string): Promise<Plant | undefined> {
+  async getPlant(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Plant | undefined> {
     const whereClause = and(
       eq(plants.id, id),
       eq(plants.userId, userId),
-      eq(plants.notebookId, notebookId)
+      eq(plants.notebookId, notebookId),
     );
     const [plant] = await db.select().from(plants).where(whereClause);
     return plant || undefined;
@@ -2203,24 +3435,31 @@ export class DatabaseStorage implements IStorage {
   async getUserPlants(userId: string, notebookId: string): Promise<Plant[]> {
     const whereClause = and(
       eq(plants.userId, userId),
-      eq(plants.notebookId, notebookId)
+      eq(plants.notebookId, notebookId),
     );
-    return await db.select().from(plants)
+    return await db
+      .select()
+      .from(plants)
       .where(whereClause)
       .orderBy(desc(plants.createdAt));
   }
 
-  async updatePlant(id: string, userId: string, updates: Partial<InsertPlant>, notebookId: string): Promise<Plant> {
+  async updatePlant(
+    id: string,
+    userId: string,
+    updates: Partial<InsertPlant>,
+    notebookId: string,
+  ): Promise<Plant> {
     // Validate ownership
     const [existing] = await db.select().from(plants).where(eq(plants.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const whereClause = and(
       eq(plants.id, id),
       eq(plants.userId, userId),
-      eq(plants.notebookId, notebookId)
+      eq(plants.notebookId, notebookId),
     );
     const [updatedPlant] = await db
       .update(plants)
@@ -2230,23 +3469,29 @@ export class DatabaseStorage implements IStorage {
     return updatedPlant;
   }
 
-  async deletePlant(id: string, userId: string, notebookId: string): Promise<void> {
+  async deletePlant(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<void> {
     // Validate ownership
     const [existing] = await db.select().from(plants).where(eq(plants.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const whereClause = and(
       eq(plants.id, id),
       eq(plants.userId, userId),
-      eq(plants.notebookId, notebookId)
+      eq(plants.notebookId, notebookId),
     );
     await db.delete(plants).where(whereClause);
   }
 
   // Description methods
-  async createDescription(description: InsertDescription): Promise<Description> {
+  async createDescription(
+    description: InsertDescription,
+  ): Promise<Description> {
     const [newDescription] = await db
       .insert(descriptions)
       .values(description)
@@ -2254,26 +3499,47 @@ export class DatabaseStorage implements IStorage {
     return newDescription;
   }
 
-  async getDescription(id: string, userId: string, notebookId: string): Promise<Description | undefined> {
-    const [description] = await db.select().from(descriptions).where(and(
-      eq(descriptions.id, id),
-      eq(descriptions.userId, userId),
-      eq(descriptions.notebookId, notebookId)
-    ));
+  async getDescription(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Description | undefined> {
+    const [description] = await db
+      .select()
+      .from(descriptions)
+      .where(
+        and(
+          eq(descriptions.id, id),
+          eq(descriptions.userId, userId),
+          eq(descriptions.notebookId, notebookId),
+        ),
+      );
     return description || undefined;
   }
 
-  async getUserDescriptions(userId: string, notebookId: string): Promise<Description[]> {
-    return await db.select().from(descriptions)
+  async getUserDescriptions(
+    userId: string,
+    notebookId: string,
+  ): Promise<Description[]> {
+    return await db
+      .select()
+      .from(descriptions)
       .where(eq(descriptions.userId, userId))
       .orderBy(desc(descriptions.createdAt));
   }
 
-  async updateDescription(id: string, userId: string, updates: Partial<InsertDescription>): Promise<Description> {
+  async updateDescription(
+    id: string,
+    userId: string,
+    updates: Partial<InsertDescription>,
+  ): Promise<Description> {
     // Validate ownership
-    const [existing] = await db.select().from(descriptions).where(eq(descriptions.id, id));
+    const [existing] = await db
+      .select()
+      .from(descriptions)
+      .where(eq(descriptions.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedDescription] = await db
@@ -2286,9 +3552,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDescription(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(descriptions).where(eq(descriptions.id, id));
+    const [existing] = await db
+      .select()
+      .from(descriptions)
+      .where(eq(descriptions.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(descriptions).where(eq(descriptions.id, id));
@@ -2303,29 +3572,52 @@ export class DatabaseStorage implements IStorage {
     return newEthnicity;
   }
 
-  async getEthnicity(id: string, userId: string, notebookId: string): Promise<Ethnicity | undefined> {
-    const [ethnicity] = await db.select().from(ethnicities).where(and(
-      eq(ethnicities.id, id),
-      eq(ethnicities.userId, userId),
-      eq(ethnicities.notebookId, notebookId)
-    ));
+  async getEthnicity(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Ethnicity | undefined> {
+    const [ethnicity] = await db
+      .select()
+      .from(ethnicities)
+      .where(
+        and(
+          eq(ethnicities.id, id),
+          eq(ethnicities.userId, userId),
+          eq(ethnicities.notebookId, notebookId),
+        ),
+      );
     return ethnicity || undefined;
   }
 
-  async getUserEthnicities(userId: string, notebookId: string): Promise<Ethnicity[]> {
-    return await db.select().from(ethnicities)
-      .where(and(
-        eq(ethnicities.userId, userId),
-        eq(ethnicities.notebookId, notebookId)
-      ))
+  async getUserEthnicities(
+    userId: string,
+    notebookId: string,
+  ): Promise<Ethnicity[]> {
+    return await db
+      .select()
+      .from(ethnicities)
+      .where(
+        and(
+          eq(ethnicities.userId, userId),
+          eq(ethnicities.notebookId, notebookId),
+        ),
+      )
       .orderBy(desc(ethnicities.createdAt));
   }
 
-  async updateEthnicity(id: string, userId: string, updates: Partial<InsertEthnicity>): Promise<Ethnicity> {
+  async updateEthnicity(
+    id: string,
+    userId: string,
+    updates: Partial<InsertEthnicity>,
+  ): Promise<Ethnicity> {
     // Validate ownership
-    const [existing] = await db.select().from(ethnicities).where(eq(ethnicities.id, id));
+    const [existing] = await db
+      .select()
+      .from(ethnicities)
+      .where(eq(ethnicities.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedEthnicity] = await db
@@ -2338,9 +3630,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEthnicity(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(ethnicities).where(eq(ethnicities.id, id));
+    const [existing] = await db
+      .select()
+      .from(ethnicities)
+      .where(eq(ethnicities.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(ethnicities).where(eq(ethnicities.id, id));
@@ -2348,36 +3643,45 @@ export class DatabaseStorage implements IStorage {
 
   // Drink methods
   async createDrink(drink: InsertDrink): Promise<Drink> {
-    const [newDrink] = await db
-      .insert(drinks)
-      .values(drink)
-      .returning();
+    const [newDrink] = await db.insert(drinks).values(drink).returning();
     return newDrink;
   }
 
-  async getDrink(id: string, userId: string, notebookId: string): Promise<Drink | undefined> {
-    const [drink] = await db.select().from(drinks).where(and(
-      eq(drinks.id, id),
-      eq(drinks.userId, userId),
-      eq(drinks.notebookId, notebookId)
-    ));
+  async getDrink(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Drink | undefined> {
+    const [drink] = await db
+      .select()
+      .from(drinks)
+      .where(
+        and(
+          eq(drinks.id, id),
+          eq(drinks.userId, userId),
+          eq(drinks.notebookId, notebookId),
+        ),
+      );
     return drink || undefined;
   }
 
   async getUserDrinks(userId: string, notebookId: string): Promise<Drink[]> {
-    return await db.select().from(drinks)
-      .where(and(
-        eq(drinks.userId, userId),
-        eq(drinks.notebookId, notebookId)
-      ))
+    return await db
+      .select()
+      .from(drinks)
+      .where(and(eq(drinks.userId, userId), eq(drinks.notebookId, notebookId)))
       .orderBy(desc(drinks.createdAt));
   }
 
-  async updateDrink(id: string, userId: string, updates: Partial<InsertDrink>): Promise<Drink> {
+  async updateDrink(
+    id: string,
+    userId: string,
+    updates: Partial<InsertDrink>,
+  ): Promise<Drink> {
     // Validate ownership
     const [existing] = await db.select().from(drinks).where(eq(drinks.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedDrink] = await db
@@ -2392,7 +3696,7 @@ export class DatabaseStorage implements IStorage {
     // Validate ownership
     const [existing] = await db.select().from(drinks).where(eq(drinks.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(drinks).where(eq(drinks.id, id));
@@ -2400,36 +3704,45 @@ export class DatabaseStorage implements IStorage {
 
   // Armor methods
   async createArmor(armorData: InsertArmor): Promise<Armor> {
-    const [newArmor] = await db
-      .insert(armor)
-      .values(armorData)
-      .returning();
+    const [newArmor] = await db.insert(armor).values(armorData).returning();
     return newArmor;
   }
 
-  async getArmor(id: string, userId: string, notebookId: string): Promise<Armor | undefined> {
-    const [armorItem] = await db.select().from(armor).where(and(
-      eq(armor.id, id),
-      eq(armor.userId, userId),
-      eq(armor.notebookId, notebookId)
-    ));
+  async getArmor(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Armor | undefined> {
+    const [armorItem] = await db
+      .select()
+      .from(armor)
+      .where(
+        and(
+          eq(armor.id, id),
+          eq(armor.userId, userId),
+          eq(armor.notebookId, notebookId),
+        ),
+      );
     return armorItem || undefined;
   }
 
   async getUserArmor(userId: string, notebookId: string): Promise<Armor[]> {
-    return await db.select().from(armor)
-      .where(and(
-        eq(armor.userId, userId),
-        eq(armor.notebookId, notebookId)
-      ))
+    return await db
+      .select()
+      .from(armor)
+      .where(and(eq(armor.userId, userId), eq(armor.notebookId, notebookId)))
       .orderBy(desc(armor.createdAt));
   }
 
-  async updateArmor(id: string, userId: string, updates: Partial<InsertArmor>): Promise<Armor> {
+  async updateArmor(
+    id: string,
+    userId: string,
+    updates: Partial<InsertArmor>,
+  ): Promise<Armor> {
     // Validate ownership
     const [existing] = await db.select().from(armor).where(eq(armor.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedArmor] = await db
@@ -2444,7 +3757,7 @@ export class DatabaseStorage implements IStorage {
     // Validate ownership
     const [existing] = await db.select().from(armor).where(eq(armor.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(armor).where(eq(armor.id, id));
@@ -2459,29 +3772,52 @@ export class DatabaseStorage implements IStorage {
     return newAccessory;
   }
 
-  async getAccessory(id: string, userId: string, notebookId: string): Promise<Accessory | undefined> {
-    const [accessory] = await db.select().from(accessories).where(and(
-      eq(accessories.id, id),
-      eq(accessories.userId, userId),
-      eq(accessories.notebookId, notebookId)
-    ));
+  async getAccessory(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Accessory | undefined> {
+    const [accessory] = await db
+      .select()
+      .from(accessories)
+      .where(
+        and(
+          eq(accessories.id, id),
+          eq(accessories.userId, userId),
+          eq(accessories.notebookId, notebookId),
+        ),
+      );
     return accessory || undefined;
   }
 
-  async getUserAccessories(userId: string, notebookId: string): Promise<Accessory[]> {
-    return await db.select().from(accessories)
-      .where(and(
-        eq(accessories.userId, userId),
-        eq(accessories.notebookId, notebookId)
-      ))
+  async getUserAccessories(
+    userId: string,
+    notebookId: string,
+  ): Promise<Accessory[]> {
+    return await db
+      .select()
+      .from(accessories)
+      .where(
+        and(
+          eq(accessories.userId, userId),
+          eq(accessories.notebookId, notebookId),
+        ),
+      )
       .orderBy(desc(accessories.createdAt));
   }
 
-  async updateAccessory(id: string, userId: string, updates: Partial<InsertAccessory>): Promise<Accessory> {
+  async updateAccessory(
+    id: string,
+    userId: string,
+    updates: Partial<InsertAccessory>,
+  ): Promise<Accessory> {
     // Validate ownership
-    const [existing] = await db.select().from(accessories).where(eq(accessories.id, id));
+    const [existing] = await db
+      .select()
+      .from(accessories)
+      .where(eq(accessories.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedAccessory] = await db
@@ -2494,9 +3830,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAccessory(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(accessories).where(eq(accessories.id, id));
+    const [existing] = await db
+      .select()
+      .from(accessories)
+      .where(eq(accessories.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(accessories).where(eq(accessories.id, id));
@@ -2511,29 +3850,49 @@ export class DatabaseStorage implements IStorage {
     return newClothing;
   }
 
-  async getClothing(id: string, userId: string, notebookId: string): Promise<Clothing | undefined> {
-    const [clothingItem] = await db.select().from(clothing).where(and(
-      eq(clothing.id, id),
-      eq(clothing.userId, userId),
-      eq(clothing.notebookId, notebookId)
-    ));
+  async getClothing(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Clothing | undefined> {
+    const [clothingItem] = await db
+      .select()
+      .from(clothing)
+      .where(
+        and(
+          eq(clothing.id, id),
+          eq(clothing.userId, userId),
+          eq(clothing.notebookId, notebookId),
+        ),
+      );
     return clothingItem || undefined;
   }
 
-  async getUserClothing(userId: string, notebookId: string): Promise<Clothing[]> {
-    return await db.select().from(clothing)
-      .where(and(
-        eq(clothing.userId, userId),
-        eq(clothing.notebookId, notebookId)
-      ))
+  async getUserClothing(
+    userId: string,
+    notebookId: string,
+  ): Promise<Clothing[]> {
+    return await db
+      .select()
+      .from(clothing)
+      .where(
+        and(eq(clothing.userId, userId), eq(clothing.notebookId, notebookId)),
+      )
       .orderBy(desc(clothing.createdAt));
   }
 
-  async updateClothing(id: string, userId: string, updates: Partial<InsertClothing>): Promise<Clothing> {
+  async updateClothing(
+    id: string,
+    userId: string,
+    updates: Partial<InsertClothing>,
+  ): Promise<Clothing> {
     // Validate ownership
-    const [existing] = await db.select().from(clothing).where(eq(clothing.id, id));
+    const [existing] = await db
+      .select()
+      .from(clothing)
+      .where(eq(clothing.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedClothing] = await db
@@ -2546,9 +3905,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteClothing(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(clothing).where(eq(clothing.id, id));
+    const [existing] = await db
+      .select()
+      .from(clothing)
+      .where(eq(clothing.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(clothing).where(eq(clothing.id, id));
@@ -2563,29 +3925,49 @@ export class DatabaseStorage implements IStorage {
     return newMaterial;
   }
 
-  async getMaterial(id: string, userId: string, notebookId: string): Promise<Material | undefined> {
-    const [material] = await db.select().from(materials).where(and(
-      eq(materials.id, id),
-      eq(materials.userId, userId),
-      eq(materials.notebookId, notebookId)
-    ));
+  async getMaterial(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Material | undefined> {
+    const [material] = await db
+      .select()
+      .from(materials)
+      .where(
+        and(
+          eq(materials.id, id),
+          eq(materials.userId, userId),
+          eq(materials.notebookId, notebookId),
+        ),
+      );
     return material || undefined;
   }
 
-  async getUserMaterials(userId: string, notebookId: string): Promise<Material[]> {
-    return await db.select().from(materials)
-      .where(and(
-        eq(materials.userId, userId),
-        eq(materials.notebookId, notebookId)
-      ))
+  async getUserMaterials(
+    userId: string,
+    notebookId: string,
+  ): Promise<Material[]> {
+    return await db
+      .select()
+      .from(materials)
+      .where(
+        and(eq(materials.userId, userId), eq(materials.notebookId, notebookId)),
+      )
       .orderBy(desc(materials.createdAt));
   }
 
-  async updateMaterial(id: string, userId: string, updates: Partial<InsertMaterial>): Promise<Material> {
+  async updateMaterial(
+    id: string,
+    userId: string,
+    updates: Partial<InsertMaterial>,
+  ): Promise<Material> {
     // Validate ownership
-    const [existing] = await db.select().from(materials).where(eq(materials.id, id));
+    const [existing] = await db
+      .select()
+      .from(materials)
+      .where(eq(materials.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedMaterial] = await db
@@ -2598,9 +3980,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteMaterial(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(materials).where(eq(materials.id, id));
+    const [existing] = await db
+      .select()
+      .from(materials)
+      .where(eq(materials.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(materials).where(eq(materials.id, id));
@@ -2615,29 +4000,52 @@ export class DatabaseStorage implements IStorage {
     return newSettlement;
   }
 
-  async getSettlement(id: string, userId: string, notebookId: string): Promise<Settlement | undefined> {
-    const [settlement] = await db.select().from(settlements).where(and(
-      eq(settlements.id, id),
-      eq(settlements.userId, userId),
-      eq(settlements.notebookId, notebookId)
-    ));
+  async getSettlement(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Settlement | undefined> {
+    const [settlement] = await db
+      .select()
+      .from(settlements)
+      .where(
+        and(
+          eq(settlements.id, id),
+          eq(settlements.userId, userId),
+          eq(settlements.notebookId, notebookId),
+        ),
+      );
     return settlement || undefined;
   }
 
-  async getUserSettlements(userId: string, notebookId: string): Promise<Settlement[]> {
-    return await db.select().from(settlements)
-      .where(and(
-        eq(settlements.userId, userId),
-        eq(settlements.notebookId, notebookId)
-      ))
+  async getUserSettlements(
+    userId: string,
+    notebookId: string,
+  ): Promise<Settlement[]> {
+    return await db
+      .select()
+      .from(settlements)
+      .where(
+        and(
+          eq(settlements.userId, userId),
+          eq(settlements.notebookId, notebookId),
+        ),
+      )
       .orderBy(desc(settlements.createdAt));
   }
 
-  async updateSettlement(id: string, userId: string, updates: Partial<InsertSettlement>): Promise<Settlement> {
+  async updateSettlement(
+    id: string,
+    userId: string,
+    updates: Partial<InsertSettlement>,
+  ): Promise<Settlement> {
     // Validate ownership
-    const [existing] = await db.select().from(settlements).where(eq(settlements.id, id));
+    const [existing] = await db
+      .select()
+      .from(settlements)
+      .where(eq(settlements.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedSettlement] = await db
@@ -2650,9 +4058,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSettlement(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(settlements).where(eq(settlements.id, id));
+    const [existing] = await db
+      .select()
+      .from(settlements)
+      .where(eq(settlements.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(settlements).where(eq(settlements.id, id));
@@ -2660,36 +4071,53 @@ export class DatabaseStorage implements IStorage {
 
   // Society methods
   async createSociety(society: InsertSociety): Promise<Society> {
-    const [newSociety] = await db
-      .insert(societies)
-      .values(society)
-      .returning();
+    const [newSociety] = await db.insert(societies).values(society).returning();
     return newSociety;
   }
 
-  async getSociety(id: string, userId: string, notebookId: string): Promise<Society | undefined> {
-    const [society] = await db.select().from(societies).where(and(
-      eq(societies.id, id),
-      eq(societies.userId, userId),
-      eq(societies.notebookId, notebookId)
-    ));
+  async getSociety(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Society | undefined> {
+    const [society] = await db
+      .select()
+      .from(societies)
+      .where(
+        and(
+          eq(societies.id, id),
+          eq(societies.userId, userId),
+          eq(societies.notebookId, notebookId),
+        ),
+      );
     return society || undefined;
   }
 
-  async getUserSocieties(userId: string, notebookId: string): Promise<Society[]> {
-    return await db.select().from(societies)
-      .where(and(
-        eq(societies.userId, userId),
-        eq(societies.notebookId, notebookId)
-      ))
+  async getUserSocieties(
+    userId: string,
+    notebookId: string,
+  ): Promise<Society[]> {
+    return await db
+      .select()
+      .from(societies)
+      .where(
+        and(eq(societies.userId, userId), eq(societies.notebookId, notebookId)),
+      )
       .orderBy(desc(societies.createdAt));
   }
 
-  async updateSociety(id: string, userId: string, updates: Partial<InsertSociety>): Promise<Society> {
+  async updateSociety(
+    id: string,
+    userId: string,
+    updates: Partial<InsertSociety>,
+  ): Promise<Society> {
     // Validate ownership
-    const [existing] = await db.select().from(societies).where(eq(societies.id, id));
+    const [existing] = await db
+      .select()
+      .from(societies)
+      .where(eq(societies.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedSociety] = await db
@@ -2702,9 +4130,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSociety(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(societies).where(eq(societies.id, id));
+    const [existing] = await db
+      .select()
+      .from(societies)
+      .where(eq(societies.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(societies).where(eq(societies.id, id));
@@ -2712,18 +4143,19 @@ export class DatabaseStorage implements IStorage {
 
   // Faction methods
   async createFaction(faction: InsertFaction): Promise<Faction> {
-    const [newFaction] = await db
-      .insert(factions)
-      .values(faction)
-      .returning();
+    const [newFaction] = await db.insert(factions).values(faction).returning();
     return newFaction;
   }
 
-  async getFaction(id: string, userId: string, notebookId: string): Promise<Faction | undefined> {
+  async getFaction(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Faction | undefined> {
     const whereClause = and(
       eq(factions.id, id),
       eq(factions.userId, userId),
-      eq(factions.notebookId, notebookId)
+      eq(factions.notebookId, notebookId),
     );
     const [faction] = await db.select().from(factions).where(whereClause);
     return faction || undefined;
@@ -2732,24 +4164,34 @@ export class DatabaseStorage implements IStorage {
   async getUserFaction(userId: string, notebookId: string): Promise<Faction[]> {
     const whereClause = and(
       eq(factions.userId, userId),
-      eq(factions.notebookId, notebookId)
+      eq(factions.notebookId, notebookId),
     );
-    return await db.select().from(factions)
+    return await db
+      .select()
+      .from(factions)
       .where(whereClause)
       .orderBy(desc(factions.createdAt));
   }
 
-  async updateFaction(id: string, userId: string, updates: Partial<InsertFaction>, notebookId: string): Promise<Faction> {
+  async updateFaction(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFaction>,
+    notebookId: string,
+  ): Promise<Faction> {
     // Validate ownership
-    const [existing] = await db.select().from(factions).where(eq(factions.id, id));
+    const [existing] = await db
+      .select()
+      .from(factions)
+      .where(eq(factions.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const whereClause = and(
       eq(factions.id, id),
       eq(factions.userId, userId),
-      eq(factions.notebookId, notebookId)
+      eq(factions.notebookId, notebookId),
     );
     const [updatedFaction] = await db
       .update(factions)
@@ -2759,23 +4201,32 @@ export class DatabaseStorage implements IStorage {
     return updatedFaction;
   }
 
-  async deleteFaction(id: string, userId: string, notebookId: string): Promise<void> {
+  async deleteFaction(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(factions).where(eq(factions.id, id));
+    const [existing] = await db
+      .select()
+      .from(factions)
+      .where(eq(factions.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const whereClause = and(
       eq(factions.id, id),
       eq(factions.userId, userId),
-      eq(factions.notebookId, notebookId)
+      eq(factions.notebookId, notebookId),
     );
     await db.delete(factions).where(whereClause);
   }
 
   // Military Unit methods
-  async createMilitaryUnit(militaryUnit: InsertMilitaryUnit): Promise<MilitaryUnit> {
+  async createMilitaryUnit(
+    militaryUnit: InsertMilitaryUnit,
+  ): Promise<MilitaryUnit> {
     const [newMilitaryUnit] = await db
       .insert(militaryUnits)
       .values(militaryUnit)
@@ -2783,29 +4234,52 @@ export class DatabaseStorage implements IStorage {
     return newMilitaryUnit;
   }
 
-  async getMilitaryUnit(id: string, userId: string, notebookId: string): Promise<MilitaryUnit | undefined> {
-    const [militaryUnit] = await db.select().from(militaryUnits).where(and(
-      eq(militaryUnits.id, id),
-      eq(militaryUnits.userId, userId),
-      eq(militaryUnits.notebookId, notebookId)
-    ));
+  async getMilitaryUnit(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<MilitaryUnit | undefined> {
+    const [militaryUnit] = await db
+      .select()
+      .from(militaryUnits)
+      .where(
+        and(
+          eq(militaryUnits.id, id),
+          eq(militaryUnits.userId, userId),
+          eq(militaryUnits.notebookId, notebookId),
+        ),
+      );
     return militaryUnit || undefined;
   }
 
-  async getUserMilitaryUnits(userId: string, notebookId: string): Promise<MilitaryUnit[]> {
-    return await db.select().from(militaryUnits)
-      .where(and(
-        eq(militaryUnits.userId, userId),
-        eq(militaryUnits.notebookId, notebookId)
-      ))
+  async getUserMilitaryUnits(
+    userId: string,
+    notebookId: string,
+  ): Promise<MilitaryUnit[]> {
+    return await db
+      .select()
+      .from(militaryUnits)
+      .where(
+        and(
+          eq(militaryUnits.userId, userId),
+          eq(militaryUnits.notebookId, notebookId),
+        ),
+      )
       .orderBy(desc(militaryUnits.createdAt));
   }
 
-  async updateMilitaryUnit(id: string, userId: string, updates: Partial<InsertMilitaryUnit>): Promise<MilitaryUnit> {
+  async updateMilitaryUnit(
+    id: string,
+    userId: string,
+    updates: Partial<InsertMilitaryUnit>,
+  ): Promise<MilitaryUnit> {
     // Validate ownership
-    const [existing] = await db.select().from(militaryUnits).where(eq(militaryUnits.id, id));
+    const [existing] = await db
+      .select()
+      .from(militaryUnits)
+      .where(eq(militaryUnits.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedMilitaryUnit] = await db
@@ -2818,9 +4292,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteMilitaryUnit(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(militaryUnits).where(eq(militaryUnits.id, id));
+    const [existing] = await db
+      .select()
+      .from(militaryUnits)
+      .where(eq(militaryUnits.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(militaryUnits).where(eq(militaryUnits.id, id));
@@ -2828,36 +4305,45 @@ export class DatabaseStorage implements IStorage {
 
   // Myth methods
   async createMyth(myth: InsertMyth): Promise<Myth> {
-    const [newMyth] = await db
-      .insert(myths)
-      .values(myth)
-      .returning();
+    const [newMyth] = await db.insert(myths).values(myth).returning();
     return newMyth;
   }
 
-  async getMyth(id: string, userId: string, notebookId: string): Promise<Myth | undefined> {
-    const [myth] = await db.select().from(myths).where(and(
-      eq(myths.id, id),
-      eq(myths.userId, userId),
-      eq(myths.notebookId, notebookId)
-    ));
+  async getMyth(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Myth | undefined> {
+    const [myth] = await db
+      .select()
+      .from(myths)
+      .where(
+        and(
+          eq(myths.id, id),
+          eq(myths.userId, userId),
+          eq(myths.notebookId, notebookId),
+        ),
+      );
     return myth || undefined;
   }
 
   async getUserMyths(userId: string, notebookId: string): Promise<Myth[]> {
-    return await db.select().from(myths)
-      .where(and(
-        eq(myths.userId, userId),
-        eq(myths.notebookId, notebookId)
-      ))
+    return await db
+      .select()
+      .from(myths)
+      .where(and(eq(myths.userId, userId), eq(myths.notebookId, notebookId)))
       .orderBy(desc(myths.createdAt));
   }
 
-  async updateMyth(id: string, userId: string, updates: Partial<InsertMyth>): Promise<Myth> {
+  async updateMyth(
+    id: string,
+    userId: string,
+    updates: Partial<InsertMyth>,
+  ): Promise<Myth> {
     // Validate ownership
     const [existing] = await db.select().from(myths).where(eq(myths.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedMyth] = await db
@@ -2872,7 +4358,7 @@ export class DatabaseStorage implements IStorage {
     // Validate ownership
     const [existing] = await db.select().from(myths).where(eq(myths.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(myths).where(eq(myths.id, id));
@@ -2880,36 +4366,50 @@ export class DatabaseStorage implements IStorage {
 
   // Legend methods
   async createLegend(legend: InsertLegend): Promise<Legend> {
-    const [newLegend] = await db
-      .insert(legends)
-      .values(legend)
-      .returning();
+    const [newLegend] = await db.insert(legends).values(legend).returning();
     return newLegend;
   }
 
-  async getLegend(id: string, userId: string, notebookId: string): Promise<Legend | undefined> {
-    const [legend] = await db.select().from(legends).where(and(
-      eq(legends.id, id),
-      eq(legends.userId, userId),
-      eq(legends.notebookId, notebookId)
-    ));
+  async getLegend(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Legend | undefined> {
+    const [legend] = await db
+      .select()
+      .from(legends)
+      .where(
+        and(
+          eq(legends.id, id),
+          eq(legends.userId, userId),
+          eq(legends.notebookId, notebookId),
+        ),
+      );
     return legend || undefined;
   }
 
   async getUserLegends(userId: string, notebookId: string): Promise<Legend[]> {
-    return await db.select().from(legends)
-      .where(and(
-        eq(legends.userId, userId),
-        eq(legends.notebookId, notebookId)
-      ))
+    return await db
+      .select()
+      .from(legends)
+      .where(
+        and(eq(legends.userId, userId), eq(legends.notebookId, notebookId)),
+      )
       .orderBy(desc(legends.createdAt));
   }
 
-  async updateLegend(id: string, userId: string, updates: Partial<InsertLegend>): Promise<Legend> {
+  async updateLegend(
+    id: string,
+    userId: string,
+    updates: Partial<InsertLegend>,
+  ): Promise<Legend> {
     // Validate ownership
-    const [existing] = await db.select().from(legends).where(eq(legends.id, id));
+    const [existing] = await db
+      .select()
+      .from(legends)
+      .where(eq(legends.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedLegend] = await db
@@ -2922,9 +4422,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteLegend(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(legends).where(eq(legends.id, id));
+    const [existing] = await db
+      .select()
+      .from(legends)
+      .where(eq(legends.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(legends).where(eq(legends.id, id));
@@ -2932,36 +4435,45 @@ export class DatabaseStorage implements IStorage {
 
   // Event methods
   async createEvent(event: InsertEvent): Promise<Event> {
-    const [newEvent] = await db
-      .insert(events)
-      .values(event)
-      .returning();
+    const [newEvent] = await db.insert(events).values(event).returning();
     return newEvent;
   }
 
-  async getEvent(id: string, userId: string, notebookId: string): Promise<Event | undefined> {
-    const [event] = await db.select().from(events).where(and(
-      eq(events.id, id),
-      eq(events.userId, userId),
-      eq(events.notebookId, notebookId)
-    ));
+  async getEvent(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Event | undefined> {
+    const [event] = await db
+      .select()
+      .from(events)
+      .where(
+        and(
+          eq(events.id, id),
+          eq(events.userId, userId),
+          eq(events.notebookId, notebookId),
+        ),
+      );
     return event || undefined;
   }
 
   async getUserEvents(userId: string, notebookId: string): Promise<Event[]> {
-    return await db.select().from(events)
-      .where(and(
-        eq(events.userId, userId),
-        eq(events.notebookId, notebookId)
-      ))
+    return await db
+      .select()
+      .from(events)
+      .where(and(eq(events.userId, userId), eq(events.notebookId, notebookId)))
       .orderBy(desc(events.createdAt));
   }
 
-  async updateEvent(id: string, userId: string, updates: Partial<InsertEvent>): Promise<Event> {
+  async updateEvent(
+    id: string,
+    userId: string,
+    updates: Partial<InsertEvent>,
+  ): Promise<Event> {
     // Validate ownership
     const [existing] = await db.select().from(events).where(eq(events.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedEvent] = await db
@@ -2976,7 +4488,7 @@ export class DatabaseStorage implements IStorage {
     // Validate ownership
     const [existing] = await db.select().from(events).where(eq(events.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(events).where(eq(events.id, id));
@@ -2984,36 +4496,45 @@ export class DatabaseStorage implements IStorage {
 
   // Spell methods
   async createSpell(spell: InsertSpell): Promise<Spell> {
-    const [newSpell] = await db
-      .insert(spells)
-      .values(spell)
-      .returning();
+    const [newSpell] = await db.insert(spells).values(spell).returning();
     return newSpell;
   }
 
-  async getSpell(id: string, userId: string, notebookId: string): Promise<Spell | undefined> {
-    const [spell] = await db.select().from(spells).where(and(
-      eq(spells.id, id),
-      eq(spells.userId, userId),
-      eq(spells.notebookId, notebookId)
-    ));
+  async getSpell(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Spell | undefined> {
+    const [spell] = await db
+      .select()
+      .from(spells)
+      .where(
+        and(
+          eq(spells.id, id),
+          eq(spells.userId, userId),
+          eq(spells.notebookId, notebookId),
+        ),
+      );
     return spell || undefined;
   }
 
   async getUserSpells(userId: string, notebookId: string): Promise<Spell[]> {
-    return await db.select().from(spells)
-      .where(and(
-        eq(spells.userId, userId),
-        eq(spells.notebookId, notebookId)
-      ))
+    return await db
+      .select()
+      .from(spells)
+      .where(and(eq(spells.userId, userId), eq(spells.notebookId, notebookId)))
       .orderBy(desc(spells.createdAt));
   }
 
-  async updateSpell(id: string, userId: string, updates: Partial<InsertSpell>): Promise<Spell> {
+  async updateSpell(
+    id: string,
+    userId: string,
+    updates: Partial<InsertSpell>,
+  ): Promise<Spell> {
     // Validate ownership
     const [existing] = await db.select().from(spells).where(eq(spells.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedSpell] = await db
@@ -3028,7 +4549,7 @@ export class DatabaseStorage implements IStorage {
     // Validate ownership
     const [existing] = await db.select().from(spells).where(eq(spells.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(spells).where(eq(spells.id, id));
@@ -3043,29 +4564,49 @@ export class DatabaseStorage implements IStorage {
     return newResource;
   }
 
-  async getResource(id: string, userId: string, notebookId: string): Promise<Resource | undefined> {
-    const [resource] = await db.select().from(resources).where(and(
-      eq(resources.id, id),
-      eq(resources.userId, userId),
-      eq(resources.notebookId, notebookId)
-    ));
+  async getResource(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Resource | undefined> {
+    const [resource] = await db
+      .select()
+      .from(resources)
+      .where(
+        and(
+          eq(resources.id, id),
+          eq(resources.userId, userId),
+          eq(resources.notebookId, notebookId),
+        ),
+      );
     return resource || undefined;
   }
 
-  async getUserResources(userId: string, notebookId: string): Promise<Resource[]> {
-    return await db.select().from(resources)
-      .where(and(
-        eq(resources.userId, userId),
-        eq(resources.notebookId, notebookId)
-      ))
+  async getUserResources(
+    userId: string,
+    notebookId: string,
+  ): Promise<Resource[]> {
+    return await db
+      .select()
+      .from(resources)
+      .where(
+        and(eq(resources.userId, userId), eq(resources.notebookId, notebookId)),
+      )
       .orderBy(desc(resources.createdAt));
   }
 
-  async updateResource(id: string, userId: string, updates: Partial<InsertResource>): Promise<Resource> {
+  async updateResource(
+    id: string,
+    userId: string,
+    updates: Partial<InsertResource>,
+  ): Promise<Resource> {
     // Validate ownership
-    const [existing] = await db.select().from(resources).where(eq(resources.id, id));
+    const [existing] = await db
+      .select()
+      .from(resources)
+      .where(eq(resources.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedResource] = await db
@@ -3078,9 +4619,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteResource(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(resources).where(eq(resources.id, id));
+    const [existing] = await db
+      .select()
+      .from(resources)
+      .where(eq(resources.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(resources).where(eq(resources.id, id));
@@ -3095,29 +4639,49 @@ export class DatabaseStorage implements IStorage {
     return newBuilding;
   }
 
-  async getBuilding(id: string, userId: string, notebookId: string): Promise<Building | undefined> {
-    const [building] = await db.select().from(buildings).where(and(
-      eq(buildings.id, id),
-      eq(buildings.userId, userId),
-      eq(buildings.notebookId, notebookId)
-    ));
+  async getBuilding(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Building | undefined> {
+    const [building] = await db
+      .select()
+      .from(buildings)
+      .where(
+        and(
+          eq(buildings.id, id),
+          eq(buildings.userId, userId),
+          eq(buildings.notebookId, notebookId),
+        ),
+      );
     return building || undefined;
   }
 
-  async getUserBuildings(userId: string, notebookId: string): Promise<Building[]> {
-    return await db.select().from(buildings)
-      .where(and(
-        eq(buildings.userId, userId),
-        eq(buildings.notebookId, notebookId)
-      ))
+  async getUserBuildings(
+    userId: string,
+    notebookId: string,
+  ): Promise<Building[]> {
+    return await db
+      .select()
+      .from(buildings)
+      .where(
+        and(eq(buildings.userId, userId), eq(buildings.notebookId, notebookId)),
+      )
       .orderBy(desc(buildings.createdAt));
   }
 
-  async updateBuilding(id: string, userId: string, updates: Partial<InsertBuilding>): Promise<Building> {
+  async updateBuilding(
+    id: string,
+    userId: string,
+    updates: Partial<InsertBuilding>,
+  ): Promise<Building> {
     // Validate ownership
-    const [existing] = await db.select().from(buildings).where(eq(buildings.id, id));
+    const [existing] = await db
+      .select()
+      .from(buildings)
+      .where(eq(buildings.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedBuilding] = await db
@@ -3130,9 +4694,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteBuilding(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(buildings).where(eq(buildings.id, id));
+    const [existing] = await db
+      .select()
+      .from(buildings)
+      .where(eq(buildings.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(buildings).where(eq(buildings.id, id));
@@ -3140,36 +4707,50 @@ export class DatabaseStorage implements IStorage {
 
   // Animal methods
   async createAnimal(animal: InsertAnimal): Promise<Animal> {
-    const [newAnimal] = await db
-      .insert(animals)
-      .values(animal)
-      .returning();
+    const [newAnimal] = await db.insert(animals).values(animal).returning();
     return newAnimal;
   }
 
-  async getAnimal(id: string, userId: string, notebookId: string): Promise<Animal | undefined> {
-    const [animal] = await db.select().from(animals).where(and(
-      eq(animals.id, id),
-      eq(animals.userId, userId),
-      eq(animals.notebookId, notebookId)
-    ));
+  async getAnimal(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Animal | undefined> {
+    const [animal] = await db
+      .select()
+      .from(animals)
+      .where(
+        and(
+          eq(animals.id, id),
+          eq(animals.userId, userId),
+          eq(animals.notebookId, notebookId),
+        ),
+      );
     return animal || undefined;
   }
 
   async getUserAnimals(userId: string, notebookId: string): Promise<Animal[]> {
-    return await db.select().from(animals)
-      .where(and(
-        eq(animals.userId, userId),
-        eq(animals.notebookId, notebookId)
-      ))
+    return await db
+      .select()
+      .from(animals)
+      .where(
+        and(eq(animals.userId, userId), eq(animals.notebookId, notebookId)),
+      )
       .orderBy(desc(animals.createdAt));
   }
 
-  async updateAnimal(id: string, userId: string, updates: Partial<InsertAnimal>): Promise<Animal> {
+  async updateAnimal(
+    id: string,
+    userId: string,
+    updates: Partial<InsertAnimal>,
+  ): Promise<Animal> {
     // Validate ownership
-    const [existing] = await db.select().from(animals).where(eq(animals.id, id));
+    const [existing] = await db
+      .select()
+      .from(animals)
+      .where(eq(animals.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedAnimal] = await db
@@ -3182,16 +4763,21 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAnimal(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(animals).where(eq(animals.id, id));
+    const [existing] = await db
+      .select()
+      .from(animals)
+      .where(eq(animals.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(animals).where(eq(animals.id, id));
   }
 
   // Transportation methods
-  async createTransportation(transportationData: InsertTransportation): Promise<Transportation> {
+  async createTransportation(
+    transportationData: InsertTransportation,
+  ): Promise<Transportation> {
     const [newTransportation] = await db
       .insert(transportation)
       .values(transportationData)
@@ -3199,29 +4785,52 @@ export class DatabaseStorage implements IStorage {
     return newTransportation;
   }
 
-  async getTransportation(id: string, userId: string, notebookId: string): Promise<Transportation | undefined> {
-    const [transportationItem] = await db.select().from(transportation).where(and(
-      eq(transportation.id, id),
-      eq(transportation.userId, userId),
-      eq(transportation.notebookId, notebookId)
-    ));
+  async getTransportation(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Transportation | undefined> {
+    const [transportationItem] = await db
+      .select()
+      .from(transportation)
+      .where(
+        and(
+          eq(transportation.id, id),
+          eq(transportation.userId, userId),
+          eq(transportation.notebookId, notebookId),
+        ),
+      );
     return transportationItem || undefined;
   }
 
-  async getUserTransportation(userId: string, notebookId: string): Promise<Transportation[]> {
-    return await db.select().from(transportation)
-      .where(and(
-        eq(transportation.userId, userId),
-        eq(transportation.notebookId, notebookId)
-      ))
+  async getUserTransportation(
+    userId: string,
+    notebookId: string,
+  ): Promise<Transportation[]> {
+    return await db
+      .select()
+      .from(transportation)
+      .where(
+        and(
+          eq(transportation.userId, userId),
+          eq(transportation.notebookId, notebookId),
+        ),
+      )
       .orderBy(desc(transportation.createdAt));
   }
 
-  async updateTransportation(id: string, userId: string, updates: Partial<InsertTransportation>): Promise<Transportation> {
+  async updateTransportation(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTransportation>,
+  ): Promise<Transportation> {
     // Validate ownership
-    const [existing] = await db.select().from(transportation).where(eq(transportation.id, id));
+    const [existing] = await db
+      .select()
+      .from(transportation)
+      .where(eq(transportation.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedTransportation] = await db
@@ -3234,9 +4843,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTransportation(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(transportation).where(eq(transportation.id, id));
+    const [existing] = await db
+      .select()
+      .from(transportation)
+      .where(eq(transportation.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(transportation).where(eq(transportation.id, id));
@@ -3251,29 +4863,52 @@ export class DatabaseStorage implements IStorage {
     return newNaturalLaw;
   }
 
-  async getNaturalLaw(id: string, userId: string, notebookId: string): Promise<NaturalLaw | undefined> {
-    const [naturalLaw] = await db.select().from(naturalLaws).where(and(
-      eq(naturalLaws.id, id),
-      eq(naturalLaws.userId, userId),
-      eq(naturalLaws.notebookId, notebookId)
-    ));
+  async getNaturalLaw(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<NaturalLaw | undefined> {
+    const [naturalLaw] = await db
+      .select()
+      .from(naturalLaws)
+      .where(
+        and(
+          eq(naturalLaws.id, id),
+          eq(naturalLaws.userId, userId),
+          eq(naturalLaws.notebookId, notebookId),
+        ),
+      );
     return naturalLaw || undefined;
   }
 
-  async getUserNaturalLaws(userId: string, notebookId: string): Promise<NaturalLaw[]> {
-    return await db.select().from(naturalLaws)
-      .where(and(
-        eq(naturalLaws.userId, userId),
-        eq(naturalLaws.notebookId, notebookId)
-      ))
+  async getUserNaturalLaws(
+    userId: string,
+    notebookId: string,
+  ): Promise<NaturalLaw[]> {
+    return await db
+      .select()
+      .from(naturalLaws)
+      .where(
+        and(
+          eq(naturalLaws.userId, userId),
+          eq(naturalLaws.notebookId, notebookId),
+        ),
+      )
       .orderBy(desc(naturalLaws.createdAt));
   }
 
-  async updateNaturalLaw(id: string, userId: string, updates: Partial<InsertNaturalLaw>): Promise<NaturalLaw> {
+  async updateNaturalLaw(
+    id: string,
+    userId: string,
+    updates: Partial<InsertNaturalLaw>,
+  ): Promise<NaturalLaw> {
     // Validate ownership
-    const [existing] = await db.select().from(naturalLaws).where(eq(naturalLaws.id, id));
+    const [existing] = await db
+      .select()
+      .from(naturalLaws)
+      .where(eq(naturalLaws.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedNaturalLaw] = await db
@@ -3286,9 +4921,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteNaturalLaw(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(naturalLaws).where(eq(naturalLaws.id, id));
+    const [existing] = await db
+      .select()
+      .from(naturalLaws)
+      .where(eq(naturalLaws.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(naturalLaws).where(eq(naturalLaws.id, id));
@@ -3303,29 +4941,52 @@ export class DatabaseStorage implements IStorage {
     return newTradition;
   }
 
-  async getTradition(id: string, userId: string, notebookId: string): Promise<Tradition | undefined> {
-    const [tradition] = await db.select().from(traditions).where(and(
-      eq(traditions.id, id),
-      eq(traditions.userId, userId),
-      eq(traditions.notebookId, notebookId)
-    ));
+  async getTradition(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Tradition | undefined> {
+    const [tradition] = await db
+      .select()
+      .from(traditions)
+      .where(
+        and(
+          eq(traditions.id, id),
+          eq(traditions.userId, userId),
+          eq(traditions.notebookId, notebookId),
+        ),
+      );
     return tradition || undefined;
   }
 
-  async getUserTraditions(userId: string, notebookId: string): Promise<Tradition[]> {
-    return await db.select().from(traditions)
-      .where(and(
-        eq(traditions.userId, userId),
-        eq(traditions.notebookId, notebookId)
-      ))
+  async getUserTraditions(
+    userId: string,
+    notebookId: string,
+  ): Promise<Tradition[]> {
+    return await db
+      .select()
+      .from(traditions)
+      .where(
+        and(
+          eq(traditions.userId, userId),
+          eq(traditions.notebookId, notebookId),
+        ),
+      )
       .orderBy(desc(traditions.createdAt));
   }
 
-  async updateTradition(id: string, userId: string, updates: Partial<InsertTradition>): Promise<Tradition> {
+  async updateTradition(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTradition>,
+  ): Promise<Tradition> {
     // Validate ownership
-    const [existing] = await db.select().from(traditions).where(eq(traditions.id, id));
+    const [existing] = await db
+      .select()
+      .from(traditions)
+      .where(eq(traditions.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedTradition] = await db
@@ -3338,9 +4999,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTradition(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(traditions).where(eq(traditions.id, id));
+    const [existing] = await db
+      .select()
+      .from(traditions)
+      .where(eq(traditions.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(traditions).where(eq(traditions.id, id));
@@ -3348,36 +5012,50 @@ export class DatabaseStorage implements IStorage {
 
   // Ritual methods
   async createRitual(ritual: InsertRitual): Promise<Ritual> {
-    const [newRitual] = await db
-      .insert(rituals)
-      .values(ritual)
-      .returning();
+    const [newRitual] = await db.insert(rituals).values(ritual).returning();
     return newRitual;
   }
 
-  async getRitual(id: string, userId: string, notebookId: string): Promise<Ritual | undefined> {
-    const [ritual] = await db.select().from(rituals).where(and(
-      eq(rituals.id, id),
-      eq(rituals.userId, userId),
-      eq(rituals.notebookId, notebookId)
-    ));
+  async getRitual(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Ritual | undefined> {
+    const [ritual] = await db
+      .select()
+      .from(rituals)
+      .where(
+        and(
+          eq(rituals.id, id),
+          eq(rituals.userId, userId),
+          eq(rituals.notebookId, notebookId),
+        ),
+      );
     return ritual || undefined;
   }
 
   async getUserRituals(userId: string, notebookId: string): Promise<Ritual[]> {
-    return await db.select().from(rituals)
-      .where(and(
-        eq(rituals.userId, userId),
-        eq(rituals.notebookId, notebookId)
-      ))
+    return await db
+      .select()
+      .from(rituals)
+      .where(
+        and(eq(rituals.userId, userId), eq(rituals.notebookId, notebookId)),
+      )
       .orderBy(desc(rituals.createdAt));
   }
 
-  async updateRitual(id: string, userId: string, updates: Partial<InsertRitual>): Promise<Ritual> {
+  async updateRitual(
+    id: string,
+    userId: string,
+    updates: Partial<InsertRitual>,
+  ): Promise<Ritual> {
     // Validate ownership
-    const [existing] = await db.select().from(rituals).where(eq(rituals.id, id));
+    const [existing] = await db
+      .select()
+      .from(rituals)
+      .where(eq(rituals.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedRitual] = await db
@@ -3390,9 +5068,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteRitual(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(rituals).where(eq(rituals.id, id));
+    const [existing] = await db
+      .select()
+      .from(rituals)
+      .where(eq(rituals.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(rituals).where(eq(rituals.id, id));
@@ -3410,41 +5091,64 @@ export class DatabaseStorage implements IStorage {
       await this.saveItem({
         userId: newFamilyTree.userId,
         notebookId: newFamilyTree.notebookId,
-        itemType: 'familytree',
+        itemType: "familytree",
         itemId: newFamilyTree.id,
         itemData: {
           name: newFamilyTree.name,
-          description: newFamilyTree.description
-        }
+          description: newFamilyTree.description,
+        },
       });
     }
 
     return newFamilyTree;
   }
 
-  async getFamilyTree(id: string, userId: string, notebookId: string): Promise<FamilyTree | undefined> {
-    const [familyTree] = await db.select().from(familyTrees).where(and(
-      eq(familyTrees.id, id),
-      eq(familyTrees.userId, userId),
-      eq(familyTrees.notebookId, notebookId)
-    ));
+  async getFamilyTree(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<FamilyTree | undefined> {
+    const [familyTree] = await db
+      .select()
+      .from(familyTrees)
+      .where(
+        and(
+          eq(familyTrees.id, id),
+          eq(familyTrees.userId, userId),
+          eq(familyTrees.notebookId, notebookId),
+        ),
+      );
     return familyTree || undefined;
   }
 
-  async getUserFamilyTrees(userId: string, notebookId: string): Promise<FamilyTree[]> {
-    return await db.select().from(familyTrees)
-      .where(and(
-        eq(familyTrees.userId, userId),
-        eq(familyTrees.notebookId, notebookId)
-      ))
+  async getUserFamilyTrees(
+    userId: string,
+    notebookId: string,
+  ): Promise<FamilyTree[]> {
+    return await db
+      .select()
+      .from(familyTrees)
+      .where(
+        and(
+          eq(familyTrees.userId, userId),
+          eq(familyTrees.notebookId, notebookId),
+        ),
+      )
       .orderBy(desc(familyTrees.createdAt));
   }
 
-  async updateFamilyTree(id: string, userId: string, updates: Partial<InsertFamilyTree>): Promise<FamilyTree> {
+  async updateFamilyTree(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFamilyTree>,
+  ): Promise<FamilyTree> {
     // Validate ownership
-    const [existing] = await db.select().from(familyTrees).where(eq(familyTrees.id, id));
+    const [existing] = await db
+      .select()
+      .from(familyTrees)
+      .where(eq(familyTrees.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedFamilyTree] = await db
@@ -3460,13 +5164,12 @@ export class DatabaseStorage implements IStorage {
         .set({
           itemData: {
             name: updatedFamilyTree.name,
-            description: updatedFamilyTree.description
-          }
+            description: updatedFamilyTree.description,
+          },
         })
-        .where(and(
-          eq(savedItems.itemId, id),
-          eq(savedItems.itemType, 'familytree')
-        ));
+        .where(
+          and(eq(savedItems.itemId, id), eq(savedItems.itemType, "familytree")),
+        );
     }
 
     return updatedFamilyTree;
@@ -3474,16 +5177,21 @@ export class DatabaseStorage implements IStorage {
 
   async deleteFamilyTree(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(familyTrees).where(eq(familyTrees.id, id));
+    const [existing] = await db
+      .select()
+      .from(familyTrees)
+      .where(eq(familyTrees.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(familyTrees).where(eq(familyTrees.id, id));
   }
 
   // Family Tree Member methods
-  async createFamilyTreeMember(member: InsertFamilyTreeMember): Promise<FamilyTreeMember> {
+  async createFamilyTreeMember(
+    member: InsertFamilyTreeMember,
+  ): Promise<FamilyTreeMember> {
     const [newMember] = await db
       .insert(familyTreeMembers)
       .values(member)
@@ -3493,9 +5201,12 @@ export class DatabaseStorage implements IStorage {
 
   async getFamilyTreeMembers(treeId: string, userId: string): Promise<any[]> {
     // Validate tree ownership
-    const [tree] = await db.select().from(familyTrees).where(eq(familyTrees.id, treeId));
+    const [tree] = await db
+      .select()
+      .from(familyTrees)
+      .where(eq(familyTrees.id, treeId));
     if (!this.validateContentOwnership(tree, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     // Fetch members with character data using LEFT JOIN
@@ -3507,36 +5218,49 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(familyTreeMembers.createdAt));
 
     // Reshape the data to nest character inside member
-    const members = rows.map(row => ({
+    const members = rows.map((row) => ({
       ...row.family_tree_members,
-      character: row.characters ? {
-        id: row.characters.id,
-        givenName: row.characters.givenName,
-        familyName: row.characters.familyName,
-        middleName: row.characters.middleName,
-        nickname: row.characters.nickname,
-        imageUrl: row.characters.imageUrl,
-        dateOfBirth: row.characters.dateOfBirth,
-        dateOfDeath: row.characters.dateOfDeath,
-      } : null
+      character: row.characters
+        ? {
+            id: row.characters.id,
+            givenName: row.characters.givenName,
+            familyName: row.characters.familyName,
+            middleName: row.characters.middleName,
+            nickname: row.characters.nickname,
+            imageUrl: row.characters.imageUrl,
+            dateOfBirth: row.characters.dateOfBirth,
+            dateOfDeath: row.characters.dateOfDeath,
+          }
+        : null,
     }));
 
     return members;
   }
 
-  async updateFamilyTreeMember(id: string, userId: string, updates: Partial<InsertFamilyTreeMember>): Promise<FamilyTreeMember> {
+  async updateFamilyTreeMember(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFamilyTreeMember>,
+  ): Promise<FamilyTreeMember> {
     // Validate ownership via tree
-    const [existing] = await db.select().from(familyTreeMembers).where(eq(familyTreeMembers.id, id));
+    const [existing] = await db
+      .select()
+      .from(familyTreeMembers)
+      .where(eq(familyTreeMembers.id, id));
     if (!existing) {
-      throw new Error('Member not found');
+      throw new Error("Member not found");
     }
 
-    const [tree] = await db.select().from(familyTrees).where(eq(familyTrees.id, existing.treeId));
+    const [tree] = await db
+      .select()
+      .from(familyTrees)
+      .where(eq(familyTrees.id, existing.treeId));
     if (!this.validateContentOwnership(tree, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
-    const [updated] = await db.update(familyTreeMembers)
+    const [updated] = await db
+      .update(familyTreeMembers)
       .set(updates)
       .where(eq(familyTreeMembers.id, id))
       .returning();
@@ -3544,21 +5268,31 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async deleteFamilyTreeMember(id: string, userId: string, treeId: string): Promise<void> {
+  async deleteFamilyTreeMember(
+    id: string,
+    userId: string,
+    treeId: string,
+  ): Promise<void> {
     // Validate ownership via tree
-    const [tree] = await db.select().from(familyTrees).where(eq(familyTrees.id, treeId));
+    const [tree] = await db
+      .select()
+      .from(familyTrees)
+      .where(eq(familyTrees.id, treeId));
     if (!this.validateContentOwnership(tree, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
-    await db.delete(familyTreeMembers).where(and(
-      eq(familyTreeMembers.id, id),
-      eq(familyTreeMembers.treeId, treeId)
-    ));
+    await db
+      .delete(familyTreeMembers)
+      .where(
+        and(eq(familyTreeMembers.id, id), eq(familyTreeMembers.treeId, treeId)),
+      );
   }
 
   // Family Tree Relationship methods
-  async createFamilyTreeRelationship(relationship: InsertFamilyTreeRelationship): Promise<FamilyTreeRelationship> {
+  async createFamilyTreeRelationship(
+    relationship: InsertFamilyTreeRelationship,
+  ): Promise<FamilyTreeRelationship> {
     const [newRelationship] = await db
       .insert(familyTreeRelationships)
       .values(relationship)
@@ -3566,31 +5300,50 @@ export class DatabaseStorage implements IStorage {
     return newRelationship;
   }
 
-  async getFamilyTreeRelationships(treeId: string, userId: string): Promise<FamilyTreeRelationship[]> {
+  async getFamilyTreeRelationships(
+    treeId: string,
+    userId: string,
+  ): Promise<FamilyTreeRelationship[]> {
     // Validate tree ownership
-    const [tree] = await db.select().from(familyTrees).where(eq(familyTrees.id, treeId));
+    const [tree] = await db
+      .select()
+      .from(familyTrees)
+      .where(eq(familyTrees.id, treeId));
     if (!this.validateContentOwnership(tree, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
-    return await db.select().from(familyTreeRelationships)
+    return await db
+      .select()
+      .from(familyTreeRelationships)
       .where(eq(familyTreeRelationships.treeId, treeId))
       .orderBy(desc(familyTreeRelationships.createdAt));
   }
 
-  async updateFamilyTreeRelationship(id: string, userId: string, updates: Partial<InsertFamilyTreeRelationship>): Promise<FamilyTreeRelationship> {
+  async updateFamilyTreeRelationship(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFamilyTreeRelationship>,
+  ): Promise<FamilyTreeRelationship> {
     // Validate ownership via tree
-    const [existing] = await db.select().from(familyTreeRelationships).where(eq(familyTreeRelationships.id, id));
+    const [existing] = await db
+      .select()
+      .from(familyTreeRelationships)
+      .where(eq(familyTreeRelationships.id, id));
     if (!existing) {
-      throw new Error('Relationship not found');
+      throw new Error("Relationship not found");
     }
 
-    const [tree] = await db.select().from(familyTrees).where(eq(familyTrees.id, existing.treeId));
+    const [tree] = await db
+      .select()
+      .from(familyTrees)
+      .where(eq(familyTrees.id, existing.treeId));
     if (!this.validateContentOwnership(tree, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
-    const [updated] = await db.update(familyTreeRelationships)
+    const [updated] = await db
+      .update(familyTreeRelationships)
       .set(updates)
       .where(eq(familyTreeRelationships.id, id))
       .returning();
@@ -3598,17 +5351,28 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async deleteFamilyTreeRelationship(id: string, userId: string, treeId: string): Promise<void> {
+  async deleteFamilyTreeRelationship(
+    id: string,
+    userId: string,
+    treeId: string,
+  ): Promise<void> {
     // Validate ownership via tree
-    const [tree] = await db.select().from(familyTrees).where(eq(familyTrees.id, treeId));
+    const [tree] = await db
+      .select()
+      .from(familyTrees)
+      .where(eq(familyTrees.id, treeId));
     if (!this.validateContentOwnership(tree, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
-    await db.delete(familyTreeRelationships).where(and(
-      eq(familyTreeRelationships.id, id),
-      eq(familyTreeRelationships.treeId, treeId)
-    ));
+    await db
+      .delete(familyTreeRelationships)
+      .where(
+        and(
+          eq(familyTreeRelationships.id, id),
+          eq(familyTreeRelationships.treeId, treeId),
+        ),
+      );
   }
 
   // Timeline methods
@@ -3623,41 +5387,61 @@ export class DatabaseStorage implements IStorage {
       await this.saveItem({
         userId: newTimeline.userId,
         notebookId: newTimeline.notebookId,
-        itemType: 'timeline',
+        itemType: "timeline",
         itemId: newTimeline.id,
         itemData: {
           name: newTimeline.name,
-          description: newTimeline.description
-        }
+          description: newTimeline.description,
+        },
       });
     }
 
     return newTimeline;
   }
 
-  async getTimeline(id: string, userId: string, notebookId: string): Promise<Timeline | undefined> {
-    const [timeline] = await db.select().from(timelines).where(and(
-      eq(timelines.id, id),
-      eq(timelines.userId, userId),
-      eq(timelines.notebookId, notebookId)
-    ));
+  async getTimeline(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Timeline | undefined> {
+    const [timeline] = await db
+      .select()
+      .from(timelines)
+      .where(
+        and(
+          eq(timelines.id, id),
+          eq(timelines.userId, userId),
+          eq(timelines.notebookId, notebookId),
+        ),
+      );
     return timeline || undefined;
   }
 
-  async getUserTimelines(userId: string, notebookId: string): Promise<Timeline[]> {
-    return await db.select().from(timelines)
-      .where(and(
-        eq(timelines.userId, userId),
-        eq(timelines.notebookId, notebookId)
-      ))
+  async getUserTimelines(
+    userId: string,
+    notebookId: string,
+  ): Promise<Timeline[]> {
+    return await db
+      .select()
+      .from(timelines)
+      .where(
+        and(eq(timelines.userId, userId), eq(timelines.notebookId, notebookId)),
+      )
       .orderBy(desc(timelines.createdAt));
   }
 
-  async updateTimeline(id: string, userId: string, updates: Partial<InsertTimeline>): Promise<Timeline> {
+  async updateTimeline(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTimeline>,
+  ): Promise<Timeline> {
     // Validate ownership
-    const [existing] = await db.select().from(timelines).where(eq(timelines.id, id));
+    const [existing] = await db
+      .select()
+      .from(timelines)
+      .where(eq(timelines.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedTimeline] = await db
@@ -3670,161 +5454,241 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTimeline(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(timelines).where(eq(timelines.id, id));
+    const [existing] = await db
+      .select()
+      .from(timelines)
+      .where(eq(timelines.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(timelines).where(eq(timelines.id, id));
   }
 
-// Timeline Event methods
-async createTimelineEvent(event: InsertTimelineEvent): Promise<TimelineEvent> {
-  const [newEvent] = await db
-    .insert(timelineEvents)
-    .values(event)
-    .returning();
-  return newEvent;
-}
-
-async getTimelineEvent(id: string, userId: string, timelineId: string): Promise<TimelineEvent | undefined> {
-  // First verify the user owns the timeline
-  const [timeline] = await db.select().from(timelines).where(eq(timelines.id, timelineId));
-  if (!this.validateContentOwnership(timeline, userId)) {
-    throw new Error('Unauthorized: You do not own this timeline');
+  // Timeline Event methods
+  async createTimelineEvent(
+    event: InsertTimelineEvent,
+  ): Promise<TimelineEvent> {
+    const [newEvent] = await db
+      .insert(timelineEvents)
+      .values(event)
+      .returning();
+    return newEvent;
   }
 
-  const [event] = await db.select().from(timelineEvents).where(and(
-    eq(timelineEvents.id, id),
-    eq(timelineEvents.timelineId, timelineId)
-  ));
-  return event || undefined;
-}
+  async getTimelineEvent(
+    id: string,
+    userId: string,
+    timelineId: string,
+  ): Promise<TimelineEvent | undefined> {
+    // First verify the user owns the timeline
+    const [timeline] = await db
+      .select()
+      .from(timelines)
+      .where(eq(timelines.id, timelineId));
+    if (!this.validateContentOwnership(timeline, userId)) {
+      throw new Error("Unauthorized: You do not own this timeline");
+    }
 
-async getTimelineEvents(timelineId: string, userId: string): Promise<TimelineEvent[]> {
-  // Verify the user owns the timeline
-  const [timeline] = await db.select().from(timelines).where(eq(timelines.id, timelineId));
-  if (!this.validateContentOwnership(timeline, userId)) {
-    throw new Error('Unauthorized: You do not own this timeline');
+    const [event] = await db
+      .select()
+      .from(timelineEvents)
+      .where(
+        and(
+          eq(timelineEvents.id, id),
+          eq(timelineEvents.timelineId, timelineId),
+        ),
+      );
+    return event || undefined;
   }
 
-  return await db.select().from(timelineEvents)
-    .where(eq(timelineEvents.timelineId, timelineId))
-    .orderBy(timelineEvents.startDate);
-}
+  async getTimelineEvents(
+    timelineId: string,
+    userId: string,
+  ): Promise<TimelineEvent[]> {
+    // Verify the user owns the timeline
+    const [timeline] = await db
+      .select()
+      .from(timelines)
+      .where(eq(timelines.id, timelineId));
+    if (!this.validateContentOwnership(timeline, userId)) {
+      throw new Error("Unauthorized: You do not own this timeline");
+    }
 
-async getTimelineEventsForNotebook(notebookId: string, userId: string): Promise<TimelineEvent[]> {
-  const hasAccess = await this.validateNotebookOwnership(notebookId, userId);
-  if (!hasAccess) {
-    throw new Error('Unauthorized: You do not have access to this notebook');
+    return await db
+      .select()
+      .from(timelineEvents)
+      .where(eq(timelineEvents.timelineId, timelineId))
+      .orderBy(timelineEvents.startDate);
   }
 
-  const timelineIds = await db
-    .select({ id: timelines.id })
-    .from(timelines)
-    .where(eq(timelines.notebookId, notebookId));
+  async getTimelineEventsForNotebook(
+    notebookId: string,
+    userId: string,
+  ): Promise<TimelineEvent[]> {
+    const hasAccess = await this.validateNotebookOwnership(notebookId, userId);
+    if (!hasAccess) {
+      throw new Error("Unauthorized: You do not have access to this notebook");
+    }
 
-  if (!timelineIds.length) {
-    return [];
+    const timelineIds = await db
+      .select({ id: timelines.id })
+      .from(timelines)
+      .where(eq(timelines.notebookId, notebookId));
+
+    if (!timelineIds.length) {
+      return [];
+    }
+
+    const timelineIdValues = timelineIds.map((timeline) => timeline.id);
+
+    return await db
+      .select()
+      .from(timelineEvents)
+      .where(inArray(timelineEvents.timelineId, timelineIdValues))
+      .orderBy(timelineEvents.startDate);
   }
 
-  const timelineIdValues = timelineIds.map((timeline) => timeline.id);
+  async updateTimelineEvent(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTimelineEvent>,
+  ): Promise<TimelineEvent> {
+    // Get the event to find its timeline
+    const [existing] = await db
+      .select()
+      .from(timelineEvents)
+      .where(eq(timelineEvents.id, id));
+    if (!existing) {
+      throw new Error("Timeline event not found");
+    }
 
-  return await db
-    .select()
-    .from(timelineEvents)
-    .where(inArray(timelineEvents.timelineId, timelineIdValues))
-    .orderBy(timelineEvents.startDate);
-}
+    // Verify the user owns the timeline
+    const [timeline] = await db
+      .select()
+      .from(timelines)
+      .where(eq(timelines.id, existing.timelineId));
+    if (!this.validateContentOwnership(timeline, userId)) {
+      throw new Error("Unauthorized: You do not own this timeline");
+    }
 
-async updateTimelineEvent(id: string, userId: string, updates: Partial<InsertTimelineEvent>): Promise<TimelineEvent> {
-  // Get the event to find its timeline
-  const [existing] = await db.select().from(timelineEvents).where(eq(timelineEvents.id, id));
-  if (!existing) {
-    throw new Error('Timeline event not found');
+    const [updatedEvent] = await db
+      .update(timelineEvents)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(timelineEvents.id, id))
+      .returning();
+    return updatedEvent;
   }
 
-  // Verify the user owns the timeline
-  const [timeline] = await db.select().from(timelines).where(eq(timelines.id, existing.timelineId));
-  if (!this.validateContentOwnership(timeline, userId)) {
-    throw new Error('Unauthorized: You do not own this timeline');
+  async deleteTimelineEvent(
+    id: string,
+    userId: string,
+    timelineId: string,
+  ): Promise<void> {
+    // Verify the user owns the timeline
+    const [timeline] = await db
+      .select()
+      .from(timelines)
+      .where(eq(timelines.id, timelineId));
+    if (!this.validateContentOwnership(timeline, userId)) {
+      throw new Error("Unauthorized: You do not own this timeline");
+    }
+
+    await db
+      .delete(timelineEvents)
+      .where(
+        and(
+          eq(timelineEvents.id, id),
+          eq(timelineEvents.timelineId, timelineId),
+        ),
+      );
   }
 
-  const [updatedEvent] = await db
-    .update(timelineEvents)
-    .set({ ...updates, updatedAt: new Date() })
-    .where(eq(timelineEvents.id, id))
-    .returning();
-  return updatedEvent;
-}
-
-async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promise<void> {
-  // Verify the user owns the timeline
-  const [timeline] = await db.select().from(timelines).where(eq(timelines.id, timelineId));
-  if (!this.validateContentOwnership(timeline, userId)) {
-    throw new Error('Unauthorized: You do not own this timeline');
+  // Timeline Relationship methods
+  async createTimelineRelationship(
+    relationship: InsertTimelineRelationship,
+  ): Promise<TimelineRelationship> {
+    const [newRelationship] = await db
+      .insert(timelineRelationships)
+      .values(relationship)
+      .returning();
+    return newRelationship;
   }
 
-  await db.delete(timelineEvents).where(and(
-    eq(timelineEvents.id, id),
-    eq(timelineEvents.timelineId, timelineId)
-  ));
-}
+  async getTimelineRelationships(
+    timelineId: string,
+    userId: string,
+  ): Promise<TimelineRelationship[]> {
+    // Verify the user owns the timeline
+    const [timeline] = await db
+      .select()
+      .from(timelines)
+      .where(eq(timelines.id, timelineId));
+    if (!this.validateContentOwnership(timeline, userId)) {
+      throw new Error("Unauthorized: You do not own this timeline");
+    }
 
-// Timeline Relationship methods
-  async createTimelineRelationship(relationship: InsertTimelineRelationship): Promise<TimelineRelationship> {
-  const [newRelationship] = await db
-    .insert(timelineRelationships)
-    .values(relationship)
-    .returning();
-  return newRelationship;
-}
-
-  async getTimelineRelationships(timelineId: string, userId: string): Promise<TimelineRelationship[]> {
-  // Verify the user owns the timeline
-  const [timeline] = await db.select().from(timelines).where(eq(timelines.id, timelineId));
-  if (!this.validateContentOwnership(timeline, userId)) {
-    throw new Error('Unauthorized: You do not own this timeline');
+    return await db
+      .select()
+      .from(timelineRelationships)
+      .where(eq(timelineRelationships.timelineId, timelineId))
+      .orderBy(desc(timelineRelationships.createdAt));
   }
 
-  return await db.select().from(timelineRelationships)
-    .where(eq(timelineRelationships.timelineId, timelineId))
-    .orderBy(desc(timelineRelationships.createdAt));
-}
+  async updateTimelineRelationship(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTimelineRelationship>,
+  ): Promise<TimelineRelationship> {
+    // Get the relationship to find its timeline
+    const [existing] = await db
+      .select()
+      .from(timelineRelationships)
+      .where(eq(timelineRelationships.id, id));
+    if (!existing) {
+      throw new Error("Timeline relationship not found");
+    }
 
-  async updateTimelineRelationship(id: string, userId: string, updates: Partial<InsertTimelineRelationship>): Promise<TimelineRelationship> {
-  // Get the relationship to find its timeline
-  const [existing] = await db.select().from(timelineRelationships).where(eq(timelineRelationships.id, id));
-  if (!existing) {
-    throw new Error('Timeline relationship not found');
+    // Verify the user owns the timeline
+    const [timeline] = await db
+      .select()
+      .from(timelines)
+      .where(eq(timelines.id, existing.timelineId));
+    if (!this.validateContentOwnership(timeline, userId)) {
+      throw new Error("Unauthorized: You do not own this timeline");
+    }
+
+    const [updatedRelationship] = await db
+      .update(timelineRelationships)
+      .set(updates)
+      .where(eq(timelineRelationships.id, id))
+      .returning();
+    return updatedRelationship;
   }
 
-  // Verify the user owns the timeline
-  const [timeline] = await db.select().from(timelines).where(eq(timelines.id, existing.timelineId));
-  if (!this.validateContentOwnership(timeline, userId)) {
-    throw new Error('Unauthorized: You do not own this timeline');
+  async deleteTimelineRelationship(
+    id: string,
+    userId: string,
+    timelineId: string,
+  ): Promise<void> {
+    // Verify the user owns the timeline
+    const [timeline] = await db
+      .select()
+      .from(timelines)
+      .where(eq(timelines.id, timelineId));
+    if (!this.validateContentOwnership(timeline, userId)) {
+      throw new Error("Unauthorized: You do not own this timeline");
+    }
+
+    await db
+      .delete(timelineRelationships)
+      .where(
+        and(
+          eq(timelineRelationships.id, id),
+          eq(timelineRelationships.timelineId, timelineId),
+        ),
+      );
   }
-
-  const [updatedRelationship] = await db
-    .update(timelineRelationships)
-    .set(updates)
-    .where(eq(timelineRelationships.id, id))
-    .returning();
-  return updatedRelationship;
-}
-
-  async deleteTimelineRelationship(id: string, userId: string, timelineId: string): Promise<void> {
-  // Verify the user owns the timeline
-  const [timeline] = await db.select().from(timelines).where(eq(timelines.id, timelineId));
-  if (!this.validateContentOwnership(timeline, userId)) {
-    throw new Error('Unauthorized: You do not own this timeline');
-  }
-
-  await db.delete(timelineRelationships).where(and(
-    eq(timelineRelationships.id, id),
-    eq(timelineRelationships.timelineId, timelineId)
-  ));
-}
 
   // Ceremony methods
   async createCeremony(ceremony: InsertCeremony): Promise<Ceremony> {
@@ -3835,29 +5699,52 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     return newCeremony;
   }
 
-  async getCeremony(id: string, userId: string, notebookId: string): Promise<Ceremony | undefined> {
-    const [ceremony] = await db.select().from(ceremonies).where(and(
-      eq(ceremonies.id, id),
-      eq(ceremonies.userId, userId),
-      eq(ceremonies.notebookId, notebookId)
-    ));
+  async getCeremony(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Ceremony | undefined> {
+    const [ceremony] = await db
+      .select()
+      .from(ceremonies)
+      .where(
+        and(
+          eq(ceremonies.id, id),
+          eq(ceremonies.userId, userId),
+          eq(ceremonies.notebookId, notebookId),
+        ),
+      );
     return ceremony || undefined;
   }
 
-  async getUserCeremonies(userId: string, notebookId: string): Promise<Ceremony[]> {
-    return await db.select().from(ceremonies)
-      .where(and(
-        eq(ceremonies.userId, userId),
-        eq(ceremonies.notebookId, notebookId)
-      ))
+  async getUserCeremonies(
+    userId: string,
+    notebookId: string,
+  ): Promise<Ceremony[]> {
+    return await db
+      .select()
+      .from(ceremonies)
+      .where(
+        and(
+          eq(ceremonies.userId, userId),
+          eq(ceremonies.notebookId, notebookId),
+        ),
+      )
       .orderBy(desc(ceremonies.createdAt));
   }
 
-  async updateCeremony(id: string, userId: string, updates: Partial<InsertCeremony>): Promise<Ceremony> {
+  async updateCeremony(
+    id: string,
+    userId: string,
+    updates: Partial<InsertCeremony>,
+  ): Promise<Ceremony> {
     // Validate ownership
-    const [existing] = await db.select().from(ceremonies).where(eq(ceremonies.id, id));
+    const [existing] = await db
+      .select()
+      .from(ceremonies)
+      .where(eq(ceremonies.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedCeremony] = await db
@@ -3870,9 +5757,12 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
   async deleteCeremony(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(ceremonies).where(eq(ceremonies.id, id));
+    const [existing] = await db
+      .select()
+      .from(ceremonies)
+      .where(eq(ceremonies.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(ceremonies).where(eq(ceremonies.id, id));
@@ -3880,36 +5770,45 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
   // Map methods
   async createMap(map: InsertMap): Promise<Map> {
-    const [newMap] = await db
-      .insert(maps)
-      .values(map)
-      .returning();
+    const [newMap] = await db.insert(maps).values(map).returning();
     return newMap;
   }
 
-  async getMap(id: string, userId: string, notebookId: string): Promise<Map | undefined> {
-    const [map] = await db.select().from(maps).where(and(
-      eq(maps.id, id),
-      eq(maps.userId, userId),
-      eq(maps.notebookId, notebookId)
-    ));
+  async getMap(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Map | undefined> {
+    const [map] = await db
+      .select()
+      .from(maps)
+      .where(
+        and(
+          eq(maps.id, id),
+          eq(maps.userId, userId),
+          eq(maps.notebookId, notebookId),
+        ),
+      );
     return map || undefined;
   }
 
   async getUserMaps(userId: string, notebookId: string): Promise<Map[]> {
-    return await db.select().from(maps)
-      .where(and(
-        eq(maps.userId, userId),
-        eq(maps.notebookId, notebookId)
-      ))
+    return await db
+      .select()
+      .from(maps)
+      .where(and(eq(maps.userId, userId), eq(maps.notebookId, notebookId)))
       .orderBy(desc(maps.createdAt));
   }
 
-  async updateMap(id: string, userId: string, updates: Partial<InsertMap>): Promise<Map> {
+  async updateMap(
+    id: string,
+    userId: string,
+    updates: Partial<InsertMap>,
+  ): Promise<Map> {
     // Validate ownership
     const [existing] = await db.select().from(maps).where(eq(maps.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedMap] = await db
@@ -3924,7 +5823,7 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     // Validate ownership
     const [existing] = await db.select().from(maps).where(eq(maps.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(maps).where(eq(maps.id, id));
@@ -3932,36 +5831,45 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
   // Music methods
   async createMusic(musicData: InsertMusic): Promise<Music> {
-    const [newMusic] = await db
-      .insert(music)
-      .values(musicData)
-      .returning();
+    const [newMusic] = await db.insert(music).values(musicData).returning();
     return newMusic;
   }
 
-  async getMusic(id: string, userId: string, notebookId: string): Promise<Music | undefined> {
-    const [musicItem] = await db.select().from(music).where(and(
-      eq(music.id, id),
-      eq(music.userId, userId),
-      eq(music.notebookId, notebookId)
-    ));
+  async getMusic(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Music | undefined> {
+    const [musicItem] = await db
+      .select()
+      .from(music)
+      .where(
+        and(
+          eq(music.id, id),
+          eq(music.userId, userId),
+          eq(music.notebookId, notebookId),
+        ),
+      );
     return musicItem || undefined;
   }
 
   async getUserMusic(userId: string, notebookId: string): Promise<Music[]> {
-    return await db.select().from(music)
-      .where(and(
-        eq(music.userId, userId),
-        eq(music.notebookId, notebookId)
-      ))
+    return await db
+      .select()
+      .from(music)
+      .where(and(eq(music.userId, userId), eq(music.notebookId, notebookId)))
       .orderBy(desc(music.createdAt));
   }
 
-  async updateMusic(id: string, userId: string, updates: Partial<InsertMusic>): Promise<Music> {
+  async updateMusic(
+    id: string,
+    userId: string,
+    updates: Partial<InsertMusic>,
+  ): Promise<Music> {
     // Validate ownership
     const [existing] = await db.select().from(music).where(eq(music.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedMusic] = await db
@@ -3976,7 +5884,7 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     // Validate ownership
     const [existing] = await db.select().from(music).where(eq(music.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(music).where(eq(music.id, id));
@@ -3984,36 +5892,45 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
   // Dance methods
   async createDance(dance: InsertDance): Promise<Dance> {
-    const [newDance] = await db
-      .insert(dances)
-      .values(dance)
-      .returning();
+    const [newDance] = await db.insert(dances).values(dance).returning();
     return newDance;
   }
 
-  async getDance(id: string, userId: string, notebookId: string): Promise<Dance | undefined> {
-    const [dance] = await db.select().from(dances).where(and(
-      eq(dances.id, id),
-      eq(dances.userId, userId),
-      eq(dances.notebookId, notebookId)
-    ));
+  async getDance(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Dance | undefined> {
+    const [dance] = await db
+      .select()
+      .from(dances)
+      .where(
+        and(
+          eq(dances.id, id),
+          eq(dances.userId, userId),
+          eq(dances.notebookId, notebookId),
+        ),
+      );
     return dance || undefined;
   }
 
   async getUserDances(userId: string, notebookId: string): Promise<Dance[]> {
-    return await db.select().from(dances)
-      .where(and(
-        eq(dances.userId, userId),
-        eq(dances.notebookId, notebookId)
-      ))
+    return await db
+      .select()
+      .from(dances)
+      .where(and(eq(dances.userId, userId), eq(dances.notebookId, notebookId)))
       .orderBy(desc(dances.createdAt));
   }
 
-  async updateDance(id: string, userId: string, updates: Partial<InsertDance>): Promise<Dance> {
+  async updateDance(
+    id: string,
+    userId: string,
+    updates: Partial<InsertDance>,
+  ): Promise<Dance> {
     // Validate ownership
     const [existing] = await db.select().from(dances).where(eq(dances.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedDance] = await db
@@ -4028,7 +5945,7 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     // Validate ownership
     const [existing] = await db.select().from(dances).where(eq(dances.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(dances).where(eq(dances.id, id));
@@ -4036,36 +5953,45 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
   // Law methods
   async createLaw(law: InsertLaw): Promise<Law> {
-    const [newLaw] = await db
-      .insert(laws)
-      .values(law)
-      .returning();
+    const [newLaw] = await db.insert(laws).values(law).returning();
     return newLaw;
   }
 
-  async getLaw(id: string, userId: string, notebookId: string): Promise<Law | undefined> {
-    const [law] = await db.select().from(laws).where(and(
-      eq(laws.id, id),
-      eq(laws.userId, userId),
-      eq(laws.notebookId, notebookId)
-    ));
+  async getLaw(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Law | undefined> {
+    const [law] = await db
+      .select()
+      .from(laws)
+      .where(
+        and(
+          eq(laws.id, id),
+          eq(laws.userId, userId),
+          eq(laws.notebookId, notebookId),
+        ),
+      );
     return law || undefined;
   }
 
   async getUserLaws(userId: string, notebookId: string): Promise<Law[]> {
-    return await db.select().from(laws)
-      .where(and(
-        eq(laws.userId, userId),
-        eq(laws.notebookId, notebookId)
-      ))
+    return await db
+      .select()
+      .from(laws)
+      .where(and(eq(laws.userId, userId), eq(laws.notebookId, notebookId)))
       .orderBy(desc(laws.createdAt));
   }
 
-  async updateLaw(id: string, userId: string, updates: Partial<InsertLaw>): Promise<Law> {
+  async updateLaw(
+    id: string,
+    userId: string,
+    updates: Partial<InsertLaw>,
+  ): Promise<Law> {
     // Validate ownership
     const [existing] = await db.select().from(laws).where(eq(laws.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedLaw] = await db
@@ -4080,7 +6006,7 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     // Validate ownership
     const [existing] = await db.select().from(laws).where(eq(laws.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(laws).where(eq(laws.id, id));
@@ -4088,36 +6014,50 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
   // Policy methods
   async createPolicy(policy: InsertPolicy): Promise<Policy> {
-    const [newPolicy] = await db
-      .insert(policies)
-      .values(policy)
-      .returning();
+    const [newPolicy] = await db.insert(policies).values(policy).returning();
     return newPolicy;
   }
 
-  async getPolicy(id: string, userId: string, notebookId: string): Promise<Policy | undefined> {
-    const [policy] = await db.select().from(policies).where(and(
-      eq(policies.id, id),
-      eq(policies.userId, userId),
-      eq(policies.notebookId, notebookId)
-    ));
+  async getPolicy(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Policy | undefined> {
+    const [policy] = await db
+      .select()
+      .from(policies)
+      .where(
+        and(
+          eq(policies.id, id),
+          eq(policies.userId, userId),
+          eq(policies.notebookId, notebookId),
+        ),
+      );
     return policy || undefined;
   }
 
   async getUserPolicies(userId: string, notebookId: string): Promise<Policy[]> {
-    return await db.select().from(policies)
-      .where(and(
-        eq(policies.userId, userId),
-        eq(policies.notebookId, notebookId)
-      ))
+    return await db
+      .select()
+      .from(policies)
+      .where(
+        and(eq(policies.userId, userId), eq(policies.notebookId, notebookId)),
+      )
       .orderBy(desc(policies.createdAt));
   }
 
-  async updatePolicy(id: string, userId: string, updates: Partial<InsertPolicy>): Promise<Policy> {
+  async updatePolicy(
+    id: string,
+    userId: string,
+    updates: Partial<InsertPolicy>,
+  ): Promise<Policy> {
     // Validate ownership
-    const [existing] = await db.select().from(policies).where(eq(policies.id, id));
+    const [existing] = await db
+      .select()
+      .from(policies)
+      .where(eq(policies.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedPolicy] = await db
@@ -4130,9 +6070,12 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
   async deletePolicy(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(policies).where(eq(policies.id, id));
+    const [existing] = await db
+      .select()
+      .from(policies)
+      .where(eq(policies.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(policies).where(eq(policies.id, id));
@@ -4140,36 +6083,50 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
   // Potion methods
   async createPotion(potion: InsertPotion): Promise<Potion> {
-    const [newPotion] = await db
-      .insert(potions)
-      .values(potion)
-      .returning();
+    const [newPotion] = await db.insert(potions).values(potion).returning();
     return newPotion;
   }
 
-  async getPotion(id: string, userId: string, notebookId: string): Promise<Potion | undefined> {
-    const [potion] = await db.select().from(potions).where(and(
-      eq(potions.id, id),
-      eq(potions.userId, userId),
-      eq(potions.notebookId, notebookId)
-    ));
+  async getPotion(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Potion | undefined> {
+    const [potion] = await db
+      .select()
+      .from(potions)
+      .where(
+        and(
+          eq(potions.id, id),
+          eq(potions.userId, userId),
+          eq(potions.notebookId, notebookId),
+        ),
+      );
     return potion || undefined;
   }
 
   async getUserPotions(userId: string, notebookId: string): Promise<Potion[]> {
-    return await db.select().from(potions)
-      .where(and(
-        eq(potions.userId, userId),
-        eq(potions.notebookId, notebookId)
-      ))
+    return await db
+      .select()
+      .from(potions)
+      .where(
+        and(eq(potions.userId, userId), eq(potions.notebookId, notebookId)),
+      )
       .orderBy(desc(potions.createdAt));
   }
 
-  async updatePotion(id: string, userId: string, updates: Partial<InsertPotion>): Promise<Potion> {
+  async updatePotion(
+    id: string,
+    userId: string,
+    updates: Partial<InsertPotion>,
+  ): Promise<Potion> {
     // Validate ownership
-    const [existing] = await db.select().from(potions).where(eq(potions.id, id));
+    const [existing] = await db
+      .select()
+      .from(potions)
+      .where(eq(potions.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedPotion] = await db
@@ -4182,9 +6139,12 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
   async deletePotion(id: string, userId: string): Promise<void> {
     // Validate ownership
-    const [existing] = await db.select().from(potions).where(eq(potions.id, id));
+    const [existing] = await db
+      .select()
+      .from(potions)
+      .where(eq(potions.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     await db.delete(potions).where(eq(potions.id, id));
@@ -4192,60 +6152,80 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
   // Name generator methods
   async createName(name: InsertName): Promise<GeneratedName> {
-    const [newName] = await db
-      .insert(names)
-      .values(name)
-      .returning();
+    const [newName] = await db.insert(names).values(name).returning();
     return newName;
   }
 
-  async getName(id: string, userId: string, notebookId: string): Promise<GeneratedName | undefined> {
-    const [name] = await db.select().from(names).where(and(
-      eq(names.id, id),
-      eq(names.userId, userId),
-      eq(names.notebookId, notebookId)
-    ));
+  async getName(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<GeneratedName | undefined> {
+    const [name] = await db
+      .select()
+      .from(names)
+      .where(
+        and(
+          eq(names.id, id),
+          eq(names.userId, userId),
+          eq(names.notebookId, notebookId),
+        ),
+      );
     return name || undefined;
   }
 
-  async getUserNames(userId: string, notebookId: string): Promise<GeneratedName[]> {
-    return await db.select().from(names)
+  async getUserNames(
+    userId: string,
+    notebookId: string,
+  ): Promise<GeneratedName[]> {
+    return await db
+      .select()
+      .from(names)
       .where(eq(names.userId, userId))
       .orderBy(desc(names.createdAt));
   }
 
   // Theme methods
   async createTheme(theme: InsertTheme): Promise<Theme> {
-    const [newTheme] = await db
-      .insert(themes)
-      .values(theme)
-      .returning();
+    const [newTheme] = await db.insert(themes).values(theme).returning();
     return newTheme;
   }
 
-  async getTheme(id: string, userId: string, notebookId: string): Promise<Theme | undefined> {
-    const [theme] = await db.select().from(themes).where(and(
-      eq(themes.id, id),
-      eq(themes.userId, userId),
-      eq(themes.notebookId, notebookId)
-    ));
+  async getTheme(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Theme | undefined> {
+    const [theme] = await db
+      .select()
+      .from(themes)
+      .where(
+        and(
+          eq(themes.id, id),
+          eq(themes.userId, userId),
+          eq(themes.notebookId, notebookId),
+        ),
+      );
     return theme || undefined;
   }
 
   async getUserThemes(userId: string, notebookId: string): Promise<Theme[]> {
-    return await db.select().from(themes)
-      .where(and(
-        eq(themes.userId, userId),
-        eq(themes.notebookId, notebookId)
-      ))
+    return await db
+      .select()
+      .from(themes)
+      .where(and(eq(themes.userId, userId), eq(themes.notebookId, notebookId)))
       .orderBy(desc(themes.createdAt));
   }
 
-  async updateTheme(id: string, userId: string, updates: Partial<InsertTheme>): Promise<Theme> {
+  async updateTheme(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTheme>,
+  ): Promise<Theme> {
     // Validate ownership
     const [existing] = await db.select().from(themes).where(eq(themes.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedTheme] = await db
@@ -4258,24 +6238,32 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
   // Mood methods
   async createMood(mood: InsertMood): Promise<Mood> {
-    const [newMood] = await db
-      .insert(moods)
-      .values(mood)
-      .returning();
+    const [newMood] = await db.insert(moods).values(mood).returning();
     return newMood;
   }
 
-  async getMood(id: string, userId: string, notebookId: string): Promise<Mood | undefined> {
-    const [mood] = await db.select().from(moods).where(and(
-      eq(moods.id, id),
-      eq(moods.userId, userId),
-      eq(moods.notebookId, notebookId)
-    ));
+  async getMood(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Mood | undefined> {
+    const [mood] = await db
+      .select()
+      .from(moods)
+      .where(
+        and(
+          eq(moods.id, id),
+          eq(moods.userId, userId),
+          eq(moods.notebookId, notebookId),
+        ),
+      );
     return mood || undefined;
   }
 
   async getUserMoods(userId: string, notebookId: string): Promise<Mood[]> {
-    return await db.select().from(moods)
+    return await db
+      .select()
+      .from(moods)
       .where(eq(moods.userId, userId))
       .orderBy(desc(moods.createdAt));
   }
@@ -4289,29 +6277,49 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     return newConflict;
   }
 
-  async getConflict(id: string, userId: string, notebookId: string): Promise<Conflict | undefined> {
-    const [conflict] = await db.select().from(conflicts).where(and(
-      eq(conflicts.id, id),
-      eq(conflicts.userId, userId),
-      eq(conflicts.notebookId, notebookId)
-    ));
+  async getConflict(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Conflict | undefined> {
+    const [conflict] = await db
+      .select()
+      .from(conflicts)
+      .where(
+        and(
+          eq(conflicts.id, id),
+          eq(conflicts.userId, userId),
+          eq(conflicts.notebookId, notebookId),
+        ),
+      );
     return conflict || undefined;
   }
 
-  async getUserConflicts(userId: string, notebookId: string): Promise<Conflict[]> {
-    return await db.select().from(conflicts)
-      .where(and(
-        eq(conflicts.userId, userId),
-        eq(conflicts.notebookId, notebookId)
-      ))
+  async getUserConflicts(
+    userId: string,
+    notebookId: string,
+  ): Promise<Conflict[]> {
+    return await db
+      .select()
+      .from(conflicts)
+      .where(
+        and(eq(conflicts.userId, userId), eq(conflicts.notebookId, notebookId)),
+      )
       .orderBy(desc(conflicts.createdAt));
   }
 
-  async updateConflict(id: string, userId: string, updates: Partial<InsertConflict>): Promise<Conflict> {
+  async updateConflict(
+    id: string,
+    userId: string,
+    updates: Partial<InsertConflict>,
+  ): Promise<Conflict> {
     // Validate ownership
-    const [existing] = await db.select().from(conflicts).where(eq(conflicts.id, id));
+    const [existing] = await db
+      .select()
+      .from(conflicts)
+      .where(eq(conflicts.id, id));
     if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error('Unauthorized: You do not own this content');
+      throw new Error("Unauthorized: You do not own this content");
     }
 
     const [updatedConflict] = await db
@@ -4324,10 +6332,7 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
   // Guide methods
   async createGuide(guide: InsertGuide): Promise<Guide> {
-    const [newGuide] = await db
-      .insert(guides)
-      .values(guide)
-      .returning();
+    const [newGuide] = await db.insert(guides).values(guide).returning();
     return newGuide;
   }
 
@@ -4338,7 +6343,9 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
   async getGuides(category?: string): Promise<Guide[]> {
     if (category) {
-      return await db.select().from(guides)
+      return await db
+        .select()
+        .from(guides)
         .where(eq(guides.category, category))
         .orderBy(guides.title);
     }
@@ -4355,17 +6362,22 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     conditions.push(
       or(
         ilike(guides.title, `%${query}%`),
-        ilike(guides.content, `%${query}%`)
-      )
+        ilike(guides.content, `%${query}%`),
+      ),
     );
 
-    return await db.select().from(guides)
+    return await db
+      .select()
+      .from(guides)
       .where(and(...conditions))
       .orderBy(guides.title)
       .limit(20);
   }
 
-  async updateGuide(id: string, updates: Partial<InsertGuide>): Promise<Guide | undefined> {
+  async updateGuide(
+    id: string,
+    updates: Partial<InsertGuide>,
+  ): Promise<Guide | undefined> {
     const [updatedGuide] = await db
       .update(guides)
       .set({ ...updates, updatedAt: new Date() })
@@ -4375,14 +6387,17 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
   }
 
   async deleteGuide(id: string): Promise<boolean> {
-    const deletedGuides = await db.delete(guides)
+    const deletedGuides = await db
+      .delete(guides)
       .where(eq(guides.id, id))
       .returning({ id: guides.id });
     return deletedGuides.length > 0;
   }
 
   // Guide category methods
-  async createGuideCategory(category: InsertGuideCategory): Promise<GuideCategory> {
+  async createGuideCategory(
+    category: InsertGuideCategory,
+  ): Promise<GuideCategory> {
     const [newCategory] = await db
       .insert(guideCategories)
       .values(category)
@@ -4392,19 +6407,22 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
   async getGuideCategories(): Promise<any[]> {
     // Fetch all categories ordered by position
-    const allCategories = await db.select().from(guideCategories).orderBy(guideCategories.order, guideCategories.name);
-    
+    const allCategories = await db
+      .select()
+      .from(guideCategories)
+      .orderBy(guideCategories.order, guideCategories.name);
+
     // Build hierarchical structure
     const categoryMap = new Map<string, any>();
     const rootCategories: any[] = [];
-    
+
     // First pass: create map with children arrays
-    allCategories.forEach(category => {
+    allCategories.forEach((category) => {
       categoryMap.set(category.id, { ...category, children: [] });
     });
-    
+
     // Second pass: build hierarchy
-    allCategories.forEach(category => {
+    allCategories.forEach((category) => {
       const categoryWithChildren = categoryMap.get(category.id)!;
       if (category.parentId) {
         const parent = categoryMap.get(category.parentId);
@@ -4418,10 +6436,10 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
         rootCategories.push(categoryWithChildren);
       }
     });
-    
+
     // Third pass: sort children within each parent
     const sortChildren = (categories: any[]) => {
-      categories.forEach(category => {
+      categories.forEach((category) => {
         if (category.children.length > 0) {
           category.children.sort((a: any, b: any) => {
             if (a.order !== b.order) return a.order - b.order;
@@ -4431,20 +6449,23 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
         }
       });
     };
-    
+
     // Sort root categories
     rootCategories.sort((a, b) => {
       if (a.order !== b.order) return a.order - b.order;
       return a.name.localeCompare(b.name);
     });
-    
+
     // Sort all nested children
     sortChildren(rootCategories);
-    
+
     return rootCategories;
   }
 
-  async updateGuideCategory(id: string, updates: Partial<InsertGuideCategory>): Promise<GuideCategory | undefined> {
+  async updateGuideCategory(
+    id: string,
+    updates: Partial<InsertGuideCategory>,
+  ): Promise<GuideCategory | undefined> {
     const [updatedCategory] = await db
       .update(guideCategories)
       .set({ ...updates, updatedAt: new Date() })
@@ -4454,22 +6475,28 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
   }
 
   async deleteGuideCategory(id: string): Promise<boolean> {
-    const deletedCategories = await db.delete(guideCategories)
+    const deletedCategories = await db
+      .delete(guideCategories)
       .where(eq(guideCategories.id, id))
       .returning({ id: guideCategories.id });
     return deletedCategories.length > 0;
   }
 
-  async reorderGuideCategories(categoryOrders: Array<{ id: string; order: number }>): Promise<void> {
+  async reorderGuideCategories(
+    categoryOrders: Array<{ id: string; order: number }>,
+  ): Promise<void> {
     for (const { id, order } of categoryOrders) {
-      await db.update(guideCategories)
+      await db
+        .update(guideCategories)
         .set({ order, updatedAt: new Date() })
         .where(eq(guideCategories.id, id));
     }
   }
 
   // Guide reference methods
-  async createGuideReference(reference: InsertGuideReference): Promise<GuideReference> {
+  async createGuideReference(
+    reference: InsertGuideReference,
+  ): Promise<GuideReference> {
     const [newReference] = await db
       .insert(guideReferences)
       .values(reference)
@@ -4478,32 +6505,39 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
   }
 
   async getGuideReferences(sourceGuideId: string): Promise<GuideReference[]> {
-    return await db.select()
+    return await db
+      .select()
       .from(guideReferences)
       .where(eq(guideReferences.sourceGuideId, sourceGuideId));
   }
 
   async getGuideReferencedBy(targetGuideId: string): Promise<GuideReference[]> {
-    return await db.select()
+    return await db
+      .select()
       .from(guideReferences)
       .where(eq(guideReferences.targetGuideId, targetGuideId));
   }
 
   async deleteGuideReferences(sourceGuideId: string): Promise<void> {
-    await db.delete(guideReferences)
+    await db
+      .delete(guideReferences)
       .where(eq(guideReferences.sourceGuideId, sourceGuideId));
   }
 
-  async syncGuideReferences(sourceGuideId: string, targetGuideIds: string[]): Promise<void> {
+  async syncGuideReferences(
+    sourceGuideId: string,
+    targetGuideIds: string[],
+  ): Promise<void> {
     // Atomic transaction: delete existing references and insert new ones
     await db.transaction(async (tx) => {
       // Delete all existing references for this guide
-      await tx.delete(guideReferences)
+      await tx
+        .delete(guideReferences)
         .where(eq(guideReferences.sourceGuideId, sourceGuideId));
-      
+
       // Create new references
       if (targetGuideIds.length > 0) {
-        const references = targetGuideIds.map(targetGuideId => ({
+        const references = targetGuideIds.map((targetGuideId) => ({
           sourceGuideId,
           targetGuideId,
         }));
@@ -4522,14 +6556,20 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       return newSavedItem;
     } catch (error: any) {
       // Check for unique constraint violation
-      if (error?.code === '23505' || error?.message?.includes('unique')) {
+      if (error?.code === "23505" || error?.message?.includes("unique")) {
         // Item already saved, return existing
-        const existing = await db.select().from(savedItems)
-          .where(and(
-            savedItem.userId ? eq(savedItems.userId, savedItem.userId) : isNull(savedItems.userId),
-            eq(savedItems.itemType, savedItem.itemType),
-            eq(savedItems.itemId, savedItem.itemId)
-          ))
+        const existing = await db
+          .select()
+          .from(savedItems)
+          .where(
+            and(
+              savedItem.userId
+                ? eq(savedItems.userId, savedItem.userId)
+                : isNull(savedItems.userId),
+              eq(savedItems.itemType, savedItem.itemType),
+              eq(savedItems.itemId, savedItem.itemId),
+            ),
+          )
           .limit(1);
         if (existing[0]) return existing[0];
       }
@@ -4537,11 +6577,15 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     }
   }
 
-  async unsaveItem(userId: string, itemType: string, itemId: string): Promise<void> {
+  async unsaveItem(
+    userId: string,
+    itemType: string,
+    itemId: string,
+  ): Promise<void> {
     const conditions = [];
 
     // Handle null userId for guest users
-    if (userId === 'null' || !userId) {
+    if (userId === "null" || !userId) {
       conditions.push(isNull(savedItems.userId));
     } else {
       conditions.push(eq(savedItems.userId, userId));
@@ -4553,11 +6597,14 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     await db.delete(savedItems).where(and(...conditions));
   }
 
-  async getUserSavedItems(userId: string, itemType?: string): Promise<SavedItem[]> {
+  async getUserSavedItems(
+    userId: string,
+    itemType?: string,
+  ): Promise<SavedItem[]> {
     const conditions = [];
 
     // Handle null userId for guest users
-    if (userId === 'null') {
+    if (userId === "null") {
       conditions.push(isNull(savedItems.userId));
     } else {
       conditions.push(eq(savedItems.userId, userId));
@@ -4567,18 +6614,24 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       conditions.push(eq(savedItems.itemType, itemType));
     }
 
-    const savedItemsData = await db.select().from(savedItems)
+    const savedItemsData = await db
+      .select()
+      .from(savedItems)
       .where(and(...conditions))
       .orderBy(desc(savedItems.createdAt));
 
     return savedItemsData;
   }
 
-  async isItemSaved(userId: string, itemType: string, itemId: string): Promise<boolean> {
+  async isItemSaved(
+    userId: string,
+    itemType: string,
+    itemId: string,
+  ): Promise<boolean> {
     const conditions = [];
 
     // Handle null userId for guest users
-    if (userId === 'null' || !userId) {
+    if (userId === "null" || !userId) {
       conditions.push(isNull(savedItems.userId));
     } else {
       conditions.push(eq(savedItems.userId, userId));
@@ -4587,17 +6640,24 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     conditions.push(eq(savedItems.itemType, itemType));
     conditions.push(eq(savedItems.itemId, itemId));
 
-    const [saved] = await db.select().from(savedItems)
+    const [saved] = await db
+      .select()
+      .from(savedItems)
       .where(and(...conditions))
       .limit(1);
     return !!saved;
   }
 
-  async unsaveItemFromNotebook(userId: string, itemType: string, itemId: string, notebookId: string): Promise<void> {
+  async unsaveItemFromNotebook(
+    userId: string,
+    itemType: string,
+    itemId: string,
+    notebookId: string,
+  ): Promise<void> {
     const conditions = [];
 
     // Handle null userId for guest users
-    if (userId === 'null' || !userId) {
+    if (userId === "null" || !userId) {
       conditions.push(isNull(savedItems.userId));
     } else {
       conditions.push(eq(savedItems.userId, userId));
@@ -4610,11 +6670,15 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     await db.delete(savedItems).where(and(...conditions));
   }
 
-  async getUserSavedItemsByNotebook(userId: string, notebookId: string, itemType?: string): Promise<SavedItem[]> {
+  async getUserSavedItemsByNotebook(
+    userId: string,
+    notebookId: string,
+    itemType?: string,
+  ): Promise<SavedItem[]> {
     const conditions = [];
 
     // Handle null userId for guest users
-    if (userId === 'null') {
+    if (userId === "null") {
       conditions.push(isNull(savedItems.userId));
     } else {
       conditions.push(eq(savedItems.userId, userId));
@@ -4626,18 +6690,23 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       conditions.push(eq(savedItems.itemType, itemType));
     }
 
-    const savedItemsData = await db.select().from(savedItems)
+    const savedItemsData = await db
+      .select()
+      .from(savedItems)
       .where(and(...conditions))
       .orderBy(desc(savedItems.createdAt));
 
     return savedItemsData;
   }
 
-  async getSavedItemsByNotebookBatch(userId: string, notebookId: string): Promise<SavedItem[]> {
+  async getSavedItemsByNotebookBatch(
+    userId: string,
+    notebookId: string,
+  ): Promise<SavedItem[]> {
     const conditions = [];
 
     // Handle null userId for guest users
-    if (userId === 'null' || !userId) {
+    if (userId === "null" || !userId) {
       conditions.push(isNull(savedItems.userId));
     } else {
       conditions.push(eq(savedItems.userId, userId));
@@ -4645,20 +6714,26 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
     conditions.push(eq(savedItems.notebookId, notebookId));
 
-    const savedItemsData = await db.select().from(savedItems)
+    const savedItemsData = await db
+      .select()
+      .from(savedItems)
       .where(and(...conditions));
 
     return savedItemsData;
   }
 
-  async updateSavedItemData(savedItemId: string, userId: string, itemData: any): Promise<SavedItem | undefined> {
+  async updateSavedItemData(
+    savedItemId: string,
+    userId: string,
+    itemData: any,
+  ): Promise<SavedItem | undefined> {
     const conditions = [];
 
     // Verify the saved item belongs to this user
     conditions.push(eq(savedItems.id, savedItemId));
 
     // Handle null userId for guest users
-    if (userId === 'null' || !userId) {
+    if (userId === "null" || !userId) {
       conditions.push(isNull(savedItems.userId));
     } else {
       conditions.push(eq(savedItems.userId, userId));
@@ -4673,16 +6748,22 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     return updatedItem;
   }
 
-  async updateSavedItemDataByItem(userId: string, itemType: string, itemId: string, notebookId: string, itemData: any): Promise<SavedItem | undefined> {
+  async updateSavedItemDataByItem(
+    userId: string,
+    itemType: string,
+    itemId: string,
+    notebookId: string,
+    itemData: any,
+  ): Promise<SavedItem | undefined> {
     const conditions = [];
 
     // Find the saved item by userId, itemType, itemId, and notebookId
-    if (userId === 'null' || !userId) {
+    if (userId === "null" || !userId) {
       conditions.push(isNull(savedItems.userId));
     } else {
       conditions.push(eq(savedItems.userId, userId));
     }
-    
+
     conditions.push(eq(savedItems.itemType, itemType));
     conditions.push(eq(savedItems.itemId, itemId));
     conditions.push(eq(savedItems.notebookId, notebookId));
@@ -4696,14 +6777,18 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     return updatedItem;
   }
 
-  async updateSavedItemType(savedItemId: string, userId: string, newItemType: string): Promise<SavedItem | undefined> {
+  async updateSavedItemType(
+    savedItemId: string,
+    userId: string,
+    newItemType: string,
+  ): Promise<SavedItem | undefined> {
     const conditions = [];
 
     // Verify the saved item belongs to this user
     conditions.push(eq(savedItems.id, savedItemId));
 
     // Handle null userId for guest users
-    if (userId === 'null' || !userId) {
+    if (userId === "null" || !userId) {
       conditions.push(isNull(savedItems.userId));
     } else {
       conditions.push(eq(savedItems.userId, userId));
@@ -4720,10 +6805,7 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
   // Project methods
   async createProject(project: InsertProject): Promise<Project> {
-    const result = await db
-      .insert(projects)
-      .values(project)
-      .returning();
+    const result = await db.insert(projects).values(project).returning();
     return result[0];
   }
 
@@ -4732,10 +6814,7 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     const [project] = await db
       .select()
       .from(projects)
-      .where(and(
-        eq(projects.id, id),
-        eq(projects.userId, userId)
-      ));
+      .where(and(eq(projects.id, id), eq(projects.userId, userId)));
 
     if (project) {
       return project;
@@ -4744,16 +6823,16 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     // If not owner, check if shared
     const [sharedProject] = await db
       .select({
-        project: projects
+        project: projects,
       })
       .from(shares)
       .innerJoin(projects, eq(shares.resourceId, projects.id))
       .where(
         and(
           eq(shares.userId, userId),
-          eq(shares.resourceType, 'project'),
-          eq(shares.resourceId, id)
-        )
+          eq(shares.resourceType, "project"),
+          eq(shares.resourceId, id),
+        ),
       );
 
     return sharedProject?.project || undefined;
@@ -4772,27 +6851,24 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       .select({
         project: projects,
         share: shares,
-        owner: users
+        owner: users,
       })
       .from(shares)
       .innerJoin(projects, eq(shares.resourceId, projects.id))
       .innerJoin(users, eq(projects.userId, users.id))
       .where(
-        and(
-          eq(shares.userId, userId),
-          eq(shares.resourceType, 'project')
-        )
+        and(eq(shares.userId, userId), eq(shares.resourceType, "project")),
       );
 
     // Add metadata to projects
-    const ownedWithMetadata = ownedProjects.map(p => ({
+    const ownedWithMetadata = ownedProjects.map((p) => ({
       ...p,
       isShared: false,
       sharedBy: null,
-      sharePermission: null
+      sharePermission: null,
     }));
 
-    const sharedWithMetadata = sharedProjects.map(s => ({
+    const sharedWithMetadata = sharedProjects.map((s) => ({
       ...s.project,
       isShared: true,
       sharedBy: {
@@ -4800,20 +6876,17 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
         email: s.owner.email,
         firstName: s.owner.firstName,
         lastName: s.owner.lastName,
-        profileImageUrl: s.owner.profileImageUrl
+        profileImageUrl: s.owner.profileImageUrl,
       },
-      sharePermission: s.share.permission
+      sharePermission: s.share.permission,
     }));
 
     // Combine and return, removing duplicates
-    const allProjects = [
-      ...ownedWithMetadata,
-      ...sharedWithMetadata
-    ];
+    const allProjects = [...ownedWithMetadata, ...sharedWithMetadata];
 
     // Remove duplicates based on id and sort by updatedAt
     const uniqueProjects = Array.from(
-      new Map(allProjects.map(p => [p.id, p])).values()
+      new Map(allProjects.map((p) => [p.id, p])).values(),
     ).sort((a, b) => {
       const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
       const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
@@ -4823,19 +6896,26 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     return uniqueProjects;
   }
 
-  async updateProject(id: string, userId: string, updates: Partial<InsertProject>): Promise<Project> {
+  async updateProject(
+    id: string,
+    userId: string,
+    updates: Partial<InsertProject>,
+  ): Promise<Project> {
     // Count words if content is being updated
     if (updates.content) {
       const plainText = (updates.content as string)
-        .replace(/<[^>]*>/g, ' ')
-        .replace(/\s+/g, ' ')
+        .replace(/<[^>]*>/g, " ")
+        .replace(/\s+/g, " ")
         .trim();
-      const words = plainText.split(/\s+/).filter((word: string) => word.length > 0);
+      const words = plainText
+        .split(/\s+/)
+        .filter((word: string) => word.length > 0);
       updates.wordCount = words.length;
 
       // Generate excerpt if not provided
       if (!updates.excerpt && plainText.length > 0) {
-        updates.excerpt = plainText.substring(0, 150) + (plainText.length > 150 ? '...' : '');
+        updates.excerpt =
+          plainText.substring(0, 150) + (plainText.length > 150 ? "..." : "");
       }
     }
 
@@ -4845,14 +6925,11 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
         ...updates,
         updatedAt: new Date(),
       })
-      .where(and(
-        eq(projects.id, id),
-        eq(projects.userId, userId)
-      ))
+      .where(and(eq(projects.id, id), eq(projects.userId, userId)))
       .returning();
 
     if (!updatedProject) {
-      throw new Error('Project not found or access denied');
+      throw new Error("Project not found or access denied");
     }
 
     return updatedProject;
@@ -4861,13 +6938,10 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
   async deleteProject(id: string, userId: string): Promise<void> {
     const result = await db
       .delete(projects)
-      .where(and(
-        eq(projects.id, id),
-        eq(projects.userId, userId)
-      ));
+      .where(and(eq(projects.id, id), eq(projects.userId, userId)));
 
     if (result.rowCount === 0) {
-      throw new Error('Project not found or access denied');
+      throw new Error("Project not found or access denied");
     }
   }
 
@@ -4885,14 +6959,16 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       .where(
         and(
           eq(projects.userId, userId),
-          sql`${projects.searchVector} @@ ${searchQuery}`
-        )
+          sql`${projects.searchVector} @@ ${searchQuery}`,
+        ),
       )
       .orderBy(desc(sql`ts_rank(${projects.searchVector}, ${searchQuery})`));
   }
 
   // Project Section methods
-  async createProjectSection(section: InsertProjectSection): Promise<ProjectSection> {
+  async createProjectSection(
+    section: InsertProjectSection,
+  ): Promise<ProjectSection> {
     const [result] = await db
       .insert(projectSections)
       .values(section)
@@ -4900,14 +6976,19 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     return result;
   }
 
-  async getProjectSection(id: string, projectId: string): Promise<ProjectSection | undefined> {
+  async getProjectSection(
+    id: string,
+    projectId: string,
+  ): Promise<ProjectSection | undefined> {
     const [section] = await db
       .select()
       .from(projectSections)
-      .where(and(
-        eq(projectSections.id, id),
-        eq(projectSections.projectId, projectId)
-      ));
+      .where(
+        and(
+          eq(projectSections.id, id),
+          eq(projectSections.projectId, projectId),
+        ),
+      );
     return section || undefined;
   }
 
@@ -4919,21 +7000,27 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       .orderBy(projectSections.position);
   }
 
-  async updateProjectSection(id: string, projectId: string, updates: Partial<InsertProjectSection>): Promise<ProjectSection> {
+  async updateProjectSection(
+    id: string,
+    projectId: string,
+    updates: Partial<InsertProjectSection>,
+  ): Promise<ProjectSection> {
     const [updatedSection] = await db
       .update(projectSections)
       .set({
         ...updates,
         updatedAt: new Date(),
       })
-      .where(and(
-        eq(projectSections.id, id),
-        eq(projectSections.projectId, projectId)
-      ))
+      .where(
+        and(
+          eq(projectSections.id, id),
+          eq(projectSections.projectId, projectId),
+        ),
+      )
       .returning();
 
     if (!updatedSection) {
-      throw new Error('Section not found');
+      throw new Error("Section not found");
     }
 
     return updatedSection;
@@ -4942,13 +7029,18 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
   async deleteProjectSection(id: string, projectId: string): Promise<void> {
     await db
       .delete(projectSections)
-      .where(and(
-        eq(projectSections.id, id),
-        eq(projectSections.projectId, projectId)
-      ));
+      .where(
+        and(
+          eq(projectSections.id, id),
+          eq(projectSections.projectId, projectId),
+        ),
+      );
   }
 
-  async reorderProjectSections(projectId: string, sectionOrders: { id: string; position: number; parentId?: string | null }[]): Promise<void> {
+  async reorderProjectSections(
+    projectId: string,
+    sectionOrders: { id: string; position: number; parentId?: string | null }[],
+  ): Promise<void> {
     // Update positions (and optionally parentId) for each section
     for (const { id, position, parentId } of sectionOrders) {
       const updates: any = { position, updatedAt: new Date() };
@@ -4961,19 +7053,24 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       await db
         .update(projectSections)
         .set(updates)
-        .where(and(
-          eq(projectSections.id, id),
-          eq(projectSections.projectId, projectId)
-        ));
+        .where(
+          and(
+            eq(projectSections.id, id),
+            eq(projectSections.projectId, projectId),
+          ),
+        );
     }
   }
 
   // Project link methods (stub implementations)
   async createProjectLink(link: InsertProjectLink): Promise<ProjectLink> {
-    throw new Error('ProjectLink functionality not yet implemented');
+    throw new Error("ProjectLink functionality not yet implemented");
   }
 
-  async getProjectLinks(projectId: string, userId: string): Promise<ProjectLink[]> {
+  async getProjectLinks(
+    projectId: string,
+    userId: string,
+  ): Promise<ProjectLink[]> {
     return [];
   }
 
@@ -4996,38 +7093,51 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     try {
       // Search projects (always include these as they're user-specific)
       const projectResults = await this.searchProjects(userId, trimmedQuery);
-      projectResults.forEach(item => {
+      projectResults.forEach((item) => {
         results.push({
           id: item.id,
           title: item.title,
-          type: 'project',
+          type: "project",
           subtitle: item.status,
-          description: item.excerpt || item.content?.substring(0, 100) + '...'
+          description: item.excerpt || item.content?.substring(0, 100) + "...",
         });
       });
 
       // Search saved items - this includes all content saved to notebooks
       // Search within the JSONB item_data field for the query string
-      const savedItemResults = await db.select().from(savedItems)
-        .where(and(
-          eq(savedItems.userId, userId),
-          sql`${savedItems.itemData}::text ILIKE ${'%' + trimmedQuery + '%'}`
-        ))
+      const savedItemResults = await db
+        .select()
+        .from(savedItems)
+        .where(
+          and(
+            eq(savedItems.userId, userId),
+            sql`${savedItems.itemData}::text ILIKE ${"%" + trimmedQuery + "%"}`,
+          ),
+        )
         .limit(50);
 
       // Batch fetch all notebooks for better performance
-      const notebookIds = Array.from(new Set(savedItemResults.map(item => item.notebookId).filter((id): id is string => Boolean(id))));
+      const notebookIds = Array.from(
+        new Set(
+          savedItemResults
+            .map((item) => item.notebookId)
+            .filter((id): id is string => Boolean(id)),
+        ),
+      );
       const notebooksMap = new Map<string, string>();
 
       if (notebookIds.length > 0) {
-        const notebooksData = await db.select()
+        const notebooksData = await db
+          .select()
           .from(notebooks)
-          .where(and(
-            eq(notebooks.userId, userId),
-            inArray(notebooks.id, notebookIds)
-          ));
+          .where(
+            and(
+              eq(notebooks.userId, userId),
+              inArray(notebooks.id, notebookIds),
+            ),
+          );
 
-        notebooksData.forEach(notebook => {
+        notebooksData.forEach((notebook) => {
           notebooksMap.set(notebook.id, notebook.name);
         });
       }
@@ -5035,58 +7145,67 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       // Process saved items into search results
       for (const savedItem of savedItemResults) {
         const itemData = savedItem.itemData as any;
-        let title = 'Untitled';
-        let subtitle = '';
-        let description = '';
+        let title = "Untitled";
+        let subtitle = "";
+        let description = "";
 
         // Extract title based on item type
         if (itemData.name) {
           title = itemData.name;
         } else if (itemData.givenName || itemData.familyName) {
-          title = [itemData.givenName, itemData.familyName].filter(Boolean).join(' ') || 'Untitled Character';
+          title =
+            [itemData.givenName, itemData.familyName]
+              .filter(Boolean)
+              .join(" ") || "Untitled Character";
         } else if (itemData.title) {
           title = itemData.title;
         }
 
         // Get notebook name for subtitle
-        subtitle = (savedItem.notebookId ? notebooksMap.get(savedItem.notebookId) : null) || 'Unknown Notebook';
+        subtitle =
+          (savedItem.notebookId
+            ? notebooksMap.get(savedItem.notebookId)
+            : null) || "Unknown Notebook";
 
         // Get description based on type with fallbacks
         switch (savedItem.itemType) {
-          case 'character':
-            description = itemData.occupation || 'Character';
+          case "character":
+            description = itemData.occupation || "Character";
             if (itemData.backstory) {
-              description += ' • ' + itemData.backstory.substring(0, 80);
+              description += " • " + itemData.backstory.substring(0, 80);
             }
             break;
-          case 'location':
-            description = itemData.locationType || 'Location';
+          case "location":
+            description = itemData.locationType || "Location";
             if (itemData.description) {
-              description += ' • ' + itemData.description.substring(0, 80);
+              description += " • " + itemData.description.substring(0, 80);
             }
             break;
-          case 'weapon':
-            description = itemData.weaponType || 'Weapon';
+          case "weapon":
+            description = itemData.weaponType || "Weapon";
             if (itemData.description) {
-              description += ' • ' + itemData.description.substring(0, 80);
+              description += " • " + itemData.description.substring(0, 80);
             }
             break;
-          case 'organization':
-            description = itemData.organizationType || 'Organization';
+          case "organization":
+            description = itemData.organizationType || "Organization";
             if (itemData.purpose) {
-              description += ' • ' + itemData.purpose.substring(0, 80);
+              description += " • " + itemData.purpose.substring(0, 80);
             }
             break;
-          case 'species':
-            description = itemData.classification || 'Species';
+          case "species":
+            description = itemData.classification || "Species";
             if (itemData.physicalDescription) {
-              description += ' • ' + itemData.physicalDescription.substring(0, 80);
+              description +=
+                " • " + itemData.physicalDescription.substring(0, 80);
             }
             break;
           default:
-            description = savedItem.itemType.charAt(0).toUpperCase() + savedItem.itemType.slice(1);
+            description =
+              savedItem.itemType.charAt(0).toUpperCase() +
+              savedItem.itemType.slice(1);
             if (itemData.description) {
-              description += ' • ' + itemData.description.substring(0, 80);
+              description += " • " + itemData.description.substring(0, 80);
             }
         }
 
@@ -5095,18 +7214,21 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
           title: title,
           type: savedItem.itemType,
           subtitle: subtitle,
-          description: description + (description && description.includes('•') ? '...' : ''),
-          notebookId: savedItem.notebookId
+          description:
+            description +
+            (description && description.includes("•") ? "..." : ""),
+          notebookId: savedItem.notebookId,
         });
       }
-
     } catch (error) {
-      console.error('Error in universal search:', error);
+      console.error("Error in universal search:", error);
     }
 
     // Remove duplicates and limit results
-    const uniqueResults = results.filter((result, index, self) =>
-      index === self.findIndex((r) => r.id === result.id && r.type === result.type)
+    const uniqueResults = results.filter(
+      (result, index, self) =>
+        index ===
+        self.findIndex((r) => r.id === result.id && r.type === result.type),
     );
 
     return uniqueResults.slice(0, 20);
@@ -5117,39 +7239,42 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     try {
       // Validate that the notebookId is provided and user owns the notebook
       if (!pin.notebookId) {
-        throw new Error('Notebook ID is required for pinning content');
+        throw new Error("Notebook ID is required for pinning content");
       }
 
       // Verify user owns the notebook
       const userNotebook = await db
         .select()
         .from(notebooks)
-        .where(and(
-          eq(notebooks.id, pin.notebookId),
-          eq(notebooks.userId, pin.userId)
-        ))
+        .where(
+          and(
+            eq(notebooks.id, pin.notebookId),
+            eq(notebooks.userId, pin.userId),
+          ),
+        )
         .limit(1);
 
       if (!userNotebook[0]) {
-        throw new Error('Notebook not found or access denied');
+        throw new Error("Notebook not found or access denied");
       }
 
-      const [newPin] = await db
-        .insert(pinnedContent)
-        .values(pin)
-        .returning();
+      const [newPin] = await db.insert(pinnedContent).values(pin).returning();
       return newPin;
     } catch (error: any) {
       // Check for unique constraint violation
-      if (error?.code === '23505' || error?.message?.includes('unique')) {
+      if (error?.code === "23505" || error?.message?.includes("unique")) {
         // Item already pinned
-        const existing = await db.select().from(pinnedContent)
-          .where(and(
-            eq(pinnedContent.userId, pin.userId),
-            eq(pinnedContent.targetType, pin.targetType),
-            eq(pinnedContent.targetId, pin.targetId),
-            eq(pinnedContent.notebookId, pin.notebookId!)
-          ))
+        const existing = await db
+          .select()
+          .from(pinnedContent)
+          .where(
+            and(
+              eq(pinnedContent.userId, pin.userId),
+              eq(pinnedContent.targetType, pin.targetType),
+              eq(pinnedContent.targetId, pin.targetId),
+              eq(pinnedContent.notebookId, pin.notebookId!),
+            ),
+          )
           .limit(1);
         if (existing[0]) return existing[0];
       }
@@ -5157,21 +7282,32 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     }
   }
 
-  async unpinContent(userId: string, targetType: string, targetId: string, notebookId: string): Promise<void> {
+  async unpinContent(
+    userId: string,
+    targetType: string,
+    targetId: string,
+    notebookId: string,
+  ): Promise<void> {
     await db
       .delete(pinnedContent)
-      .where(and(
-        eq(pinnedContent.userId, userId),
-        eq(pinnedContent.targetType, targetType),
-        eq(pinnedContent.targetId, targetId),
-        eq(pinnedContent.notebookId, notebookId)
-      ));
+      .where(
+        and(
+          eq(pinnedContent.userId, userId),
+          eq(pinnedContent.targetType, targetType),
+          eq(pinnedContent.targetId, targetId),
+          eq(pinnedContent.notebookId, notebookId),
+        ),
+      );
   }
 
-  async getUserPinnedContent(userId: string, notebookId: string, category?: string): Promise<PinnedContent[]> {
+  async getUserPinnedContent(
+    userId: string,
+    notebookId: string,
+    category?: string,
+  ): Promise<PinnedContent[]> {
     const conditions = [
       eq(pinnedContent.userId, userId),
-      eq(pinnedContent.notebookId, notebookId)
+      eq(pinnedContent.notebookId, notebookId),
     ];
 
     if (category) {
@@ -5185,27 +7321,41 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       .orderBy(pinnedContent.createdAt);
   }
 
-  async reorderPinnedContent(userId: string, itemId: string, newOrder: number, notebookId: string): Promise<void> {
+  async reorderPinnedContent(
+    userId: string,
+    itemId: string,
+    newOrder: number,
+    notebookId: string,
+  ): Promise<void> {
     await db
       .update(pinnedContent)
       .set({ pinOrder: newOrder })
-      .where(and(
-        eq(pinnedContent.userId, userId),
-        eq(pinnedContent.id, itemId),
-        eq(pinnedContent.notebookId, notebookId)
-      ));
+      .where(
+        and(
+          eq(pinnedContent.userId, userId),
+          eq(pinnedContent.id, itemId),
+          eq(pinnedContent.notebookId, notebookId),
+        ),
+      );
   }
 
-  async isContentPinned(userId: string, targetType: string, targetId: string, notebookId: string): Promise<boolean> {
+  async isContentPinned(
+    userId: string,
+    targetType: string,
+    targetId: string,
+    notebookId: string,
+  ): Promise<boolean> {
     const [pin] = await db
       .select()
       .from(pinnedContent)
-      .where(and(
-        eq(pinnedContent.userId, userId),
-        eq(pinnedContent.targetType, targetType),
-        eq(pinnedContent.targetId, targetId),
-        eq(pinnedContent.notebookId, notebookId)
-      ))
+      .where(
+        and(
+          eq(pinnedContent.userId, userId),
+          eq(pinnedContent.targetType, targetType),
+          eq(pinnedContent.targetId, targetId),
+          eq(pinnedContent.notebookId, notebookId),
+        ),
+      )
       .limit(1);
 
     return !!pin;
@@ -5213,10 +7363,7 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
   // Canvas methods
   async createCanvas(canvas: InsertCanvas): Promise<Canvas> {
-    const [result] = await db
-      .insert(canvases)
-      .values(canvas)
-      .returning();
+    const [result] = await db.insert(canvases).values(canvas).returning();
     return result;
   }
 
@@ -5224,10 +7371,7 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     const [canvas] = await db
       .select()
       .from(canvases)
-      .where(and(
-        eq(canvases.id, id),
-        eq(canvases.userId, userId)
-      ));
+      .where(and(eq(canvases.id, id), eq(canvases.userId, userId)));
     return canvas;
   }
 
@@ -5239,25 +7383,28 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       .orderBy(desc(canvases.updatedAt));
   }
 
-  async getProjectCanvases(projectId: string, userId: string): Promise<Canvas[]> {
+  async getProjectCanvases(
+    projectId: string,
+    userId: string,
+  ): Promise<Canvas[]> {
     return await db
       .select()
       .from(canvases)
-      .where(and(
-        eq(canvases.projectId, projectId),
-        eq(canvases.userId, userId)
-      ))
+      .where(
+        and(eq(canvases.projectId, projectId), eq(canvases.userId, userId)),
+      )
       .orderBy(desc(canvases.updatedAt));
   }
 
-  async updateCanvas(id: string, userId: string, updates: Partial<InsertCanvas>): Promise<Canvas> {
+  async updateCanvas(
+    id: string,
+    userId: string,
+    updates: Partial<InsertCanvas>,
+  ): Promise<Canvas> {
     const [updated] = await db
       .update(canvases)
       .set({ ...updates, updatedAt: new Date() })
-      .where(and(
-        eq(canvases.id, id),
-        eq(canvases.userId, userId)
-      ))
+      .where(and(eq(canvases.id, id), eq(canvases.userId, userId)))
       .returning();
     return updated;
   }
@@ -5265,18 +7412,12 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
   async deleteCanvas(id: string, userId: string): Promise<void> {
     await db
       .delete(canvases)
-      .where(and(
-        eq(canvases.id, id),
-        eq(canvases.userId, userId)
-      ));
+      .where(and(eq(canvases.id, id), eq(canvases.userId, userId)));
   }
 
   // Folder methods
   async createFolder(folder: InsertFolder): Promise<Folder> {
-    const result = await db
-      .insert(folders)
-      .values(folder)
-      .returning();
+    const result = await db.insert(folders).values(folder).returning();
     return result[0];
   }
 
@@ -5284,10 +7425,7 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     const [folder] = await db
       .select()
       .from(folders)
-      .where(and(
-        eq(folders.id, id),
-        eq(folders.userId, userId)
-      ));
+      .where(and(eq(folders.id, id), eq(folders.userId, userId)));
     return folder || undefined;
   }
 
@@ -5305,26 +7443,27 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       .orderBy(folders.sortOrder, folders.createdAt);
   }
 
-  async getDocumentFolders(documentId: string, userId: string): Promise<Folder[]> {
+  async getDocumentFolders(
+    documentId: string,
+    userId: string,
+  ): Promise<Folder[]> {
     // With the new schema, folders have direct links to guides
     return await db
       .select()
       .from(folders)
-      .where(and(
-        eq(folders.userId, userId),
-        eq(folders.guideId, documentId)
-      ))
+      .where(and(eq(folders.userId, userId), eq(folders.guideId, documentId)))
       .orderBy(folders.sortOrder, folders.createdAt);
   }
 
-  async updateFolder(id: string, userId: string, updates: Partial<InsertFolder>): Promise<Folder> {
+  async updateFolder(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFolder>,
+  ): Promise<Folder> {
     const result = await db
       .update(folders)
       .set({ ...updates, updatedAt: new Date() })
-      .where(and(
-        eq(folders.id, id),
-        eq(folders.userId, userId)
-      ))
+      .where(and(eq(folders.id, id), eq(folders.userId, userId)))
       .returning();
 
     const updatedFolder = result[0];
@@ -5338,10 +7477,7 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
   async deleteFolder(id: string, userId: string): Promise<void> {
     await db
       .delete(folders)
-      .where(and(
-        eq(folders.id, id),
-        eq(folders.userId, userId)
-      ));
+      .where(and(eq(folders.id, id), eq(folders.userId, userId)));
   }
 
   async getFolderHierarchy(userId: string, type: string): Promise<Folder[]> {
@@ -5349,19 +7485,13 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     return await db
       .select()
       .from(folders)
-      .where(and(
-        eq(folders.userId, userId),
-        eq(folders.type, type)
-      ))
+      .where(and(eq(folders.userId, userId), eq(folders.type, type)))
       .orderBy(folders.sortOrder, folders.createdAt);
   }
 
   // Note methods
   async createNote(note: InsertNote): Promise<Note> {
-    const [newNote] = await db
-      .insert(notes)
-      .values(note)
-      .returning();
+    const [newNote] = await db.insert(notes).values(note).returning();
     return newNote;
   }
 
@@ -5369,14 +7499,11 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     const [note] = await db
       .select()
       .from(notes)
-      .where(and(
-        eq(notes.id, id),
-        eq(notes.userId, userId)
-      ));
+      .where(and(eq(notes.id, id), eq(notes.userId, userId)));
     return note || undefined;
   }
 
-  async getUserNotes(userId: string, type?: string):Promise<Note[]> {
+  async getUserNotes(userId: string, type?: string): Promise<Note[]> {
     const conditions = [eq(notes.userId, userId)];
 
     if (type) {
@@ -5394,10 +7521,7 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     return await db
       .select()
       .from(notes)
-      .where(and(
-        eq(notes.folderId, folderId),
-        eq(notes.userId, userId)
-      ))
+      .where(and(eq(notes.folderId, folderId), eq(notes.userId, userId)))
       .orderBy(notes.sortOrder, notes.createdAt);
   }
 
@@ -5405,24 +7529,24 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     return await db
       .select()
       .from(notes)
-      .where(and(
-        or(
-          eq(notes.projectId, documentId),
-          eq(notes.guideId, documentId)
+      .where(
+        and(
+          or(eq(notes.projectId, documentId), eq(notes.guideId, documentId)),
+          eq(notes.userId, userId),
         ),
-        eq(notes.userId, userId)
-      ))
+      )
       .orderBy(notes.sortOrder, notes.createdAt);
   }
 
-  async updateNote(id: string, userId: string, updates: Partial<InsertNote>): Promise<Note> {
+  async updateNote(
+    id: string,
+    userId: string,
+    updates: Partial<InsertNote>,
+  ): Promise<Note> {
     const [updatedNote] = await db
       .update(notes)
       .set({ ...updates, updatedAt: new Date() })
-      .where(and(
-        eq(notes.id, id),
-        eq(notes.userId, userId)
-      ))
+      .where(and(eq(notes.id, id), eq(notes.userId, userId)))
       .returning();
 
     if (!updatedNote) {
@@ -5435,20 +7559,21 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
   async deleteNote(id: string, userId: string): Promise<void> {
     await db
       .delete(notes)
-      .where(and(
-        eq(notes.id, id),
-        eq(notes.userId, userId)
-      ));
+      .where(and(eq(notes.id, id), eq(notes.userId, userId)));
   }
 
   // Quick note methods
-  async createQuickNote(userId: string, title: string, content: string): Promise<Note> {
+  async createQuickNote(
+    userId: string,
+    title: string,
+    content: string,
+  ): Promise<Note> {
     const [newNote] = await db
       .insert(notes)
       .values({
         title,
         content,
-        type: 'quick_note',
+        type: "quick_note",
         userId,
         // Quick notes don't have parent relationships
         folderId: null,
@@ -5463,36 +7588,44 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     const [quickNote] = await db
       .select()
       .from(notes)
-      .where(and(
-        eq(notes.userId, userId),
-        eq(notes.type, 'quick_note')
-      ))
+      .where(and(eq(notes.userId, userId), eq(notes.type, "quick_note")))
       .orderBy(desc(notes.updatedAt))
       .limit(1);
     return quickNote || undefined;
   }
 
-  async getQuickNoteById(id: string, userId: string): Promise<Note | undefined> {
+  async getQuickNoteById(
+    id: string,
+    userId: string,
+  ): Promise<Note | undefined> {
     const [quickNote] = await db
       .select()
       .from(notes)
-      .where(and(
-        eq(notes.id, id),
-        eq(notes.userId, userId),
-        eq(notes.type, 'quick_note')
-      ));
+      .where(
+        and(
+          eq(notes.id, id),
+          eq(notes.userId, userId),
+          eq(notes.type, "quick_note"),
+        ),
+      );
     return quickNote || undefined;
   }
 
-  async updateQuickNote(id: string, userId: string, updates: { title?: string; content?: string }): Promise<Note> {
+  async updateQuickNote(
+    id: string,
+    userId: string,
+    updates: { title?: string; content?: string },
+  ): Promise<Note> {
     const [updatedNote] = await db
       .update(notes)
       .set({ ...updates, updatedAt: new Date() })
-      .where(and(
-        eq(notes.id, id),
-        eq(notes.userId, userId),
-        eq(notes.type, 'quick_note')
-      ))
+      .where(
+        and(
+          eq(notes.id, id),
+          eq(notes.userId, userId),
+          eq(notes.type, "quick_note"),
+        ),
+      )
       .returning();
 
     if (!updatedNote) {
@@ -5505,15 +7638,19 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
   async deleteQuickNote(id: string, userId: string): Promise<void> {
     await db
       .delete(notes)
-      .where(and(
-        eq(notes.id, id),
-        eq(notes.userId, userId),
-        eq(notes.type, 'quick_note')
-      ));
+      .where(
+        and(
+          eq(notes.id, id),
+          eq(notes.userId, userId),
+          eq(notes.type, "quick_note"),
+        ),
+      );
   }
 
   // Conversation thread methods
-  async createConversationThread(thread: InsertConversationThread): Promise<ConversationThread> {
+  async createConversationThread(
+    thread: InsertConversationThread,
+  ): Promise<ConversationThread> {
     const [newThread] = await db
       .insert(conversationThreads)
       .values(thread)
@@ -5521,18 +7658,28 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     return newThread;
   }
 
-  async getConversationThread(id: string, userId: string): Promise<ConversationThread | undefined> {
+  async getConversationThread(
+    id: string,
+    userId: string,
+  ): Promise<ConversationThread | undefined> {
     const [thread] = await db
       .select()
       .from(conversationThreads)
-      .where(and(
-        eq(conversationThreads.id, id),
-        eq(conversationThreads.userId, userId)
-      ));
+      .where(
+        and(
+          eq(conversationThreads.id, id),
+          eq(conversationThreads.userId, userId),
+        ),
+      );
     return thread || undefined;
   }
 
-  async getConversationThreads(filters: { userId: string, projectId?: string, guideId?: string, isActive?: boolean }): Promise<ConversationThread[]> {
+  async getConversationThreads(filters: {
+    userId: string;
+    projectId?: string;
+    guideId?: string;
+    isActive?: boolean;
+  }): Promise<ConversationThread[]> {
     const conditions = [eq(conversationThreads.userId, filters.userId)];
 
     if (filters.projectId !== undefined) {
@@ -5554,7 +7701,11 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       .orderBy(desc(conversationThreads.lastActivityAt));
   }
 
-  async searchConversationThreads(userId: string, query: string, filters?: { projectId?: string, guideId?: string }): Promise<ConversationThread[]> {
+  async searchConversationThreads(
+    userId: string,
+    query: string,
+    filters?: { projectId?: string; guideId?: string },
+  ): Promise<ConversationThread[]> {
     const searchPattern = `%${query}%`;
     const conditions = [eq(conversationThreads.userId, userId)];
 
@@ -5572,7 +7723,7 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       sql`EXISTS (
         SELECT 1 FROM unnest(${conversationThreads.tags}) AS tag
         WHERE tag ILIKE ${searchPattern}
-      )`
+      )`,
     );
 
     conditions.push(searchConditions!);
@@ -5594,21 +7745,21 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 
     const matchingMessages = await db
       .select({
-        threadId: chatMessages.threadId
+        threadId: chatMessages.threadId,
       })
       .from(chatMessages)
       .where(and(...messageConditions))
       .groupBy(chatMessages.threadId);
 
     const messageThreadIds = matchingMessages
-      .map(m => m.threadId)
+      .map((m) => m.threadId)
       .filter((id): id is string => id !== null);
 
     let messageThreads: ConversationThread[] = [];
     if (messageThreadIds.length > 0) {
       const messageThreadConditions = [
         eq(conversationThreads.userId, userId),
-        inArray(conversationThreads.id, messageThreadIds)
+        inArray(conversationThreads.id, messageThreadIds),
       ];
 
       messageThreads = await db
@@ -5619,7 +7770,9 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     }
 
     const allThreads = [...threads, ...messageThreads];
-    const uniqueThreads = Array.from(new Map(allThreads.map(thread => [thread.id, thread])).values());
+    const uniqueThreads = Array.from(
+      new Map(allThreads.map((thread) => [thread.id, thread])).values(),
+    );
 
     return uniqueThreads.sort((a, b) => {
       const dateA = a.lastActivityAt ? new Date(a.lastActivityAt).getTime() : 0;
@@ -5628,17 +7781,23 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     });
   }
 
-  async updateConversationThread(id: string, userId: string, updates: Partial<InsertConversationThread>): Promise<ConversationThread | undefined> {
+  async updateConversationThread(
+    id: string,
+    userId: string,
+    updates: Partial<InsertConversationThread>,
+  ): Promise<ConversationThread | undefined> {
     const [updated] = await db
       .update(conversationThreads)
       .set({
         ...updates,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
-      .where(and(
-        eq(conversationThreads.id, id),
-        eq(conversationThreads.userId, userId)
-      ))
+      .where(
+        and(
+          eq(conversationThreads.id, id),
+          eq(conversationThreads.userId, userId),
+        ),
+      )
       .returning();
 
     return updated || undefined;
@@ -5649,12 +7808,14 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       .update(conversationThreads)
       .set({
         lastActivityAt: new Date(),
-        messageCount: sql`${conversationThreads.messageCount} + 1`
+        messageCount: sql`${conversationThreads.messageCount} + 1`,
       })
-      .where(and(
-        eq(conversationThreads.id, threadId),
-        eq(conversationThreads.userId, userId)
-      ));
+      .where(
+        and(
+          eq(conversationThreads.id, threadId),
+          eq(conversationThreads.userId, userId),
+        ),
+      );
   }
 
   async deleteConversationThread(id: string, userId: string): Promise<void> {
@@ -5664,23 +7825,27 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       .where(eq(conversationThreads.id, id));
 
     if (!existing) {
-      throw new Error('Conversation thread not found');
+      throw new Error("Conversation thread not found");
     }
 
     if (existing.userId !== userId) {
-      throw new Error('Unauthorized: You do not own this conversation thread');
+      throw new Error("Unauthorized: You do not own this conversation thread");
     }
 
     await db
       .delete(conversationThreads)
-      .where(and(
-        eq(conversationThreads.id, id),
-        eq(conversationThreads.userId, userId)
-      ));
+      .where(
+        and(
+          eq(conversationThreads.id, id),
+          eq(conversationThreads.userId, userId),
+        ),
+      );
   }
 
   // Chat message methods
-  async createChatMessage(chatMessage: InsertChatMessage): Promise<ChatMessage> {
+  async createChatMessage(
+    chatMessage: InsertChatMessage,
+  ): Promise<ChatMessage> {
     const [newMessage] = await db
       .insert(chatMessages)
       .values(chatMessage)
@@ -5688,11 +7853,19 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     return newMessage;
   }
 
-  async getChatMessages(userId: string, projectId?: string, guideId?: string, limit = 50): Promise<ChatMessage[]> {
+  async getChatMessages(
+    userId: string,
+    projectId?: string,
+    guideId?: string,
+    limit = 50,
+  ): Promise<ChatMessage[]> {
     let whereCondition = eq(chatMessages.userId, userId);
 
     if (projectId) {
-      whereCondition = and(whereCondition, eq(chatMessages.projectId, projectId))!;
+      whereCondition = and(
+        whereCondition,
+        eq(chatMessages.projectId, projectId),
+      )!;
     } else if (guideId) {
       whereCondition = and(whereCondition, eq(chatMessages.guideId, guideId))!;
     } else {
@@ -5700,7 +7873,7 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       whereCondition = and(
         whereCondition,
         isNull(chatMessages.projectId),
-        isNull(chatMessages.guideId)
+        isNull(chatMessages.guideId),
       )!;
     }
 
@@ -5714,25 +7887,38 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     return messages.reverse(); // Return in chronological order
   }
 
-  async getChatMessagesByThread(threadId: string, userId: string, limit = 50): Promise<ChatMessage[]> {
+  async getChatMessagesByThread(
+    threadId: string,
+    userId: string,
+    limit = 50,
+  ): Promise<ChatMessage[]> {
     const messages = await db
       .select()
       .from(chatMessages)
-      .where(and(
-        eq(chatMessages.threadId, threadId),
-        eq(chatMessages.userId, userId)
-      ))
+      .where(
+        and(
+          eq(chatMessages.threadId, threadId),
+          eq(chatMessages.userId, userId),
+        ),
+      )
       .orderBy(desc(chatMessages.createdAt))
       .limit(limit);
 
     return messages.reverse();
   }
 
-  async deleteChatHistory(userId: string, projectId?: string, guideId?: string): Promise<void> {
+  async deleteChatHistory(
+    userId: string,
+    projectId?: string,
+    guideId?: string,
+  ): Promise<void> {
     let whereCondition = eq(chatMessages.userId, userId);
 
     if (projectId) {
-      whereCondition = and(whereCondition, eq(chatMessages.projectId, projectId))!;
+      whereCondition = and(
+        whereCondition,
+        eq(chatMessages.projectId, projectId),
+      )!;
     } else if (guideId) {
       whereCondition = and(whereCondition, eq(chatMessages.guideId, guideId))!;
     } else {
@@ -5740,17 +7926,17 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       whereCondition = and(
         whereCondition,
         isNull(chatMessages.projectId),
-        isNull(chatMessages.guideId)
+        isNull(chatMessages.guideId),
       )!;
     }
 
-    await db
-      .delete(chatMessages)
-      .where(whereCondition);
+    await db.delete(chatMessages).where(whereCondition);
   }
 
   // User preferences methods
-  async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {
+  async getUserPreferences(
+    userId: string,
+  ): Promise<UserPreferences | undefined> {
     const [prefs] = await db
       .select()
       .from(userPreferences)
@@ -5758,25 +7944,40 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     return prefs || undefined;
   }
 
-  async upsertUserPreferences(userId: string, preferences: Partial<InsertUserPreferences>): Promise<UserPreferences> {
+  async upsertUserPreferences(
+    userId: string,
+    preferences: Partial<InsertUserPreferences>,
+  ): Promise<UserPreferences> {
     const [result] = await db
       .insert(userPreferences)
       .values({ ...preferences, userId })
       .onConflictDoUpdate({
         target: userPreferences.userId,
-        set: { ...preferences, updatedAt: new Date() }
+        set: { ...preferences, updatedAt: new Date() },
       })
       .returning();
     return result;
   }
 
   // Conversation summary methods
-  async getConversationSummary(userId: string, projectId?: string | null, guideId?: string | null): Promise<ConversationSummary | undefined> {
+  async getConversationSummary(
+    userId: string,
+    projectId?: string | null,
+    guideId?: string | null,
+  ): Promise<ConversationSummary | undefined> {
     const conditions = [eq(conversationSummaries.userId, userId)];
 
     // Always apply scope constraints - use NULL for undefined/null parameters
-    conditions.push(projectId ? eq(conversationSummaries.projectId, projectId) : isNull(conversationSummaries.projectId));
-    conditions.push(guideId ? eq(conversationSummaries.guideId, guideId) : isNull(conversationSummaries.guideId));
+    conditions.push(
+      projectId
+        ? eq(conversationSummaries.projectId, projectId)
+        : isNull(conversationSummaries.projectId),
+    );
+    conditions.push(
+      guideId
+        ? eq(conversationSummaries.guideId, guideId)
+        : isNull(conversationSummaries.guideId),
+    );
 
     const [summary] = await db
       .select()
@@ -5785,11 +7986,13 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     return summary || undefined;
   }
 
-  async upsertConversationSummary(summary: InsertConversationSummary): Promise<ConversationSummary> {
+  async upsertConversationSummary(
+    summary: InsertConversationSummary,
+  ): Promise<ConversationSummary> {
     const existingSummary = await this.getConversationSummary(
       summary.userId,
       summary.projectId || null,
-      summary.guideId || null
+      summary.guideId || null,
     );
 
     if (existingSummary) {
@@ -5808,11 +8011,20 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     }
   }
 
-  async updateConversationSummary(id: string, userId: string, updates: Partial<InsertConversationSummary>): Promise<ConversationSummary | undefined> {
+  async updateConversationSummary(
+    id: string,
+    userId: string,
+    updates: Partial<InsertConversationSummary>,
+  ): Promise<ConversationSummary | undefined> {
     const [updated] = await db
       .update(conversationSummaries)
       .set({ ...updates, updatedAt: new Date() })
-      .where(and(eq(conversationSummaries.id, id), eq(conversationSummaries.userId, userId)))
+      .where(
+        and(
+          eq(conversationSummaries.id, id),
+          eq(conversationSummaries.userId, userId),
+        ),
+      )
       .returning();
     return updated || undefined;
   }
@@ -5827,10 +8039,7 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
   }
 
   async getAllFeedback(): Promise<Feedback[]> {
-    return await db
-      .select()
-      .from(feedback)
-      .orderBy(desc(feedback.createdAt));
+    return await db.select().from(feedback).orderBy(desc(feedback.createdAt));
   }
 
   async getFeedback(id: string): Promise<Feedback | undefined> {
@@ -5841,7 +8050,10 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     return result || undefined;
   }
 
-  async updateFeedbackStatus(id: string, status: string): Promise<Feedback | undefined> {
+  async updateFeedbackStatus(
+    id: string,
+    status: string,
+  ): Promise<Feedback | undefined> {
     const [updated] = await db
       .update(feedback)
       .set({ status, updatedAt: new Date() })
@@ -5858,14 +8070,14 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
       .orderBy(desc(feedback.createdAt));
   }
 
-  async markFeedbackReplyAsRead(feedbackId: string, userId: string): Promise<Feedback | undefined> {
+  async markFeedbackReplyAsRead(
+    feedbackId: string,
+    userId: string,
+  ): Promise<Feedback | undefined> {
     const [updated] = await db
       .update(feedback)
       .set({ hasUnreadReply: false })
-      .where(and(
-        eq(feedback.id, feedbackId),
-        eq(feedback.userId, userId)
-      ))
+      .where(and(eq(feedback.id, feedbackId), eq(feedback.userId, userId)))
       .returning();
     return updated || undefined;
   }
@@ -5874,14 +8086,17 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
     const results = await db
       .select({ count: sql<number>`count(*)` })
       .from(feedback)
-      .where(and(
-        eq(feedback.userId, userId),
-        eq(feedback.hasUnreadReply, true)
-      ));
+      .where(
+        and(eq(feedback.userId, userId), eq(feedback.hasUnreadReply, true)),
+      );
     return Number(results[0]?.count || 0);
   }
 
-  async replyToFeedback(feedbackId: string, reply: string, adminUserId: string): Promise<Feedback | undefined> {
+  async replyToFeedback(
+    feedbackId: string,
+    reply: string,
+    adminUserId: string,
+  ): Promise<Feedback | undefined> {
     const [updated] = await db
       .update(feedback)
       .set({
@@ -5889,7 +8104,7 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
         adminRepliedAt: new Date(),
         adminRepliedBy: adminUserId,
         hasUnreadReply: true,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(eq(feedback.id, feedbackId))
       .returning();
@@ -5898,7 +8113,7 @@ async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promi
 }
 
 // Export the storage facade that delegates to modular repositories
-export { storageFacade as storage } from './repositories/storage.facade';
+export { storageFacade as storage } from "./repositories/storage.facade";
 
 // Keep DatabaseStorage export for reference/backward compatibility
 export const databaseStorage = new DatabaseStorage();

@@ -1,6 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -23,7 +29,11 @@ import {
 import { AlertCircle, Search, Filter, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { logger } from "@/lib/logger";
-import type { FeedbackResponse, FeedbackType, FeedbackStatus } from "@shared/types/feedback";
+import type {
+  FeedbackResponse,
+  FeedbackType,
+  FeedbackStatus,
+} from "@shared/types/feedback";
 
 const typeColors: Record<FeedbackType, string> = {
   bug: "destructive",
@@ -39,8 +49,10 @@ const typeEmojis: Record<FeedbackType, string> = {
 
 const statusColors: Record<FeedbackStatus, string> = {
   new: "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100",
-  reviewed: "bg-purple-100 text-purple-900 dark:bg-purple-900 dark:text-purple-100",
-  "in-progress": "bg-yellow-100 text-yellow-900 dark:bg-yellow-900 dark:text-yellow-100",
+  reviewed:
+    "bg-purple-100 text-purple-900 dark:bg-purple-900 dark:text-purple-100",
+  "in-progress":
+    "bg-yellow-100 text-yellow-900 dark:bg-yellow-900 dark:text-yellow-100",
   resolved: "bg-green-100 text-green-900 dark:bg-green-900 dark:text-green-100",
   closed: "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100",
 };
@@ -48,8 +60,11 @@ const statusColors: Record<FeedbackStatus, string> = {
 export default function FeedbackManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<FeedbackType | "all">("all");
-  const [statusFilter, setStatusFilter] = useState<FeedbackStatus | "all">("all");
-  const [selectedFeedback, setSelectedFeedback] = useState<FeedbackResponse | null>(null);
+  const [statusFilter, setStatusFilter] = useState<FeedbackStatus | "all">(
+    "all",
+  );
+  const [selectedFeedback, setSelectedFeedback] =
+    useState<FeedbackResponse | null>(null);
   const [replyText, setReplyText] = useState("");
   const queryClient = useQueryClient();
 
@@ -69,8 +84,8 @@ export default function FeedbackManagement() {
   const { mutate: replyToFeedback, isPending: isReplying } = useMutation({
     mutationFn: async ({ id, reply }: { id: string; reply: string }) => {
       // Fetch CSRF token first
-      const csrfResponse = await fetch('/api/auth/csrf-token', {
-        credentials: 'include',
+      const csrfResponse = await fetch("/api/auth/csrf-token", {
+        credentials: "include",
       });
       const { csrfToken } = await csrfResponse.json();
 
@@ -100,10 +115,16 @@ export default function FeedbackManagement() {
 
   // Update feedback status mutation
   const { mutate: updateStatus, isPending: isUpdating } = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: FeedbackStatus }) => {
+    mutationFn: async ({
+      id,
+      status,
+    }: {
+      id: string;
+      status: FeedbackStatus;
+    }) => {
       // Fetch CSRF token first
-      const csrfResponse = await fetch('/api/auth/csrf-token', {
-        credentials: 'include',
+      const csrfResponse = await fetch("/api/auth/csrf-token", {
+        credentials: "include",
       });
       const { csrfToken } = await csrfResponse.json();
 
@@ -136,7 +157,9 @@ export default function FeedbackManagement() {
     filtered = filtered.filter((f: FeedbackResponse) => f.type === typeFilter);
   }
   if (statusFilter !== "all") {
-    filtered = filtered.filter((f: FeedbackResponse) => f.status === statusFilter);
+    filtered = filtered.filter(
+      (f: FeedbackResponse) => f.status === statusFilter,
+    );
   }
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
@@ -144,7 +167,7 @@ export default function FeedbackManagement() {
       (f: FeedbackResponse) =>
         f.title.toLowerCase().includes(q) ||
         f.description.toLowerCase().includes(q) ||
-        f.userEmail.toLowerCase().includes(q)
+        f.userEmail.toLowerCase().includes(q),
     );
   }
 
@@ -153,7 +176,9 @@ export default function FeedbackManagement() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold">Feedback Management</h1>
-        <p className="text-muted-foreground mt-2">Review and manage user feedback and bug reports</p>
+        <p className="text-muted-foreground mt-2">
+          Review and manage user feedback and bug reports
+        </p>
       </div>
 
       {/* Stats */}
@@ -173,7 +198,10 @@ export default function FeedbackManagement() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-blue-600">
-              {feedbackList.filter((f: FeedbackResponse) => f.status === "new").length}
+              {
+                feedbackList.filter((f: FeedbackResponse) => f.status === "new")
+                  .length
+              }
             </p>
           </CardContent>
         </Card>
@@ -184,7 +212,11 @@ export default function FeedbackManagement() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-yellow-600">
-              {feedbackList.filter((f: FeedbackResponse) => f.status === "in-progress").length}
+              {
+                feedbackList.filter(
+                  (f: FeedbackResponse) => f.status === "in-progress",
+                ).length
+              }
             </p>
           </CardContent>
         </Card>
@@ -195,7 +227,11 @@ export default function FeedbackManagement() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-green-600">
-              {feedbackList.filter((f: FeedbackResponse) => f.status === "resolved").length}
+              {
+                feedbackList.filter(
+                  (f: FeedbackResponse) => f.status === "resolved",
+                ).length
+              }
             </p>
           </CardContent>
         </Card>
@@ -221,22 +257,34 @@ export default function FeedbackManagement() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-semibold">Type</label>
-              <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as FeedbackType | "all")}>
+              <Select
+                value={typeFilter}
+                onValueChange={(v) => setTypeFilter(v as FeedbackType | "all")}
+              >
                 <SelectTrigger data-testid="select-feedback-type-filter">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="bug">🐛 Bug Report</SelectItem>
-                  <SelectItem value="feature-request">💡 Feature Request</SelectItem>
-                  <SelectItem value="general-feedback">💬 General Feedback</SelectItem>
+                  <SelectItem value="feature-request">
+                    💡 Feature Request
+                  </SelectItem>
+                  <SelectItem value="general-feedback">
+                    💬 General Feedback
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-semibold">Status</label>
-              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as FeedbackStatus | "all")}>
+              <Select
+                value={statusFilter}
+                onValueChange={(v) =>
+                  setStatusFilter(v as FeedbackStatus | "all")
+                }
+              >
                 <SelectTrigger data-testid="select-feedback-status-filter">
                   <SelectValue />
                 </SelectTrigger>
@@ -257,7 +305,9 @@ export default function FeedbackManagement() {
       {/* Feedback Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Feedback Items ({filtered.length})</CardTitle>
+          <CardTitle className="text-lg">
+            Feedback Items ({filtered.length})
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -267,7 +317,9 @@ export default function FeedbackManagement() {
           ) : filtered.length === 0 ? (
             <Alert>
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>No feedback matches your filters.</AlertDescription>
+              <AlertDescription>
+                No feedback matches your filters.
+              </AlertDescription>
             </Alert>
           ) : (
             <div className="overflow-x-auto">
@@ -286,7 +338,9 @@ export default function FeedbackManagement() {
                   {filtered.map((feedback: FeedbackResponse) => (
                     <TableRow key={feedback.id}>
                       <TableCell>
-                        <span className="text-lg">{typeEmojis[feedback.type]}</span>
+                        <span className="text-lg">
+                          {typeEmojis[feedback.type]}
+                        </span>
                       </TableCell>
                       <TableCell>
                         <button
@@ -297,9 +351,14 @@ export default function FeedbackManagement() {
                           {feedback.title}
                         </button>
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{feedback.userEmail}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {feedback.userEmail}
+                      </TableCell>
                       <TableCell>
-                        <Badge className={statusColors[feedback.status]} variant="outline">
+                        <Badge
+                          className={statusColors[feedback.status]}
+                          variant="outline"
+                        >
                           {feedback.status}
                         </Badge>
                       </TableCell>
@@ -309,16 +368,26 @@ export default function FeedbackManagement() {
                       <TableCell>
                         <Select
                           value={feedback.status}
-                          onValueChange={(newStatus) => updateStatus({ id: feedback.id, status: newStatus as FeedbackStatus })}
+                          onValueChange={(newStatus) =>
+                            updateStatus({
+                              id: feedback.id,
+                              status: newStatus as FeedbackStatus,
+                            })
+                          }
                           disabled={isUpdating}
                         >
-                          <SelectTrigger className="w-32" data-testid="select-feedback-status-update">
+                          <SelectTrigger
+                            className="w-32"
+                            data-testid="select-feedback-status-update"
+                          >
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="new">New</SelectItem>
                             <SelectItem value="reviewed">Reviewed</SelectItem>
-                            <SelectItem value="in-progress">In Progress</SelectItem>
+                            <SelectItem value="in-progress">
+                              In Progress
+                            </SelectItem>
                             <SelectItem value="resolved">Resolved</SelectItem>
                             <SelectItem value="closed">Closed</SelectItem>
                           </SelectContent>
@@ -339,18 +408,31 @@ export default function FeedbackManagement() {
           className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[var(--z-modal)]"
           onClick={() => setSelectedFeedback(null)}
         >
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+          <Card
+            className="w-full max-w-2xl max-h-[90vh] overflow-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <CardHeader>
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">{typeEmojis[selectedFeedback.type]}</span>
-                    <Badge className={statusColors[selectedFeedback.status]}>{selectedFeedback.status}</Badge>
+                    <span className="text-2xl">
+                      {typeEmojis[selectedFeedback.type]}
+                    </span>
+                    <Badge className={statusColors[selectedFeedback.status]}>
+                      {selectedFeedback.status}
+                    </Badge>
                   </div>
                   <CardTitle>{selectedFeedback.title}</CardTitle>
-                  <CardDescription>From: {selectedFeedback.userEmail}</CardDescription>
+                  <CardDescription>
+                    From: {selectedFeedback.userEmail}
+                  </CardDescription>
                 </div>
-                <Button variant="ghost" onClick={() => setSelectedFeedback(null)} data-testid="button-close-feedback-detail">
+                <Button
+                  variant="ghost"
+                  onClick={() => setSelectedFeedback(null)}
+                  data-testid="button-close-feedback-detail"
+                >
                   ✕
                 </Button>
               </div>
@@ -358,7 +440,9 @@ export default function FeedbackManagement() {
             <CardContent className="space-y-6">
               <div>
                 <h3 className="font-semibold mb-2">Details</h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedFeedback.description}</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {selectedFeedback.description}
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-sm">
@@ -375,7 +459,9 @@ export default function FeedbackManagement() {
                   <p>{selectedFeedback.currentPage || "Not provided"}</p>
                 </div>
                 <div>
-                  <p className="font-semibold text-muted-foreground">Submitted</p>
+                  <p className="font-semibold text-muted-foreground">
+                    Submitted
+                  </p>
                   <p>{new Date(selectedFeedback.createdAt).toLocaleString()}</p>
                 </div>
               </div>
@@ -384,10 +470,15 @@ export default function FeedbackManagement() {
                 <div className="space-y-2">
                   <h3 className="font-semibold">Your Reply</h3>
                   <div className="bg-muted p-4 rounded-lg">
-                    <p className="text-sm whitespace-pre-wrap">{selectedFeedback.adminReply}</p>
+                    <p className="text-sm whitespace-pre-wrap">
+                      {selectedFeedback.adminReply}
+                    </p>
                     {selectedFeedback.adminRepliedAt && (
                       <p className="text-xs text-muted-foreground mt-2">
-                        Sent on {new Date(selectedFeedback.adminRepliedAt).toLocaleString()}
+                        Sent on{" "}
+                        {new Date(
+                          selectedFeedback.adminRepliedAt,
+                        ).toLocaleString()}
                       </p>
                     )}
                   </div>
@@ -406,13 +497,18 @@ export default function FeedbackManagement() {
                 <Button
                   onClick={() => {
                     if (replyText.trim()) {
-                      replyToFeedback({ id: selectedFeedback.id, reply: replyText });
+                      replyToFeedback({
+                        id: selectedFeedback.id,
+                        reply: replyText,
+                      });
                     }
                   }}
                   disabled={!replyText.trim() || isReplying}
                   data-testid="button-send-reply"
                 >
-                  {isReplying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  {isReplying ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : null}
                   Send Reply
                 </Button>
               </div>

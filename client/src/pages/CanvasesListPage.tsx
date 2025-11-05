@@ -1,9 +1,15 @@
-import { useState } from 'react';
-import { useLocation } from 'wouter';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,24 +20,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Palette, Clock, Edit2, Trash2 } from 'lucide-react';
-import Header from '@/components/Header';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-import type { Canvas } from '@shared/schema';
-import { formatDistanceToNow } from 'date-fns';
+import { Plus, Palette, Clock, Edit2, Trash2 } from "lucide-react";
+import Header from "@/components/Header";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import type { Canvas } from "@shared/schema";
+import { formatDistanceToNow } from "date-fns";
 
 export default function CanvasesListPage() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const [canvasToDelete, setCanvasToDelete] = useState<string | null>(null);
-  
+
   // Fetch all canvases for the user
   const { data: canvases, isLoading } = useQuery({
-    queryKey: ['/api/canvases'],
+    queryKey: ["/api/canvases"],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/canvases',);
-      if (!response.ok) throw new Error('Failed to load canvases');
+      const response = await apiRequest("GET", "/api/canvases");
+      if (!response.ok) throw new Error("Failed to load canvases");
       return response.json() as Promise<Canvas[]>;
     },
   });
@@ -39,28 +45,28 @@ export default function CanvasesListPage() {
   // Delete canvas mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest('DELETE', `/api/canvases/${id}`);
-      if (!response.ok) throw new Error('Failed to delete canvas');
+      const response = await apiRequest("DELETE", `/api/canvases/${id}`);
+      if (!response.ok) throw new Error("Failed to delete canvas");
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/canvases'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/canvases"] });
       toast({
-        title: 'Canvas deleted',
-        description: 'Your canvas has been deleted successfully.',
+        title: "Canvas deleted",
+        description: "Your canvas has been deleted successfully.",
       });
       setCanvasToDelete(null);
     },
     onError: () => {
       toast({
-        title: 'Error',
-        description: 'Failed to delete canvas. Please try again.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to delete canvas. Please try again.",
+        variant: "destructive",
       });
     },
   });
 
   const handleCreateNew = () => {
-    setLocation('/canvas/new');
+    setLocation("/canvas/new");
   };
 
   const handleEditCanvas = (id: string) => {
@@ -80,7 +86,7 @@ export default function CanvasesListPage() {
   return (
     <div className="flex flex-col h-screen">
       <Header onNavigate={(view) => setLocation(`/?view=${view}`)} />
-      
+
       <div className="flex-1 overflow-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
@@ -91,7 +97,10 @@ export default function CanvasesListPage() {
                 Create visual diagrams, character maps, and story structures
               </p>
             </div>
-            <Button onClick={handleCreateNew} data-testid="button-create-canvas">
+            <Button
+              onClick={handleCreateNew}
+              data-testid="button-create-canvas"
+            >
               <Plus className="w-4 h-4 mr-2" />
               New Canvas
             </Button>
@@ -134,8 +143,10 @@ export default function CanvasesListPage() {
                       <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
                         {canvas.updatedAt
-                          ? formatDistanceToNow(new Date(canvas.updatedAt), { addSuffix: true })
-                          : 'Never'}
+                          ? formatDistanceToNow(new Date(canvas.updatedAt), {
+                              addSuffix: true,
+                            })
+                          : "Never"}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -169,9 +180,14 @@ export default function CanvasesListPage() {
               <Palette className="w-16 h-16 text-muted-foreground mb-4" />
               <h2 className="text-2xl font-semibold mb-2">No canvases yet</h2>
               <p className="text-muted-foreground mb-6 max-w-md">
-                Create your first canvas to start visualizing your story elements, character relationships, and plot structures.
+                Create your first canvas to start visualizing your story
+                elements, character relationships, and plot structures.
               </p>
-              <Button onClick={handleCreateNew} size="lg" data-testid="button-create-first-canvas">
+              <Button
+                onClick={handleCreateNew}
+                size="lg"
+                data-testid="button-create-first-canvas"
+              >
                 <Plus className="w-5 h-5 mr-2" />
                 Create Your First Canvas
               </Button>
@@ -181,16 +197,22 @@ export default function CanvasesListPage() {
       </div>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!canvasToDelete} onOpenChange={(open) => !open && setCanvasToDelete(null)}>
+      <AlertDialog
+        open={!!canvasToDelete}
+        onOpenChange={(open) => !open && setCanvasToDelete(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Canvas</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this canvas? This action cannot be undone.
+              Are you sure you want to delete this canvas? This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
+            <AlertDialogCancel data-testid="button-cancel-delete">
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

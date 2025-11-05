@@ -5,18 +5,29 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { FormField as FormFieldComponent, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
+import {
+  FormField as FormFieldComponent,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormDescription,
+  FormMessage,
+} from "@/components/ui/form";
 import { AutocompleteField } from "@/components/ui/autocomplete-field";
 import { TagsInput } from "@/components/ui/tags-input";
 import { ImageSelector } from "@/components/ImageSelector";
 import { ContentHero } from "@/components/ContentHero";
 import AIFieldAssist from "@/components/AIFieldAssist";
-import { 
-  ChevronRight, ChevronDown, Menu, X, Wand2 
-} from "lucide-react";
+import { ChevronRight, ChevronDown, Menu, X, Wand2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { uploadImageFile } from "@/lib/image-upload-utils";
 import { useToast } from "@/hooks/use-toast";
@@ -27,11 +38,10 @@ import { ContentTypeFormConfig, FormField } from "./types";
 import { characterNavigation } from "@/config/character-editor-config";
 import { generateFormSchema, getFormDefaultValues } from "@/lib/form-utils";
 import { z } from "zod";
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
-import { useIsMobile } from '@/hooks/use-mobile';
-import DynamicContentForm from './DynamicContentForm';
-
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
+import { useIsMobile } from "@/hooks/use-mobile";
+import DynamicContentForm from "./DynamicContentForm";
 
 interface CharacterEditorWithSidebarProps {
   config: ContentTypeFormConfig;
@@ -42,26 +52,30 @@ interface CharacterEditorWithSidebarProps {
   isCreating?: boolean;
 }
 
-export default function CharacterEditorWithSidebar({ 
-  config, 
-  initialData, 
-  onSubmit, 
-  onGenerate, 
+export default function CharacterEditorWithSidebar({
+  config,
+  initialData,
+  onSubmit,
+  onGenerate,
   isLoading,
-  isCreating 
+  isCreating,
 }: CharacterEditorWithSidebarProps) {
   const [activeSection, setActiveSection] = useState("identity");
   const [activeTab, setActiveTab] = useState("basic");
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["identity"]));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    new Set(["identity"]),
+  );
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
-
   // Use memoized form utilities
 
   const schema = useMemo(() => generateFormSchema(config), [config]);
-  const defaultValues = useMemo(() => getFormDefaultValues(config, initialData), [config, initialData]);
+  const defaultValues = useMemo(
+    () => getFormDefaultValues(config, initialData),
+    [config, initialData],
+  );
 
   const form = useForm({
     resolver: zodResolver(schema),
@@ -77,17 +91,18 @@ export default function CharacterEditorWithSidebar({
 
   const handleImageUpload = async (file: File): Promise<string> => {
     try {
-      const url = await uploadImageFile(file, { visibility: 'private' });
+      const url = await uploadImageFile(file, { visibility: "private" });
       toast({
-        title: 'Upload successful',
-        description: 'Your image has been uploaded',
+        title: "Upload successful",
+        description: "Your image has been uploaded",
       });
       return url;
     } catch (error) {
       toast({
-        title: 'Upload failed',
-        description: error instanceof Error ? error.message : 'Failed to upload image',
-        variant: 'destructive',
+        title: "Upload failed",
+        description:
+          error instanceof Error ? error.message : "Failed to upload image",
+        variant: "destructive",
       });
       throw error;
     }
@@ -110,15 +125,21 @@ export default function CharacterEditorWithSidebar({
   };
 
   // Find current tab configuration
-  const currentTab = (config.tabs || []).find(tab => tab.id === activeTab);
-  const currentSection = characterNavigation.find(section => section.id === activeSection);
+  const currentTab = (config.tabs || []).find((tab) => tab.id === activeTab);
+  const currentSection = characterNavigation.find(
+    (section) => section.id === activeSection,
+  );
 
   // Create sections with their tabs (memoized to prevent recalculation)
-  const sectionsWithTabs = useMemo(() => 
-    characterNavigation.map(section => ({
-      ...section,
-      tabs: (config.tabs || []).filter(tab => section.tabIds.includes(tab.id))
-    })), [config]
+  const sectionsWithTabs = useMemo(
+    () =>
+      characterNavigation.map((section) => ({
+        ...section,
+        tabs: (config.tabs || []).filter((tab) =>
+          section.tabIds.includes(tab.id),
+        ),
+      })),
+    [config],
   );
 
   // Render individual field
@@ -133,17 +154,21 @@ export default function CharacterEditorWithSidebar({
             render={({ field: formField }) => (
               <FormItem>
                 <div className="flex items-center justify-between gap-2">
-                  <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                  <FormLabel>
+                    {field.label} {field.required && "*"}
+                  </FormLabel>
                   <AIFieldAssist
                     fieldName={field.name}
                     fieldLabel={field.label}
                     currentValue={formField.value ?? ""}
                     getCharacterContext={() => form.getValues()}
-                    onGenerated={(newValue) => form.setValue(field.name, newValue)}
+                    onGenerated={(newValue) =>
+                      form.setValue(field.name, newValue)
+                    }
                   />
                 </div>
                 <FormControl>
-                  <Textarea 
+                  <Textarea
                     placeholder={field.placeholder}
                     className="min-h-24"
                     {...formField}
@@ -169,14 +194,20 @@ export default function CharacterEditorWithSidebar({
             name={field.name}
             render={({ field: formField }) => (
               <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                <FormLabel>
+                  {field.label} {field.required && "*"}
+                </FormLabel>
                 <FormControl>
-                  <Input 
+                  <Input
                     type="number"
                     placeholder={field.placeholder}
                     {...formField}
                     value={formField.value ?? ""}
-                    onChange={(e) => formField.onChange(e.target.value ? Number(e.target.value) : null)}
+                    onChange={(e) =>
+                      formField.onChange(
+                        e.target.value ? Number(e.target.value) : null,
+                      )
+                    }
                     data-testid={`input-${field.name}`}
                   />
                 </FormControl>
@@ -197,11 +228,21 @@ export default function CharacterEditorWithSidebar({
             name={field.name}
             render={({ field: formField }) => (
               <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
-                <Select onValueChange={formField.onChange} defaultValue={formField.value ?? ""}>
+                <FormLabel>
+                  {field.label} {field.required && "*"}
+                </FormLabel>
+                <Select
+                  onValueChange={formField.onChange}
+                  defaultValue={formField.value ?? ""}
+                >
                   <FormControl>
                     <SelectTrigger data-testid={`select-${field.name}`}>
-                      <SelectValue placeholder={field.placeholder || `Select ${field.label.toLowerCase()}`} />
+                      <SelectValue
+                        placeholder={
+                          field.placeholder ||
+                          `Select ${field.label.toLowerCase()}`
+                        }
+                      />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -229,13 +270,19 @@ export default function CharacterEditorWithSidebar({
             name={field.name}
             render={({ field: formField }) => (
               <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                <FormLabel>
+                  {field.label} {field.required && "*"}
+                </FormLabel>
                 <FormControl>
-                  <TagsInput 
-                    value={Array.isArray(formField.value) ? formField.value : []}
+                  <TagsInput
+                    value={
+                      Array.isArray(formField.value) ? formField.value : []
+                    }
                     onChange={(value) => formField.onChange(value || [])}
                     onBlur={formField.onBlur}
-                    placeholder={field.placeholder || `Add ${field.label.toLowerCase()}...`}
+                    placeholder={
+                      field.placeholder || `Add ${field.label.toLowerCase()}...`
+                    }
                     maxTags={field.maxTags}
                     data-testid={`tags-input-${field.name}`}
                   />
@@ -265,7 +312,9 @@ export default function CharacterEditorWithSidebar({
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
-                  <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                  <FormLabel>
+                    {field.label} {field.required && "*"}
+                  </FormLabel>
                   {field.description && (
                     <FormDescription>{field.description}</FormDescription>
                   )}
@@ -303,7 +352,7 @@ export default function CharacterEditorWithSidebar({
           />
         );
 
-      // Default field handler - includes autocomplete types  
+      // Default field handler - includes autocomplete types
       default:
         // Handle autocomplete field types
         if (field.type.startsWith("autocomplete-")) {
@@ -314,11 +363,18 @@ export default function CharacterEditorWithSidebar({
               name={field.name}
               render={({ field: formField }) => (
                 <FormItem>
-                  <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                  <FormLabel>
+                    {field.label} {field.required && "*"}
+                  </FormLabel>
                   <FormControl>
                     <AutocompleteField
-                      contentType={field.type.replace('autocomplete-', '') as any}
-                      placeholder={field.placeholder || `Search ${field.label.toLowerCase()}...`}
+                      contentType={
+                        field.type.replace("autocomplete-", "") as any
+                      }
+                      placeholder={
+                        field.placeholder ||
+                        `Search ${field.label.toLowerCase()}...`
+                      }
                       multiple={field.multiple || false}
                       value={formField.value}
                       onChange={formField.onChange}
@@ -342,9 +398,11 @@ export default function CharacterEditorWithSidebar({
             name={field.name}
             render={({ field: formField }) => (
               <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                <FormLabel>
+                  {field.label} {field.required && "*"}
+                </FormLabel>
                 <FormControl>
-                  <Input 
+                  <Input
                     placeholder={field.placeholder}
                     {...formField}
                     value={formField.value ?? ""}
@@ -366,7 +424,7 @@ export default function CharacterEditorWithSidebar({
     <div className="flex h-screen bg-background">
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -376,7 +434,7 @@ export default function CharacterEditorWithSidebar({
       {isMobile ? (
         <Drawer open={sidebarOpen} onOpenChange={setSidebarOpen}>
           <DrawerTrigger asChild>
-            <div style={{ display: 'none' }} />
+            <div style={{ display: "none" }} />
           </DrawerTrigger>
           <DrawerContent className="w-80 bg-card border-r flex flex-col overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
@@ -403,7 +461,7 @@ export default function CharacterEditorWithSidebar({
                         variant="ghost"
                         className={cn(
                           "w-full justify-start px-3 py-2 h-auto font-normal overflow-hidden whitespace-normal",
-                          isActive && "bg-muted font-medium"
+                          isActive && "bg-muted font-medium",
                         )}
                         onClick={() => {
                           toggleSection(section.id);
@@ -415,7 +473,9 @@ export default function CharacterEditorWithSidebar({
                       >
                         <Icon className="w-5 h-5 mr-3 flex-shrink-0" />
                         <div className="flex-1 min-w-0 text-left">
-                          <div className="font-medium break-words">{section.label}</div>
+                          <div className="font-medium break-words">
+                            {section.label}
+                          </div>
                           <div className="text-xs text-muted-foreground mt-1 break-words">
                             {section.description}
                           </div>
@@ -441,9 +501,11 @@ export default function CharacterEditorWithSidebar({
                               size="sm"
                               className={cn(
                                 "w-full justify-start text-sm",
-                                activeTab === tab.id && "bg-muted font-medium"
+                                activeTab === tab.id && "bg-muted font-medium",
                               )}
-                              onClick={() => handleTabSelect(section.id, tab.id)}
+                              onClick={() =>
+                                handleTabSelect(section.id, tab.id)
+                              }
                               data-testid={`button-tab-${tab.id}`}
                             >
                               {tab.label}
@@ -468,10 +530,12 @@ export default function CharacterEditorWithSidebar({
           </DrawerContent>
         </Drawer>
       ) : (
-        <div className={cn(
-          "fixed inset-y-0 left-0 z-50 w-80 bg-card border-r transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 flex flex-col overflow-hidden",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        )}>
+        <div
+          className={cn(
+            "fixed inset-y-0 left-0 z-50 w-80 bg-card border-r transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 flex flex-col overflow-hidden",
+            sidebarOpen ? "translate-x-0" : "-translate-x-full",
+          )}
+        >
           <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
             <h2 className="font-semibold text-lg">Character Editor</h2>
             <Button
@@ -498,7 +562,7 @@ export default function CharacterEditorWithSidebar({
                       variant="ghost"
                       className={cn(
                         "w-full justify-start px-3 py-2 h-auto font-normal overflow-hidden whitespace-normal",
-                        isActive && "bg-muted font-medium"
+                        isActive && "bg-muted font-medium",
                       )}
                       onClick={() => {
                         toggleSection(section.id);
@@ -510,7 +574,9 @@ export default function CharacterEditorWithSidebar({
                     >
                       <Icon className="w-5 h-5 mr-3 flex-shrink-0" />
                       <div className="flex-1 min-w-0 text-left">
-                        <div className="font-medium break-words">{section.label}</div>
+                        <div className="font-medium break-words">
+                          {section.label}
+                        </div>
                         <div className="text-xs text-muted-foreground mt-1 break-words">
                           {section.description}
                         </div>
@@ -536,7 +602,7 @@ export default function CharacterEditorWithSidebar({
                             size="sm"
                             className={cn(
                               "w-full justify-start text-sm",
-                              activeTab === tab.id && "bg-muted font-medium"
+                              activeTab === tab.id && "bg-muted font-medium",
                             )}
                             onClick={() => handleTabSelect(section.id, tab.id)}
                             data-testid={`button-tab-${tab.id}`}
@@ -578,7 +644,9 @@ export default function CharacterEditorWithSidebar({
               <Menu className="w-5 h-5" />
             </Button>
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg md:text-xl font-bold truncate">{config.title}</h1>
+              <h1 className="text-lg md:text-xl font-bold truncate">
+                {config.title}
+              </h1>
               {currentSection && (
                 <p className="text-xs md:text-sm text-muted-foreground truncate">
                   {currentSection.label} - {currentTab?.label}
@@ -588,9 +656,9 @@ export default function CharacterEditorWithSidebar({
           </div>
 
           {onGenerate && (
-            <Button 
-              onClick={onGenerate} 
-              variant="outline" 
+            <Button
+              onClick={onGenerate}
+              variant="outline"
               disabled={isLoading}
               data-testid="button-generate-content"
             >
@@ -602,13 +670,16 @@ export default function CharacterEditorWithSidebar({
 
         {/* Form Content */}
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="flex-1 flex flex-col min-h-0">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="flex-1 flex flex-col min-h-0"
+          >
             <div className="flex-1 overflow-y-auto">
               <div className="max-w-4xl mx-auto p-3 md:p-6">
                 {activeSection === "identity" && activeTab === "basic" && (
-                  <ContentHero 
-                    imageUrl={form.watch('imageUrl')} 
-                    imageCaption={form.watch('imageCaption')} 
+                  <ContentHero
+                    imageUrl={form.watch("imageUrl")}
+                    imageCaption={form.watch("imageCaption")}
                   />
                 )}
                 {currentTab && currentSection && (
@@ -621,10 +692,13 @@ export default function CharacterEditorWithSidebar({
                     </CardHeader>
                     <CardContent>
                       <div className="grid gap-4 md:grid-cols-2">
-                        {currentTab.fields.map(field => (
-                          <div key={field.name} className={
-                            field.type === "textarea" ? "md:col-span-2" : ""
-                          }>
+                        {currentTab.fields.map((field) => (
+                          <div
+                            key={field.name}
+                            className={
+                              field.type === "textarea" ? "md:col-span-2" : ""
+                            }
+                          >
                             {renderField(field)}
                           </div>
                         ))}
@@ -638,10 +712,14 @@ export default function CharacterEditorWithSidebar({
             {/* Footer with submit button inside form */}
             <div className="border-t bg-card p-4">
               <div className="max-w-4xl mx-auto flex justify-end gap-3">
-                <Button type="button" variant="outline" data-testid="button-cancel-content">
+                <Button
+                  type="button"
+                  variant="outline"
+                  data-testid="button-cancel-content"
+                >
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   type="submit"
                   disabled={isLoading}
                   data-testid="button-save-content"
@@ -652,7 +730,6 @@ export default function CharacterEditorWithSidebar({
             </div>
           </form>
         </Form>
-
       </div>
     </div>
   );

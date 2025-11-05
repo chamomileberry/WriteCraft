@@ -1,5 +1,5 @@
-import { Extension } from '@tiptap/core';
-import { Plugin, PluginKey } from 'prosemirror-state';
+import { Extension } from "@tiptap/core";
+import { Plugin, PluginKey } from "prosemirror-state";
 
 export interface ImageUploadOptions {
   onUpload: (file: File) => Promise<string>;
@@ -8,11 +8,11 @@ export interface ImageUploadOptions {
 }
 
 export const ImageUploadExtension = Extension.create<ImageUploadOptions>({
-  name: 'imageUpload',
+  name: "imageUpload",
 
   addOptions() {
     return {
-      onUpload: async () => '',
+      onUpload: async () => "",
       onError: undefined,
       maxFileSize: 5 * 1024 * 1024, // 5MB default
     };
@@ -21,7 +21,7 @@ export const ImageUploadExtension = Extension.create<ImageUploadOptions>({
   addProseMirrorPlugins() {
     return [
       new Plugin({
-        key: new PluginKey('imageUpload'),
+        key: new PluginKey("imageUpload"),
         props: {
           handlePaste: (view, event) => {
             const items = event.clipboardData?.items;
@@ -29,38 +29,41 @@ export const ImageUploadExtension = Extension.create<ImageUploadOptions>({
 
             // Check if any clipboard item is an image
             for (let i = 0; i < items.length; i++) {
-              if (items[i].type.indexOf('image') !== -1) {
+              if (items[i].type.indexOf("image") !== -1) {
                 event.preventDefault();
-                
+
                 const file = items[i].getAsFile();
                 if (!file) continue;
 
                 // Check file size
                 const maxSize = this.options?.maxFileSize || 5 * 1024 * 1024;
                 if (file.size > maxSize) {
-                  this.options?.onError?.(new Error('Image too large'));
+                  this.options?.onError?.(new Error("Image too large"));
                   return true;
                 }
 
                 // Upload and insert the image
                 const uploadFn = this.options?.onUpload;
                 if (!uploadFn) return true;
-                
+
                 uploadFn(file)
                   .then((url) => {
                     const { schema } = view.state;
                     const node = schema.nodes.image.create({ src: url });
-                    const tr = view.state.tr.insert(view.state.selection.from, node);
+                    const tr = view.state.tr.insert(
+                      view.state.selection.from,
+                      node,
+                    );
                     view.dispatch(tr);
                   })
                   .catch((error) => {
                     this.options.onError?.(error);
                   });
-                
+
                 return true;
               }
             }
-            
+
             return false;
           },
           handleDrop: (view, event) => {
@@ -70,13 +73,13 @@ export const ImageUploadExtension = Extension.create<ImageUploadOptions>({
             // Check if any dropped file is an image
             for (let i = 0; i < files.length; i++) {
               const file = files[i];
-              if (file.type.startsWith('image/')) {
+              if (file.type.startsWith("image/")) {
                 event.preventDefault();
 
                 // Check file size
                 const maxSize = this.options?.maxFileSize || 5 * 1024 * 1024;
                 if (file.size > maxSize) {
-                  this.options?.onError?.(new Error('Image too large'));
+                  this.options?.onError?.(new Error("Image too large"));
                   return true;
                 }
 
@@ -91,7 +94,7 @@ export const ImageUploadExtension = Extension.create<ImageUploadOptions>({
                 // Upload and insert the image
                 const uploadFn = this.options?.onUpload;
                 if (!uploadFn) return true;
-                
+
                 uploadFn(file)
                   .then((url) => {
                     const { schema } = view.state;
@@ -102,11 +105,11 @@ export const ImageUploadExtension = Extension.create<ImageUploadOptions>({
                   .catch((error) => {
                     this.options.onError?.(error);
                   });
-                
+
                 return true;
               }
             }
-            
+
             return false;
           },
         },

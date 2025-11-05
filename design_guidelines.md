@@ -1,15 +1,17 @@
-
 # WriteCraft Platform Design Guidelines
 
 ## Design Philosophy
+
 **Reference-Based Approach**: A modern writing platform combining the organizational depth of Scrivener with the collaborative features of Notion, enhanced with AI assistance and a clean, professional interface designed for creative writers.
 
 ## Core Design Elements
 
 ### A. Color Palette
+
 **Light Mode:**
+
 - Primary: 255 69% 71% (creative purple #6B73FF)
-- Secondary: 174 60% 64% (teal #4ECDC4) 
+- Secondary: 174 60% 64% (teal #4ECDC4)
 - Background: 0 0% 99% (clean white #FEFEFE)
 - Text: 210 25% 25% (charcoal #2D3748)
 - Accent: 32 91% 65% (warm orange #F6AD55)
@@ -17,6 +19,7 @@
 - Muted: 210 40% 96% (light gray for cards/panels)
 
 **Dark Mode:**
+
 - Primary: 255 69% 75% (lighter purple)
 - Secondary: 174 50% 70% (softer teal)
 - Background: 220 25% 8% (dark charcoal)
@@ -24,13 +27,16 @@
 - Cards: 220 20% 12% (elevated dark)
 
 ### B. Typography
+
 - **Primary Font**: Inter (sans-serif) for UI elements and headings - clean, modern, highly readable
 - **Editor Font**: System font stack for writing (Georgia, serif fallback) - comfortable for long-form writing
 - **Code Font**: JetBrains Mono for technical content
 - **Hierarchy**: h1 (2.5rem), h2 (2rem), h3 (1.5rem), h4 (1.25rem), body (1rem), small (0.875rem)
 
 ### C. Layout System
+
 **Spacing Units**: Tailwind units of 2, 4, 6, 8, 12, 16, 20 for consistent rhythm
+
 - Base spacing: p-4, m-4 for components
 - Section spacing: py-8, py-12 for vertical rhythm
 - Card spacing: p-6 for content containers
@@ -39,12 +45,14 @@
 ### D. Component Library
 
 **Navigation & Structure**
+
 - Sticky header with logo, main navigation, user profile
 - Collapsible sidebar for workspace navigation
 - Breadcrumb navigation for deep hierarchies
 - Responsive hamburger menu for mobile
 
 **Workspace Layout**
+
 - Multi-panel docking system with drag-and-drop
 - Floating panels with resize handles
 - Tab strips for multiple open items
@@ -52,6 +60,7 @@
 - Persistent panel states across sessions
 
 **Content Cards**
+
 - Elevated cards with subtle shadows (shadow-sm to shadow-lg)
 - Hover states with gentle lift (transform + shadow transition)
 - Category/type badges with color coding
@@ -59,6 +68,7 @@
 - Consistent card dimensions in grid layouts
 
 **Editors & Forms**
+
 - Rich text editor with floating toolbar
 - AI bubble menu for inline editing (appears on text selection)
 - Form sections organized in tabs (Identity, Physical, Personality, etc.)
@@ -68,6 +78,7 @@
 - Searchable select dropdowns for relationships
 
 **AI Features**
+
 - Floating assistant trigger button (bottom-right, gradient purple)
 - Writing Assistant panel with tabs (Chat, Analysis, Actions, Questions)
 - Inline AI suggestions with accept/dismiss UI
@@ -75,6 +86,7 @@
 - Real-time streaming responses where applicable
 
 **Content Management**
+
 - Notebook switcher with creation flow
 - Content type selector with icons
 - Hierarchical project outline (drag-to-reorder)
@@ -83,12 +95,14 @@
 - Bulk actions with selection checkboxes
 
 **Dialogs & Modals**
+
 - Sheet-style drawers for forms (slide from right)
 - Alert dialogs for confirmations
 - Popover menus for contextual actions
 - Toast notifications for feedback (bottom-right)
 
 ### E. Visual Hierarchy & Patterns
+
 - Strong contrast between sections using background variations
 - Card-based organization for scannable content
 - Consistent iconography (Lucide icons)
@@ -98,6 +112,7 @@
 - Empty states with helpful CTAs
 
 ### F. Interactive Elements
+
 - Primary buttons: Purple gradient, white text
 - Secondary buttons: Outline style
 - Ghost buttons for tertiary actions
@@ -111,6 +126,7 @@
 ### Core Features
 
 **1. Notebook System**
+
 - Scoped content storage (separate universes/stories)
 - Supports 40+ content types
 - Tag-based organization
@@ -118,6 +134,7 @@
 - Import/export capabilities
 
 **2. Project Editor (Manuscripts)**
+
 - Hierarchical document structure (Acts → Chapters → Scenes)
 - Rich text editing with formatting
 - Word count tracking (live, per-section, total)
@@ -127,6 +144,7 @@
 - Export to Markdown/PDF
 
 **3. Worldbuilding Tools**
+
 - Character editor with comprehensive fields
 - Location/setting builder
 - Family tree visualizer (interactive graph)
@@ -136,6 +154,7 @@
 - Cultural elements (languages, religions, traditions)
 
 **4. AI Generators**
+
 - Character generation (personality, backstory, appearance)
 - Location/setting generation
 - Plot structure suggestions
@@ -145,6 +164,7 @@
 - Conflict/theme exploration
 
 **5. Writing Assistant**
+
 - Conversational AI coach
 - Context-aware (knows current project/document)
 - Modes: Chat, Analyze, Proofread, Questions
@@ -153,6 +173,7 @@
 - Persistent conversation history
 
 **6. Educational Resources**
+
 - Writing guides library
 - Categorized by topic and difficulty
 - Rich content with examples
@@ -162,6 +183,7 @@
 ### User Flows
 
 **Starting a New Story**
+
 1. Create notebook for story universe
 2. Generate or create characters, locations, factions
 3. Save content with tags for organization
@@ -172,6 +194,7 @@
 8. Get feedback from Writing Assistant
 
 **Character Development**
+
 1. Generate character with AI or create manually
 2. Save to notebook
 3. Open in character editor
@@ -181,6 +204,7 @@
 7. Reference in project using @ mention
 
 **Writing & Revising**
+
 1. Open project section in editor
 2. Write/edit with auto-save
 3. Select text → use AI inline editing for quick fixes
@@ -191,6 +215,7 @@
 ## Accessibility & Responsiveness
 
 **Mobile Adaptations**
+
 - Single-column layouts on mobile
 - Touch-friendly button sizes (min 44px)
 - Swipe gestures for navigation
@@ -198,18 +223,21 @@
 - Bottom navigation on small screens
 
 **Keyboard Navigation**
+
 - Tab order follows visual hierarchy
 - Keyboard shortcuts for common actions
 - Focus indicators on all interactive elements
 - Escape to close dialogs/menus
 
 **Screen Reader Support**
+
 - Semantic HTML structure
 - ARIA labels for icon buttons
 - Live regions for dynamic content
 - Skip links for main content
 
 **Performance**
+
 - Progressive loading for large lists
 - Virtual scrolling for long content
 - Optimistic updates for better UX
@@ -219,18 +247,21 @@
 ## Content Strategy & Writing
 
 **Voice & Tone**
+
 - Professional but approachable
 - Encouraging and supportive (especially for AI assistant)
 - Clear, concise UI copy
 - Writer-focused terminology
 
 **Microcopy**
+
 - Empty states: Helpful, actionable
 - Error messages: Specific, with solutions
 - Loading states: Informative
 - Success messages: Brief, positive
 
 **Help & Guidance**
+
 - Contextual tooltips
 - Onboarding for new users
 - In-app documentation links
@@ -239,18 +270,21 @@
 ## Technical Patterns
 
 **State Management**
+
 - TanStack Query for server state
 - Zustand for client state (workspace, notebooks)
 - Local storage for preferences
 - Optimistic updates for better UX
 
 **Data Flow**
+
 - RESTful API endpoints
 - Automatic query invalidation
 - Error boundary fallbacks
 - Retry logic for failed requests
 
 **Component Architecture**
+
 - Radix UI primitives (shadcn/ui)
 - Composition over prop drilling
 - Controlled vs uncontrolled patterns
@@ -265,31 +299,35 @@
 **When receiving architect feedback:**
 
 1. **For PASS responses with "Next Steps":**
+
    - Automatically implement all suggested improvements
    - Do not wait for explicit user request
    - Treat "Next Steps" as required refinements, not optional suggestions
    - Verify implementation matches architect's intent
 
 2. **For FAIL responses:**
+
    - Revert problematic changes
    - Implement corrections as specified
    - Address all failure points before re-proposing
 
 3. **Implementation Priority:**
+
    - Critical bugs: Fix immediately
-   - Security issues: Fix immediately  
+   - Security issues: Fix immediately
    - UX improvements: Implement from architect suggestions
    - Code quality: Apply suggested refactoring
    - Performance: Implement optimization suggestions
 
 4. **Response Pattern:**
+
    ```
    Architect provided these improvements:
    1. [Suggestion 1]
    2. [Suggestion 2]
-   
+
    Implementing these refinements now...
-   
+
    [Propose file changes]
    ```
 
@@ -306,6 +344,7 @@
 **These security measures MUST be implemented and are not optional:**
 
 1. **Application Data Security:**
+
    - All database queries must enforce ownership validation
    - Use parameterized queries exclusively (no raw SQL)
    - Validate all IDs and resource references before database operations
@@ -313,6 +352,7 @@
    - Implement triple-filtering for delete operations (id + userId + notebookId)
 
 2. **Admin Ownership & Data Security:**
+
    - Admin role changes restricted to dedicated admin-only endpoints
    - Prevent self-demotion of last admin user
    - Log all admin privilege changes as CRITICAL security events
@@ -320,6 +360,7 @@
    - Never expose admin status in public API responses
 
 3. **User Data & PII Protection:**
+
    - Limit exposed user fields to: id, email, firstName, lastName, profileImageUrl
    - Never return password hashes, session tokens, or internal IDs in API responses
    - Sanitize user search results (exclude current user, limit fields)
@@ -327,14 +368,16 @@
    - Validate user ownership before exposing any personal data
 
 4. **Input Validation & Sanitization:**
+
    - All inputs must pass through `sanitizeAllInputs` middleware
    - SQL keyword detection and blocking
    - String length limits (10,000 chars max)
    - Array size limits (100 items max)
-   - Prototype pollution prevention (__proto__, constructor, prototype)
+   - Prototype pollution prevention (**proto**, constructor, prototype)
    - XSS prevention using DOMPurify for user-generated HTML
 
 5. **Authentication & Authorization:**
+
    - Block test mode bypass in production environments
    - Validate test user ID format in test environments
    - Check session expiry on every authenticated request
@@ -374,18 +417,18 @@ When a security improvement cannot be implemented due to package.json restrictio
 
 ```css
 /* Spacing */
---space-1: 0.25rem;  /* 4px */
---space-2: 0.5rem;   /* 8px */
---space-3: 0.75rem;  /* 12px */
---space-4: 1rem;     /* 16px */
---space-6: 1.5rem;   /* 24px */
---space-8: 2rem;     /* 32px */
+--space-1: 0.25rem; /* 4px */
+--space-2: 0.5rem; /* 8px */
+--space-3: 0.75rem; /* 12px */
+--space-4: 1rem; /* 16px */
+--space-6: 1.5rem; /* 24px */
+--space-8: 2rem; /* 32px */
 
 /* Border Radius */
---radius-sm: 0.25rem;  /* 4px */
+--radius-sm: 0.25rem; /* 4px */
 --radius-md: 0.375rem; /* 6px */
---radius-lg: 0.5rem;   /* 8px */
---radius-xl: 0.75rem;  /* 12px */
+--radius-lg: 0.5rem; /* 8px */
+--radius-xl: 0.75rem; /* 12px */
 
 /* Shadows */
 --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);

@@ -1,15 +1,30 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useSubscription } from '@/hooks/useSubscription';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
-import { TIER_LIMITS } from '@shared/types/subscription';
-import { CreditCard, ExternalLink, Loader2, Crown, X, CheckCircle2, BarChart3, DollarSign } from 'lucide-react';
-import { Link, useLocation } from 'wouter';
-import { formatDistanceToNow } from 'date-fns';
-import { CancellationSurveyDialog } from './CancellationSurveyDialog';
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { TIER_LIMITS } from "@shared/types/subscription";
+import {
+  CreditCard,
+  ExternalLink,
+  Loader2,
+  Crown,
+  X,
+  CheckCircle2,
+  BarChart3,
+  DollarSign,
+} from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { formatDistanceToNow } from "date-fns";
+import { CancellationSurveyDialog } from "./CancellationSurveyDialog";
 
 export function BillingSettings() {
   const { subscription, isLoading } = useSubscription();
@@ -23,15 +38,19 @@ export function BillingSettings() {
   const handleOpenBillingPortal = async () => {
     setIsPortalLoading(true);
     try {
-      const response = await apiRequest('POST', '/api/stripe/create-portal', {});
+      const response = await apiRequest(
+        "POST",
+        "/api/stripe/create-portal",
+        {},
+      );
       if (response.url) {
         window.location.href = response.url;
       }
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to open billing portal',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to open billing portal",
+        variant: "destructive",
       });
       setIsPortalLoading(false);
     }
@@ -41,22 +60,29 @@ export function BillingSettings() {
     setShowCancellationSurvey(true);
   };
 
-  const handleCancelSubscription = async (reason: string, feedback?: string) => {
+  const handleCancelSubscription = async (
+    reason: string,
+    feedback?: string,
+  ) => {
     setIsCanceling(true);
     try {
-      await apiRequest('POST', '/api/stripe/cancel-subscription', { reason, feedback });
+      await apiRequest("POST", "/api/stripe/cancel-subscription", {
+        reason,
+        feedback,
+      });
       toast({
-        title: 'Subscription canceled',
-        description: 'Your subscription will remain active until the end of your billing period.',
+        title: "Subscription canceled",
+        description:
+          "Your subscription will remain active until the end of your billing period.",
       });
       setShowCancellationSurvey(false);
       // Refresh subscription data
       window.location.reload();
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to cancel subscription',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to cancel subscription",
+        variant: "destructive",
       });
       setIsCanceling(false);
     }
@@ -65,18 +91,18 @@ export function BillingSettings() {
   const handleReactivateSubscription = async () => {
     setIsReactivating(true);
     try {
-      await apiRequest('POST', '/api/stripe/reactivate-subscription', {});
+      await apiRequest("POST", "/api/stripe/reactivate-subscription", {});
       toast({
-        title: 'Subscription reactivated',
-        description: 'Your subscription has been successfully reactivated.',
+        title: "Subscription reactivated",
+        description: "Your subscription has been successfully reactivated.",
       });
       // Refresh subscription data
       window.location.reload();
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to reactivate subscription',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to reactivate subscription",
+        variant: "destructive",
       });
       setIsReactivating(false);
     }
@@ -87,7 +113,9 @@ export function BillingSettings() {
       <Card>
         <CardHeader>
           <CardTitle>Subscription & Billing</CardTitle>
-          <CardDescription>Manage your subscription and payment methods</CardDescription>
+          <CardDescription>
+            Manage your subscription and payment methods
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
@@ -98,10 +126,10 @@ export function BillingSettings() {
     );
   }
 
-  const tierInfo = TIER_LIMITS[subscription?.tier || 'free'];
-  const isFree = subscription?.tier === 'free';
+  const tierInfo = TIER_LIMITS[subscription?.tier || "free"];
+  const isFree = subscription?.tier === "free";
   const isPaid = !isFree && subscription?.stripeSubscriptionId;
-  const isTrialing = subscription?.status === 'trialing';
+  const isTrialing = subscription?.status === "trialing";
   const isCanceled = subscription?.cancelAtPeriodEnd;
 
   // Check if subscription is within 7-day refund window
@@ -109,7 +137,8 @@ export function BillingSettings() {
     if (!subscription?.currentPeriodStart) return false;
     const periodStart = new Date(subscription.currentPeriodStart);
     const now = new Date();
-    const daysSinceStart = (now.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24);
+    const daysSinceStart =
+      (now.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24);
     return daysSinceStart <= 7;
   };
 
@@ -122,10 +151,10 @@ export function BillingSettings() {
     if (isCanceled) {
       return <Badge variant="destructive">Canceling</Badge>;
     }
-    if (subscription?.status === 'active') {
+    if (subscription?.status === "active") {
       return <Badge variant="default">Active</Badge>;
     }
-    if (subscription?.status === 'past_due') {
+    if (subscription?.status === "past_due") {
       return <Badge variant="destructive">Past Due</Badge>;
     }
     return <Badge variant="outline">Free</Badge>;
@@ -135,7 +164,9 @@ export function BillingSettings() {
     <Card>
       <CardHeader>
         <CardTitle>Subscription & Billing</CardTitle>
-        <CardDescription>Manage your subscription and payment methods</CardDescription>
+        <CardDescription>
+          Manage your subscription and payment methods
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Current Plan */}
@@ -147,15 +178,19 @@ export function BillingSettings() {
               {getStatusBadge()}
             </div>
             <p className="text-sm text-muted-foreground">
-              {isFree && 'You are currently on the free plan'}
+              {isFree && "You are currently on the free plan"}
               {isPaid && !isCanceled && `$${tierInfo.price}/month`}
-              {isCanceled && 'Subscription ending soon'}
+              {isCanceled && "Subscription ending soon"}
             </p>
           </div>
           <div className="flex gap-2">
             <Link href="/analytics">
               <a>
-                <Button variant="outline" size="sm" data-testid="button-view-analytics">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  data-testid="button-view-analytics"
+                >
                   <BarChart3 className="h-4 w-4 mr-2" />
                   Analytics
                 </Button>
@@ -164,7 +199,11 @@ export function BillingSettings() {
             {!isFree && (
               <Link href="/pricing">
                 <a>
-                  <Button variant="outline" size="sm" data-testid="button-view-plans">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    data-testid="button-view-plans"
+                  >
                     View Plans
                   </Button>
                 </a>
@@ -181,7 +220,10 @@ export function BillingSettings() {
               <div>
                 <p className="text-sm font-medium">Free trial active</p>
                 <p className="text-sm text-muted-foreground">
-                  Your trial ends {formatDistanceToNow(new Date(subscription.trialEnd), { addSuffix: true })}
+                  Your trial ends{" "}
+                  {formatDistanceToNow(new Date(subscription.trialEnd), {
+                    addSuffix: true,
+                  })}
                 </p>
               </div>
             </div>
@@ -196,7 +238,8 @@ export function BillingSettings() {
               <div>
                 <p className="text-sm font-medium">Subscription ending</p>
                 <p className="text-sm text-muted-foreground">
-                  Access until {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+                  Access until{" "}
+                  {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
                 </p>
               </div>
             </div>
@@ -207,10 +250,30 @@ export function BillingSettings() {
         <div className="space-y-2">
           <h4 className="text-sm font-medium">Plan Features</h4>
           <ul className="space-y-1 text-sm text-muted-foreground">
-            <li>• {tierInfo.maxProjects === null ? 'Unlimited' : tierInfo.maxProjects} projects</li>
-            <li>• {tierInfo.maxNotebooks === null ? 'Unlimited' : tierInfo.maxNotebooks} notebook(s) per project</li>
-            <li>• {tierInfo.aiGenerationsPerDay === null ? 'Unlimited' : tierInfo.aiGenerationsPerDay} AI generations per day</li>
-            {tierInfo.hasCollaboration && <li>• Up to {tierInfo.maxTeamMembers} team members</li>}
+            <li>
+              •{" "}
+              {tierInfo.maxProjects === null
+                ? "Unlimited"
+                : tierInfo.maxProjects}{" "}
+              projects
+            </li>
+            <li>
+              •{" "}
+              {tierInfo.maxNotebooks === null
+                ? "Unlimited"
+                : tierInfo.maxNotebooks}{" "}
+              notebook(s) per project
+            </li>
+            <li>
+              •{" "}
+              {tierInfo.aiGenerationsPerDay === null
+                ? "Unlimited"
+                : tierInfo.aiGenerationsPerDay}{" "}
+              AI generations per day
+            </li>
+            {tierInfo.hasCollaboration && (
+              <li>• Up to {tierInfo.maxTeamMembers} team members</li>
+            )}
             {tierInfo.hasApiAccess && <li>• API access</li>}
             {tierInfo.hasPrioritySupport && <li>• Priority support</li>}
           </ul>
@@ -249,7 +312,7 @@ export function BillingSettings() {
               {showRefundButton && (
                 <Button
                   variant="outline"
-                  onClick={() => setLocation('/refund-request')}
+                  onClick={() => setLocation("/refund-request")}
                   data-testid="button-request-refund"
                 >
                   <DollarSign className="w-4 h-4 mr-2" />
@@ -289,7 +352,8 @@ export function BillingSettings() {
         {/* Billing Portal Note */}
         {isPaid && (
           <p className="text-xs text-muted-foreground">
-            Use the billing portal to update payment methods, view invoices, and manage your subscription details.
+            Use the billing portal to update payment methods, view invoices, and
+            manage your subscription details.
           </p>
         )}
       </CardContent>

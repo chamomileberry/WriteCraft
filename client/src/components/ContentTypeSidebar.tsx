@@ -42,35 +42,37 @@ export default function ContentTypeSidebar({
   items,
   selectedType,
   onSelectType,
-  className
+  className,
 }: ContentTypeSidebarProps) {
-  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
+    new Set(),
+  );
 
   // Group items by content type and category
   const groupedTypes = useMemo(() => {
     const typeMap = new Map<string, number>();
-    
+
     // Count items by type
-    items.forEach(item => {
-      const itemType = item.itemType || item.contentType || 'unknown';
+    items.forEach((item) => {
+      const itemType = item.itemType || item.contentType || "unknown";
       typeMap.set(itemType, (typeMap.get(itemType) || 0) + 1);
     });
 
     // Create grouped structure by category
-    const categoryMap = new Map<string, ContentTypeGroup['types']>();
-    
-    CONTENT_TYPES.forEach(contentType => {
+    const categoryMap = new Map<string, ContentTypeGroup["types"]>();
+
+    CONTENT_TYPES.forEach((contentType) => {
       const count = typeMap.get(contentType.id) || 0;
-      
+
       if (!categoryMap.has(contentType.category)) {
         categoryMap.set(contentType.category, []);
       }
-      
+
       categoryMap.get(contentType.category)!.push({
         id: contentType.id,
         name: contentType.name,
         icon: contentType.icon,
-        count
+        count,
       });
     });
 
@@ -78,7 +80,7 @@ export default function ContentTypeSidebar({
     const groups: ContentTypeGroup[] = Array.from(categoryMap.entries())
       .map(([category, types]) => ({
         category,
-        types: types.sort((a, b) => b.count - a.count) // Sort by count descending
+        types: types.sort((a, b) => b.count - a.count), // Sort by count descending
       }))
       .sort((a, b) => {
         // Calculate total count for each category
@@ -111,7 +113,9 @@ export default function ContentTypeSidebar({
   const totalCount = items.length;
 
   return (
-    <div className={cn("flex flex-col h-full border-r bg-background", className)}>
+    <div
+      className={cn("flex flex-col h-full border-r bg-background", className)}
+    >
       {/* Header */}
       <div className="p-4 border-b">
         <div className="flex items-center justify-between mb-2">
@@ -120,9 +124,7 @@ export default function ContentTypeSidebar({
             {totalCount}
           </Badge>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Filter by content type
-        </p>
+        <p className="text-xs text-muted-foreground">Filter by content type</p>
       </div>
 
       {/* Content Type List */}
@@ -142,10 +144,13 @@ export default function ContentTypeSidebar({
           </Button>
 
           {/* Grouped by Category */}
-          {groupedTypes.map(group => {
-            const categoryTotal = group.types.reduce((sum, t) => sum + t.count, 0);
+          {groupedTypes.map((group) => {
+            const categoryTotal = group.types.reduce(
+              (sum, t) => sum + t.count,
+              0,
+            );
             const isCategoryCollapsed = collapsedCategories.has(group.category);
-            
+
             // Only show categories that have items
             if (categoryTotal === 0) return null;
 
@@ -173,29 +178,32 @@ export default function ContentTypeSidebar({
                 </button>
 
                 {/* Types in Category */}
-                {!isCategoryCollapsed && group.types.map(type => {
-                  if (type.count === 0) return null;
-                  
-                  const Icon = type.icon;
-                  const isSelected = selectedType === type.id;
+                {!isCategoryCollapsed &&
+                  group.types.map((type) => {
+                    if (type.count === 0) return null;
 
-                  return (
-                    <div key={type.id} className="ml-4">
-                      <Button
-                        variant={isSelected ? "secondary" : "ghost"}
-                        className="w-full justify-start h-auto py-1.5 px-2"
-                        onClick={() => handleTypeClick(type.id)}
-                        data-testid={`button-type-${type.id}`}
-                      >
-                        <Icon className="h-4 w-4 mr-2 flex-shrink-0" />
-                        <span className="text-sm flex-1 text-left truncate">{type.name}</span>
-                        <Badge variant="secondary" className="ml-2 text-xs">
-                          {type.count}
-                        </Badge>
-                      </Button>
-                    </div>
-                  );
-                })}
+                    const Icon = type.icon;
+                    const isSelected = selectedType === type.id;
+
+                    return (
+                      <div key={type.id} className="ml-4">
+                        <Button
+                          variant={isSelected ? "secondary" : "ghost"}
+                          className="w-full justify-start h-auto py-1.5 px-2"
+                          onClick={() => handleTypeClick(type.id)}
+                          data-testid={`button-type-${type.id}`}
+                        >
+                          <Icon className="h-4 w-4 mr-2 flex-shrink-0" />
+                          <span className="text-sm flex-1 text-left truncate">
+                            {type.name}
+                          </span>
+                          <Badge variant="secondary" className="ml-2 text-xs">
+                            {type.count}
+                          </Badge>
+                        </Button>
+                      </div>
+                    );
+                  })}
               </div>
             );
           })}

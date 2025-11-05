@@ -8,19 +8,19 @@ export function BetaBanner() {
 
   // Fetch user preferences to check if beta banner was dismissed
   const { data: preferences } = useQuery<any>({
-    queryKey: ['/api/user/preferences'],
+    queryKey: ["/api/user/preferences"],
   });
 
   // Mutation to update preferences when dismissing banner
   const { mutate: updatePreferences } = useMutation({
     mutationFn: async () => {
-      const res = await fetch('/api/user/preferences', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+      const res = await fetch("/api/user/preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ betaBannerDismissed: true }),
       });
-      if (!res.ok) throw new Error('Failed to update preferences');
+      if (!res.ok) throw new Error("Failed to update preferences");
       return res.json();
     },
   });
@@ -31,7 +31,7 @@ export function BetaBanner() {
   };
 
   // Hide if already dismissed or preferences loaded and user dismissed it
-  if (isDismissed || (preferences?.betaBannerDismissed)) {
+  if (isDismissed || preferences?.betaBannerDismissed) {
     return null;
   }
 
@@ -45,9 +45,13 @@ export function BetaBanner() {
               Welcome to WriteCraft Beta!
             </p>
             <p className="text-sm text-amber-800 dark:text-amber-200 mt-1">
-              WriteCraft is currently in beta. You may encounter bugs or experience changes to features as we improve the application.
-              We appreciate your patience and feedback.{' '}
-              <a href="/feedback" className="underline font-semibold hover:no-underline">
+              WriteCraft is currently in beta. You may encounter bugs or
+              experience changes to features as we improve the application. We
+              appreciate your patience and feedback.{" "}
+              <a
+                href="/feedback"
+                className="underline font-semibold hover:no-underline"
+              >
                 Report issues here
               </a>
             </p>

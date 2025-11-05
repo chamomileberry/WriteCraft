@@ -7,26 +7,68 @@ import { FormField } from "@/components/forms/types";
 
 // Genre options array - reused across many content types
 export const GENRE_OPTIONS = [
-  "Fantasy", "Science Fiction", "Literary Fiction", "Mystery", "Romance", 
-  "Thriller", "Horror", "Historical Fiction", "Contemporary Fiction", "Crime", 
-  "Adventure", "Western", "Dystopian", "Post-Apocalyptic", "Steampunk", 
-  "Cyberpunk", "Space Opera", "Urban Fantasy", "Paranormal Romance", 
-  "Cozy Mystery", "Hard Boiled", "Young Adult", "Children's", "Comedy", 
-  "Satire", "Drama", "Political Fiction", "Magical Realism", "Gothic", 
-  "Noir", "Superhero", "Military", "Espionage", "Techno-Thriller", 
-  "Medical Thriller", "Legal Thriller", "Psychological Thriller", 
-  "Biographical Fiction", "Alternate History", "Time Travel", 
-  "Fairy Tale Retelling", "Mythology", "Folklore", "Other"
+  "Fantasy",
+  "Science Fiction",
+  "Literary Fiction",
+  "Mystery",
+  "Romance",
+  "Thriller",
+  "Horror",
+  "Historical Fiction",
+  "Contemporary Fiction",
+  "Crime",
+  "Adventure",
+  "Western",
+  "Dystopian",
+  "Post-Apocalyptic",
+  "Steampunk",
+  "Cyberpunk",
+  "Space Opera",
+  "Urban Fantasy",
+  "Paranormal Romance",
+  "Cozy Mystery",
+  "Hard Boiled",
+  "Young Adult",
+  "Children's",
+  "Comedy",
+  "Satire",
+  "Drama",
+  "Political Fiction",
+  "Magical Realism",
+  "Gothic",
+  "Noir",
+  "Superhero",
+  "Military",
+  "Espionage",
+  "Techno-Thriller",
+  "Medical Thriller",
+  "Legal Thriller",
+  "Psychological Thriller",
+  "Biographical Fiction",
+  "Alternate History",
+  "Time Travel",
+  "Fairy Tale Retelling",
+  "Mythology",
+  "Folklore",
+  "Other",
 ];
 
 // Rarity options - commonly used for items, weapons, artifacts
 export const RARITY_OPTIONS = [
-  "Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact"
+  "Common",
+  "Uncommon",
+  "Rare",
+  "Very Rare",
+  "Legendary",
+  "Artifact",
 ];
 
 // Difficulty levels - used in guides and various content
 export const DIFFICULTY_OPTIONS = [
-  "Beginner", "Intermediate", "Advanced", "Expert"
+  "Beginner",
+  "Intermediate",
+  "Advanced",
+  "Expert",
 ];
 
 /**
@@ -35,12 +77,12 @@ export const DIFFICULTY_OPTIONS = [
 
 /**
  * Creates a standard name field
- * @param contentType - The type of content (e.g., "weapon", "character") 
+ * @param contentType - The type of content (e.g., "weapon", "character")
  * @param options - Optional overrides for placeholder, description, etc.
  */
 export function createNameField(
-  contentType: string, 
-  options: Partial<FormField> = {}
+  contentType: string,
+  options: Partial<FormField> = {},
 ): FormField {
   return {
     name: "name",
@@ -49,7 +91,7 @@ export function createNameField(
     placeholder: `Enter ${contentType} name...`,
     description: `The name of this ${contentType}`,
     required: true,
-    ...options
+    ...options,
   };
 }
 
@@ -60,15 +102,15 @@ export function createNameField(
  */
 export function createDescriptionField(
   contentType: string,
-  options: Partial<FormField> = {}
+  options: Partial<FormField> = {},
 ): FormField {
   return {
     name: "description",
     label: "Description",
-    type: "textarea", 
+    type: "textarea",
     placeholder: `Detailed description of the ${contentType}...`,
     description: `What does this ${contentType} look like and how does it function?`,
-    ...options
+    ...options,
   };
 }
 
@@ -79,12 +121,13 @@ export function createDescriptionField(
 export function createGenreField(options: Partial<FormField> = {}): FormField {
   return {
     name: "genre",
-    label: "Genre", 
+    label: "Genre",
     type: "select",
     options: GENRE_OPTIONS,
     placeholder: "Select genre (optional)",
-    description: "The genre or setting type this fits into - helps with AI generation and thematic consistency",
-    ...options
+    description:
+      "The genre or setting type this fits into - helps with AI generation and thematic consistency",
+    ...options,
   };
 }
 
@@ -95,7 +138,7 @@ export function createGenreField(options: Partial<FormField> = {}): FormField {
  */
 export function createHistoryField(
   contentType: string,
-  options: Partial<FormField> = {}
+  options: Partial<FormField> = {},
 ): FormField {
   return {
     name: "history",
@@ -103,7 +146,7 @@ export function createHistoryField(
     type: "textarea",
     placeholder: `The ${contentType}'s origin story and past...`,
     description: `The background and historical significance of this ${contentType}`,
-    ...options
+    ...options,
   };
 }
 
@@ -119,7 +162,7 @@ export function createRarityField(options: Partial<FormField> = {}): FormField {
     options: RARITY_OPTIONS,
     placeholder: "Select rarity",
     description: "How rare and valuable this item is",
-    ...options
+    ...options,
   };
 }
 
@@ -134,7 +177,7 @@ export function createValueField(options: Partial<FormField> = {}): FormField {
     type: "text",
     placeholder: "500 gold, priceless, etc.",
     description: "The monetary or cultural value",
-    ...options
+    ...options,
   };
 }
 
@@ -142,14 +185,16 @@ export function createValueField(options: Partial<FormField> = {}): FormField {
  * Creates a standard materials field (tags)
  * @param options - Optional overrides
  */
-export function createMaterialsField(options: Partial<FormField> = {}): FormField {
+export function createMaterialsField(
+  options: Partial<FormField> = {},
+): FormField {
   return {
     name: "materials",
     label: "Materials",
     type: "tags",
     placeholder: "steel, wood, leather...",
     description: "Materials used in construction (comma-separated)",
-    ...options
+    ...options,
   };
 }
 
@@ -162,7 +207,7 @@ export function createMaterialsField(options: Partial<FormField> = {}): FormFiel
 export function createTypeField(
   contentType: string,
   typeOptions: string[],
-  options: Partial<FormField> = {}
+  options: Partial<FormField> = {},
 ): FormField {
   return {
     name: `${contentType}Type`,
@@ -171,7 +216,7 @@ export function createTypeField(
     options: typeOptions,
     placeholder: `Select ${contentType} type`,
     description: `What type of ${contentType} is this?`,
-    ...options
+    ...options,
   };
 }
 
@@ -182,11 +227,14 @@ export function createTypeField(
 /**
  * Basic info fields common to most content types
  */
-export function createBasicInfoFields(contentType: string, typeOptions?: string[]): FormField[] {
+export function createBasicInfoFields(
+  contentType: string,
+  typeOptions?: string[],
+): FormField[] {
   const fields = [
     createNameField(contentType),
     createDescriptionField(contentType),
-    createGenreField()
+    createGenreField(),
   ];
 
   if (typeOptions) {
@@ -200,10 +248,7 @@ export function createBasicInfoFields(contentType: string, typeOptions?: string[
  * Value and rarity fields for items/objects
  */
 export function createValueFields(): FormField[] {
-  return [
-    createRarityField(),
-    createValueField()
-  ];
+  return [createRarityField(), createValueField()];
 }
 
 /**
@@ -217,15 +262,15 @@ export function createPhysicalFields(contentType: string): FormField[] {
       label: "Craftsmanship",
       type: "text",
       placeholder: "Masterwork, crude, ornate, etc.",
-      description: "The quality and style of construction"
+      description: "The quality and style of construction",
     },
     {
       name: "weight",
       label: "Weight",
-      type: "text", 
+      type: "text",
       placeholder: "3 lbs, heavy, light, etc.",
-      description: "How much this weighs"
-    }
+      description: "How much this weighs",
+    },
   ];
 }
 
@@ -240,23 +285,23 @@ export function createRelationshipFields(): FormField[] {
       type: "autocomplete-character",
       placeholder: "Search or create creator...",
       description: "Who created or invented this",
-      multiple: false
+      multiple: false,
     },
     {
       name: "owner",
       label: "Current Owner",
-      type: "autocomplete-character", 
+      type: "autocomplete-character",
       placeholder: "Search or create owner...",
       description: "Who currently owns or controls this",
-      multiple: false
+      multiple: false,
     },
     {
       name: "location",
       label: "Current Location",
       type: "autocomplete-location",
-      placeholder: "Search or create location...", 
+      placeholder: "Search or create location...",
       description: "Where this is currently located",
-      multiple: false
-    }
+      multiple: false,
+    },
   ];
 }

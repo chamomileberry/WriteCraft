@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, KeyboardEvent } from 'react';
-import { Input } from '@/components/ui/input';
+import { useState, useRef, useEffect, KeyboardEvent } from "react";
+import { Input } from "@/components/ui/input";
 
 interface EditableTitleProps {
   title: string;
@@ -8,7 +8,12 @@ interface EditableTitleProps {
   placeholder?: string;
 }
 
-export function EditableTitle({ title, onTitleChange, className = '', placeholder = 'Untitled' }: EditableTitleProps) {
+export function EditableTitle({
+  title,
+  onTitleChange,
+  className = "",
+  placeholder = "Untitled",
+}: EditableTitleProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(title);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -37,10 +42,10 @@ export function EditableTitle({ title, onTitleChange, className = '', placeholde
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleSave();
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       setEditValue(title);
       setIsEditing(false);
     }

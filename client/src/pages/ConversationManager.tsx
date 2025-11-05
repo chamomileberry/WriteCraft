@@ -1,20 +1,20 @@
-import { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/useAuth';
-import { queryClient, apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-import { useLocation } from 'wouter';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -22,9 +22,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   MessageSquare,
   Search,
@@ -35,10 +35,10 @@ import {
   MessageSquarePlus,
   Filter,
   GitBranch,
-  Clock
-} from 'lucide-react';
-import { format } from 'date-fns';
-import { analytics, EVENTS } from '@/lib/posthog';
+  Clock,
+} from "lucide-react";
+import { format } from "date-fns";
+import { analytics, EVENTS } from "@/lib/posthog";
 
 interface ConversationThread {
   id: string;
@@ -58,30 +58,42 @@ export default function ConversationManager() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'archived'>('all');
-  const [selectedThreadForRename, setSelectedThreadForRename] = useState<ConversationThread | null>(null);
-  const [newThreadTitle, setNewThreadTitle] = useState('');
-  const [selectedThreadForDelete, setSelectedThreadForDelete] = useState<ConversationThread | null>(null);
-  const [selectedThreadForBranch, setSelectedThreadForBranch] = useState<ConversationThread | null>(null);
-  const [branchThreadTitle, setBranchThreadTitle] = useState('');
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState<
+    "all" | "active" | "archived"
+  >("all");
+  const [selectedThreadForRename, setSelectedThreadForRename] =
+    useState<ConversationThread | null>(null);
+  const [newThreadTitle, setNewThreadTitle] = useState("");
+  const [selectedThreadForDelete, setSelectedThreadForDelete] =
+    useState<ConversationThread | null>(null);
+  const [selectedThreadForBranch, setSelectedThreadForBranch] =
+    useState<ConversationThread | null>(null);
+  const [branchThreadTitle, setBranchThreadTitle] = useState("");
 
   // Fetch all threads for user (when no search query)
-  const { data: allThreads = [], isLoading: isLoadingAll } = useQuery<ConversationThread[]>({
-    queryKey: ['/api/conversation-threads', filterStatus],
+  const { data: allThreads = [], isLoading: isLoadingAll } = useQuery<
+    ConversationThread[]
+  >({
+    queryKey: ["/api/conversation-threads", filterStatus],
     enabled: !!user && !searchQuery,
   });
 
   // Search threads (when search query exists)
-  const { data: searchResults = [], isLoading: isSearching } = useQuery<ConversationThread[]>({
-    queryKey: ['/api/conversation-threads/search', searchQuery],
+  const { data: searchResults = [], isLoading: isSearching } = useQuery<
+    ConversationThread[]
+  >({
+    queryKey: ["/api/conversation-threads/search", searchQuery],
     queryFn: async () => {
       const params = new URLSearchParams({ query: searchQuery });
-      const response = await fetch(`/api/conversation-threads/search?${params}`, {
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Search failed');
+      const response = await fetch(
+        `/api/conversation-threads/search?${params}`,
+        {
+          credentials: "include",
+        },
+      );
+      if (!response.ok) throw new Error("Search failed");
       return response.json();
     },
     enabled: !!user && !!searchQuery,
@@ -92,34 +104,44 @@ export default function ConversationManager() {
 
   // Filter threads based on status only (search is handled by backend)
   const filteredThreads = threads
-    .filter(thread => {
+    .filter((thread) => {
       // Filter by status
-      if (filterStatus === 'active' && !thread.isActive) return false;
-      if (filterStatus === 'archived' && thread.isActive) return false;
+      if (filterStatus === "active" && !thread.isActive) return false;
+      if (filterStatus === "archived" && thread.isActive) return false;
       return true;
     })
-    .sort((a, b) => new Date(b.lastActivityAt).getTime() - new Date(a.lastActivityAt).getTime());
+    .sort(
+      (a, b) =>
+        new Date(b.lastActivityAt).getTime() -
+        new Date(a.lastActivityAt).getTime(),
+    );
 
   // Archive/unarchive thread mutation
   const toggleArchiveMutation = useMutation({
     mutationFn: async (thread: ConversationThread) => {
-      const response = await apiRequest('PUT', `/api/conversation-threads/${thread.id}`, {
-        isActive: !thread.isActive
-      });
+      const response = await apiRequest(
+        "PUT",
+        `/api/conversation-threads/${thread.id}`,
+        {
+          isActive: !thread.isActive,
+        },
+      );
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/conversation-threads'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversation-threads"],
+      });
       toast({
-        title: 'Thread updated',
-        description: 'Conversation status updated successfully.',
+        title: "Thread updated",
+        description: "Conversation status updated successfully.",
       });
     },
     onError: () => {
       toast({
-        title: 'Error',
-        description: 'Failed to update conversation status.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to update conversation status.",
+        variant: "destructive",
       });
     },
   });
@@ -127,23 +149,29 @@ export default function ConversationManager() {
   // Rename thread mutation
   const renameMutation = useMutation({
     mutationFn: async ({ id, title }: { id: string; title: string }) => {
-      const response = await apiRequest('PUT', `/api/conversation-threads/${id}`, { title });
+      const response = await apiRequest(
+        "PUT",
+        `/api/conversation-threads/${id}`,
+        { title },
+      );
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/conversation-threads'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversation-threads"],
+      });
       setSelectedThreadForRename(null);
-      setNewThreadTitle('');
+      setNewThreadTitle("");
       toast({
-        title: 'Thread renamed',
-        description: 'Conversation title updated successfully.',
+        title: "Thread renamed",
+        description: "Conversation title updated successfully.",
       });
     },
     onError: () => {
       toast({
-        title: 'Error',
-        description: 'Failed to rename conversation.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to rename conversation.",
+        variant: "destructive",
       });
     },
   });
@@ -151,48 +179,65 @@ export default function ConversationManager() {
   // Delete thread mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest('DELETE', `/api/conversation-threads/${id}`);
+      const response = await apiRequest(
+        "DELETE",
+        `/api/conversation-threads/${id}`,
+      );
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/conversation-threads'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversation-threads"],
+      });
       setSelectedThreadForDelete(null);
       toast({
-        title: 'Thread deleted',
-        description: 'Conversation deleted successfully.',
+        title: "Thread deleted",
+        description: "Conversation deleted successfully.",
       });
     },
     onError: () => {
       toast({
-        title: 'Error',
-        description: 'Failed to delete conversation.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to delete conversation.",
+        variant: "destructive",
       });
     },
   });
 
   // Branch thread mutation
   const branchMutation = useMutation({
-    mutationFn: async ({ parentId, title }: { parentId: string; title: string }) => {
-      const response = await apiRequest('POST', `/api/conversation-threads/${parentId}/branch`, { title });
+    mutationFn: async ({
+      parentId,
+      title,
+    }: {
+      parentId: string;
+      title: string;
+    }) => {
+      const response = await apiRequest(
+        "POST",
+        `/api/conversation-threads/${parentId}/branch`,
+        { title },
+      );
       return response.json();
     },
     onSuccess: (newThread) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/conversation-threads'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/conversation-threads"],
+      });
       setSelectedThreadForBranch(null);
-      setBranchThreadTitle('');
+      setBranchThreadTitle("");
       toast({
-        title: 'Branch created',
-        description: 'New conversation branch created successfully.',
+        title: "Branch created",
+        description: "New conversation branch created successfully.",
       });
       // Navigate to the new branched thread
       handleOpenThread(newThread);
     },
     onError: () => {
       toast({
-        title: 'Error',
-        description: 'Failed to create conversation branch.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to create conversation branch.",
+        variant: "destructive",
       });
     },
   });
@@ -204,10 +249,12 @@ export default function ConversationManager() {
       has_project: !!thread.projectId,
       has_guide: !!thread.guideId,
     });
-    
+
     // Navigate to workspace with thread ID in URL
     if (thread.projectId) {
-      setLocation(`/workspace/project/${thread.projectId}?threadId=${thread.id}`);
+      setLocation(
+        `/workspace/project/${thread.projectId}?threadId=${thread.id}`,
+      );
     } else if (thread.guideId) {
       setLocation(`/workspace/guide/${thread.guideId}?threadId=${thread.id}`);
     } else {
@@ -222,7 +269,10 @@ export default function ConversationManager() {
 
   const handleRenameSubmit = () => {
     if (selectedThreadForRename && newThreadTitle.trim()) {
-      renameMutation.mutate({ id: selectedThreadForRename.id, title: newThreadTitle.trim() });
+      renameMutation.mutate({
+        id: selectedThreadForRename.id,
+        title: newThreadTitle.trim(),
+      });
     }
   };
 
@@ -243,14 +293,19 @@ export default function ConversationManager() {
 
   const handleBranchSubmit = () => {
     if (selectedThreadForBranch && branchThreadTitle.trim()) {
-      branchMutation.mutate({ parentId: selectedThreadForBranch.id, title: branchThreadTitle.trim() });
+      branchMutation.mutate({
+        parentId: selectedThreadForBranch.id,
+        title: branchThreadTitle.trim(),
+      });
     }
   };
 
   if (!user) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p className="text-muted-foreground">Please log in to view your conversations.</p>
+        <p className="text-muted-foreground">
+          Please log in to view your conversations.
+        </p>
       </div>
     );
   }
@@ -276,8 +331,14 @@ export default function ConversationManager() {
             className="pl-10"
           />
         </div>
-        <Select value={filterStatus} onValueChange={(value: any) => setFilterStatus(value)}>
-          <SelectTrigger data-testid="select-filter-status" className="w-full sm:w-48">
+        <Select
+          value={filterStatus}
+          onValueChange={(value: any) => setFilterStatus(value)}
+        >
+          <SelectTrigger
+            data-testid="select-filter-status"
+            className="w-full sm:w-48"
+          >
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
@@ -299,16 +360,16 @@ export default function ConversationManager() {
             <MessageSquare className="h-12 w-12 text-muted-foreground mb-3" />
             <p className="text-muted-foreground mb-1">No conversations found</p>
             <p className="text-sm text-muted-foreground">
-              {searchQuery 
-                ? 'Try adjusting your search filters' 
-                : 'Start a conversation in the Writing Assistant to begin'}
+              {searchQuery
+                ? "Try adjusting your search filters"
+                : "Start a conversation in the Writing Assistant to begin"}
             </p>
           </div>
         ) : (
           <div className="space-y-3">
             {filteredThreads.map((thread) => (
-              <Card 
-                key={thread.id} 
+              <Card
+                key={thread.id}
                 className="hover-elevate cursor-pointer"
                 data-testid={`card-thread-${thread.id}`}
                 onClick={() => handleOpenThread(thread)}
@@ -318,7 +379,10 @@ export default function ConversationManager() {
                     <div className="flex-1 min-w-0">
                       <CardTitle className="text-lg flex items-center gap-2 mb-1">
                         <MessageSquare className="h-4 w-4 flex-shrink-0" />
-                        <span className="truncate" data-testid={`text-thread-title-${thread.id}`}>
+                        <span
+                          className="truncate"
+                          data-testid={`text-thread-title-${thread.id}`}
+                        >
                           {thread.title}
                         </span>
                         {thread.parentThreadId && (
@@ -331,8 +395,8 @@ export default function ConversationManager() {
                         </p>
                       )}
                     </div>
-                    <Badge variant={thread.isActive ? 'default' : 'secondary'}>
-                      {thread.isActive ? 'Active' : 'Archived'}
+                    <Badge variant={thread.isActive ? "default" : "secondary"}>
+                      {thread.isActive ? "Active" : "Archived"}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -341,7 +405,11 @@ export default function ConversationManager() {
                     {thread.tags && thread.tags.length > 0 && (
                       <>
                         {thread.tags.slice(0, 5).map((tag, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
+                          <Badge
+                            key={idx}
+                            variant="outline"
+                            className="text-xs"
+                          >
                             {tag}
                           </Badge>
                         ))}
@@ -361,10 +429,13 @@ export default function ConversationManager() {
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {format(new Date(thread.lastActivityAt), 'MMM d, yyyy')}
+                        {format(new Date(thread.lastActivityAt), "MMM d, yyyy")}
                       </span>
                     </div>
-                    <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      className="flex gap-1"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Button
                         data-testid={`button-branch-${thread.id}`}
                         variant="ghost"
@@ -415,7 +486,10 @@ export default function ConversationManager() {
       </ScrollArea>
 
       {/* Rename Dialog */}
-      <Dialog open={!!selectedThreadForRename} onOpenChange={(open) => !open && setSelectedThreadForRename(null)}>
+      <Dialog
+        open={!!selectedThreadForRename}
+        onOpenChange={(open) => !open && setSelectedThreadForRename(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Rename Conversation</DialogTitle>
@@ -453,12 +527,18 @@ export default function ConversationManager() {
       </Dialog>
 
       {/* Branch Conversation Dialog */}
-      <Dialog open={!!selectedThreadForBranch} onOpenChange={(open) => !open && setSelectedThreadForBranch(null)}>
+      <Dialog
+        open={!!selectedThreadForBranch}
+        onOpenChange={(open) => !open && setSelectedThreadForBranch(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Branch Conversation</DialogTitle>
             <DialogDescription>
-              Create a new conversation thread branching from "{selectedThreadForBranch?.title}". The new branch will start with the same context but allow you to explore different narrative directions.
+              Create a new conversation thread branching from "
+              {selectedThreadForBranch?.title}". The new branch will start with
+              the same context but allow you to explore different narrative
+              directions.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
@@ -491,12 +571,17 @@ export default function ConversationManager() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={!!selectedThreadForDelete} onOpenChange={(open) => !open && setSelectedThreadForDelete(null)}>
+      <Dialog
+        open={!!selectedThreadForDelete}
+        onOpenChange={(open) => !open && setSelectedThreadForDelete(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Conversation</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{selectedThreadForDelete?.title}"? This action cannot be undone and will delete all messages in this conversation.
+              Are you sure you want to delete "{selectedThreadForDelete?.title}
+              "? This action cannot be undone and will delete all messages in
+              this conversation.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

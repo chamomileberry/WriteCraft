@@ -10,31 +10,40 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.body.notebookId;
-    
+
     // Validate notebook ownership before allowing write
     if (notebookId) {
-      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, userId);
+      const ownsNotebook = await storage.validateNotebookOwnership(
+        notebookId,
+        userId,
+      );
       if (!ownsNotebook) {
-        console.warn(`[Security] Unauthorized natural-law access attempt - userId: ${userId}, notebookId: ${notebookId}`);
-        return res.status(404).json({ error: 'Natural law not found' });
+        console.warn(
+          `[Security] Unauthorized natural-law access attempt - userId: ${userId}, notebookId: ${notebookId}`,
+        );
+        return res.status(404).json({ error: "Natural law not found" });
       }
     }
-    
+
     const validatedNaturalLaw = insertNaturalLawSchema.parse(req.body);
     const savedNaturalLaw = await storage.createNaturalLaw(validatedNaturalLaw);
     res.json(savedNaturalLaw);
   } catch (error) {
-    console.error('Error saving natural law:', error);
+    console.error("Error saving natural law:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const naturalLawId = req.body.id || 'unknown';
-      console.warn(`[Security] Unauthorized natural-law operation - userId: ${userId}, naturalLawId: ${naturalLawId}`);
-      return res.status(404).json({ error: 'Not found' });
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const naturalLawId = req.body.id || "unknown";
+      console.warn(
+        `[Security] Unauthorized natural-law operation - userId: ${userId}, naturalLawId: ${naturalLawId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to save natural law' });
+    res.status(500).json({ error: "Failed to save natural law" });
   }
 });
 
@@ -42,16 +51,18 @@ router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     const naturalLaws = await storage.getUserNaturalLaws(userId, notebookId);
     res.json(naturalLaws);
   } catch (error) {
-    console.error('Error fetching natural laws:', error);
-    res.status(500).json({ error: 'Failed to fetch natural laws' });
+    console.error("Error fetching natural laws:", error);
+    res.status(500).json({ error: "Failed to fetch natural laws" });
   }
 });
 
@@ -59,19 +70,25 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
-    const naturalLaw = await storage.getNaturalLaw(req.params.id, userId, notebookId);
+
+    const naturalLaw = await storage.getNaturalLaw(
+      req.params.id,
+      userId,
+      notebookId,
+    );
     if (!naturalLaw) {
-      return res.status(404).json({ error: 'Natural law not found' });
+      return res.status(404).json({ error: "Natural law not found" });
     }
     res.json(naturalLaw);
   } catch (error) {
-    console.error('Error fetching natural law:', error);
-    res.status(500).json({ error: 'Failed to fetch natural law' });
+    console.error("Error fetching natural law:", error);
+    res.status(500).json({ error: "Failed to fetch natural law" });
   }
 });
 
@@ -79,19 +96,28 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const validatedUpdates = insertNaturalLawSchema.parse(req.body);
-    const updatedNaturalLaw = await storage.updateNaturalLaw(req.params.id, userId, validatedUpdates);
+    const updatedNaturalLaw = await storage.updateNaturalLaw(
+      req.params.id,
+      userId,
+      validatedUpdates,
+    );
     res.json(updatedNaturalLaw);
   } catch (error) {
-    console.error('Error updating natural law:', error);
+    console.error("Error updating natural law:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const naturalLawId = req.params.id || 'unknown';
-      console.warn(`[Security] Unauthorized natural-law operation - userId: ${userId}, naturalLawId: ${naturalLawId}`);
-      return res.status(404).json({ error: 'Not found' });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const naturalLawId = req.params.id || "unknown";
+      console.warn(
+        `[Security] Unauthorized natural-law operation - userId: ${userId}, naturalLawId: ${naturalLawId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
     res.status(500).json({ error: errorMessage });
   }
@@ -103,14 +129,16 @@ router.delete("/:id", writeRateLimiter, async (req: any, res) => {
     await storage.deleteNaturalLaw(req.params.id, userId);
     res.json({ success: true });
   } catch (error) {
-    console.error('Error deleting natural law:', error);
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const naturalLawId = req.params.id || 'unknown';
-      console.warn(`[Security] Unauthorized natural-law operation - userId: ${userId}, naturalLawId: ${naturalLawId}`);
-      return res.status(404).json({ error: 'Not found' });
+    console.error("Error deleting natural law:", error);
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const naturalLawId = req.params.id || "unknown";
+      console.warn(
+        `[Security] Unauthorized natural-law operation - userId: ${userId}, naturalLawId: ${naturalLawId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to delete natural law' });
+    res.status(500).json({ error: "Failed to delete natural law" });
   }
 });
 

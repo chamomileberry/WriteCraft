@@ -68,17 +68,30 @@ interface PremiumQuota {
 }
 
 export function useSubscription() {
-  const { data: subscription, isLoading, error, refetch } = useQuery<UserSubscriptionData>({
+  const {
+    data: subscription,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery<UserSubscriptionData>({
     queryKey: ["/api/subscription"],
     retry: 1,
   });
 
-  const { data: status, isLoading: isLoadingStatus, refetch: refetchStatus } = useQuery<SubscriptionStatus>({
+  const {
+    data: status,
+    isLoading: isLoadingStatus,
+    refetch: refetchStatus,
+  } = useQuery<SubscriptionStatus>({
     queryKey: ["/api/subscription/status"],
     retry: 1,
   });
 
-  const { data: premiumQuota, isLoading: isLoadingQuota, refetch: refetchPremiumQuota } = useQuery<PremiumQuota>({
+  const {
+    data: premiumQuota,
+    isLoading: isLoadingQuota,
+    refetch: refetchPremiumQuota,
+  } = useQuery<PremiumQuota>({
     queryKey: ["/api/subscription/premium-quota"],
     retry: 1,
   });
@@ -89,7 +102,11 @@ export function useSubscription() {
    */
   const checkLimitMutation = useMutation({
     mutationFn: async (action: string) => {
-      const response = await apiRequest("POST", "/api/subscription/check-limit", { action });
+      const response = await apiRequest(
+        "POST",
+        "/api/subscription/check-limit",
+        { action },
+      );
       return response.json() as Promise<LimitCheckResult>;
     },
   });
@@ -99,15 +116,17 @@ export function useSubscription() {
    * ONLY use for: collaboration, api_access, priority_support
    * DO NOT use for count-based limits - use checkLimit() instead
    */
-  const hasFeature = (feature: 'collaboration' | 'api_access' | 'priority_support'): boolean => {
+  const hasFeature = (
+    feature: "collaboration" | "api_access" | "priority_support",
+  ): boolean => {
     if (!subscription) return false;
 
     switch (feature) {
-      case 'collaboration':
+      case "collaboration":
         return subscription.limits.hasCollaboration;
-      case 'api_access':
+      case "api_access":
         return subscription.limits.hasApiAccess;
-      case 'priority_support':
+      case "priority_support":
         return subscription.limits.hasPrioritySupport;
     }
   };
@@ -116,7 +135,7 @@ export function useSubscription() {
    * Check if user can perform an action (calls server API)
    * MUST be used for count-based limits: 'create_project', 'create_notebook', 'ai_generation'
    * Returns a promise that resolves to { allowed: boolean, reason?: string }
-   * 
+   *
    * @example
    * const result = await checkLimit('create_project');
    * if (!result.allowed) {
@@ -131,12 +150,17 @@ export function useSubscription() {
   /**
    * Store last limit check result for caching
    */
-  const [lastLimitCheck, setLastLimitCheck] = useState<{ action: string; result: LimitCheckResult } | null>(null);
+  const [lastLimitCheck, setLastLimitCheck] = useState<{
+    action: string;
+    result: LimitCheckResult;
+  } | null>(null);
 
   /**
    * Check limit with caching
    */
-  const checkLimitWithCache = async (action: string): Promise<LimitCheckResult> => {
+  const checkLimitWithCache = async (
+    action: string,
+  ): Promise<LimitCheckResult> => {
     const result = await checkLimitMutation.mutateAsync(action);
     setLastLimitCheck({ action, result });
     return result;
@@ -146,28 +170,30 @@ export function useSubscription() {
    * Get the maximum limit for a resource (for display purposes)
    * Does NOT include current usage - use checkLimit() for actual validation
    */
-  const getMaxLimit = (resource: 'projects' | 'notebooks' | 'ai_generations'): { max: number | null; unlimited: boolean } => {
+  const getMaxLimit = (
+    resource: "projects" | "notebooks" | "ai_generations",
+  ): { max: number | null; unlimited: boolean } => {
     if (!subscription) {
       return { max: 0, unlimited: false };
     }
 
     const limits = subscription.limits;
-    
+
     switch (resource) {
-      case 'projects':
+      case "projects":
         return {
           max: limits.maxProjects,
-          unlimited: limits.maxProjects === null
+          unlimited: limits.maxProjects === null,
         };
-      case 'notebooks':
+      case "notebooks":
         return {
           max: limits.maxNotebooks,
-          unlimited: limits.maxNotebooks === null
+          unlimited: limits.maxNotebooks === null,
         };
-      case 'ai_generations':
+      case "ai_generations":
         return {
           max: limits.aiGenerationsPerDay,
-          unlimited: limits.aiGenerationsPerDay === null
+          unlimited: limits.aiGenerationsPerDay === null,
         };
     }
   };
@@ -177,8 +203,8 @@ export function useSubscription() {
    * Uses effectiveTier to respect paused subscriptions
    */
   const hasPremiumAccess = (): boolean => {
-    const effective = status?.effectiveTier || subscription?.tier || 'free';
-    return effective === 'professional' || effective === 'team';
+    const effective = status?.effectiveTier || subscription?.tier || "free";
+    return effective === "professional" || effective === "team";
   };
 
   return {
@@ -191,17 +217,17 @@ export function useSubscription() {
       refetchStatus();
       refetchPremiumQuota();
     },
-    tier: subscription?.tier || 'free',
-    effectiveTier: status?.effectiveTier || subscription?.tier || 'free',
+    tier: subscription?.tier || "free",
+    effectiveTier: status?.effectiveTier || subscription?.tier || "free",
     limits: subscription?.limits,
-    
+
     // Status data (comprehensive)
     status,
     usage: status?.usage,
     limitsExceeded: status?.limitsExceeded,
     warnings: status?.warnings || [],
     isPaused: status?.isPaused || false,
-    
+
     // Grace period data
     gracePeriod: status?.gracePeriod || {
       inGracePeriod: false,
@@ -212,28 +238,29 @@ export function useSubscription() {
     inGracePeriod: status?.gracePeriod?.inGracePeriod || false,
     gracePeriodExpired: status?.gracePeriod?.expired || false,
     gracePeriodDaysRemaining: status?.gracePeriod?.daysRemaining || null,
-    
+
     // Premium quota data
     premiumQuota,
     polishRemaining: premiumQuota?.polish.remaining || 0,
     extendedThinkingRemaining: premiumQuota?.extendedThinking.remaining || 0,
-    
+
     // Feature checking
     hasFeature,
     hasPremiumAccess,
     checkLimit: checkLimitWithCache,
-    
+
     // Mutation state for checkLimit
     isCheckingLimit: checkLimitMutation.isPending,
     checkLimitError: checkLimitMutation.error,
     lastLimitCheck,
-    
+
     // Helper methods
     getMaxLimit,
-    
+
     // Tier helpers
-    isPro: subscription?.tier === 'professional' || subscription?.tier === 'team',
-    isTeam: subscription?.tier === 'team',
-    isFree: subscription?.tier === 'free' || !subscription,
+    isPro:
+      subscription?.tier === "professional" || subscription?.tier === "team",
+    isTeam: subscription?.tier === "team",
+    isFree: subscription?.tier === "free" || !subscription,
   };
 }

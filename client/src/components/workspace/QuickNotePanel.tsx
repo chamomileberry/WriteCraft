@@ -1,19 +1,23 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import TaskList from '@tiptap/extension-task-list';
-import TaskItem from '@tiptap/extension-task-item';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
-import { quickNotesApi, savedItemsApi } from '@/lib/api';
-import { useActiveNotebookId } from '@/hooks/useNotebookHooks';
-import { useWorkspaceLayout, useUpdatePanel } from '@/hooks/useWorkspaceHooks';
-import { useAutosave } from '@/hooks/useAutosave';
-import { useDebouncedSave } from '@/hooks/useDebouncedSave';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Underline from "@tiptap/extension-underline";
+import TaskList from "@tiptap/extension-task-list";
+import TaskItem from "@tiptap/extension-task-item";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { quickNotesApi, savedItemsApi } from "@/lib/api";
+import { useActiveNotebookId } from "@/hooks/useNotebookHooks";
+import { useWorkspaceLayout, useUpdatePanel } from "@/hooks/useWorkspaceHooks";
+import { useAutosave } from "@/hooks/useAutosave";
+import { useDebouncedSave } from "@/hooks/useDebouncedSave";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,23 +25,36 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuLabel,
-} from '@/components/ui/dropdown-menu';
-import { Save, BookmarkPlus, ListChecks, FilePlus, ChevronDown } from 'lucide-react';
-import QuickNoteBubbleMenu from './QuickNoteBubbleMenu';
+} from "@/components/ui/dropdown-menu";
+import {
+  Save,
+  BookmarkPlus,
+  ListChecks,
+  FilePlus,
+  ChevronDown,
+} from "lucide-react";
+import QuickNoteBubbleMenu from "./QuickNoteBubbleMenu";
 
 interface QuickNotePanelProps {
   panelId: string;
   className?: string;
-  onRegisterSaveFunction?: (fn: () => Promise<{ content: string; id: string }>) => void;
+  onRegisterSaveFunction?: (
+    fn: () => Promise<{ content: string; id: string }>,
+  ) => void;
   onRegisterClearFunction?: (fn: () => void) => void;
 }
 
-export default function QuickNotePanel({ panelId, className, onRegisterSaveFunction, onRegisterClearFunction }: QuickNotePanelProps) {
+export default function QuickNotePanel({
+  panelId,
+  className,
+  onRegisterSaveFunction,
+  onRegisterClearFunction,
+}: QuickNotePanelProps) {
   const [hasBeenSavedOnce, setHasBeenSavedOnce] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   // Use custom hooks for cleaner code
   const activeNotebookId = useActiveNotebookId();
   const currentLayout = useWorkspaceLayout();
@@ -45,30 +62,30 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   const { user } = useAuth();
 
   // Get the panel title and metadata from workspace store
-  const panel = currentLayout.panels.find(p => p.id === panelId);
-  const noteTitle = panel?.title || 'Quick Note';
+  const panel = currentLayout.panels.find((p) => p.id === panelId);
+  const noteTitle = panel?.title || "Quick Note";
   const noteId = panel?.metadata?.noteId; // Get saved note ID if editing a saved note
 
   // Get user ID from auth context
-  const userId = user?.id || 'guest'; 
+  const userId = user?.id || "guest";
 
   // Get saved note data from panel metadata if editing a saved note
   const savedNoteData = panel?.metadata?.savedNoteData;
-  
+
   // Determine which notebook to use for the dropdown - prefer saved note's notebook, fall back to active notebook
   const dropdownNotebookId = savedNoteData?.notebookId || activeNotebookId;
-  
+
   // Fetch scratch pad quick note (only when not editing a saved note)
   const { data: quickNote, isLoading } = useQuery({
-    queryKey: ['/api/quick-note', userId],
+    queryKey: ["/api/quick-note", userId],
     queryFn: async () => {
       const response = await fetch(`/api/quick-note?userId=${userId}`, {
-        credentials: 'include'
+        credentials: "include",
       });
       if (response.status === 404) {
         return null; // No quick note exists yet
       }
-      if (!response.ok) throw new Error('Failed to fetch quick note');
+      if (!response.ok) throw new Error("Failed to fetch quick note");
       return response.json();
     },
     enabled: !noteId, // Only fetch scratch pad if not editing a saved note
@@ -76,39 +93,51 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
 
   // Fetch all saved quick notes from the notebook for the dropdown
   const { data: savedQuickNotes = [] } = useQuery({
-    queryKey: ['/api/saved-items/notebook', dropdownNotebookId, 'quickNote'],
+    queryKey: ["/api/saved-items/notebook", dropdownNotebookId, "quickNote"],
     queryFn: async () => {
       if (!dropdownNotebookId) {
-        console.log('[QuickNotePanel] No dropdownNotebookId, returning empty array');
+        console.log(
+          "[QuickNotePanel] No dropdownNotebookId, returning empty array",
+        );
         return [];
       }
       const url = `/api/saved-items/notebook/${dropdownNotebookId}?type=quickNote`;
-      console.log('[QuickNotePanel] Fetching saved quick notes:', url);
-      const response = await fetch(url, { credentials: 'include' });
-      console.log('[QuickNotePanel] Response status:', response.status);
+      console.log("[QuickNotePanel] Fetching saved quick notes:", url);
+      const response = await fetch(url, { credentials: "include" });
+      console.log("[QuickNotePanel] Response status:", response.status);
       if (!response.ok) {
-        console.log('[QuickNotePanel] Response not ok, returning empty array');
+        console.log("[QuickNotePanel] Response not ok, returning empty array");
         return [];
       }
       const data = await response.json();
-      console.log('[QuickNotePanel] Fetched quick notes:', data.length, 'items');
+      console.log(
+        "[QuickNotePanel] Fetched quick notes:",
+        data.length,
+        "items",
+      );
       return data;
     },
     enabled: !!dropdownNotebookId,
   });
-  
+
   // Debug logging
   useEffect(() => {
-    console.log('[QuickNotePanel] Debug:', {
+    console.log("[QuickNotePanel] Debug:", {
       noteId,
       hasActiveNotebook: !!activeNotebookId,
       activeNotebookId,
       hasSavedNoteData: !!savedNoteData,
       savedNoteNotebookId: savedNoteData?.notebookId,
       dropdownNotebookId,
-      savedNotesCount: savedQuickNotes?.length || 0
+      savedNotesCount: savedQuickNotes?.length || 0,
     });
-  }, [noteId, activeNotebookId, savedNoteData, dropdownNotebookId, savedQuickNotes]);
+  }, [
+    noteId,
+    activeNotebookId,
+    savedNoteData,
+    dropdownNotebookId,
+    savedQuickNotes,
+  ]);
 
   // Initialize TipTap editor with minimal extensions
   const editor = useEditor({
@@ -124,15 +153,17 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
       TaskItem.configure({
         nested: true,
         HTMLAttributes: {
-          class: 'task-item',
+          class: "task-item",
         },
       }),
     ],
-    content: '',
+    content: "",
     editorProps: {
       attributes: {
-        class: 'prose prose-sm focus:outline-none max-w-none min-h-[200px] p-4 quick-note-prose',
-        style: 'color: rgb(88, 28, 135); font-family: Arial, Helvetica, sans-serif; font-size: 0.95rem; line-height: 1.6;',
+        class:
+          "prose prose-sm focus:outline-none max-w-none min-h-[200px] p-4 quick-note-prose",
+        style:
+          "color: rgb(88, 28, 135); font-family: Arial, Helvetica, sans-serif; font-size: 0.95rem; line-height: 1.6;",
       },
     },
   });
@@ -142,25 +173,25 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
     if (isInitialLoad && editor && !editor.isDestroyed) {
       // If editing a saved note, use savedNoteData from metadata
       if (savedNoteData) {
-        const serverContent = savedNoteData.content || '';
+        const serverContent = savedNoteData.content || "";
         editor.commands.setContent(serverContent);
         setHasBeenSavedOnce(true);
         setIsInitialLoad(false);
-        
+
         // Update workspace panel title to match the loaded note title
-        if (savedNoteData.title && savedNoteData.title !== 'Quick Note') {
+        if (savedNoteData.title && savedNoteData.title !== "Quick Note") {
           updatePanel(panelId, { title: savedNoteData.title });
         }
-      } 
+      }
       // Otherwise, load from scratch pad
       else if (quickNote) {
-        const serverContent = quickNote.content || '';
+        const serverContent = quickNote.content || "";
         editor.commands.setContent(serverContent);
         setHasBeenSavedOnce(true);
         setIsInitialLoad(false);
-        
+
         // Update workspace panel title to match the loaded note title
-        if (quickNote.title && quickNote.title !== 'Quick Note') {
+        if (quickNote.title && quickNote.title !== "Quick Note") {
           updatePanel(panelId, { title: quickNote.title });
         }
       }
@@ -170,8 +201,14 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   // Debounced title save using useDebouncedSave hook
   const titleSave = useDebouncedSave({
     getData: () => {
-      const currentTitle = noteId && savedNoteData ? savedNoteData.title : quickNote?.title;
-      if (!isInitialLoad && hasBeenSavedOnce && editor && noteTitle !== currentTitle) {
+      const currentTitle =
+        noteId && savedNoteData ? savedNoteData.title : quickNote?.title;
+      if (
+        !isInitialLoad &&
+        hasBeenSavedOnce &&
+        editor &&
+        noteTitle !== currentTitle
+      ) {
         return {
           userId,
           title: noteTitle,
@@ -186,8 +223,8 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
         return await savedItemsApi.update(noteId, {
           itemData: {
             title: data.title,
-            content: data.content
-          }
+            content: data.content,
+          },
         });
       }
       // Otherwise, use POST to create/update scratch pad note
@@ -197,14 +234,14 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
       // Update cache WITHOUT triggering re-fetch
       if (noteId) {
         // Update saved note data in panel metadata
-        updatePanel(panelId, { 
-          metadata: { 
+        updatePanel(panelId, {
+          metadata: {
             noteId,
-            savedNoteData: savedData.itemData || savedData
-          }
+            savedNoteData: savedData.itemData || savedData,
+          },
         });
       } else {
-        queryClient.setQueryData(['/api/quick-note', userId], (old: any) => ({
+        queryClient.setQueryData(["/api/quick-note", userId], (old: any) => ({
           ...old,
           ...savedData,
         }));
@@ -232,53 +269,58 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   }, [editor, userId, noteTitle]);
 
   // Mutation function for autosave - returns parsed JSON
-  const mutationFunction = useCallback(async (data: any) => {
-    // If editing a saved note, update the saved item directly
-    if (noteId) {
-      return await savedItemsApi.update(noteId, {
-        itemData: {
-          title: data.title,
-          content: data.content
-        }
-      });
-    }
-    // Otherwise, use POST to create/update scratch pad note
-    return await quickNotesApi.create(data);
-  }, [noteId]);
+  const mutationFunction = useCallback(
+    async (data: any) => {
+      // If editing a saved note, update the saved item directly
+      if (noteId) {
+        return await savedItemsApi.update(noteId, {
+          itemData: {
+            title: data.title,
+            content: data.content,
+          },
+        });
+      }
+      // Otherwise, use POST to create/update scratch pad note
+      return await quickNotesApi.create(data);
+    },
+    [noteId],
+  );
 
   // Set up autosave using the hook
   const { saveStatus, handleSave, setupAutosave, isSaving } = useAutosave({
     editor,
     saveDataFunction,
     mutationFunction,
-    autoSaveCondition: () => hasBeenSavedOnce || (editor?.getText().trim().length ?? 0) > 0,
-    successMessage: 'Quick note saved',
-    errorMessage: 'Failed to save quick note',
+    autoSaveCondition: () =>
+      hasBeenSavedOnce || (editor?.getText().trim().length ?? 0) > 0,
+    successMessage: "Quick note saved",
+    errorMessage: "Failed to save quick note",
     invalidateQueries: [], // Don't invalidate queries during auto-save to prevent re-renders
     onSuccess: (savedData) => {
       // Mark as saved for both new and existing notes
       setHasBeenSavedOnce(true);
-      
+
       // Silently update the cache without triggering re-renders
       if (noteId) {
         // Update saved note data in panel metadata
-        updatePanel(panelId, { 
-          metadata: { 
+        updatePanel(panelId, {
+          metadata: {
             noteId,
-            savedNoteData: savedData.itemData || savedData
-          }
+            savedNoteData: savedData.itemData || savedData,
+          },
         });
       } else {
-        queryClient.setQueryData(['/api/quick-note', userId], (old: any) => {
+        queryClient.setQueryData(["/api/quick-note", userId], (old: any) => {
           // Merge new data with old to preserve all fields and prevent re-renders
           return {
             ...old,
             id: savedData.id || old?.id || `quick-note-${userId}`,
             userId: userId,
-            title: savedData.title || old?.title || 'Quick Note',
+            title: savedData.title || old?.title || "Quick Note",
             content: savedData.content,
-            createdAt: savedData.createdAt || old?.createdAt || new Date().toISOString(),
-            updatedAt: savedData.updatedAt || new Date().toISOString()
+            createdAt:
+              savedData.createdAt || old?.createdAt || new Date().toISOString(),
+            updatedAt: savedData.updatedAt || new Date().toISOString(),
           };
         });
       }
@@ -288,9 +330,9 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   // Connect editor update to autosave (always listen, let autoSaveCondition gate the actual save)
   useEffect(() => {
     if (editor) {
-      editor.on('update', setupAutosave);
+      editor.on("update", setupAutosave);
       return () => {
-        editor.off('update', setupAutosave);
+        editor.off("update", setupAutosave);
       };
     }
   }, [editor, setupAutosave]);
@@ -299,13 +341,13 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   const handleManualSave = async () => {
     if (!editor || !editor.getText().trim()) {
       toast({
-        title: 'Nothing to save',
-        description: 'Quick note is empty.',
-        variant: 'destructive'
+        title: "Nothing to save",
+        description: "Quick note is empty.",
+        variant: "destructive",
       });
       return;
     }
-    
+
     await handleSave();
   };
 
@@ -313,93 +355,101 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   const saveToNotebookMutation = useMutation({
     mutationFn: async () => {
       if (!activeNotebookId) {
-        throw new Error('No active notebook selected');
+        throw new Error("No active notebook selected");
       }
-      
+
       if (!editor) {
-        throw new Error('Editor not ready');
+        throw new Error("Editor not ready");
       }
-      
+
       const isEditingExistingSaved = !!noteId; // Check if editing an existing saved note
-      
+
       // Save it to the notebook as a saved item with content in itemData
       const savedItem = await savedItemsApi.create({
         userId: userId,
         notebookId: activeNotebookId,
-        itemType: 'quickNote',
+        itemType: "quickNote",
         itemId: noteId || `quick-note-${Date.now()}`, // Use noteId if exists, otherwise generate one
         itemData: {
           title: noteTitle,
-          content: editor.getHTML()
-        }
+          content: editor.getHTML(),
+        },
       });
       return { savedItem, isNewNote: !isEditingExistingSaved };
     },
     onSuccess: async ({ savedItem, isNewNote }) => {
       // Only clear if this was the scratch pad (not editing an existing saved note)
       if (isNewNote && editor) {
-        editor.commands.setContent('');
+        editor.commands.setContent("");
         setHasBeenSavedOnce(false);
-        
+
         // Clear the scratch pad in the database
         await quickNotesApi.create({
-          title: 'Quick Note',
-          content: ''
+          title: "Quick Note",
+          content: "",
         });
-        
+
         // Update cache to reflect cleared scratch pad
-        queryClient.setQueryData(['/api/quick-note', userId], (oldData: any) => {
-          if (oldData) {
-            return { ...oldData, content: '', title: 'Quick Note' };
-          }
-          return oldData;
-        });
-        
+        queryClient.setQueryData(
+          ["/api/quick-note", userId],
+          (oldData: any) => {
+            if (oldData) {
+              return { ...oldData, content: "", title: "Quick Note" };
+            }
+            return oldData;
+          },
+        );
+
         // Close the quick note panel after saving from scratch pad
-        const quickNotePanel = currentLayout.panels.find(p => p.id === panelId);
+        const quickNotePanel = currentLayout.panels.find(
+          (p) => p.id === panelId,
+        );
         if (quickNotePanel) {
-          updatePanel(panelId, { metadata: undefined, title: 'Quick Note' });
+          updatePanel(panelId, { metadata: undefined, title: "Quick Note" });
         }
       }
-      
+
       // Invalidate saved items to show the new note in the notebook
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
-      
+      queryClient.invalidateQueries({ queryKey: ["/api/saved-items"] });
+
       toast({
-        title: 'Saved to Notebook',
-        description: isNewNote 
-          ? 'Your note has been saved and the quick note is ready for new content.'
-          : 'Your note has been saved to the notebook.',
+        title: "Saved to Notebook",
+        description: isNewNote
+          ? "Your note has been saved and the quick note is ready for new content."
+          : "Your note has been saved to the notebook.",
       });
     },
     onError: (error) => {
       toast({
-        title: 'Failed to save',
-        description: error instanceof Error ? error.message : 'Could not save to notebook.',
-        variant: 'destructive'
+        title: "Failed to save",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Could not save to notebook.",
+        variant: "destructive",
       });
-    }
+    },
   });
 
   const handleSaveToNotebook = () => {
     if (!editor || !editor.getText().trim()) {
       toast({
-        title: 'Nothing to save',
-        description: 'Quick note is empty.',
-        variant: 'destructive'
+        title: "Nothing to save",
+        description: "Quick note is empty.",
+        variant: "destructive",
       });
       return;
     }
-    
+
     if (!activeNotebookId) {
       toast({
-        title: 'No notebook selected',
-        description: 'Please select a notebook first.',
-        variant: 'destructive'
+        title: "No notebook selected",
+        description: "Please select a notebook first.",
+        variant: "destructive",
       });
       return;
     }
-    
+
     saveToNotebookMutation.mutate();
   };
 
@@ -408,23 +458,23 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
     const newNoteId = savedItem.id;
     const newSavedNoteData = {
       ...(savedItem.itemData || {}),
-      title: savedItem.itemData?.title || savedItem.title || 'Quick Note',
-      content: savedItem.itemData?.content || savedItem.content || '',
-      notebookId: savedItem.notebookId // Preserve notebook ID for dropdown
+      title: savedItem.itemData?.title || savedItem.title || "Quick Note",
+      content: savedItem.itemData?.content || savedItem.content || "",
+      notebookId: savedItem.notebookId, // Preserve notebook ID for dropdown
     };
-    
+
     // Update panel metadata to load the selected note
-    updatePanel(panelId, { 
-      metadata: { 
-        noteId: newNoteId, 
-        savedNoteData: newSavedNoteData 
+    updatePanel(panelId, {
+      metadata: {
+        noteId: newNoteId,
+        savedNoteData: newSavedNoteData,
       },
-      title: newSavedNoteData.title || 'Quick Note'
+      title: newSavedNoteData.title || "Quick Note",
     });
-    
+
     // Set content in editor
     if (editor && !editor.isDestroyed) {
-      editor.commands.setContent(newSavedNoteData.content || '');
+      editor.commands.setContent(newSavedNoteData.content || "");
       setIsInitialLoad(false);
       setHasBeenSavedOnce(true);
     }
@@ -433,44 +483,44 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
   // Handler to switch back to scratch pad
   const handleSwitchToScratchPad = async () => {
     // Clear metadata to go back to scratch pad mode (this will re-enable the query)
-    updatePanel(panelId, { 
+    updatePanel(panelId, {
       metadata: undefined,
-      title: 'Quick Note'
+      title: "Quick Note",
     });
-    
+
     // Reset to initial load state so the effect can load scratch pad when query completes
     setIsInitialLoad(true);
-    
+
     // Fetch scratch pad note directly if we don't have it cached
     try {
       const response = await fetch(`/api/quick-note?userId=${userId}`, {
-        credentials: 'include'
+        credentials: "include",
       });
-      
+
       let scratchPadNote = null;
       if (response.ok) {
         scratchPadNote = await response.json();
       }
-      
+
       // Update cache
-      queryClient.setQueryData(['/api/quick-note', userId], scratchPadNote);
-      
+      queryClient.setQueryData(["/api/quick-note", userId], scratchPadNote);
+
       // Load scratch pad content into editor
       if (editor && !editor.isDestroyed) {
-        editor.commands.setContent(scratchPadNote?.content || '');
+        editor.commands.setContent(scratchPadNote?.content || "");
         setIsInitialLoad(false);
         setHasBeenSavedOnce(!!scratchPadNote?.content);
-        
+
         // Update title
-        if (scratchPadNote?.title && scratchPadNote.title !== 'Quick Note') {
+        if (scratchPadNote?.title && scratchPadNote.title !== "Quick Note") {
           updatePanel(panelId, { title: scratchPadNote.title });
         }
       }
     } catch (error) {
-      console.error('Failed to load scratch pad:', error);
+      console.error("Failed to load scratch pad:", error);
       // On error, just clear the editor
       if (editor && !editor.isDestroyed) {
-        editor.commands.setContent('');
+        editor.commands.setContent("");
         setIsInitialLoad(false);
         setHasBeenSavedOnce(false);
       }
@@ -487,33 +537,36 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
           if (data) {
             try {
               await quickNotesApi.create(data);
-              await new Promise(resolve => setTimeout(resolve, 100));
+              await new Promise((resolve) => setTimeout(resolve, 100));
             } catch (error) {
-              console.error('Failed to save before exporting:', error);
+              console.error("Failed to save before exporting:", error);
             }
           }
         }
         return {
           content: currentContent,
-          id: quickNote?.id || `quick-note-${Date.now()}`
+          id: quickNote?.id || `quick-note-${Date.now()}`,
         };
       };
       onRegisterSaveFunction(saveAndGetContent);
     }
   }, [onRegisterSaveFunction, editor, saveDataFunction, quickNote]);
-  
+
   // Register clear function with parent component
   useEffect(() => {
     if (onRegisterClearFunction && editor) {
       const clearContent = () => {
-        editor.commands.setContent('');
+        editor.commands.setContent("");
         setHasBeenSavedOnce(false);
-        queryClient.setQueryData(['/api/quick-note', userId], (oldData: any) => {
-          if (oldData) {
-            return { ...oldData, content: '' };
-          }
-          return oldData;
-        });
+        queryClient.setQueryData(
+          ["/api/quick-note", userId],
+          (oldData: any) => {
+            if (oldData) {
+              return { ...oldData, content: "" };
+            }
+            return oldData;
+          },
+        );
       };
       onRegisterClearFunction(clearContent);
     }
@@ -521,12 +574,12 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
 
   const getSaveStatusIndicator = () => {
     switch (saveStatus) {
-      case 'saving':
-        return 'Saving...';
-      case 'unsaved':
-        return 'Unsaved changes';
+      case "saving":
+        return "Saving...";
+      case "unsaved":
+        return "Unsaved changes";
       default:
-        return 'Saved';
+        return "Saved";
     }
   };
 
@@ -537,27 +590,31 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
 
   if (isLoading) {
     return (
-      <div className={`w-full h-full flex items-center justify-center ${className}`}
-           style={{ 
-             backgroundColor: '#e9d5ff',
-             backgroundImage: 'linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%)'
-           }}>
+      <div
+        className={`w-full h-full flex items-center justify-center ${className}`}
+        style={{
+          backgroundColor: "#e9d5ff",
+          backgroundImage: "linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%)",
+        }}
+      >
         <span className="text-purple-700/60">Loading...</span>
       </div>
     );
   }
 
   return (
-    <div className={`w-full h-full flex flex-col ${className}`}
-         style={{ 
-           backgroundColor: '#e9d5ff',
-           backgroundImage: 'linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%)'
-         }}>
+    <div
+      className={`w-full h-full flex flex-col ${className}`}
+      style={{
+        backgroundColor: "#e9d5ff",
+        backgroundImage: "linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%)",
+      }}
+    >
       {/* TipTap Editor */}
       <div className="flex-1 w-full overflow-auto">
         <QuickNoteBubbleMenu editor={editor} />
-        <EditorContent 
-          editor={editor} 
+        <EditorContent
+          editor={editor}
           className="h-full"
           data-testid={`editor-content-${panelId}`}
         />
@@ -574,7 +631,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
             {getCharacterCount()} characters
           </span>
         </div>
-        
+
         {/* Icon-based toolbar */}
         <div className="flex items-center justify-center gap-2">
           {/* Note switcher dropdown - only show if there are saved notes */}
@@ -589,7 +646,9 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
                 >
                   {noteId ? (
                     <>
-                      <span className="max-w-[100px] truncate">{noteTitle}</span>
+                      <span className="max-w-[100px] truncate">
+                        {noteTitle}
+                      </span>
                       <ChevronDown className="ml-1 w-3 h-3" />
                     </>
                   ) : (
@@ -609,7 +668,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
                   </DropdownMenuItem>
                 )}
                 {noteId && (
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={handleSwitchToScratchPad}
                     className="text-xs"
                     data-testid="menu-item-scratch-pad"
@@ -626,15 +685,19 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
                     data-testid={`menu-item-note-${savedNote.id}`}
                   >
                     {noteId === savedNote.id && <span className="mr-1">●</span>}
-                    <span className={noteId === savedNote.id ? 'font-medium' : ''}>
-                      {savedNote.itemData?.title || savedNote.title || 'Untitled Note'}
+                    <span
+                      className={noteId === savedNote.id ? "font-medium" : ""}
+                    >
+                      {savedNote.itemData?.title ||
+                        savedNote.title ||
+                        "Untitled Note"}
                     </span>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -652,14 +715,19 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
               <p>Save Now</p>
             </TooltipContent>
           </Tooltip>
-          
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 size="icon"
                 variant="outline"
                 onClick={handleSaveToNotebook}
-                disabled={saveToNotebookMutation.isPending || !editor || !editor.getText().trim() || !activeNotebookId}
+                disabled={
+                  saveToNotebookMutation.isPending ||
+                  !editor ||
+                  !editor.getText().trim() ||
+                  !activeNotebookId
+                }
                 className="bg-purple-100/50 hover:bg-purple-200/70 border-purple-300/50 text-purple-800"
                 data-testid="button-save-to-notebook"
               >
@@ -670,12 +738,12 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
               <p>Save to Notebook</p>
             </TooltipContent>
           </Tooltip>
-          
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 size="icon"
-                variant={editor?.isActive('taskList') ? 'default' : 'outline'}
+                variant={editor?.isActive("taskList") ? "default" : "outline"}
                 onClick={() => {
                   if (editor) {
                     editor.chain().focus().toggleTaskList().run();
@@ -692,7 +760,7 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
               <p>Toggle Checklist</p>
             </TooltipContent>
           </Tooltip>
-          
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -700,8 +768,8 @@ export default function QuickNotePanel({ panelId, className, onRegisterSaveFunct
                 variant="outline"
                 onClick={() => {
                   toast({
-                    title: 'Coming soon',
-                    description: 'Create new note feature will be added soon',
+                    title: "Coming soon",
+                    description: "Create new note feature will be added soon",
                   });
                 }}
                 className="bg-purple-100/50 hover:bg-purple-200/70 border-purple-300/50 text-purple-800"

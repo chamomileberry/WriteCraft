@@ -1,17 +1,24 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  User, 
-  Sparkles, 
+import {
+  User,
+  Sparkles,
   BookMarked,
   CheckCircle2,
   ArrowRight,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -36,7 +43,8 @@ const tutorialSteps = [
   {
     step: 1,
     title: "Let's Create Your First Character",
-    description: "Every great story starts with compelling characters. Let's build one together using AI.",
+    description:
+      "Every great story starts with compelling characters. Let's build one together using AI.",
   },
   {
     step: 2,
@@ -46,30 +54,39 @@ const tutorialSteps = [
   {
     step: 3,
     title: "Character Created!",
-    description: "Here's your character. You can edit anything you'd like to change.",
+    description:
+      "Here's your character. You can edit anything you'd like to change.",
   },
   {
     step: 4,
     title: "All Set!",
-    description: "Your character has been saved. Let's explore what else you can do.",
-  }
+    description:
+      "Your character has been saved. Let's explore what else you can do.",
+  },
 ];
 
-export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserTutorialProps) {
+export function NewUserTutorial({
+  isOpen,
+  onComplete,
+  onSkip,
+  userId,
+}: NewUserTutorialProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [characterPrompt, setCharacterPrompt] = useState("");
-  const [generatedCharacter, setGeneratedCharacter] = useState<CharacterData | null>(null);
+  const [generatedCharacter, setGeneratedCharacter] =
+    useState<CharacterData | null>(null);
   const [notebookId, setNotebookId] = useState<string | null>(null);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  const stepData = tutorialSteps.find(s => s.step === currentStep) || tutorialSteps[0];
+  const stepData =
+    tutorialSteps.find((s) => s.step === currentStep) || tutorialSteps[0];
   const progress = (currentStep / tutorialSteps.length) * 100;
 
   // Create a default notebook for the tutorial
   const createNotebook = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/notebooks', {
+      const response = await apiRequest("POST", "/api/notebooks", {
         name: "My First Notebook",
         description: "Created during onboarding",
       });
@@ -79,13 +96,13 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
       setNotebookId(data.id);
     },
     onError: (error) => {
-      console.error('Failed to create notebook:', error);
+      console.error("Failed to create notebook:", error);
       toast({
         title: "Error",
         description: "Failed to set up tutorial. Please try again.",
         variant: "destructive",
       });
-    }
+    },
   });
 
   // Create notebook on mount if not exists
@@ -101,10 +118,10 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
       if (!notebookId) {
         throw new Error("Notebook not ready");
       }
-      const response = await apiRequest('POST', '/api/characters/generate', {
+      const response = await apiRequest("POST", "/api/characters/generate", {
         prompt: prompt || "a mysterious traveler with a hidden past",
         genre: "Fantasy",
-        notebookId: notebookId
+        notebookId: notebookId,
       });
       return response.json();
     },
@@ -112,22 +129,22 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
       setGeneratedCharacter({
         name: data.name || "Unknown Traveler",
         backstory: data.backstory || "",
-        personalityTraits: Array.isArray(data.personalityTraits) 
-          ? data.personalityTraits.join(", ") 
+        personalityTraits: Array.isArray(data.personalityTraits)
+          ? data.personalityTraits.join(", ")
           : data.personalityTraits || "",
-        appearance: data.appearance || ""
+        appearance: data.appearance || "",
       });
       setCurrentStep(3);
     },
     onError: (error) => {
-      console.error('Failed to generate character:', error);
+      console.error("Failed to generate character:", error);
       toast({
         title: "Error",
         description: "Failed to generate character. Please try again.",
         variant: "destructive",
       });
       setCurrentStep(1);
-    }
+    },
   });
 
   // Save character mutation
@@ -135,11 +152,13 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
     mutationFn: async () => {
       if (!generatedCharacter) throw new Error("No character to save");
       if (!notebookId) throw new Error("Notebook ID not available");
-      
-      const response = await apiRequest('POST', '/api/characters', {
+
+      const response = await apiRequest("POST", "/api/characters", {
         name: generatedCharacter.name,
         backstory: generatedCharacter.backstory,
-        personalityTraits: generatedCharacter.personalityTraits.split(",").map(t => t.trim()),
+        personalityTraits: generatedCharacter.personalityTraits
+          .split(",")
+          .map((t) => t.trim()),
         appearance: generatedCharacter.appearance,
         role: "protagonist",
         age: null,
@@ -158,7 +177,7 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
       return response.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/characters'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters"] });
       setCurrentStep(4);
       toast({
         title: "Character Saved!",
@@ -166,13 +185,13 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
       });
     },
     onError: (error) => {
-      console.error('Failed to save character:', error);
+      console.error("Failed to save character:", error);
       toast({
         title: "Error",
         description: "Failed to save character. Please try again.",
         variant: "destructive",
       });
-    }
+    },
   });
 
   const handleGenerate = () => {
@@ -187,13 +206,13 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
   const handleFinish = () => {
     onComplete();
     // Navigate to characters page to show them their creation
-    setTimeout(() => setLocation('/characters'), 500);
+    setTimeout(() => setLocation("/characters"), 500);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent 
-        className="max-w-2xl" 
+      <DialogContent
+        className="max-w-2xl"
         data-testid="dialog-new-tutorial"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
@@ -201,9 +220,15 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
         <DialogHeader>
           <div className="flex items-center gap-2 mb-2">
             {currentStep === 1 && <User className="w-6 h-6 text-primary" />}
-            {currentStep === 2 && <Sparkles className="w-6 h-6 text-primary animate-pulse" />}
-            {currentStep === 3 && <BookMarked className="w-6 h-6 text-primary" />}
-            {currentStep === 4 && <CheckCircle2 className="w-6 h-6 text-primary" />}
+            {currentStep === 2 && (
+              <Sparkles className="w-6 h-6 text-primary animate-pulse" />
+            )}
+            {currentStep === 3 && (
+              <BookMarked className="w-6 h-6 text-primary" />
+            )}
+            {currentStep === 4 && (
+              <CheckCircle2 className="w-6 h-6 text-primary" />
+            )}
             <DialogTitle className="text-xl">{stepData.title}</DialogTitle>
           </div>
           <DialogDescription className="text-base">
@@ -216,7 +241,9 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
           {currentStep === 1 && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="character-prompt">Describe your character (optional)</Label>
+                <Label htmlFor="character-prompt">
+                  Describe your character (optional)
+                </Label>
                 <Textarea
                   id="character-prompt"
                   placeholder="e.g., a brave knight from a fallen kingdom, a cunning space pirate, a shy wizard apprentice..."
@@ -226,7 +253,8 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
                   data-testid="input-character-prompt"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Leave blank for a surprise character, or describe what you'd like to create
+                  Leave blank for a surprise character, or describe what you'd
+                  like to create
                 </p>
               </div>
             </div>
@@ -236,7 +264,9 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
           {currentStep === 2 && (
             <div className="flex flex-col items-center justify-center py-8 space-y-4">
               <Loader2 className="w-12 h-12 text-primary animate-spin" />
-              <p className="text-muted-foreground">Creating your character...</p>
+              <p className="text-muted-foreground">
+                Creating your character...
+              </p>
             </div>
           )}
 
@@ -248,10 +278,12 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
                 <Input
                   id="char-name"
                   value={generatedCharacter.name}
-                  onChange={(e) => setGeneratedCharacter({
-                    ...generatedCharacter,
-                    name: e.target.value
-                  })}
+                  onChange={(e) =>
+                    setGeneratedCharacter({
+                      ...generatedCharacter,
+                      name: e.target.value,
+                    })
+                  }
                   data-testid="input-character-name"
                 />
               </div>
@@ -261,10 +293,12 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
                 <Textarea
                   id="char-backstory"
                   value={generatedCharacter.backstory}
-                  onChange={(e) => setGeneratedCharacter({
-                    ...generatedCharacter,
-                    backstory: e.target.value
-                  })}
+                  onChange={(e) =>
+                    setGeneratedCharacter({
+                      ...generatedCharacter,
+                      backstory: e.target.value,
+                    })
+                  }
                   rows={4}
                   data-testid="input-character-backstory"
                 />
@@ -275,10 +309,12 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
                 <Input
                   id="char-traits"
                   value={generatedCharacter.personalityTraits}
-                  onChange={(e) => setGeneratedCharacter({
-                    ...generatedCharacter,
-                    personalityTraits: e.target.value
-                  })}
+                  onChange={(e) =>
+                    setGeneratedCharacter({
+                      ...generatedCharacter,
+                      personalityTraits: e.target.value,
+                    })
+                  }
                   data-testid="input-character-traits"
                 />
               </div>
@@ -288,10 +324,12 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
                 <Textarea
                   id="char-appearance"
                   value={generatedCharacter.appearance}
-                  onChange={(e) => setGeneratedCharacter({
-                    ...generatedCharacter,
-                    appearance: e.target.value
-                  })}
+                  onChange={(e) =>
+                    setGeneratedCharacter({
+                      ...generatedCharacter,
+                      appearance: e.target.value,
+                    })
+                  }
                   rows={3}
                   data-testid="input-character-appearance"
                 />
@@ -307,19 +345,29 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Your character is saved and you can find it in the Characters page</span>
+                    <span>
+                      Your character is saved and you can find it in the
+                      Characters page
+                    </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Try other generators from the top menu to build your world</span>
+                    <span>
+                      Try other generators from the top menu to build your world
+                    </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Create a Project to organize all your worldbuilding content</span>
+                    <span>
+                      Create a Project to organize all your worldbuilding
+                      content
+                    </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Use the Writing Assistant for help with your story</span>
+                    <span>
+                      Use the Writing Assistant for help with your story
+                    </span>
                   </li>
                 </ul>
               </div>
@@ -329,7 +377,9 @@ export function NewUserTutorial({ isOpen, onComplete, onSkip, userId }: NewUserT
           {/* Progress bar */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>Step {currentStep} of {tutorialSteps.length}</span>
+              <span>
+                Step {currentStep} of {tutorialSteps.length}
+              </span>
               <span>{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-2" />

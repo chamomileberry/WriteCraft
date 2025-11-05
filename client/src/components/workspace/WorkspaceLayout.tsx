@@ -1,11 +1,15 @@
-import { DragEvent } from 'react';
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
-import { useWorkspaceStore } from '@/stores/workspaceStore';
-import { TabStrip } from './TabStrip';
-import CharacterDetailPanel from './CharacterDetailPanel';
-import { ContentDetailPanel } from './ContentDetailPanel';
-import QuickNotePanel from './QuickNotePanel';
-import { cn } from '@/lib/utils';
+import { DragEvent } from "react";
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "@/components/ui/resizable";
+import { useWorkspaceStore } from "@/stores/workspaceStore";
+import { TabStrip } from "./TabStrip";
+import CharacterDetailPanel from "./CharacterDetailPanel";
+import { ContentDetailPanel } from "./ContentDetailPanel";
+import QuickNotePanel from "./QuickNotePanel";
+import { cn } from "@/lib/utils";
 
 interface WorkspaceLayoutProps {
   children: React.ReactNode; // The main manuscript editor content
@@ -17,51 +21,68 @@ interface WorkspaceLayoutProps {
   };
 }
 
-export function WorkspaceLayout({ children, className, projectInfo }: WorkspaceLayoutProps) {
-  const { 
-    currentLayout, 
-    getActiveTab, 
-    attachToTabBar
-  } = useWorkspaceStore();
+export function WorkspaceLayout({
+  children,
+  className,
+  projectInfo,
+}: WorkspaceLayoutProps) {
+  const { currentLayout, getActiveTab, attachToTabBar } = useWorkspaceStore();
 
-  const mainActiveTab = getActiveTab('main');
-  const splitActiveTab = getActiveTab('split');
-  const hasSplitMode = currentLayout.splitMode && currentLayout.regions.split.length > 0;
+  const mainActiveTab = getActiveTab("main");
+  const splitActiveTab = getActiveTab("split");
+  const hasSplitMode =
+    currentLayout.splitMode && currentLayout.regions.split.length > 0;
 
   // Handle drop events for tab attachment
-  const handleTabBarDrop = (e: DragEvent<HTMLDivElement>, regionId: 'main' | 'split') => {
+  const handleTabBarDrop = (
+    e: DragEvent<HTMLDivElement>,
+    regionId: "main" | "split",
+  ) => {
     e.preventDefault();
     try {
-      const data = JSON.parse(e.dataTransfer.getData('application/json'));
-      if (data.type === 'panel' && data.source === 'floating') {
+      const data = JSON.parse(e.dataTransfer.getData("application/json"));
+      if (data.type === "panel" && data.source === "floating") {
         attachToTabBar(data.panelId, regionId);
       }
     } catch (error) {
-      console.warn('Failed to parse drop data:', error);
+      console.warn("Failed to parse drop data:", error);
     }
   };
 
   const handleTabBarDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+    e.dataTransfer.dropEffect = "move";
   };
 
   const renderTabContent = (panel: any) => {
     if (!panel) return null;
 
     switch (panel.type) {
-      case 'characterDetail':
-        return <CharacterDetailPanel panelId={panel.id} characterId={panel.entityId!} notebookId={panel.notebookId} />;
-      case 'contentDetail':
-        return <ContentDetailPanel panelId={panel.id} contentType={panel.contentType!} entityId={panel.entityId!} notebookId={panel.notebookId} />;
-      case 'manuscript':
-      case 'manuscriptOutline':
+      case "characterDetail":
+        return (
+          <CharacterDetailPanel
+            panelId={panel.id}
+            characterId={panel.entityId!}
+            notebookId={panel.notebookId}
+          />
+        );
+      case "contentDetail":
+        return (
+          <ContentDetailPanel
+            panelId={panel.id}
+            contentType={panel.contentType!}
+            entityId={panel.entityId!}
+            notebookId={panel.notebookId}
+          />
+        );
+      case "manuscript":
+      case "manuscriptOutline":
         // Project content should not be rendered as tabs - they are filtered out in TabStrip
         // Note: 'manuscript' is legacy terminology, now refers to project editor content
         return null;
-      case 'quickNote':
+      case "quickNote":
         return <QuickNotePanel panelId={panel.id} />;
-      case 'notes':
+      case "notes":
         return (
           <div className="h-full p-4 bg-background overflow-y-auto">
             <div className="mb-4 pb-4 border-b">
@@ -73,14 +94,24 @@ export function WorkspaceLayout({ children, className, projectInfo }: WorkspaceL
                     // Check if this is a character reference by looking at the entity ID
                     // and see if we can find it in the professions table (character references)
                     // For now, assume all IDs that look like UUIDs for content references are characters
-                    const isCharacterReference = panel.entityId && panel.entityId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
-                    
+                    const isCharacterReference =
+                      panel.entityId &&
+                      panel.entityId.match(
+                        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+                      );
+
                     if (isCharacterReference) {
                       // This is likely a character reference, open character edit page
-                      window.open(`/characters/${panel.entityId}/edit`, '_blank');
+                      window.open(
+                        `/characters/${panel.entityId}/edit`,
+                        "_blank",
+                      );
                     } else {
                       // For other content types, try to determine correct route
-                      window.open(`/editor/content/${panel.entityId}`, '_blank');
+                      window.open(
+                        `/editor/content/${panel.entityId}`,
+                        "_blank",
+                      );
                     }
                   }}
                   className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90"
@@ -93,16 +124,23 @@ export function WorkspaceLayout({ children, className, projectInfo }: WorkspaceL
               <div>
                 <h4 className="font-medium mb-2">Reference Summary</h4>
                 <p className="text-sm text-muted-foreground">
-                  This is a reference panel for "{panel.title}". 
-                  Use this as a quick reference while working on your manuscript.
+                  This is a reference panel for "{panel.title}". Use this as a
+                  quick reference while working on your manuscript.
                 </p>
               </div>
               <div>
                 <h4 className="font-medium mb-2">Content Details</h4>
                 <div className="text-sm space-y-1">
-                  <p><span className="font-medium">ID:</span> {panel.entityId}</p>
-                  <p><span className="font-medium">Type:</span> Content Reference</p>
-                  <p><span className="font-medium">Purpose:</span> Side-by-side reference for writing</p>
+                  <p>
+                    <span className="font-medium">ID:</span> {panel.entityId}
+                  </p>
+                  <p>
+                    <span className="font-medium">Type:</span> Content Reference
+                  </p>
+                  <p>
+                    <span className="font-medium">Purpose:</span> Side-by-side
+                    reference for writing
+                  </p>
                 </div>
               </div>
             </div>
@@ -126,14 +164,14 @@ export function WorkspaceLayout({ children, className, projectInfo }: WorkspaceL
           <ResizablePanel defaultSize={50} minSize={30}>
             <div className="h-full flex flex-col">
               <div>
-                <TabStrip 
-                  regionId="main" 
-                  onDrop={(e) => handleTabBarDrop(e, 'main')}
+                <TabStrip
+                  regionId="main"
+                  onDrop={(e) => handleTabBarDrop(e, "main")}
                   onDragOver={handleTabBarDragOver}
                   projectInfo={projectInfo}
                 />
               </div>
-              
+
               <div className="flex-1 overflow-hidden">
                 {mainActiveTab ? (
                   <div className="h-full">
@@ -152,13 +190,13 @@ export function WorkspaceLayout({ children, className, projectInfo }: WorkspaceL
           <ResizablePanel defaultSize={50} minSize={30}>
             <div className="h-full flex flex-col">
               <div>
-                <TabStrip 
-                  regionId="split" 
-                  onDrop={(e) => handleTabBarDrop(e, 'split')}
+                <TabStrip
+                  regionId="split"
+                  onDrop={(e) => handleTabBarDrop(e, "split")}
                   onDragOver={handleTabBarDragOver}
                 />
               </div>
-              
+
               <div className="flex-1 overflow-hidden bg-muted/20">
                 {splitActiveTab ? (
                   renderTabContent(splitActiveTab)
@@ -175,14 +213,14 @@ export function WorkspaceLayout({ children, className, projectInfo }: WorkspaceL
         // Single region layout
         <div className="flex-1 flex flex-col">
           <div>
-            <TabStrip 
-              regionId="main" 
-              onDrop={(e) => handleTabBarDrop(e, 'main')}
+            <TabStrip
+              regionId="main"
+              onDrop={(e) => handleTabBarDrop(e, "main")}
               onDragOver={handleTabBarDragOver}
               projectInfo={projectInfo}
             />
           </div>
-          
+
           <div className="flex-1 overflow-hidden">
             {mainActiveTab ? (
               // Show active tab content as reference

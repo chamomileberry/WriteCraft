@@ -1,4 +1,11 @@
-import { type Notebook, type InsertNotebook, type UpdateNotebook, notebooks, shares, users } from "@shared/schema";
+import {
+  type Notebook,
+  type InsertNotebook,
+  type UpdateNotebook,
+  notebooks,
+  shares,
+  users,
+} from "@shared/schema";
 import { db } from "../db";
 import { eq, desc, and } from "drizzle-orm";
 import { BaseRepository } from "./base.repository";
@@ -24,16 +31,16 @@ export class NotebookRepository extends BaseRepository {
 
     const [sharedNotebook] = await db
       .select({
-        notebook: notebooks
+        notebook: notebooks,
       })
       .from(shares)
       .innerJoin(notebooks, eq(shares.resourceId, notebooks.id))
       .where(
         and(
           eq(shares.userId, userId),
-          eq(shares.resourceType, 'notebook'),
-          eq(shares.resourceId, id)
-        )
+          eq(shares.resourceType, "notebook"),
+          eq(shares.resourceId, id),
+        ),
       );
 
     return sharedNotebook?.notebook || undefined;
@@ -50,26 +57,23 @@ export class NotebookRepository extends BaseRepository {
       .select({
         notebook: notebooks,
         share: shares,
-        owner: users
+        owner: users,
       })
       .from(shares)
       .innerJoin(notebooks, eq(shares.resourceId, notebooks.id))
       .innerJoin(users, eq(notebooks.userId, users.id))
       .where(
-        and(
-          eq(shares.userId, userId),
-          eq(shares.resourceType, 'notebook')
-        )
+        and(eq(shares.userId, userId), eq(shares.resourceType, "notebook")),
       );
 
-    const ownedWithMetadata = ownedNotebooks.map(n => ({
+    const ownedWithMetadata = ownedNotebooks.map((n) => ({
       ...n,
       isShared: false,
       sharedBy: null,
-      sharePermission: null
+      sharePermission: null,
     }));
 
-    const sharedWithMetadata = sharedNotebooks.map(s => ({
+    const sharedWithMetadata = sharedNotebooks.map((s) => ({
       ...s.notebook,
       isShared: true,
       sharedBy: {
@@ -77,18 +81,15 @@ export class NotebookRepository extends BaseRepository {
         email: s.owner.email,
         firstName: s.owner.firstName,
         lastName: s.owner.lastName,
-        profileImageUrl: s.owner.profileImageUrl
+        profileImageUrl: s.owner.profileImageUrl,
       },
-      sharePermission: s.share.permission
+      sharePermission: s.share.permission,
     }));
 
-    const allNotebooks = [
-      ...ownedWithMetadata,
-      ...sharedWithMetadata
-    ];
+    const allNotebooks = [...ownedWithMetadata, ...sharedWithMetadata];
 
     const uniqueNotebooks = Array.from(
-      new Map(allNotebooks.map(n => [n.id, n])).values()
+      new Map(allNotebooks.map((n) => [n.id, n])).values(),
     ).sort((a, b) => {
       const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
@@ -98,7 +99,11 @@ export class NotebookRepository extends BaseRepository {
     return uniqueNotebooks;
   }
 
-  async updateNotebook(id: string, userId: string, updates: UpdateNotebook): Promise<Notebook | undefined> {
+  async updateNotebook(
+    id: string,
+    userId: string,
+    updates: UpdateNotebook,
+  ): Promise<Notebook | undefined> {
     const [updatedNotebook] = await db
       .update(notebooks)
       .set(updates)
@@ -108,12 +113,15 @@ export class NotebookRepository extends BaseRepository {
   }
 
   async deleteNotebook(id: string, userId: string): Promise<void> {
-    const [existing] = await db.select().from(notebooks).where(eq(notebooks.id, id));
+    const [existing] = await db
+      .select()
+      .from(notebooks)
+      .where(eq(notebooks.id, id));
     if (!existing) {
-      throw new Error('Notebook not found');
+      throw new Error("Notebook not found");
     }
     if (existing.userId !== userId) {
-      throw new Error('Unauthorized: You do not own this notebook');
+      throw new Error("Unauthorized: You do not own this notebook");
     }
 
     await db
@@ -121,17 +129,20 @@ export class NotebookRepository extends BaseRepository {
       .where(and(eq(notebooks.id, id), eq(notebooks.userId, userId)));
   }
 
-  async validateNotebookOwnership(notebookId: string, userId: string): Promise<boolean> {
+  async validateNotebookOwnership(
+    notebookId: string,
+    userId: string,
+  ): Promise<boolean> {
     const [notebook] = await db
       .select()
       .from(notebooks)
       .where(and(eq(notebooks.id, notebookId), eq(notebooks.userId, userId)))
       .limit(1);
-    
+
     if (notebook) {
       return true;
     }
-    
+
     return false;
   }
 }

@@ -9,7 +9,7 @@ export const GENRE_CATEGORIES = {
     "Political Fiction",
     "Musical Fiction",
     "Sports Fiction",
-    "Suspense Fiction"
+    "Suspense Fiction",
   ],
   "Science Fiction": [
     "Science Fiction",
@@ -41,9 +41,9 @@ export const GENRE_CATEGORIES = {
     "Alien Invasion",
     "Scientific Romance",
     "Dying Earth",
-    "Quantum Fiction"
+    "Quantum Fiction",
   ],
-  "Fantasy": [
+  Fantasy: [
     "Fantasy",
     "Contemporary Fantasy",
     "Cozy Fantasy",
@@ -63,9 +63,9 @@ export const GENRE_CATEGORIES = {
     "Heroic Fantasy",
     "Portal Fantasy",
     "Medieval Fantasy",
-    "Prehistoric Fantasy"
+    "Prehistoric Fantasy",
   ],
-  "Horror": [
+  Horror: [
     "Horror",
     "Comedy Horror",
     "Gothic Horror",
@@ -79,7 +79,7 @@ export const GENRE_CATEGORIES = {
     "Apocalyptic",
     "Zombie Apocalypse",
     "Monster Literature",
-    "Weird Fiction"
+    "Weird Fiction",
   ],
   "Mystery & Crime": [
     "Mystery",
@@ -90,15 +90,15 @@ export const GENRE_CATEGORIES = {
     "Cozy Mystery",
     "Legal Thriller",
     "Caper",
-    "Spy Fiction"
+    "Spy Fiction",
   ],
-  "Thriller": [
+  Thriller: [
     "Thriller",
     "Psychological Thriller",
     "Techno-Thriller",
-    "Political Thriller"
+    "Political Thriller",
   ],
-  "Romance": [
+  Romance: [
     "Romance",
     "Paranormal Romance",
     "Contemporary Romance",
@@ -109,57 +109,36 @@ export const GENRE_CATEGORIES = {
     "Romantic Suspense",
     "Western Romance",
     "Young Adult Romance",
-    "Chivalric Romance"
+    "Chivalric Romance",
   ],
-  "Western": [
+  Western: [
     "Western",
     "Horror Western",
     "Science Fiction Western",
     "Weird Western",
-    "Fantasy Western"
+    "Fantasy Western",
   ],
-  "Young Adult & New Adult": [
-    "Young Adult",
-    "New Adult"
-  ],
-  "Historical": [
-    "Historical Fiction",
-    "Prehistoric Fiction",
-    "Medieval Fiction"
-  ],
-  "Comedy": [
-    "Comedy",
-    "Tragic Comedy",
-    "Burlesque"
-  ],
-  "Drama": [
-    "Tragedy",
-    "Melodrama"
-  ],
-  "Superhero": [
-    "Superhero Fantasy",
-    "Cape Punk",
-    "Heroic Noir"
-  ],
+  "Young Adult & New Adult": ["Young Adult", "New Adult"],
+  Historical: ["Historical Fiction", "Prehistoric Fiction", "Medieval Fiction"],
+  Comedy: ["Comedy", "Tragic Comedy", "Burlesque"],
+  Drama: ["Tragedy", "Melodrama"],
+  Superhero: ["Superhero Fantasy", "Cape Punk", "Heroic Noir"],
   "Speculative & Experimental": [
     "Xenofiction",
     "Alternative History",
     "Slipstream",
     "Postmodern",
     "Conte",
-    "Pulp Fiction"
+    "Pulp Fiction",
   ],
-  "Action & Adventure": [
-    "Action-Adventure",
-    "Nautical"
-  ]
+  "Action & Adventure": ["Action-Adventure", "Nautical"],
 };
 
 export const ALL_GENRES = Object.values(GENRE_CATEGORIES).flat();
 
 export const GENDER_IDENTITIES = [
   "Male",
-  "Female", 
+  "Female",
   "Non-Binary",
   "Agender",
   "Bigender",
@@ -171,12 +150,12 @@ export const GENDER_IDENTITIES = [
   "Demigender",
   "Androgynous",
   "Omnigender",
-  "Polygender"
+  "Polygender",
 ];
 
 export const PRONOUN_OPTIONS = [
   "they/them",
-  "she/her", 
+  "she/her",
   "he/him",
   "xe/xem",
   "ze/zir",
@@ -187,7 +166,7 @@ export const PRONOUN_OPTIONS = [
   "she/they",
   "he/they",
   "any pronouns",
-  "ask for pronouns"
+  "ask for pronouns",
 ];
 
 // Comprehensive list of setting types organized by categories
@@ -195,7 +174,7 @@ export const SETTING_TYPE_CATEGORIES = {
   "Geographic Regions": [
     "World",
     "Country",
-    "State/Province", 
+    "State/Province",
     "County",
     "City",
     "Town",
@@ -208,7 +187,7 @@ export const SETTING_TYPE_CATEGORIES = {
     "Abandoned City",
     "Lost City",
     "District",
-    "Faction"
+    "Faction",
   ],
   "Natural Environments": [
     "Forest",
@@ -265,7 +244,7 @@ export const SETTING_TYPE_CATEGORIES = {
     "Lair",
     "Orchard",
     "Grotto",
-    "Haunted Woods"
+    "Haunted Woods",
   ],
   "Residential Buildings": [
     "House",
@@ -280,7 +259,7 @@ export const SETTING_TYPE_CATEGORIES = {
     "Condo Building",
     "Trailer",
     "Camper Van",
-    "Caravan"
+    "Caravan",
   ],
   "Commercial Establishments": [
     "Restaurant",
@@ -363,7 +342,7 @@ export const SETTING_TYPE_CATEGORIES = {
     "Technology Company",
     "Catering Company",
     "Commercial Kitchen",
-    "Strip Club"
+    "Strip Club",
   ],
   "Public & Government Buildings": [
     "Library",
@@ -390,7 +369,7 @@ export const SETTING_TYPE_CATEGORIES = {
     "Government Agency",
     "Intelligence Agency",
     "News Station",
-    "Refugee Centre"
+    "Refugee Centre",
   ],
   "Entertainment Venues": [
     "movie theatre",
@@ -424,7 +403,7 @@ export const SETTING_TYPE_CATEGORIES = {
     "gala",
     "rodeo",
     "bowling alley",
-    "indoor playground"
+    "indoor playground",
   ],
   "Transportation & Infrastructure": [
     "airport",
@@ -461,7 +440,7 @@ export const SETTING_TYPE_CATEGORIES = {
     "breezeway",
     "turnpike",
     "intersection",
-    "shipping yard"
+    "shipping yard",
   ],
   "Religious & Spiritual Buildings": [
     "church",
@@ -471,7 +450,7 @@ export const SETTING_TYPE_CATEGORIES = {
     "shrine",
     "pyramid",
     "monastery",
-    "abbey"
+    "abbey",
   ],
   "Educational Institutions": [
     "school",
@@ -485,7 +464,7 @@ export const SETTING_TYPE_CATEGORIES = {
     "classroom",
     "academy",
     "daycare",
-    "computer lab"
+    "computer lab",
   ],
   "Healthcare Facilities": [
     "hospital",
@@ -505,7 +484,7 @@ export const SETTING_TYPE_CATEGORIES = {
     "wellness centre",
     "trauma centre",
     "acupuncturist",
-    "naturopath"
+    "naturopath",
   ],
   "Sports & Recreation": [
     "gym",
@@ -532,7 +511,7 @@ export const SETTING_TYPE_CATEGORIES = {
     "curling club",
     "lawn bowling club",
     "gymnastics club",
-    "hockey arena"
+    "hockey arena",
   ],
   "Industrial & Agricultural": [
     "factory",
@@ -561,7 +540,7 @@ export const SETTING_TYPE_CATEGORIES = {
     "lumber mill",
     "sawmill",
     "forge",
-    "refinery"
+    "refinery",
   ],
   "Vehicles & Mobile Settings": [
     "space station",
@@ -585,7 +564,7 @@ export const SETTING_TYPE_CATEGORIES = {
     "spaceship",
     "merchant ship",
     "shipping container",
-    "helicopter"
+    "helicopter",
   ],
   "Interior Spaces": [
     "room",
@@ -616,7 +595,7 @@ export const SETTING_TYPE_CATEGORIES = {
     "workshop",
     "dormitory",
     "dining room",
-    "attic"
+    "attic",
   ],
   "Personal Care & Services": [
     "salon",
@@ -627,7 +606,7 @@ export const SETTING_TYPE_CATEGORIES = {
     "saloon",
     "bathhouse",
     "laundromat",
-    "pottery studio"
+    "pottery studio",
   ],
   "Cultural & Arts": [
     "museum",
@@ -640,7 +619,7 @@ export const SETTING_TYPE_CATEGORIES = {
     "movie set",
     "recording studio",
     "radio station",
-    "orchestra pit"
+    "orchestra pit",
   ],
   "Military & Historical": [
     "castle",
@@ -664,7 +643,7 @@ export const SETTING_TYPE_CATEGORIES = {
     "crash site",
     "ancient ruins",
     "gallows",
-    "plantation"
+    "plantation",
   ],
   "Specialized Buildings": [
     "apothecary",
@@ -709,7 +688,7 @@ export const SETTING_TYPE_CATEGORIES = {
     "treehouse",
     "bell tower",
     "stable",
-    "haunted house"
+    "haunted house",
   ],
   "Celestial & Fantastical": [
     "planet",
@@ -717,79 +696,118 @@ export const SETTING_TYPE_CATEGORIES = {
     "satellite",
     "star",
     "galaxy",
-    "portal"
-  ]
+    "portal",
+  ],
 };
 
 export const CREATURE_TYPE_CATEGORIES = {
   "Real Animals - Vertebrates": [
-    "Fish", "Mammal", "Bird", "Amphibian", "Reptile", "Canine", "Feline", 
-    "Aquatic Mammal", "Avian", "Primate", "Rodent", "Ungulate", "Bovine", 
-    "Camelid", "Caprid", "Equine", "Pachyderm", "Swine", "Marsupial"
+    "Fish",
+    "Mammal",
+    "Bird",
+    "Amphibian",
+    "Reptile",
+    "Canine",
+    "Feline",
+    "Aquatic Mammal",
+    "Avian",
+    "Primate",
+    "Rodent",
+    "Ungulate",
+    "Bovine",
+    "Camelid",
+    "Caprid",
+    "Equine",
+    "Pachyderm",
+    "Swine",
+    "Marsupial",
   ],
   "Real Animals - Invertebrates": [
-    "Arthropod", "Crustacean", "Arachnid", "Mollusc", "Xenarthran"
+    "Arthropod",
+    "Crustacean",
+    "Arachnid",
+    "Mollusc",
+    "Xenarthran",
   ],
   "Specialized Animal Types": [
-    "Musteloid", "Herpestoid", "Procyonid", "Jackalope"
+    "Musteloid",
+    "Herpestoid",
+    "Procyonid",
+    "Jackalope",
   ],
   "Fantasy Creatures": [
-    "Dragon", "Unicorn", "Griffin", "Hypogriff", "Pegasus", "Phoenix"
+    "Dragon",
+    "Unicorn",
+    "Griffin",
+    "Hypogriff",
+    "Pegasus",
+    "Phoenix",
   ],
   "Mythological Beings": [
-    "Fairy", "Pixie", "Nymph", "Siren", "Sprite", "Dryad", "Druid", 
-    "Valkyrie", "Banshee"
+    "Fairy",
+    "Pixie",
+    "Nymph",
+    "Siren",
+    "Sprite",
+    "Dryad",
+    "Druid",
+    "Valkyrie",
+    "Banshee",
   ],
   "Shapeshifters & Lycanthropes": [
-    "Werewolf", "Werehyena", "Wendigo", "Selkie", "Kelpie"
+    "Werewolf",
+    "Werehyena",
+    "Wendigo",
+    "Selkie",
+    "Kelpie",
   ],
-  "Undead & Supernatural": [
-    "Vampire", "Wraith", "Ghoul", "Skeleton", "Draugr"
-  ],
-  "Humanoid Races": [
-    "Elf", "Dwarf", "Gnome", "Goblin", "Humanoid"
-  ],
-  "Giants & Large Beings": [
-    "Troll", "Ogre", "Giant", "Cyclops", "Minotaur"
-  ],
-  "Hybrid Creatures": [
-    "Centaur", "Mermaid", "Faun", "Sphinx"
-  ],
-  "Constructed Beings": [
-    "Golem", "Gargoyle", "Elemental"
-  ],
+  "Undead & Supernatural": ["Vampire", "Wraith", "Ghoul", "Skeleton", "Draugr"],
+  "Humanoid Races": ["Elf", "Dwarf", "Gnome", "Goblin", "Humanoid"],
+  "Giants & Large Beings": ["Troll", "Ogre", "Giant", "Cyclops", "Minotaur"],
+  "Hybrid Creatures": ["Centaur", "Mermaid", "Faun", "Sphinx"],
+  "Constructed Beings": ["Golem", "Gargoyle", "Elemental"],
   "Cryptids & Legendary": [
-    "chupacabra", "yeti", "sasquatch", "kraken", "leviathan"
+    "chupacabra",
+    "yeti",
+    "sasquatch",
+    "kraken",
+    "leviathan",
   ],
   "Serpentine & Reptilian": [
-    "serpent", "basilisk", "gorgon", "hydra", "echidna", "sea serpent"
+    "serpent",
+    "basilisk",
+    "gorgon",
+    "hydra",
+    "echidna",
+    "sea serpent",
   ],
   "Spirits & Ethereal": [
-    "will-o'-wisp", "genie", "gremlin", "demon", "incubus", "succubus", 
-    "leprechaun", "boggart", "spriggan"
+    "will-o'-wisp",
+    "genie",
+    "gremlin",
+    "demon",
+    "incubus",
+    "succubus",
+    "leprechaun",
+    "boggart",
+    "spriggan",
   ],
-  "Prehistoric & Ancient": [
-    "dinosaur"
-  ],
-  "Extraterrestrial": [
-    "alien"
-  ],
-  "Botanical & Nature": [
-    "mandrake"
-  ],
-  "Zodiacal": [
-    "capricorn"
-  ]
+  "Prehistoric & Ancient": ["dinosaur"],
+  Extraterrestrial: ["alien"],
+  "Botanical & Nature": ["mandrake"],
+  Zodiacal: ["capricorn"],
 };
 
 export const ALL_SETTING_TYPES = Object.values(SETTING_TYPE_CATEGORIES).flat();
-export const ALL_CREATURE_TYPES = Object.values(CREATURE_TYPE_CATEGORIES).flat();
+export const ALL_CREATURE_TYPES = Object.values(
+  CREATURE_TYPE_CATEGORIES,
+).flat();
 
 // Comprehensive ethnicity and cultural background options
 export const ETHNICITY_CATEGORIES = {
-  "European": [
+  European: [
     "British/English",
-    "Irish", 
+    "Irish",
     "Scottish",
     "Welsh",
     "French",
@@ -824,7 +842,7 @@ export const ETHNICITY_CATEGORIES = {
     "Belarusian",
     "Estonian",
     "Latvian",
-    "Lithuanian"
+    "Lithuanian",
   ],
   "East Asian": [
     "Chinese (Han)",
@@ -843,7 +861,7 @@ export const ETHNICITY_CATEGORIES = {
     "Indonesian",
     "Malaysian",
     "Singaporean",
-    "Brunei"
+    "Brunei",
   ],
   "South Asian": [
     "Indian (Northern)",
@@ -861,7 +879,7 @@ export const ETHNICITY_CATEGORIES = {
     "Telugu",
     "Marathi",
     "Gujarati",
-    "Kashmiri"
+    "Kashmiri",
   ],
   "Middle Eastern": [
     "Arab",
@@ -887,9 +905,9 @@ export const ETHNICITY_CATEGORIES = {
     "Kurdish",
     "Armenian",
     "Georgian",
-    "Azerbaijani"
+    "Azerbaijani",
   ],
-  "African": [
+  African: [
     "Nigerian",
     "Ghanaian",
     "Senegalese",
@@ -931,7 +949,7 @@ export const ETHNICITY_CATEGORIES = {
     "Zulu",
     "Xhosa",
     "Amhara",
-    "Oromo"
+    "Oromo",
   ],
   "Latin American": [
     "Mexican",
@@ -960,7 +978,7 @@ export const ETHNICITY_CATEGORIES = {
     "Guyanese",
     "Surinamese",
     "Belizean",
-    "Haitian"
+    "Haitian",
   ],
   "Indigenous & Native": [
     "Native American (Cherokee)",
@@ -989,16 +1007,9 @@ export const ETHNICITY_CATEGORIES = {
     "Aztec/Nahuatl",
     "Inca/Quechua",
     "Guarani",
-    "Mapuche"
+    "Mapuche",
   ],
-  "Central Asian": [
-    "Kazakh",
-    "Uzbek",
-    "Turkmen",
-    "Kyrgyz",
-    "Tajik",
-    "Uyghur"
-  ],
+  "Central Asian": ["Kazakh", "Uzbek", "Turkmen", "Kyrgyz", "Tajik", "Uyghur"],
   "Mixed Heritage": [
     "Afro-Caribbean",
     "Anglo-Indian",
@@ -1011,7 +1022,7 @@ export const ETHNICITY_CATEGORIES = {
     "Cape Coloured",
     "Pardo (Brazilian mixed)",
     "Multiracial",
-    "Biracial"
+    "Biracial",
   ],
   "Jewish Diaspora": [
     "Ashkenazi Jewish",
@@ -1019,7 +1030,7 @@ export const ETHNICITY_CATEGORIES = {
     "Mizrahi Jewish",
     "Ethiopian Jewish",
     "Indian Jewish",
-    "Bukharian Jewish"
+    "Bukharian Jewish",
   ],
   "Nomadic & Stateless": [
     "Roma/Romani",
@@ -1028,8 +1039,8 @@ export const ETHNICITY_CATEGORIES = {
     "Tuareg",
     "Berber/Amazigh",
     "Kurmanji Kurdish",
-    "Sorani Kurdish"
-  ]
+    "Sorani Kurdish",
+  ],
 };
 
 export const ALL_ETHNICITIES = Object.values(ETHNICITY_CATEGORIES).flat();
@@ -1037,56 +1048,140 @@ export const ALL_ETHNICITIES = Object.values(ETHNICITY_CATEGORIES).flat();
 // Description types for the description generator
 export const ALL_DESCRIPTION_TYPES = [
   // Objects & Items
-  "armour", "weapon", "clothing", "uniform", "item", "wand", "book", "material", "potion", "furniture", "toy",
-  
+  "armour",
+  "weapon",
+  "clothing",
+  "uniform",
+  "item",
+  "wand",
+  "book",
+  "material",
+  "potion",
+  "furniture",
+  "toy",
+
   // Health & Conditions
-  "disease", "illness", "condition", "ailment", "poison", "mental_health", "pain", "dying", "medicine",
-  
+  "disease",
+  "illness",
+  "condition",
+  "ailment",
+  "poison",
+  "mental_health",
+  "pain",
+  "dying",
+  "medicine",
+
   // Environmental & Atmospheric
-  "atmospheric", "climate", "weather", "storm", "sky", "environment", "natural_disaster", "apocalypse",
-  
+  "atmospheric",
+  "climate",
+  "weather",
+  "storm",
+  "sky",
+  "environment",
+  "natural_disaster",
+  "apocalypse",
+
   // Cultural & Social
-  "holiday", "tradition", "ritual", "religion", "society", "law", "culture", "ethnicity", "government", "organization", "military",
-  
+  "holiday",
+  "tradition",
+  "ritual",
+  "religion",
+  "society",
+  "law",
+  "culture",
+  "ethnicity",
+  "government",
+  "organization",
+  "military",
+
   // Skills & Abilities
-  "martial_art", "spell", "cooking", "activity", "service", "trade",
-  
+  "martial_art",
+  "spell",
+  "cooking",
+  "activity",
+  "service",
+  "trade",
+
   // Emotional & Psychological
-  "tragedy", "trauma", "hysteria", "emotion", "aura",
-  
+  "tragedy",
+  "trauma",
+  "hysteria",
+  "emotion",
+  "aura",
+
   // Mystical & Supernatural
-  "prophecy", "legend", "myth", "folklore", "deity",
-  
+  "prophecy",
+  "legend",
+  "myth",
+  "folklore",
+  "deity",
+
   // Food & Drink
-  "food", "drink", "taste", "cuisine",
-  
+  "food",
+  "drink",
+  "taste",
+  "cuisine",
+
   // Physical & Sensory Descriptions
-  "smell", "hair", "eye", "nose", "facial_expression", "posture", "gait", "mouth", "general_physical", "smile", "facial_feature",
-  
+  "smell",
+  "hair",
+  "eye",
+  "nose",
+  "facial_expression",
+  "posture",
+  "gait",
+  "mouth",
+  "general_physical",
+  "smile",
+  "facial_feature",
+
   // Character & Personality
-  "personality", "character", "role", "title", "job",
-  
+  "personality",
+  "character",
+  "role",
+  "title",
+  "job",
+
   // Transportation & Vehicles
-  "transportation", "vehicle", "flight",
-  
+  "transportation",
+  "vehicle",
+  "flight",
+
   // Architecture & Buildings
-  "architecture", "building",
-  
+  "architecture",
+  "building",
+
   // Natural Elements & Sciences
-  "element", "natural_law", "ecological", "anatomy", "morphology", "species", "crop", "resource",
-  
+  "element",
+  "natural_law",
+  "ecological",
+  "anatomy",
+  "morphology",
+  "species",
+  "crop",
+  "resource",
+
   // Arts & Entertainment
-  "music", "song", "poem", "dance", "game",
-  
+  "music",
+  "song",
+  "poem",
+  "dance",
+  "game",
+
   // Communication & Language
-  "language", "dialect", "accent", "document", "data",
-  
+  "language",
+  "dialect",
+  "accent",
+  "document",
+  "data",
+
   // Events & Conflicts
-  "event", "conflict",
-  
+  "event",
+  "conflict",
+
   // Technology
   "technology",
-  
+
   // All Location Types (from setting generator) - using exact format from SETTING_TYPE_CATEGORIES
-  ...ALL_SETTING_TYPES
+  ...ALL_SETTING_TYPES,
 ];

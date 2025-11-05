@@ -1,18 +1,24 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Lock, Unlock, Sparkles } from 'lucide-react';
-import { type PremiumSample, isSampleLocked } from '@/lib/premiumSamples';
-import type { SubscriptionTier } from '@shared/types/subscription';
-import { useLocation } from 'wouter';
-import { useState } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Lock, Unlock, Sparkles } from "lucide-react";
+import { type PremiumSample, isSampleLocked } from "@/lib/premiumSamples";
+import type { SubscriptionTier } from "@shared/types/subscription";
+import { useLocation } from "wouter";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 
 interface PremiumSampleCardProps {
   sample: PremiumSample;
@@ -20,24 +26,24 @@ interface PremiumSampleCardProps {
 }
 
 const TIER_LABELS: Record<SubscriptionTier, string> = {
-  free: 'Free',
-  author: 'Author',
-  professional: 'Professional',
-  team: 'Team',
+  free: "Free",
+  author: "Author",
+  professional: "Professional",
+  team: "Team",
 };
 
 const TIER_COLORS: Record<SubscriptionTier, string> = {
-  free: 'bg-muted text-muted-foreground',
-  author: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-  professional: 'bg-purple-500/10 text-purple-500 border-purple-500/20',
-  team: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
+  free: "bg-muted text-muted-foreground",
+  author: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+  professional: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+  team: "bg-orange-500/10 text-orange-500 border-orange-500/20",
 };
 
 const QUALITY_LABELS = {
-  basic: 'Basic Quality',
-  enhanced: 'Enhanced',
-  premium: 'Premium',
-  elite: 'Elite',
+  basic: "Basic Quality",
+  enhanced: "Enhanced",
+  premium: "Premium",
+  elite: "Elite",
 };
 
 const QUALITY_ICONS = {
@@ -47,14 +53,17 @@ const QUALITY_ICONS = {
   elite: 4,
 };
 
-export function PremiumSampleCard({ sample, userTier }: PremiumSampleCardProps) {
+export function PremiumSampleCard({
+  sample,
+  userTier,
+}: PremiumSampleCardProps) {
   const [, setLocation] = useLocation();
   const [showFullSample, setShowFullSample] = useState(false);
   const isLocked = isSampleLocked(sample, userTier);
 
   const handleViewSample = () => {
     if (isLocked) {
-      setLocation('/pricing');
+      setLocation("/pricing");
     } else {
       setShowFullSample(true);
     }
@@ -63,7 +72,7 @@ export function PremiumSampleCard({ sample, userTier }: PremiumSampleCardProps) 
   return (
     <>
       <Card
-        className={`hover-elevate transition-all ${isLocked ? 'opacity-60' : ''}`}
+        className={`hover-elevate transition-all ${isLocked ? "opacity-60" : ""}`}
         data-testid={`card-premium-sample-${sample.id}`}
       >
         <CardHeader className="space-y-3">
@@ -74,7 +83,9 @@ export function PremiumSampleCard({ sample, userTier }: PremiumSampleCardProps) 
                 {!isLocked && <Unlock className="h-4 w-4 text-primary" />}
                 {sample.title}
               </CardTitle>
-              <CardDescription className="mt-1">{sample.category}</CardDescription>
+              <CardDescription className="mt-1">
+                {sample.category}
+              </CardDescription>
             </div>
           </div>
 
@@ -93,11 +104,13 @@ export function PremiumSampleCard({ sample, userTier }: PremiumSampleCardProps) 
 
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground line-clamp-3">
-            {isLocked ? 'Unlock this tier to see the full sample...' : sample.content.summary}
+            {isLocked
+              ? "Unlock this tier to see the full sample..."
+              : sample.content.summary}
           </p>
 
           <Button
-            variant={isLocked ? 'default' : 'outline'}
+            variant={isLocked ? "default" : "outline"}
             className="w-full"
             onClick={handleViewSample}
             data-testid={`button-view-sample-${sample.id}`}
@@ -108,7 +121,7 @@ export function PremiumSampleCard({ sample, userTier }: PremiumSampleCardProps) 
                 Upgrade to View
               </>
             ) : (
-              'View Full Sample'
+              "View Full Sample"
             )}
           </Button>
         </CardContent>
@@ -143,14 +156,17 @@ export function PremiumSampleCard({ sample, userTier }: PremiumSampleCardProps) 
             <div>
               <h4 className="font-semibold mb-2">Full Content</h4>
               <div className="prose prose-sm dark:prose-invert max-w-none">
-                <p className="whitespace-pre-wrap text-muted-foreground">{sample.content.details}</p>
+                <p className="whitespace-pre-wrap text-muted-foreground">
+                  {sample.content.details}
+                </p>
               </div>
             </div>
 
             <div className="pt-4 border-t">
               <p className="text-sm text-muted-foreground">
-                This is a {QUALITY_LABELS[sample.quality].toLowerCase()} sample showing what you can
-                generate with {TIER_LABELS[sample.tier]} tier features.
+                This is a {QUALITY_LABELS[sample.quality].toLowerCase()} sample
+                showing what you can generate with {TIER_LABELS[sample.tier]}{" "}
+                tier features.
               </p>
             </div>
           </div>

@@ -1,9 +1,9 @@
-import { useNotebookStore, Notebook } from '@/stores/notebookStore';
-import { shallow } from 'zustand/shallow';
+import { useNotebookStore, Notebook } from "@/stores/notebookStore";
+import { shallow } from "zustand/shallow";
 
 /**
  * Custom hooks for Notebook Store
- * 
+ *
  * These hooks provide a clean, organized interface for accessing notebook state.
  * Benefits:
  * - Cleaner component code
@@ -54,14 +54,17 @@ export function useNotebooksLoading(): boolean {
  * Uses shallow equality to prevent unnecessary re-renders
  */
 export function useNotebookActions() {
-  return useNotebookStore((state) => ({
-    setActiveNotebook: state.setActiveNotebook,
-    setNotebooks: state.setNotebooks,
-    addNotebook: state.addNotebook,
-    updateNotebook: state.updateNotebook,
-    removeNotebook: state.removeNotebook,
-    setLoadingNotebooks: state.setLoadingNotebooks,
-  }), shallow);
+  return useNotebookStore(
+    (state) => ({
+      setActiveNotebook: state.setActiveNotebook,
+      setNotebooks: state.setNotebooks,
+      addNotebook: state.addNotebook,
+      updateNotebook: state.updateNotebook,
+      removeNotebook: state.removeNotebook,
+      setLoadingNotebooks: state.setLoadingNotebooks,
+    }),
+    shallow,
+  );
 }
 
 /**

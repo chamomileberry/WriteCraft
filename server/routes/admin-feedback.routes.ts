@@ -12,7 +12,9 @@ router.get("/", readRateLimiter, async (req: any, res) => {
     // Check if user is admin
     const user = await storage.getUser(req.user.claims.sub);
     if (!user?.isAdmin) {
-      return res.status(403).json({ error: "Unauthorized - Admin access required" });
+      return res
+        .status(403)
+        .json({ error: "Unauthorized - Admin access required" });
     }
 
     const feedbackList = await storage.getAllFeedback();
@@ -29,11 +31,13 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
     // Check if user is admin
     const user = await storage.getUser(req.user.claims.sub);
     if (!user?.isAdmin) {
-      return res.status(403).json({ error: "Unauthorized - Admin access required" });
+      return res
+        .status(403)
+        .json({ error: "Unauthorized - Admin access required" });
     }
 
     const updateSchema = z.object({
-      status: z.enum(['new', 'reviewed', 'in-progress', 'resolved', 'closed']),
+      status: z.enum(["new", "reviewed", "in-progress", "resolved", "closed"]),
     });
 
     const { status } = updateSchema.parse(req.body);
@@ -63,14 +67,16 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
 router.post("/:id/reply", writeRateLimiter, async (req: any, res) => {
   try {
     // Fetch CSRF token first
-    const csrfResponse = await fetch('/api/auth/csrf-token', {
-      credentials: 'include',
+    const csrfResponse = await fetch("/api/auth/csrf-token", {
+      credentials: "include",
     });
 
     // Check if user is admin
     const user = await storage.getUser(req.user.claims.sub);
     if (!user?.isAdmin) {
-      return res.status(403).json({ error: "Unauthorized - Admin access required" });
+      return res
+        .status(403)
+        .json({ error: "Unauthorized - Admin access required" });
     }
 
     const replySchema = z.object({
@@ -80,13 +86,19 @@ router.post("/:id/reply", writeRateLimiter, async (req: any, res) => {
     const { reply } = replySchema.parse(req.body);
     const feedbackId = req.params.id;
 
-    const updated = await storage.replyToFeedback(feedbackId, reply, req.user.claims.sub);
+    const updated = await storage.replyToFeedback(
+      feedbackId,
+      reply,
+      req.user.claims.sub,
+    );
 
     if (!updated) {
       return res.status(404).json({ error: "Feedback not found" });
     }
 
-    logger.info(`Admin ${req.user.claims.sub} replied to feedback ${feedbackId}`);
+    logger.info(
+      `Admin ${req.user.claims.sub} replied to feedback ${feedbackId}`,
+    );
     res.json(updated);
   } catch (error) {
     if (error instanceof z.ZodError) {

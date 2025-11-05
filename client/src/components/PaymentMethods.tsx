@@ -1,20 +1,38 @@
-import { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { CreditCard, Plus, Trash2, Check, Loader2 } from 'lucide-react';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { CreditCard, Plus, Trash2, Check, Loader2 } from "lucide-react";
+import {
+  Elements,
+  CardElement,
+  useStripe,
+  useElements,
+} from "@stripe/react-stripe-js";
 
 // Use the globally loaded Stripe from the script tag in index.html
 const publicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
 
 const stripePromise = new Promise<any>((resolve) => {
   if (!publicKey) {
-    console.error('VITE_STRIPE_PUBLIC_KEY is not set');
+    console.error("VITE_STRIPE_PUBLIC_KEY is not set");
     resolve(null);
     return;
   }
@@ -56,39 +74,46 @@ function AddPaymentMethodForm({ onSuccess }: { onSuccess: () => void }) {
 
     try {
       // Create setup intent
-      const response = await apiRequest('POST', '/api/stripe/create-setup-intent', {});
+      const response = await apiRequest(
+        "POST",
+        "/api/stripe/create-setup-intent",
+        {},
+      );
       const { clientSecret } = await response.json();
 
       // Get card element
       const cardElement = elements.getElement(CardElement);
 
       if (!cardElement) {
-        throw new Error('Card element not found');
+        throw new Error("Card element not found");
       }
 
       // Confirm card setup
-      const { error, setupIntent } = await stripe.confirmCardSetup(clientSecret, {
-        payment_method: {
-          card: cardElement,
+      const { error, setupIntent } = await stripe.confirmCardSetup(
+        clientSecret,
+        {
+          payment_method: {
+            card: cardElement,
+          },
         },
-      });
+      );
 
       if (error) {
         throw new Error(error.message);
       }
 
-      if (setupIntent?.status === 'succeeded') {
+      if (setupIntent?.status === "succeeded") {
         toast({
-          title: 'Success',
-          description: 'Payment method added successfully',
+          title: "Success",
+          description: "Payment method added successfully",
         });
         onSuccess();
       }
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to add payment method',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to add payment method",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -102,17 +127,22 @@ function AddPaymentMethodForm({ onSuccess }: { onSuccess: () => void }) {
           options={{
             style: {
               base: {
-                fontSize: '16px',
-                color: 'hsl(var(--foreground))',
-                '::placeholder': {
-                  color: 'hsl(var(--muted-foreground))',
+                fontSize: "16px",
+                color: "hsl(var(--foreground))",
+                "::placeholder": {
+                  color: "hsl(var(--muted-foreground))",
                 },
               },
             },
           }}
         />
       </div>
-      <Button type="submit" disabled={!stripe || isLoading} className="w-full" data-testid="button-add-payment-method">
+      <Button
+        type="submit"
+        disabled={!stripe || isLoading}
+        className="w-full"
+        data-testid="button-add-payment-method"
+      >
         {isLoading ? (
           <>
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -135,26 +165,32 @@ export function PaymentMethods() {
 
   // Fetch payment methods
   const { data, isLoading } = useQuery<{ paymentMethods: PaymentMethod[] }>({
-    queryKey: ['/api/stripe/payment-methods'],
+    queryKey: ["/api/stripe/payment-methods"],
   });
 
   // Delete payment method mutation
   const deleteMutation = useMutation({
     mutationFn: async (paymentMethodId: string) => {
-      await apiRequest('DELETE', `/api/stripe/payment-methods/${paymentMethodId}`, {});
+      await apiRequest(
+        "DELETE",
+        `/api/stripe/payment-methods/${paymentMethodId}`,
+        {},
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/stripe/payment-methods'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/stripe/payment-methods"],
+      });
       toast({
-        title: 'Success',
-        description: 'Payment method removed',
+        title: "Success",
+        description: "Payment method removed",
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to remove payment method',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to remove payment method",
+        variant: "destructive",
       });
     },
   });
@@ -162,26 +198,32 @@ export function PaymentMethods() {
   // Set default payment method mutation
   const setDefaultMutation = useMutation({
     mutationFn: async (paymentMethodId: string) => {
-      await apiRequest('POST', `/api/stripe/payment-methods/${paymentMethodId}/set-default`, {});
+      await apiRequest(
+        "POST",
+        `/api/stripe/payment-methods/${paymentMethodId}/set-default`,
+        {},
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/stripe/payment-methods'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/stripe/payment-methods"],
+      });
       toast({
-        title: 'Success',
-        description: 'Default payment method updated',
+        title: "Success",
+        description: "Default payment method updated",
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update default payment method',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to update default payment method",
+        variant: "destructive",
       });
     },
   });
 
   const handleDelete = async (paymentMethodId: string) => {
-    if (!confirm('Are you sure you want to remove this payment method?')) {
+    if (!confirm("Are you sure you want to remove this payment method?")) {
       return;
     }
     deleteMutation.mutate(paymentMethodId);
@@ -193,7 +235,9 @@ export function PaymentMethods() {
 
   const handleAddSuccess = () => {
     setIsAddDialogOpen(false);
-    queryClient.invalidateQueries({ queryKey: ['/api/stripe/payment-methods'] });
+    queryClient.invalidateQueries({
+      queryKey: ["/api/stripe/payment-methods"],
+    });
   };
 
   const paymentMethods = data?.paymentMethods || [];
@@ -216,7 +260,9 @@ export function PaymentMethods() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Add Payment Method</DialogTitle>
-                <DialogDescription>Add a new credit or debit card</DialogDescription>
+                <DialogDescription>
+                  Add a new credit or debit card
+                </DialogDescription>
               </DialogHeader>
               <Elements stripe={stripePromise}>
                 <AddPaymentMethodForm onSuccess={handleAddSuccess} />
@@ -247,10 +293,18 @@ export function PaymentMethods() {
                   <CreditCard className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium capitalize">{method.brand || 'Card'}</span>
-                      <span className="text-muted-foreground">•••• {method.last4}</span>
+                      <span className="font-medium capitalize">
+                        {method.brand || "Card"}
+                      </span>
+                      <span className="text-muted-foreground">
+                        •••• {method.last4}
+                      </span>
                       {method.isDefault && (
-                        <Badge variant="secondary" className="ml-2" data-testid="badge-default">
+                        <Badge
+                          variant="secondary"
+                          className="ml-2"
+                          data-testid="badge-default"
+                        >
                           Default
                         </Badge>
                       )}

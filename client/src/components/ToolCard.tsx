@@ -1,4 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, LucideIcon } from "lucide-react";
@@ -13,14 +19,14 @@ interface ToolCardProps {
   isPopular?: boolean;
 }
 
-export default function ToolCard({ 
-  title, 
-  description, 
-  icon: Icon, 
-  category, 
-  features, 
+export default function ToolCard({
+  title,
+  description,
+  icon: Icon,
+  category,
+  features,
   onUse,
-  isPopular = false 
+  isPopular = false,
 }: ToolCardProps) {
   const handleUse = () => {
     console.log(`Using ${title}`);
@@ -34,7 +40,7 @@ export default function ToolCard({
           Popular
         </Badge>
       )}
-      
+
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -51,29 +57,32 @@ export default function ToolCard({
             </div>
           </div>
         </div>
-        <CardDescription className="mt-2">
-          {description}
-        </CardDescription>
+        <CardDescription className="mt-2">{description}</CardDescription>
       </CardHeader>
-      
+
       <CardContent>
         <div className="space-y-4">
           <div>
-            <h4 className="text-sm font-medium mb-2 text-muted-foreground">Features:</h4>
+            <h4 className="text-sm font-medium mb-2 text-muted-foreground">
+              Features:
+            </h4>
             <ul className="space-y-1">
               {features.map((feature, index) => (
-                <li key={index} className="text-sm text-foreground flex items-center">
+                <li
+                  key={index}
+                  className="text-sm text-foreground flex items-center"
+                >
                   <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span>
                   {feature}
                 </li>
               ))}
             </ul>
           </div>
-          
-          <Button 
+
+          <Button
             onClick={handleUse}
             className="w-full group/btn"
-            data-testid={`button-use-${title.toLowerCase().replace(/\s+/g, '-')}`}
+            data-testid={`button-use-${title.toLowerCase().replace(/\s+/g, "-")}`}
           >
             Use {title}
             <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />

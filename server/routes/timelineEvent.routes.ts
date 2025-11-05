@@ -13,25 +13,33 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
     const timelineId = req.body.timelineId;
 
     if (!timelineId) {
-      return res.status(400).json({ error: 'timelineId is required' });
+      return res.status(400).json({ error: "timelineId is required" });
     }
 
     // Validate that the user owns the timeline this event belongs to
-    const timeline = await storage.getTimeline(timelineId, userId, req.body.notebookId);
+    const timeline = await storage.getTimeline(
+      timelineId,
+      userId,
+      req.body.notebookId,
+    );
     if (!timeline) {
-      console.warn(`[Security] Unauthorized timeline access attempt - userId: ${userId}, timelineId: ${timelineId}`);
-      return res.status(404).json({ error: 'Timeline not found' });
+      console.warn(
+        `[Security] Unauthorized timeline access attempt - userId: ${userId}, timelineId: ${timelineId}`,
+      );
+      return res.status(404).json({ error: "Timeline not found" });
     }
 
     const eventData = insertTimelineEventSchema.parse(req.body);
     const event = await storage.createTimelineEvent(eventData);
     res.status(201).json(event);
   } catch (error) {
-    console.error('Error creating timeline event:', error);
+    console.error("Error creating timeline event:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    res.status(500).json({ error: 'Failed to create timeline event' });
+    res.status(500).json({ error: "Failed to create timeline event" });
   }
 });
 
@@ -42,20 +50,26 @@ router.get("/", readRateLimiter, async (req: any, res) => {
     const timelineId = req.query.timelineId as string;
 
     if (!timelineId) {
-      return res.status(400).json({ error: 'timelineId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "timelineId query parameter is required" });
     }
 
     // Validate timeline ownership
-    const timeline = await storage.getTimeline(timelineId, userId, req.query.notebookId as string);
+    const timeline = await storage.getTimeline(
+      timelineId,
+      userId,
+      req.query.notebookId as string,
+    );
     if (!timeline) {
-      return res.status(404).json({ error: 'Timeline not found' });
+      return res.status(404).json({ error: "Timeline not found" });
     }
 
     const events = await storage.getTimelineEvents(timelineId, userId);
     res.json(events);
   } catch (error) {
-    console.error('Error fetching timeline events:', error);
-    res.status(500).json({ error: 'Failed to fetch timeline events' });
+    console.error("Error fetching timeline events:", error);
+    res.status(500).json({ error: "Failed to fetch timeline events" });
   }
 });
 
@@ -66,22 +80,29 @@ router.get("/notebook/:notebookId", readRateLimiter, async (req: any, res) => {
     const { notebookId } = req.params;
 
     if (!notebookId) {
-      return res.status(400).json({ error: 'Notebook ID is required' });
-      return res.status(400).json({ error: 'notebookId parameter is required' });
+      return res.status(400).json({ error: "Notebook ID is required" });
+      return res
+        .status(400)
+        .json({ error: "notebookId parameter is required" });
     }
 
-    const events = await storage.getTimelineEventsForNotebook(notebookId, userId);
+    const events = await storage.getTimelineEventsForNotebook(
+      notebookId,
+      userId,
+    );
     res.json(events);
   } catch (error) {
-    console.error('Error fetching notebook timeline events:', error);
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      console.warn(`[Security] Unauthorized notebook timeline access attempt - userId: ${userId}, notebookId: ${req.params?.notebookId}`);
-      return res.status(403).json({ error: 'Access denied' });
+    console.error("Error fetching notebook timeline events:", error);
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      console.warn(
+        `[Security] Unauthorized notebook timeline access attempt - userId: ${userId}, notebookId: ${req.params?.notebookId}`,
+      );
+      return res.status(403).json({ error: "Access denied" });
       console.warn(`[Security] Unauthorized operation - userId: ${userId}`);
-      return res.status(404).json({ error: 'Not found' });
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to fetch timeline events' });
+    res.status(500).json({ error: "Failed to fetch timeline events" });
   }
 });
 
@@ -92,19 +113,25 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
     const timelineId = req.query.timelineId as string;
 
     if (!timelineId) {
-      return res.status(400).json({ error: 'timelineId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "timelineId query parameter is required" });
     }
 
-    const event = await storage.getTimelineEvent(req.params.id, userId, timelineId);
-    
+    const event = await storage.getTimelineEvent(
+      req.params.id,
+      userId,
+      timelineId,
+    );
+
     if (!event) {
-      return res.status(404).json({ error: 'Timeline event not found' });
+      return res.status(404).json({ error: "Timeline event not found" });
     }
 
     res.json(event);
   } catch (error) {
-    console.error('Error fetching timeline event:', error);
-    res.status(500).json({ error: 'Failed to fetch timeline event' });
+    console.error("Error fetching timeline event:", error);
+    res.status(500).json({ error: "Failed to fetch timeline event" });
   }
 });
 
@@ -113,20 +140,26 @@ router.patch("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const updates = insertTimelineEventSchema.partial().parse(req.body);
-    
-    const updatedEvent = await storage.updateTimelineEvent(req.params.id, userId, updates);
+
+    const updatedEvent = await storage.updateTimelineEvent(
+      req.params.id,
+      userId,
+      updates,
+    );
     res.json(updatedEvent);
   } catch (error) {
-    console.error('Error updating timeline event:', error);
+    console.error("Error updating timeline event:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
       console.warn(`[Security] Unauthorized operation - userId: ${userId}`);
-      return res.status(404).json({ error: 'Not found' });
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to update timeline event' });
+    res.status(500).json({ error: "Failed to update timeline event" });
   }
 });
 
@@ -135,17 +168,17 @@ router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const timelineId = req.query.timelineId as string;
-    
+
     await storage.deleteTimelineEvent(req.params.id, userId, timelineId);
     res.status(204).send();
   } catch (error) {
-    console.error('Error deleting timeline event:', error);
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
+    console.error("Error deleting timeline event:", error);
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
       console.warn(`[Security] Unauthorized operation - userId: ${userId}`);
-      return res.status(404).json({ error: 'Not found' });
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to delete timeline event' });
+    res.status(500).json({ error: "Failed to delete timeline event" });
   }
 });
 

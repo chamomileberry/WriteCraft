@@ -7,6 +7,7 @@ Transform WriteCraft from its current unlimited free access model into a sustain
 ---
 
 ## Phase 1: Foundation (Weeks 1-3)
+
 **Goal**: Add subscription infrastructure without disrupting current users
 
 ### 1.1 Database Schema Extensions
@@ -20,25 +21,25 @@ CREATE TABLE user_subscriptions (
   user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   tier VARCHAR NOT NULL CHECK (tier IN ('free', 'author', 'professional', 'team')),
   status VARCHAR NOT NULL CHECK (status IN ('active', 'past_due', 'canceled', 'trialing')),
-  
+
   -- Stripe Integration
   stripe_customer_id VARCHAR UNIQUE,
   stripe_subscription_id VARCHAR UNIQUE,
   stripe_price_id VARCHAR,
-  
+
   -- Billing Cycle
   current_period_start TIMESTAMP,
   current_period_end TIMESTAMP,
   cancel_at_period_end BOOLEAN DEFAULT false,
-  
+
   -- Trial Management
   trial_start TIMESTAMP,
   trial_end TIMESTAMP,
-  
+
   -- Timestamps
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
-  
+
   -- Ensure one active subscription per user
   UNIQUE(user_id) WHERE status = 'active'
 );
@@ -47,24 +48,24 @@ CREATE TABLE user_subscriptions (
 CREATE TABLE ai_usage_logs (
   id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  
+
   -- Usage Details
   operation_type VARCHAR NOT NULL, -- 'character_gen', 'chat', 'edit', 'proofread', etc.
   model VARCHAR NOT NULL, -- 'claude-sonnet-4', 'claude-haiku-3-5'
   input_tokens INTEGER NOT NULL,
   output_tokens INTEGER NOT NULL,
   cached_tokens INTEGER DEFAULT 0,
-  
+
   -- Cost Calculation (in cents)
   estimated_cost_cents INTEGER NOT NULL,
-  
+
   -- Context
   project_id VARCHAR REFERENCES projects(id) ON DELETE SET NULL,
   notebook_id VARCHAR REFERENCES notebooks(id) ON DELETE SET NULL,
-  
+
   -- Metadata
   created_at TIMESTAMP DEFAULT NOW(),
-  
+
   -- Indexes for efficient querying
   INDEX idx_user_date (user_id, created_at),
   INDEX idx_user_operation (user_id, operation_type)
@@ -75,19 +76,19 @@ CREATE TABLE ai_usage_daily_summary (
   id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   date DATE NOT NULL,
-  
+
   -- Aggregated Counts
   total_operations INTEGER DEFAULT 0,
   total_input_tokens INTEGER DEFAULT 0,
   total_output_tokens INTEGER DEFAULT 0,
   total_cost_cents INTEGER DEFAULT 0,
-  
+
   -- By Operation Type (JSONB for flexibility)
   operations_breakdown JSONB DEFAULT '{}',
-  
+
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
-  
+
   UNIQUE(user_id, date)
 );
 
@@ -97,14 +98,14 @@ CREATE TABLE team_memberships (
   team_subscription_id VARCHAR NOT NULL REFERENCES user_subscriptions(id) ON DELETE CASCADE,
   user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   role VARCHAR NOT NULL CHECK (role IN ('owner', 'admin', 'member')),
-  
+
   -- Permissions
   can_edit BOOLEAN DEFAULT true,
   can_comment BOOLEAN DEFAULT true,
   can_invite BOOLEAN DEFAULT false,
-  
+
   created_at TIMESTAMP DEFAULT NOW(),
-  
+
   UNIQUE(team_subscription_id, user_id)
 );
 
@@ -112,18 +113,18 @@ CREATE TABLE team_memberships (
 CREATE TABLE lifetime_subscriptions (
   id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  
+
   -- Purchase Details
   purchase_date TIMESTAMP DEFAULT NOW(),
   purchase_price_cents INTEGER NOT NULL,
   tier_equivalent VARCHAR NOT NULL, -- 'professional'
-  
+
   -- Usage Limits (for lifetime users)
   daily_generation_limit INTEGER DEFAULT 50,
-  
+
   -- Status
   is_active BOOLEAN DEFAULT true,
-  
+
   UNIQUE(user_id)
 );
 ```
@@ -145,8 +146,12 @@ ALTER TABLE users ADD COLUMN trial_used BOOLEAN DEFAULT false;
 **File**: `shared/types/subscription.ts`
 
 ```typescript
-export type SubscriptionTier = 'free' | 'author' | 'professional' | 'team';
-export type SubscriptionStatus = 'active' | 'past_due' | 'canceled' | 'trialing';
+export type SubscriptionTier = "free" | "author" | "professional" | "team";
+export type SubscriptionStatus =
+  | "active"
+  | "past_due"
+  | "canceled"
+  | "trialing";
 
 export interface UserSubscription {
   id: string;
@@ -180,7 +185,7 @@ export interface TierLimits {
 
 export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
   free: {
-    name: 'Writer',
+    name: "Writer",
     price: 0,
     annualPrice: 0,
     maxProjects: 3,
@@ -190,10 +195,10 @@ export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
     maxTeamMembers: 1,
     hasApiAccess: false,
     hasPrioritySupport: false,
-    exportFormats: ['txt', 'docx']
+    exportFormats: ["txt", "docx"],
   },
   author: {
-    name: 'Author',
+    name: "Author",
     price: 19,
     annualPrice: 180, // 21% discount
     maxProjects: null,
@@ -203,10 +208,10 @@ export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
     maxTeamMembers: 1,
     hasApiAccess: false,
     hasPrioritySupport: false,
-    exportFormats: ['txt', 'docx', 'epub', 'pdf', 'markdown', 'fdx']
+    exportFormats: ["txt", "docx", "epub", "pdf", "markdown", "fdx"],
   },
   professional: {
-    name: 'Professional',
+    name: "Professional",
     price: 39,
     annualPrice: 372, // 21% discount
     maxProjects: null,
@@ -216,10 +221,10 @@ export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
     maxTeamMembers: 3,
     hasApiAccess: true,
     hasPrioritySupport: true,
-    exportFormats: ['txt', 'docx', 'epub', 'pdf', 'markdown', 'fdx']
+    exportFormats: ["txt", "docx", "epub", "pdf", "markdown", "fdx"],
   },
   team: {
-    name: 'Team',
+    name: "Team",
     price: 79,
     annualPrice: 756, // 20% discount
     maxProjects: null,
@@ -229,8 +234,8 @@ export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
     maxTeamMembers: 10,
     hasApiAccess: true,
     hasPrioritySupport: true,
-    exportFormats: ['txt', 'docx', 'epub', 'pdf', 'markdown', 'fdx']
-  }
+    exportFormats: ["txt", "docx", "epub", "pdf", "markdown", "fdx"],
+  },
 };
 ```
 
@@ -239,10 +244,15 @@ export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
 **File**: `server/services/subscriptionService.ts`
 
 ```typescript
-import { db } from '../db';
-import { users, userSubscriptions, aiUsageLogs, aiUsageDailySummary } from '@shared/schema';
-import { eq, and, sql, gte, lte } from 'drizzle-orm';
-import { TIER_LIMITS, type SubscriptionTier } from '@shared/types/subscription';
+import { db } from "../db";
+import {
+  users,
+  userSubscriptions,
+  aiUsageLogs,
+  aiUsageDailySummary,
+} from "@shared/schema";
+import { eq, and, sql, gte, lte } from "drizzle-orm";
+import { TIER_LIMITS, type SubscriptionTier } from "@shared/types/subscription";
 
 export class SubscriptionService {
   /**
@@ -254,18 +264,18 @@ export class SubscriptionService {
       .from(userSubscriptions)
       .where(eq(userSubscriptions.userId, userId))
       .limit(1);
-    
+
     if (!subscription) {
       // Create default free subscription for existing users
       return this.createFreeSubscription(userId);
     }
-    
+
     return {
       ...subscription,
-      limits: TIER_LIMITS[subscription.tier]
+      limits: TIER_LIMITS[subscription.tier],
     };
   }
-  
+
   /**
    * Create free subscription for new/existing users
    */
@@ -274,49 +284,55 @@ export class SubscriptionService {
       .insert(userSubscriptions)
       .values({
         userId,
-        tier: 'free',
-        status: 'active'
+        tier: "free",
+        status: "active",
       })
       .returning();
-    
+
     return {
       ...subscription,
-      limits: TIER_LIMITS.free
+      limits: TIER_LIMITS.free,
     };
   }
-  
+
   /**
    * Check if user can perform action (respects tier limits)
    */
-  async canPerformAction(userId: string, action: string): Promise<{ allowed: boolean; reason?: string }> {
+  async canPerformAction(
+    userId: string,
+    action: string,
+  ): Promise<{ allowed: boolean; reason?: string }> {
     const subscription = await this.getUserSubscription(userId);
-    
+
     switch (action) {
-      case 'create_project':
+      case "create_project":
         if (subscription.limits.maxProjects === null) return { allowed: true };
         const projectCount = await this.getUserProjectCount(userId);
         return {
           allowed: projectCount < subscription.limits.maxProjects,
-          reason: projectCount >= subscription.limits.maxProjects 
-            ? `You've reached your limit of ${subscription.limits.maxProjects} projects. Upgrade to create more.`
-            : undefined
+          reason:
+            projectCount >= subscription.limits.maxProjects
+              ? `You've reached your limit of ${subscription.limits.maxProjects} projects. Upgrade to create more.`
+              : undefined,
         };
-      
-      case 'ai_generation':
-        if (subscription.limits.aiGenerationsPerDay === null) return { allowed: true };
+
+      case "ai_generation":
+        if (subscription.limits.aiGenerationsPerDay === null)
+          return { allowed: true };
         const todayUsage = await this.getTodayAIUsage(userId);
         return {
           allowed: todayUsage < subscription.limits.aiGenerationsPerDay,
-          reason: todayUsage >= subscription.limits.aiGenerationsPerDay
-            ? `You've reached your daily limit of ${subscription.limits.aiGenerationsPerDay} AI generations. Upgrade for more.`
-            : undefined
+          reason:
+            todayUsage >= subscription.limits.aiGenerationsPerDay
+              ? `You've reached your daily limit of ${subscription.limits.aiGenerationsPerDay} AI generations. Upgrade for more.`
+              : undefined,
         };
-      
+
       default:
         return { allowed: true };
     }
   }
-  
+
   /**
    * Log AI usage for tracking and billing
    */
@@ -335,9 +351,9 @@ export class SubscriptionService {
       params.model,
       params.inputTokens,
       params.outputTokens,
-      params.cachedTokens
+      params.cachedTokens,
     );
-    
+
     // Log detailed usage
     await db.insert(aiUsageLogs).values({
       userId: params.userId,
@@ -348,36 +364,36 @@ export class SubscriptionService {
       cachedTokens: params.cachedTokens || 0,
       estimatedCostCents: costCents,
       projectId: params.projectId,
-      notebookId: params.notebookId
+      notebookId: params.notebookId,
     });
-    
+
     // Update daily summary
     await this.updateDailySummary(params.userId, {
       operations: 1,
       inputTokens: params.inputTokens,
       outputTokens: params.outputTokens,
-      costCents
+      costCents,
     });
   }
-  
+
   /**
    * Get today's AI generation count
    */
   private async getTodayAIUsage(userId: string): Promise<number> {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split("T")[0];
     const [summary] = await db
       .select()
       .from(aiUsageDailySummary)
       .where(
         and(
           eq(aiUsageDailySummary.userId, userId),
-          eq(aiUsageDailySummary.date, sql`${today}::date`)
-        )
+          eq(aiUsageDailySummary.date, sql`${today}::date`),
+        ),
       );
-    
+
     return summary?.totalOperations || 0;
   }
-  
+
   /**
    * Calculate cost in cents based on model and tokens
    */
@@ -385,23 +401,23 @@ export class SubscriptionService {
     model: string,
     inputTokens: number,
     outputTokens: number,
-    cachedTokens: number = 0
+    cachedTokens: number = 0,
   ): number {
     // Claude Sonnet 4 pricing: $3 input, $15 output per 1M tokens
     // Claude Haiku pricing: $0.25 input, $1.25 output per 1M tokens
     // Cached tokens: 90% discount
-    
-    const pricing = model.includes('haiku') 
+
+    const pricing = model.includes("haiku")
       ? { input: 0.25, output: 1.25, cache: 0.025 }
       : { input: 3, output: 15, cache: 0.3 };
-    
+
     const inputCost = (inputTokens / 1_000_000) * pricing.input * 100;
     const outputCost = (outputTokens / 1_000_000) * pricing.output * 100;
     const cacheCost = (cachedTokens / 1_000_000) * pricing.cache * 100;
-    
+
     return Math.ceil(inputCost + outputCost + cacheCost);
   }
-  
+
   /**
    * Get user's project count
    */
@@ -410,19 +426,24 @@ export class SubscriptionService {
       .select({ count: sql<number>`count(*)` })
       .from(projects)
       .where(eq(projects.userId, userId));
-    
+
     return result[0]?.count || 0;
   }
-  
+
   /**
    * Update daily summary statistics
    */
   private async updateDailySummary(
-    userId: string, 
-    delta: { operations: number; inputTokens: number; outputTokens: number; costCents: number }
+    userId: string,
+    delta: {
+      operations: number;
+      inputTokens: number;
+      outputTokens: number;
+      costCents: number;
+    },
   ) {
-    const today = new Date().toISOString().split('T')[0];
-    
+    const today = new Date().toISOString().split("T")[0];
+
     await db
       .insert(aiUsageDailySummary)
       .values({
@@ -431,7 +452,7 @@ export class SubscriptionService {
         totalOperations: delta.operations,
         totalInputTokens: delta.inputTokens,
         totalOutputTokens: delta.outputTokens,
-        totalCostCents: delta.costCents
+        totalCostCents: delta.costCents,
       })
       .onConflictDoUpdate({
         target: [aiUsageDailySummary.userId, aiUsageDailySummary.date],
@@ -440,8 +461,8 @@ export class SubscriptionService {
           totalInputTokens: sql`${aiUsageDailySummary.totalInputTokens} + ${delta.inputTokens}`,
           totalOutputTokens: sql`${aiUsageDailySummary.totalOutputTokens} + ${delta.outputTokens}`,
           totalCostCents: sql`${aiUsageDailySummary.totalCostCents} + ${delta.costCents}`,
-          updatedAt: sql`NOW()`
-        }
+          updatedAt: sql`NOW()`,
+        },
       });
   }
 }
@@ -452,6 +473,7 @@ export const subscriptionService = new SubscriptionService();
 ---
 
 ## Phase 2: AI Usage Tracking & Limits (Weeks 3-4)
+
 **Goal**: Track all AI operations and enforce tier limits
 
 ### 2.1 Wrap All AI Generation Functions
@@ -459,49 +481,52 @@ export const subscriptionService = new SubscriptionService();
 **File**: `server/middleware/aiUsageMiddleware.ts`
 
 ```typescript
-import { subscriptionService } from '../services/subscriptionService';
+import { subscriptionService } from "../services/subscriptionService";
 
 export async function trackAIUsage(
   handler: (params: any) => Promise<any>,
-  operationType: string
+  operationType: string,
 ) {
   return async (req: any, res: any, next: any) => {
     const userId = req.user?.claims?.sub;
-    
+
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: "Unauthorized" });
     }
-    
+
     // Check if user can perform AI generation
-    const permission = await subscriptionService.canPerformAction(userId, 'ai_generation');
-    
+    const permission = await subscriptionService.canPerformAction(
+      userId,
+      "ai_generation",
+    );
+
     if (!permission.allowed) {
       return res.status(403).json({
-        error: 'Usage limit exceeded',
+        error: "Usage limit exceeded",
         message: permission.reason,
-        upgradeUrl: '/pricing'
+        upgradeUrl: "/pricing",
       });
     }
-    
+
     // Execute the handler and track usage
     try {
       const result = await handler(req, res, next);
-      
+
       // Extract token usage from Anthropic response
       // This requires modifying ai-generation.ts to return usage metadata
       if (result.usage) {
         await subscriptionService.logAIUsage({
           userId,
           operationType,
-          model: result.model || 'claude-sonnet-4',
+          model: result.model || "claude-sonnet-4",
           inputTokens: result.usage.input_tokens,
           outputTokens: result.usage.output_tokens,
           cachedTokens: result.usage.cache_read_input_tokens,
           projectId: req.body.projectId,
-          notebookId: req.body.notebookId
+          notebookId: req.body.notebookId,
         });
       }
-      
+
       return result;
     } catch (error) {
       console.error(`AI generation error for ${operationType}:`, error);
@@ -522,28 +547,29 @@ Add usage tracking to EVERY AI function:
 export async function generateCharacter(
   options: CharacterGenerationOptions,
   userId: string,
-  notebookId?: string
+  notebookId?: string,
 ): Promise<{ character: GeneratedCharacter; usage: any }> {
   // ... existing code ...
-  
+
   const response = await anthropic.messages.create({
     model: DEFAULT_MODEL_STR,
     system: systemPrompt,
     max_tokens: 3500,
-    messages: [{ role: 'user', content: prompt }],
+    messages: [{ role: "user", content: prompt }],
   });
-  
+
   // ... existing processing ...
-  
+
   // IMPORTANT: Return usage metadata
   return {
     character: validatedCharacter,
-    usage: response.usage // Anthropic returns input_tokens, output_tokens, cache_read_input_tokens
+    usage: response.usage, // Anthropic returns input_tokens, output_tokens, cache_read_input_tokens
   };
 }
 ```
 
 Apply this pattern to:
+
 - `generateCharacter`
 - `conversationalChat`
 - `improveText`
@@ -557,59 +583,63 @@ Apply this pattern to:
 **File**: `server/routes/usage.routes.ts`
 
 ```typescript
-import { Router } from 'express';
-import { subscriptionService } from '../services/subscriptionService';
-import { db } from '../db';
-import { aiUsageDailySummary } from '@shared/schema';
-import { eq, gte, sql } from 'drizzle-orm';
+import { Router } from "express";
+import { subscriptionService } from "../services/subscriptionService";
+import { db } from "../db";
+import { aiUsageDailySummary } from "@shared/schema";
+import { eq, gte, sql } from "drizzle-orm";
 
 const router = Router();
 
 // Get current usage for today
-router.get('/usage/today', async (req: any, res) => {
+router.get("/usage/today", async (req: any, res) => {
   const userId = req.user.claims.sub;
   const subscription = await subscriptionService.getUserSubscription(userId);
-  
-  const today = new Date().toISOString().split('T')[0];
+
+  const today = new Date().toISOString().split("T")[0];
   const [summary] = await db
     .select()
     .from(aiUsageDailySummary)
     .where(
       and(
         eq(aiUsageDailySummary.userId, userId),
-        eq(aiUsageDailySummary.date, sql`${today}::date`)
-      )
+        eq(aiUsageDailySummary.date, sql`${today}::date`),
+      ),
     );
-  
+
   res.json({
     tier: subscription.tier,
     limits: subscription.limits,
     usage: {
       today: summary?.totalOperations || 0,
-      remaining: subscription.limits.aiGenerationsPerDay 
-        ? Math.max(0, subscription.limits.aiGenerationsPerDay - (summary?.totalOperations || 0))
-        : null // null = unlimited
-    }
+      remaining: subscription.limits.aiGenerationsPerDay
+        ? Math.max(
+            0,
+            subscription.limits.aiGenerationsPerDay -
+              (summary?.totalOperations || 0),
+          )
+        : null, // null = unlimited
+    },
   });
 });
 
 // Get usage history (last 30 days)
-router.get('/usage/history', async (req: any, res) => {
+router.get("/usage/history", async (req: any, res) => {
   const userId = req.user.claims.sub;
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  
+
   const history = await db
     .select()
     .from(aiUsageDailySummary)
     .where(
       and(
         eq(aiUsageDailySummary.userId, userId),
-        gte(aiUsageDailySummary.date, thirtyDaysAgo)
-      )
+        gte(aiUsageDailySummary.date, thirtyDaysAgo),
+      ),
     )
     .orderBy(aiUsageDailySummary.date);
-  
+
   res.json({ history });
 });
 
@@ -619,6 +649,7 @@ export default router;
 ---
 
 ## Phase 3: Stripe Integration (Weeks 4-6)
+
 **Goal**: Enable subscription payments and management
 
 ### 3.1 Install Stripe Dependencies
@@ -630,6 +661,7 @@ npm install stripe @stripe/stripe-js
 ### 3.2 Environment Variables
 
 Add to `.env`:
+
 ```
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_PUBLISHABLE_KEY=pk_test_...
@@ -647,13 +679,13 @@ STRIPE_PRICE_ID_TEAM_ANNUAL=price_...
 **File**: `server/services/stripeService.ts`
 
 ```typescript
-import Stripe from 'stripe';
-import { db } from '../db';
-import { userSubscriptions } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import Stripe from "stripe";
+import { db } from "../db";
+import { userSubscriptions } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia'
+  apiVersion: "2024-11-20.acacia",
 });
 
 export class StripeService {
@@ -667,104 +699,120 @@ export class StripeService {
     tier: string;
   }) {
     const session = await stripe.checkout.sessions.create({
-      mode: 'subscription',
+      mode: "subscription",
       customer_email: params.email,
-      line_items: [{
-        price: params.priceId,
-        quantity: 1
-      }],
+      line_items: [
+        {
+          price: params.priceId,
+          quantity: 1,
+        },
+      ],
       success_url: `${process.env.BASE_URL}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.BASE_URL}/pricing`,
       metadata: {
         userId: params.userId,
-        tier: params.tier
+        tier: params.tier,
       },
       subscription_data: {
         trial_period_days: 14,
         metadata: {
           userId: params.userId,
-          tier: params.tier
-        }
-      }
+          tier: params.tier,
+        },
+      },
     });
-    
+
     return session;
   }
-  
+
   /**
    * Create customer portal session
    */
   async createPortalSession(customerId: string) {
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${process.env.BASE_URL}/settings/billing`
+      return_url: `${process.env.BASE_URL}/settings/billing`,
     });
-    
+
     return session;
   }
-  
+
   /**
    * Handle webhook events
    */
   async handleWebhook(event: Stripe.Event) {
     switch (event.type) {
-      case 'checkout.session.completed':
-        await this.handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+      case "checkout.session.completed":
+        await this.handleCheckoutCompleted(
+          event.data.object as Stripe.Checkout.Session,
+        );
         break;
-      
-      case 'customer.subscription.updated':
-        await this.handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
+
+      case "customer.subscription.updated":
+        await this.handleSubscriptionUpdated(
+          event.data.object as Stripe.Subscription,
+        );
         break;
-      
-      case 'customer.subscription.deleted':
-        await this.handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+
+      case "customer.subscription.deleted":
+        await this.handleSubscriptionDeleted(
+          event.data.object as Stripe.Subscription,
+        );
         break;
-      
-      case 'invoice.payment_failed':
+
+      case "invoice.payment_failed":
         await this.handlePaymentFailed(event.data.object as Stripe.Invoice);
         break;
     }
   }
-  
+
   private async handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     const userId = session.metadata!.userId;
     const tier = session.metadata!.tier as any;
-    
+
     // Get subscription details
-    const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
-    
+    const subscription = await stripe.subscriptions.retrieve(
+      session.subscription as string,
+    );
+
     // Create or update user subscription
     await db
       .insert(userSubscriptions)
       .values({
         userId,
         tier,
-        status: subscription.status === 'trialing' ? 'trialing' : 'active',
+        status: subscription.status === "trialing" ? "trialing" : "active",
         stripeCustomerId: session.customer as string,
         stripeSubscriptionId: subscription.id,
         stripePriceId: subscription.items.data[0].price.id,
         currentPeriodStart: new Date(subscription.current_period_start * 1000),
         currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-        trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
-        trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null
+        trialStart: subscription.trial_start
+          ? new Date(subscription.trial_start * 1000)
+          : null,
+        trialEnd: subscription.trial_end
+          ? new Date(subscription.trial_end * 1000)
+          : null,
       })
       .onConflictDoUpdate({
         target: userSubscriptions.userId,
         set: {
           tier,
-          status: subscription.status === 'trialing' ? 'trialing' : 'active',
+          status: subscription.status === "trialing" ? "trialing" : "active",
           stripeSubscriptionId: subscription.id,
           stripePriceId: subscription.items.data[0].price.id,
-          currentPeriodStart: new Date(subscription.current_period_start * 1000),
+          currentPeriodStart: new Date(
+            subscription.current_period_start * 1000,
+          ),
           currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-          updatedAt: new Date()
-        }
+          updatedAt: new Date(),
+        },
       });
   }
-  
+
   private async handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     const userId = subscription.metadata.userId;
-    
+
     await db
       .update(userSubscriptions)
       .set({
@@ -772,39 +820,39 @@ export class StripeService {
         currentPeriodStart: new Date(subscription.current_period_start * 1000),
         currentPeriodEnd: new Date(subscription.current_period_end * 1000),
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(eq(userSubscriptions.userId, userId));
   }
-  
+
   private async handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     const userId = subscription.metadata.userId;
-    
+
     // Downgrade to free
     await db
       .update(userSubscriptions)
       .set({
-        tier: 'free',
-        status: 'canceled',
-        updatedAt: new Date()
+        tier: "free",
+        status: "canceled",
+        updatedAt: new Date(),
       })
       .where(eq(userSubscriptions.userId, userId));
   }
-  
+
   private async handlePaymentFailed(invoice: Stripe.Invoice) {
     const customerId = invoice.customer as string;
-    
+
     const [subscription] = await db
       .select()
       .from(userSubscriptions)
       .where(eq(userSubscriptions.stripeCustomerId, customerId));
-    
+
     if (subscription) {
       await db
         .update(userSubscriptions)
         .set({
-          status: 'past_due',
-          updatedAt: new Date()
+          status: "past_due",
+          updatedAt: new Date(),
         })
         .where(eq(userSubscriptions.id, subscription.id));
     }
@@ -819,72 +867,74 @@ export const stripeService = new StripeService();
 **File**: `server/routes/stripe.routes.ts`
 
 ```typescript
-import { Router } from 'express';
-import { stripeService } from '../services/stripeService';
-import { subscriptionService } from '../services/subscriptionService';
-import express from 'express';
+import { Router } from "express";
+import { stripeService } from "../services/stripeService";
+import { subscriptionService } from "../services/subscriptionService";
+import express from "express";
 
 const router = Router();
 
 // Create checkout session
-router.post('/stripe/create-checkout', async (req: any, res) => {
+router.post("/stripe/create-checkout", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { priceId, tier } = req.body;
-    
+
     const session = await stripeService.createCheckoutSession({
       userId,
       email: req.user.claims.email,
       priceId,
-      tier
+      tier,
     });
-    
+
     res.json({ url: session.url });
   } catch (error) {
-    console.error('Checkout error:', error);
-    res.status(500).json({ error: 'Failed to create checkout session' });
+    console.error("Checkout error:", error);
+    res.status(500).json({ error: "Failed to create checkout session" });
   }
 });
 
 // Create portal session
-router.post('/stripe/create-portal', async (req: any, res) => {
+router.post("/stripe/create-portal", async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const subscription = await subscriptionService.getUserSubscription(userId);
-    
+
     if (!subscription.stripeCustomerId) {
-      return res.status(400).json({ error: 'No active subscription' });
+      return res.status(400).json({ error: "No active subscription" });
     }
-    
-    const session = await stripeService.createPortalSession(subscription.stripeCustomerId);
+
+    const session = await stripeService.createPortalSession(
+      subscription.stripeCustomerId,
+    );
     res.json({ url: session.url });
   } catch (error) {
-    console.error('Portal error:', error);
-    res.status(500).json({ error: 'Failed to create portal session' });
+    console.error("Portal error:", error);
+    res.status(500).json({ error: "Failed to create portal session" });
   }
 });
 
 // Stripe webhook handler
 router.post(
-  '/stripe/webhook',
-  express.raw({ type: 'application/json' }),
+  "/stripe/webhook",
+  express.raw({ type: "application/json" }),
   async (req, res) => {
-    const sig = req.headers['stripe-signature']!;
-    
+    const sig = req.headers["stripe-signature"]!;
+
     try {
       const event = stripe.webhooks.constructEvent(
         req.body,
         sig,
-        process.env.STRIPE_WEBHOOK_SECRET!
+        process.env.STRIPE_WEBHOOK_SECRET!,
       );
-      
+
       await stripeService.handleWebhook(event);
       res.json({ received: true });
     } catch (error) {
-      console.error('Webhook error:', error);
+      console.error("Webhook error:", error);
       res.status(400).send(`Webhook Error: ${error.message}`);
     }
-  }
+  },
 );
 
 export default router;
@@ -893,6 +943,7 @@ export default router;
 ---
 
 ## Phase 4: Frontend Implementation (Weeks 6-8)
+
 **Goal**: Build pricing page, upgrade flows, and usage indicators
 
 ### 4.1 Pricing Page Component
@@ -912,7 +963,7 @@ export function PricingPage() {
   const { user } = useAuth();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
   const [loading, setLoading] = useState<string | null>(null);
-  
+
   const tiers = [
     {
       id: 'author',
@@ -973,16 +1024,16 @@ export function PricingPage() {
       ]
     }
   ];
-  
+
   const handleSubscribe = async (tierId: string, priceId: string) => {
     setLoading(tierId);
-    
+
     try {
       const response = await apiRequest('POST', '/api/stripe/create-checkout', {
         priceId,
         tier: tierId
       });
-      
+
       const { url } = await response.json();
       window.location.href = url;
     } catch (error) {
@@ -990,7 +1041,7 @@ export function PricingPage() {
       setLoading(null);
     }
   };
-  
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-16">
       <div className="text-center mb-12">
@@ -998,7 +1049,7 @@ export function PricingPage() {
         <p className="text-xl text-muted-foreground mb-8">
           Start with 14 days free. No credit card required.
         </p>
-        
+
         {/* Billing cycle toggle */}
         <div className="inline-flex items-center gap-4 bg-muted p-1 rounded-lg">
           <button
@@ -1019,7 +1070,7 @@ export function PricingPage() {
           </button>
         </div>
       </div>
-      
+
       {/* Free tier */}
       <div className="grid md:grid-cols-4 gap-6 mb-8">
         <Card className="p-6">
@@ -1044,10 +1095,10 @@ export function PricingPage() {
             </li>
           </ul>
         </Card>
-        
+
         {/* Paid tiers */}
         {tiers.map(tier => (
-          <Card 
+          <Card
             key={tier.id}
             className={`p-6 relative ${tier.popular ? 'border-primary border-2' : ''}`}
           >
@@ -1056,10 +1107,10 @@ export function PricingPage() {
                 Most Popular
               </div>
             )}
-            
+
             <h3 className="text-xl font-bold mb-2">{tier.name}</h3>
             <p className="text-muted-foreground text-sm mb-4">{tier.description}</p>
-            
+
             <div className="mb-6">
               <div className="text-3xl font-bold">
                 ${billingCycle === 'monthly' ? tier.monthlyPrice : Math.floor(tier.annualPrice / 12)}
@@ -1071,7 +1122,7 @@ export function PricingPage() {
                 </div>
               )}
             </div>
-            
+
             <Button
               className="w-full mb-6"
               onClick={() => handleSubscribe(tier.id, tier.priceIds[billingCycle])}
@@ -1079,7 +1130,7 @@ export function PricingPage() {
             >
               {loading === tier.id ? 'Loading...' : 'Start 14-day trial'}
             </Button>
-            
+
             <ul className="space-y-3 text-sm">
               {tier.features.map(feature => (
                 <li key={feature} className="flex items-start gap-2">
@@ -1091,7 +1142,7 @@ export function PricingPage() {
           </Card>
         ))}
       </div>
-      
+
       {/* FAQ Section */}
       <div className="mt-16">
         <h2 className="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h2>
@@ -1099,29 +1150,29 @@ export function PricingPage() {
           <div>
             <h3 className="font-semibold mb-2">Why subscription pricing?</h3>
             <p className="text-sm text-muted-foreground">
-              AI models literally cost us money every time you use them. Subscriptions 
-              keep AI unlimited instead of charging per use, plus fund continuous platform 
+              AI models literally cost us money every time you use them. Subscriptions
+              keep AI unlimited instead of charging per use, plus fund continuous platform
               improvements and new features.
             </p>
           </div>
           <div>
             <h3 className="font-semibold mb-2">Can I cancel anytime?</h3>
             <p className="text-sm text-muted-foreground">
-              Yes! Cancel anytime and you'll keep access until your billing period ends. 
+              Yes! Cancel anytime and you'll keep access until your billing period ends.
               No questions asked.
             </p>
           </div>
           <div>
             <h3 className="font-semibold mb-2">What happens after the trial?</h3>
             <p className="text-sm text-muted-foreground">
-              You get 14 days of full access. If you don't upgrade, you'll automatically 
+              You get 14 days of full access. If you don't upgrade, you'll automatically
               switch to the Free tier and keep all your data.
             </p>
           </div>
           <div>
             <h3 className="font-semibold mb-2">Do you offer student discounts?</h3>
             <p className="text-sm text-muted-foreground">
-              Yes! Students get 20% off with a valid .edu email. Contact support after 
+              Yes! Students get 20% off with a valid .edu email. Contact support after
               signing up.
             </p>
           </div>
@@ -1152,9 +1203,9 @@ export function UsageIndicator() {
     },
     refetchInterval: 60000 // Refresh every minute
   });
-  
+
   if (!usage) return null;
-  
+
   // If unlimited, don't show indicator
   if (usage.limits.aiGenerationsPerDay === null) {
     return (
@@ -1164,10 +1215,10 @@ export function UsageIndicator() {
       </div>
     );
   }
-  
+
   const percentUsed = (usage.usage.today / usage.limits.aiGenerationsPerDay) * 100;
   const isNearLimit = percentUsed >= 80;
-  
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-sm">
@@ -1179,12 +1230,12 @@ export function UsageIndicator() {
           {usage.usage.today} / {usage.limits.aiGenerationsPerDay}
         </span>
       </div>
-      
-      <Progress 
-        value={percentUsed} 
+
+      <Progress
+        value={percentUsed}
         className={isNearLimit ? 'bg-orange-100' : ''}
       />
-      
+
       {isNearLimit && (
         <div className="flex items-center justify-between">
           <p className="text-xs text-muted-foreground">
@@ -1229,10 +1280,10 @@ export function UpgradePrompt({ open, onClose, reason, feature }: UpgradePromptP
             <DialogTitle>Upgrade to Continue</DialogTitle>
           </div>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           <p className="text-muted-foreground">{reason}</p>
-          
+
           <div className="bg-muted p-4 rounded-lg">
             <h4 className="font-semibold mb-2">With Professional Plan:</h4>
             <ul className="space-y-1 text-sm">
@@ -1242,7 +1293,7 @@ export function UpgradePrompt({ open, onClose, reason, feature }: UpgradePromptP
               <li>✓ All export formats</li>
             </ul>
           </div>
-          
+
           <div className="flex gap-3">
             <Button className="flex-1" asChild>
               <a href="/pricing">View Plans</a>
@@ -1261,6 +1312,7 @@ export function UpgradePrompt({ open, onClose, reason, feature }: UpgradePromptP
 ---
 
 ## Phase 5: Feature Gating & Enforcement (Week 8-9)
+
 **Goal**: Enforce limits across the entire application
 
 ### 5.1 Create Middleware for Feature Checks
@@ -1268,27 +1320,30 @@ export function UpgradePrompt({ open, onClose, reason, feature }: UpgradePromptP
 **File**: `server/middleware/featureGate.ts`
 
 ```typescript
-import { subscriptionService } from '../services/subscriptionService';
+import { subscriptionService } from "../services/subscriptionService";
 
 export function requireFeature(feature: string) {
   return async (req: any, res: any, next: any) => {
     const userId = req.user?.claims?.sub;
-    
+
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: "Unauthorized" });
     }
-    
-    const permission = await subscriptionService.canPerformAction(userId, feature);
-    
+
+    const permission = await subscriptionService.canPerformAction(
+      userId,
+      feature,
+    );
+
     if (!permission.allowed) {
       return res.status(403).json({
-        error: 'Feature not available',
+        error: "Feature not available",
         message: permission.reason,
         feature,
-        upgradeUrl: '/pricing'
+        upgradeUrl: "/pricing",
       });
     }
-    
+
     next();
   };
 }
@@ -1299,32 +1354,32 @@ export function requireFeature(feature: string) {
 **Update**: `server/routes/project.routes.ts`
 
 ```typescript
-import { requireFeature } from '../middleware/featureGate';
+import { requireFeature } from "../middleware/featureGate";
 
 // Create project - check project limit
 router.post(
-  '/projects',
+  "/projects",
   secureAuthentication,
-  requireFeature('create_project'), // NEW: Check if user can create project
+  requireFeature("create_project"), // NEW: Check if user can create project
   async (req: any, res) => {
     // ... existing code
-  }
+  },
 );
 ```
 
 **Update**: All AI generation routes in `server/routes/generate.routes.ts`
 
 ```typescript
-import { requireFeature } from '../middleware/featureGate';
+import { requireFeature } from "../middleware/featureGate";
 
 // Character generation
 router.post(
-  '/generate/character',
+  "/generate/character",
   secureAuthentication,
-  requireFeature('ai_generation'), // NEW: Check AI generation limit
+  requireFeature("ai_generation"), // NEW: Check AI generation limit
   async (req: any, res) => {
     // ... existing code with usage tracking
-  }
+  },
 );
 ```
 
@@ -1333,42 +1388,42 @@ router.post(
 **File**: `client/src/hooks/useSubscription.ts`
 
 ```typescript
-import { useQuery } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export function useSubscription() {
   const { data: subscription, isLoading } = useQuery({
-    queryKey: ['subscription'],
+    queryKey: ["subscription"],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/subscription');
+      const res = await apiRequest("GET", "/api/subscription");
       return res.json();
     },
-    staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
-  
+
   const canUseFeature = (feature: string) => {
     if (!subscription) return false;
-    
+
     switch (feature) {
-      case 'unlimited_ai':
+      case "unlimited_ai":
         return subscription.limits.aiGenerationsPerDay === null;
-      case 'collaboration':
+      case "collaboration":
         return subscription.limits.hasCollaboration;
-      case 'api_access':
+      case "api_access":
         return subscription.limits.hasApiAccess;
-      case 'priority_support':
+      case "priority_support":
         return subscription.limits.hasPrioritySupport;
       default:
         return true;
     }
   };
-  
+
   return {
     subscription,
     isLoading,
     canUseFeature,
-    tier: subscription?.tier || 'free',
-    limits: subscription?.limits
+    tier: subscription?.tier || "free",
+    limits: subscription?.limits,
   };
 }
 ```
@@ -1376,6 +1431,7 @@ export function useSubscription() {
 ---
 
 ## Phase 6: AI Cost Optimization (Week 9-10)
+
 **Goal**: Implement prompt caching and model selection
 
 ### 6.1 Prompt Caching Implementation
@@ -1385,28 +1441,28 @@ export function useSubscription() {
 Add caching to all major AI functions:
 
 ```typescript
-import { createHash } from 'crypto';
+import { createHash } from "crypto";
 
 // Cache manager for prompt prefixes
 class PromptCacheManager {
   private cache = new Map<string, { prompt: string; timestamp: number }>();
   private TTL = 5 * 60 * 1000; // 5 minutes
-  
+
   getCachedPrompt(userId: string, type: string): string | null {
     const key = `${userId}:${type}`;
     const cached = this.cache.get(key);
-    
+
     if (!cached) return null;
-    
+
     // Check if expired
     if (Date.now() - cached.timestamp > this.TTL) {
       this.cache.delete(key);
       return null;
     }
-    
+
     return cached.prompt;
   }
-  
+
   setCachedPrompt(userId: string, type: string, prompt: string) {
     const key = `${userId}:${type}`;
     this.cache.set(key, { prompt, timestamp: Date.now() });
@@ -1418,41 +1474,44 @@ const promptCache = new PromptCacheManager();
 // Example: Modified conversationalChat with caching
 export async function conversationalChat(
   message: string,
-  conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }>,
+  conversationHistory: Array<{ role: "user" | "assistant"; content: string }>,
   userId: string,
   editorContent?: string,
-  projectId?: string
+  projectId?: string,
 ): Promise<{ response: string; usage: any }> {
   // Build cacheable context (user's world details, character profiles, etc.)
   let systemPrompt = baseSystemPrompt;
-  
+
   // Get or create cached world context
-  const cachedWorldContext = promptCache.getCachedPrompt(userId, 'world_context');
+  const cachedWorldContext = promptCache.getCachedPrompt(
+    userId,
+    "world_context",
+  );
   if (cachedWorldContext) {
     systemPrompt += cachedWorldContext;
   } else if (projectId) {
     // Load world context from database
     const worldContext = await loadUserWorldContext(userId, projectId);
     systemPrompt += worldContext;
-    promptCache.setCachedPrompt(userId, 'world_context', worldContext);
+    promptCache.setCachedPrompt(userId, "world_context", worldContext);
   }
-  
+
   const response = await anthropic.messages.create({
     model: DEFAULT_MODEL_STR,
     system: [
       {
-        type: 'text',
+        type: "text",
         text: systemPrompt,
-        cache_control: { type: 'ephemeral' } // Cache this system prompt
-      }
+        cache_control: { type: "ephemeral" }, // Cache this system prompt
+      },
     ],
     max_tokens: 1024,
-    messages: conversationHistory.concat([{ role: 'user', content: message }])
+    messages: conversationHistory.concat([{ role: "user", content: message }]),
   });
-  
+
   return {
     response: response.content[0].text,
-    usage: response.usage
+    usage: response.usage,
   };
 }
 ```
@@ -1469,24 +1528,24 @@ export class ModelSelector {
   selectModel(operationType: string, textLength: number = 0): string {
     // Simple tasks -> Use Haiku (90% cheaper)
     const simpleOperations = [
-      'name_generation',
-      'synonym_generation',
-      'word_definition',
-      'title_generation',
-      'tag_generation'
+      "name_generation",
+      "synonym_generation",
+      "word_definition",
+      "title_generation",
+      "tag_generation",
     ];
-    
+
     if (simpleOperations.includes(operationType)) {
-      return 'claude-3-5-haiku-20241022';
+      return "claude-3-5-haiku-20241022";
     }
-    
+
     // Short text editing -> Use Haiku
-    if (operationType === 'improve_text' && textLength < 500) {
-      return 'claude-3-5-haiku-20241022';
+    if (operationType === "improve_text" && textLength < 500) {
+      return "claude-3-5-haiku-20241022";
     }
-    
+
     // Complex tasks -> Use Sonnet
-    return 'claude-sonnet-4-20250514';
+    return "claude-sonnet-4-20250514";
   }
 }
 
@@ -1507,6 +1566,7 @@ const response = await anthropic.messages.create({
 ---
 
 ## Phase 7: Migration & Rollout (Week 10-11)
+
 **Goal**: Migrate existing users without disruption
 
 ### 7.1 Existing User Migration Script
@@ -1514,40 +1574,40 @@ const response = await anthropic.messages.create({
 **File**: `server/scripts/migrateExistingUsers.ts`
 
 ```typescript
-import { db } from '../db';
-import { users, userSubscriptions } from '@shared/schema';
-import { subscriptionService } from '../services/subscriptionService';
+import { db } from "../db";
+import { users, userSubscriptions } from "@shared/schema";
+import { subscriptionService } from "../services/subscriptionService";
 
 async function migrateExistingUsers() {
-  console.log('Starting user migration...');
-  
+  console.log("Starting user migration...");
+
   // Get all users without subscriptions
   const existingUsers = await db.select().from(users);
-  
+
   for (const user of existingUsers) {
     try {
       // Check if user already has subscription
       const existing = await subscriptionService.getUserSubscription(user.id);
-      if (existing.tier !== 'free') continue;
-      
+      if (existing.tier !== "free") continue;
+
       // Grandfather existing users to Professional tier for 90 days
       // This shows goodwill and gives them time to evaluate
       await db.insert(userSubscriptions).values({
         userId: user.id,
-        tier: 'professional',
-        status: 'active',
+        tier: "professional",
+        status: "active",
         currentPeriodStart: new Date(),
         currentPeriodEnd: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days
-        grandfathered: true
+        grandfathered: true,
       });
-      
+
       console.log(`Migrated user ${user.id} with 90-day Professional access`);
     } catch (error) {
       console.error(`Error migrating user ${user.id}:`, error);
     }
   }
-  
-  console.log('Migration complete!');
+
+  console.log("Migration complete!");
 }
 
 migrateExistingUsers();
@@ -1588,11 +1648,13 @@ Founder, WriteCraft
 ---
 
 ## Phase 8: Testing & Launch (Week 11-12)
+
 **Goal**: Comprehensive testing before public launch
 
 ### 8.1 Testing Checklist
 
 **Functional Testing:**
+
 - [ ] Free tier limits enforced correctly
 - [ ] AI generation counting accurate
 - [ ] Stripe checkout flow works
@@ -1605,6 +1667,7 @@ Founder, WriteCraft
 - [ ] Model selection working
 
 **User Experience Testing:**
+
 - [ ] Pricing page renders correctly
 - [ ] Upgrade prompts are clear and helpful
 - [ ] Usage indicators update in real-time
@@ -1613,6 +1676,7 @@ Founder, WriteCraft
 - [ ] Error messages are helpful
 
 **Security Testing:**
+
 - [ ] Users can't bypass tier limits
 - [ ] Stripe webhooks verify signatures
 - [ ] API keys secured properly
@@ -1621,16 +1685,19 @@ Founder, WriteCraft
 ### 8.2 Soft Launch Plan
 
 **Week 1**: Beta test with 50 selected users
+
 - Monitor usage patterns
 - Collect feedback on pricing
 - Fix any critical bugs
 
 **Week 2**: Launch to 25% of users
+
 - Email announcement
 - Monitor conversion rates
 - Adjust messaging if needed
 
 **Week 3**: Full public launch
+
 - Product Hunt launch
 - Lifetime deal available
 - Email all users
@@ -1643,6 +1710,7 @@ Founder, WriteCraft
 ### 9.1 Metrics to Track
 
 **Daily Monitoring:**
+
 - Active subscriptions by tier
 - Trial-to-paid conversion rate
 - AI cost per user by tier
@@ -1650,6 +1718,7 @@ Founder, WriteCraft
 - Churn rate
 
 **Weekly Analysis:**
+
 - Revenue by tier
 - Gross margins
 - Most used features
@@ -1659,16 +1728,19 @@ Founder, WriteCraft
 ### 9.2 A/B Testing Plan
 
 **Test 1: Pricing**
+
 - 50% see $39/mo Professional
 - 50% see $29/mo Professional
 - Measure: Revenue per user
 
 **Test 2: Trial Length**
+
 - 50% get 14-day trial
 - 50% get 7-day trial
 - Measure: Conversion rate
 
 **Test 3: Upgrade Prompt Timing**
+
 - Variant A: Show after 3 generations
 - Variant B: Show after hitting limit
 - Measure: Upgrade rate
@@ -1678,6 +1750,7 @@ Founder, WriteCraft
 ## Implementation Priorities Summary
 
 ### Must-Have (Weeks 1-6)
+
 1. Database schema with subscriptions
 2. Subscription service layer
 3. AI usage tracking
@@ -1685,6 +1758,7 @@ Founder, WriteCraft
 5. Basic pricing page
 
 ### Should-Have (Weeks 7-10)
+
 6. Feature gating enforcement
 7. Prompt caching
 8. Model selection
@@ -1692,6 +1766,7 @@ Founder, WriteCraft
 10. Upgrade prompts
 
 ### Nice-to-Have (Weeks 11-12)
+
 11. Team management
 12. Lifetime deals
 13. Student discounts
@@ -1703,12 +1778,15 @@ Founder, WriteCraft
 ## Cost Projections
 
 ### Development Costs
+
 - Developer time (12 weeks @ $50/hr, 40hr/week): $24,000
 - Stripe fees (2.9% + 30¢ per transaction): Variable
 - Infrastructure scaling: $100-500/month
 
 ### Expected ROI
+
 **Month 1**: 500 users
+
 - 100 Author ($1,900/mo)
 - 50 Professional ($1,950/mo)
 - **MRR: $3,850**
@@ -1716,6 +1794,7 @@ Founder, WriteCraft
 - **Profit: $2,850**
 
 **Month 6**: 2,000 users
+
 - 800 Author ($15,200/mo)
 - 400 Professional ($15,600/mo)
 - 50 Team ($3,950/mo)
@@ -1730,11 +1809,13 @@ Founder, WriteCraft
 ## Risk Mitigation
 
 ### Technical Risks
+
 - **Stripe integration fails**: Use Paddle as backup payment processor
 - **AI costs spike**: Implement hard caps and alerts
 - **Usage tracking inaccurate**: Add reconciliation jobs
 
 ### Business Risks
+
 - **Low conversion**: Extend trial to 30 days, add more free features
 - **High churn**: Improve onboarding, add sticky features
 - **Competitor undercuts**: Focus on quality and integrations
@@ -1744,16 +1825,19 @@ Founder, WriteCraft
 ## Success Criteria
 
 **Technical:**
+
 - ✓ 99.9% uptime for payment processing
 - ✓ AI cost per user under tier pricing
 - ✓ Usage tracking <1% error rate
 
 **Business:**
+
 - ✓ 10% trial-to-paid conversion
 - ✓ <5% monthly churn
 - ✓ 75%+ gross margins
 
 **User:**
+
 - ✓ >4.0 star rating
 - ✓ <10% support tickets about pricing
 - ✓ Positive sentiment on social media

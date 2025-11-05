@@ -1,13 +1,19 @@
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, User, Plus } from 'lucide-react';
-import type { Character } from '@shared/schema';
-import type { RelationshipType } from './AddRelationshipDialog';
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Search, User, Plus } from "lucide-react";
+import type { Character } from "@shared/schema";
+import type { RelationshipType } from "./AddRelationshipDialog";
 
 interface SelectCharacterDialogProps {
   open: boolean;
@@ -24,45 +30,54 @@ export function SelectCharacterDialog({
   relationshipType,
   characters,
   onSelectExisting,
-  onCreateNew
+  onCreateNew,
 }: SelectCharacterDialogProps) {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isCreatingNew, setIsCreatingNew] = useState(false);
-  const [newName, setNewName] = useState('');
+  const [newName, setNewName] = useState("");
 
   const getRelationshipLabel = () => {
     switch (relationshipType) {
-      case 'parent': return 'parent';
-      case 'spouse': return 'spouse';
-      case 'child': return 'child';
-      case 'sibling': return 'sibling';
-      default: return 'person';
+      case "parent":
+        return "parent";
+      case "spouse":
+        return "spouse";
+      case "child":
+        return "child";
+      case "sibling":
+        return "sibling";
+      default:
+        return "person";
     }
   };
 
-  const filteredCharacters = Array.isArray(characters) ? characters.filter(char => {
-    const fullName = [char.givenName, char.middleName, char.familyName]
-      .filter(Boolean)
-      .join(' ')
-      .toLowerCase();
-    const nickname = char.nickname?.toLowerCase() || '';
-    const query = searchQuery.toLowerCase();
-    return fullName.includes(query) || nickname.includes(query);
-  }) : [];
+  const filteredCharacters = Array.isArray(characters)
+    ? characters.filter((char) => {
+        const fullName = [char.givenName, char.middleName, char.familyName]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        const nickname = char.nickname?.toLowerCase() || "";
+        const query = searchQuery.toLowerCase();
+        return fullName.includes(query) || nickname.includes(query);
+      })
+    : [];
 
   const getCharacterDisplayName = (char: Character) => {
-    const parts = [char.givenName, char.middleName, char.familyName].filter(Boolean);
-    if (parts.length > 0) return parts.join(' ');
+    const parts = [char.givenName, char.middleName, char.familyName].filter(
+      Boolean,
+    );
+    if (parts.length > 0) return parts.join(" ");
     if (char.nickname) return char.nickname;
-    return 'Unknown';
+    return "Unknown";
   };
 
   const getCharacterInitials = (char: Character) => {
     const displayName = getCharacterDisplayName(char);
     return displayName
-      .split(' ')
-      .map(n => n[0])
-      .join('')
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   };
@@ -70,14 +85,17 @@ export function SelectCharacterDialog({
   const handleCreateNew = () => {
     if (newName.trim()) {
       onCreateNew(newName.trim());
-      setNewName('');
+      setNewName("");
       setIsCreatingNew(false);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md" data-testid="dialog-select-character">
+      <DialogContent
+        className="sm:max-w-md"
+        data-testid="dialog-select-character"
+      >
         <DialogHeader>
           <DialogTitle>Select {getRelationshipLabel()}</DialogTitle>
           <DialogDescription>
@@ -109,13 +127,20 @@ export function SelectCharacterDialog({
                     data-testid={`button-select-character-${char.id}`}
                   >
                     <Avatar className="h-10 w-10 mr-3">
-                      <AvatarImage src={char.imageUrl || undefined} className="object-cover" />
+                      <AvatarImage
+                        src={char.imageUrl || undefined}
+                        className="object-cover"
+                      />
                       <AvatarFallback>
-                        {getCharacterInitials(char) || <User className="h-5 w-5" />}
+                        {getCharacterInitials(char) || (
+                          <User className="h-5 w-5" />
+                        )}
                       </AvatarFallback>
                     </Avatar>
                     <div className="text-left">
-                      <div className="font-medium">{getCharacterDisplayName(char)}</div>
+                      <div className="font-medium">
+                        {getCharacterDisplayName(char)}
+                      </div>
                       {char.dateOfBirth && (
                         <div className="text-xs text-muted-foreground">
                           b. {char.dateOfBirth}
@@ -154,7 +179,7 @@ export function SelectCharacterDialog({
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === "Enter") {
                     handleCreateNew();
                   }
                 }}
@@ -166,7 +191,7 @@ export function SelectCharacterDialog({
                 variant="outline"
                 onClick={() => {
                   setIsCreatingNew(false);
-                  setNewName('');
+                  setNewName("");
                 }}
                 className="flex-1"
                 data-testid="button-cancel-new"

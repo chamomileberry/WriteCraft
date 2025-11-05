@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -7,25 +7,19 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  User,
-  MapPin,
-  Lightbulb,
-  Check,
-  X,
-} from 'lucide-react';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { User, MapPin, Lightbulb, Check, X } from "lucide-react";
 
 interface EntityPreviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   entity: {
-    type: 'character' | 'location' | 'plotPoint';
+    type: "character" | "location" | "plotPoint";
     name: string;
     confidence: number;
     details: any;
@@ -39,9 +33,11 @@ export default function EntityPreviewDialog({
   onOpenChange,
   entity,
   onConfirm,
-  onCancel
+  onCancel,
 }: EntityPreviewDialogProps) {
-  const [editedDetails, setEditedDetails] = useState<any>(entity?.details || {});
+  const [editedDetails, setEditedDetails] = useState<any>(
+    entity?.details || {},
+  );
 
   // Update edited details when entity changes - use useEffect to avoid render loop
   useEffect(() => {
@@ -65,7 +61,7 @@ export default function EntityPreviewDialog({
   const iconMap = {
     character: User,
     location: MapPin,
-    plotPoint: Lightbulb
+    plotPoint: Lightbulb,
   };
 
   const Icon = iconMap[entity.type];
@@ -79,7 +75,14 @@ export default function EntityPreviewDialog({
               <Icon className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <DialogTitle>Create {entity.type === 'character' ? 'Character' : entity.type === 'location' ? 'Location' : 'Plot Point'}</DialogTitle>
+              <DialogTitle>
+                Create{" "}
+                {entity.type === "character"
+                  ? "Character"
+                  : entity.type === "location"
+                    ? "Location"
+                    : "Plot Point"}
+              </DialogTitle>
               <DialogDescription>
                 Review and edit the details extracted from your conversation
               </DialogDescription>
@@ -90,15 +93,20 @@ export default function EntityPreviewDialog({
         <ScrollArea className="flex-1 pr-4">
           <div className="space-y-4 py-4">
             {/* Character-specific fields */}
-            {entity.type === 'character' && (
+            {entity.type === "character" && (
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="givenName">Given Name</Label>
                     <Input
                       id="givenName"
-                      value={editedDetails.givenName || ''}
-                      onChange={(e) => setEditedDetails({ ...editedDetails, givenName: e.target.value })}
+                      value={editedDetails.givenName || ""}
+                      onChange={(e) =>
+                        setEditedDetails({
+                          ...editedDetails,
+                          givenName: e.target.value,
+                        })
+                      }
                       placeholder="First name"
                       data-testid="input-given-name"
                     />
@@ -108,8 +116,13 @@ export default function EntityPreviewDialog({
                     <Label htmlFor="familyName">Family Name</Label>
                     <Input
                       id="familyName"
-                      value={editedDetails.familyName || ''}
-                      onChange={(e) => setEditedDetails({ ...editedDetails, familyName: e.target.value })}
+                      value={editedDetails.familyName || ""}
+                      onChange={(e) =>
+                        setEditedDetails({
+                          ...editedDetails,
+                          familyName: e.target.value,
+                        })
+                      }
                       placeholder="Last name"
                       data-testid="input-family-name"
                     />
@@ -121,8 +134,13 @@ export default function EntityPreviewDialog({
                     <Label htmlFor="species">Species</Label>
                     <Input
                       id="species"
-                      value={editedDetails.species || ''}
-                      onChange={(e) => setEditedDetails({ ...editedDetails, species: e.target.value })}
+                      value={editedDetails.species || ""}
+                      onChange={(e) =>
+                        setEditedDetails({
+                          ...editedDetails,
+                          species: e.target.value,
+                        })
+                      }
                       placeholder="Human, Elf, etc."
                       data-testid="input-species"
                     />
@@ -132,8 +150,13 @@ export default function EntityPreviewDialog({
                     <Label htmlFor="age">Age</Label>
                     <Input
                       id="age"
-                      value={editedDetails.age || ''}
-                      onChange={(e) => setEditedDetails({ ...editedDetails, age: e.target.value })}
+                      value={editedDetails.age || ""}
+                      onChange={(e) =>
+                        setEditedDetails({
+                          ...editedDetails,
+                          age: e.target.value,
+                        })
+                      }
                       placeholder="Age or age range"
                       data-testid="input-age"
                     />
@@ -144,19 +167,31 @@ export default function EntityPreviewDialog({
                   <Label htmlFor="occupation">Occupation</Label>
                   <Input
                     id="occupation"
-                    value={editedDetails.occupation || ''}
-                    onChange={(e) => setEditedDetails({ ...editedDetails, occupation: e.target.value })}
+                    value={editedDetails.occupation || ""}
+                    onChange={(e) =>
+                      setEditedDetails({
+                        ...editedDetails,
+                        occupation: e.target.value,
+                      })
+                    }
                     placeholder="What they do"
                     data-testid="input-occupation"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="physicalDescription">Physical Description</Label>
+                  <Label htmlFor="physicalDescription">
+                    Physical Description
+                  </Label>
                   <Textarea
                     id="physicalDescription"
-                    value={editedDetails.physicalDescription || ''}
-                    onChange={(e) => setEditedDetails({ ...editedDetails, physicalDescription: e.target.value })}
+                    value={editedDetails.physicalDescription || ""}
+                    onChange={(e) =>
+                      setEditedDetails({
+                        ...editedDetails,
+                        physicalDescription: e.target.value,
+                      })
+                    }
                     placeholder="Appearance details..."
                     rows={3}
                     data-testid="input-physical-description"
@@ -167,8 +202,13 @@ export default function EntityPreviewDialog({
                   <Label htmlFor="personality">Personality</Label>
                   <Textarea
                     id="personality"
-                    value={editedDetails.personality || ''}
-                    onChange={(e) => setEditedDetails({ ...editedDetails, personality: e.target.value })}
+                    value={editedDetails.personality || ""}
+                    onChange={(e) =>
+                      setEditedDetails({
+                        ...editedDetails,
+                        personality: e.target.value,
+                      })
+                    }
                     placeholder="Personality traits..."
                     rows={3}
                     data-testid="input-personality"
@@ -179,8 +219,13 @@ export default function EntityPreviewDialog({
                   <Label htmlFor="backstory">Backstory</Label>
                   <Textarea
                     id="backstory"
-                    value={editedDetails.backstory || ''}
-                    onChange={(e) => setEditedDetails({ ...editedDetails, backstory: e.target.value })}
+                    value={editedDetails.backstory || ""}
+                    onChange={(e) =>
+                      setEditedDetails({
+                        ...editedDetails,
+                        backstory: e.target.value,
+                      })
+                    }
                     placeholder="Character's history..."
                     rows={4}
                     data-testid="input-backstory"
@@ -191,8 +236,13 @@ export default function EntityPreviewDialog({
                   <Label htmlFor="motivations">Motivations</Label>
                   <Textarea
                     id="motivations"
-                    value={editedDetails.motivations || ''}
-                    onChange={(e) => setEditedDetails({ ...editedDetails, motivations: e.target.value })}
+                    value={editedDetails.motivations || ""}
+                    onChange={(e) =>
+                      setEditedDetails({
+                        ...editedDetails,
+                        motivations: e.target.value,
+                      })
+                    }
                     placeholder="What drives them..."
                     rows={3}
                     data-testid="input-motivations"
@@ -204,8 +254,13 @@ export default function EntityPreviewDialog({
                     <Label htmlFor="abilities">Abilities</Label>
                     <Textarea
                       id="abilities"
-                      value={editedDetails.abilities || ''}
-                      onChange={(e) => setEditedDetails({ ...editedDetails, abilities: e.target.value })}
+                      value={editedDetails.abilities || ""}
+                      onChange={(e) =>
+                        setEditedDetails({
+                          ...editedDetails,
+                          abilities: e.target.value,
+                        })
+                      }
                       placeholder="Special skills or powers..."
                       rows={3}
                       data-testid="input-abilities"
@@ -216,14 +271,19 @@ export default function EntityPreviewDialog({
             )}
 
             {/* Location-specific fields */}
-            {entity.type === 'location' && (
+            {entity.type === "location" && (
               <>
                 <div className="space-y-2">
                   <Label htmlFor="name">Location Name</Label>
                   <Input
                     id="name"
                     value={editedDetails.name || entity.name}
-                    onChange={(e) => setEditedDetails({ ...editedDetails, name: e.target.value })}
+                    onChange={(e) =>
+                      setEditedDetails({
+                        ...editedDetails,
+                        name: e.target.value,
+                      })
+                    }
                     placeholder="Name of the location"
                     data-testid="input-location-name"
                   />
@@ -233,8 +293,13 @@ export default function EntityPreviewDialog({
                   <Label htmlFor="description">Description</Label>
                   <Textarea
                     id="description"
-                    value={editedDetails.description || ''}
-                    onChange={(e) => setEditedDetails({ ...editedDetails, description: e.target.value })}
+                    value={editedDetails.description || ""}
+                    onChange={(e) =>
+                      setEditedDetails({
+                        ...editedDetails,
+                        description: e.target.value,
+                      })
+                    }
                     placeholder="Describe this location..."
                     rows={5}
                     data-testid="input-location-description"
@@ -245,8 +310,13 @@ export default function EntityPreviewDialog({
                   <Label htmlFor="atmosphere">Atmosphere</Label>
                   <Textarea
                     id="atmosphere"
-                    value={editedDetails.atmosphere || ''}
-                    onChange={(e) => setEditedDetails({ ...editedDetails, atmosphere: e.target.value })}
+                    value={editedDetails.atmosphere || ""}
+                    onChange={(e) =>
+                      setEditedDetails({
+                        ...editedDetails,
+                        atmosphere: e.target.value,
+                      })
+                    }
                     placeholder="Mood and feeling of this place..."
                     rows={3}
                     data-testid="input-atmosphere"
@@ -257,8 +327,13 @@ export default function EntityPreviewDialog({
                   <Label htmlFor="significance">Significance</Label>
                   <Textarea
                     id="significance"
-                    value={editedDetails.significance || ''}
-                    onChange={(e) => setEditedDetails({ ...editedDetails, significance: e.target.value })}
+                    value={editedDetails.significance || ""}
+                    onChange={(e) =>
+                      setEditedDetails({
+                        ...editedDetails,
+                        significance: e.target.value,
+                      })
+                    }
                     placeholder="Why is this location important?"
                     rows={3}
                     data-testid="input-significance"
@@ -268,14 +343,19 @@ export default function EntityPreviewDialog({
             )}
 
             {/* Plot Point-specific fields */}
-            {entity.type === 'plotPoint' && (
+            {entity.type === "plotPoint" && (
               <>
                 <div className="space-y-2">
                   <Label htmlFor="name">Plot Point Name</Label>
                   <Input
                     id="name"
                     value={editedDetails.name || entity.name}
-                    onChange={(e) => setEditedDetails({ ...editedDetails, name: e.target.value })}
+                    onChange={(e) =>
+                      setEditedDetails({
+                        ...editedDetails,
+                        name: e.target.value,
+                      })
+                    }
                     placeholder="Name of the plot point"
                     data-testid="input-plot-name"
                   />
@@ -285,8 +365,13 @@ export default function EntityPreviewDialog({
                   <Label htmlFor="description">Description</Label>
                   <Textarea
                     id="description"
-                    value={editedDetails.description || ''}
-                    onChange={(e) => setEditedDetails({ ...editedDetails, description: e.target.value })}
+                    value={editedDetails.description || ""}
+                    onChange={(e) =>
+                      setEditedDetails({
+                        ...editedDetails,
+                        description: e.target.value,
+                      })
+                    }
                     placeholder="What happens in this plot point..."
                     rows={5}
                     data-testid="input-plot-description"
@@ -297,8 +382,13 @@ export default function EntityPreviewDialog({
                   <Label htmlFor="significance">Significance</Label>
                   <Textarea
                     id="significance"
-                    value={editedDetails.significance || ''}
-                    onChange={(e) => setEditedDetails({ ...editedDetails, significance: e.target.value })}
+                    value={editedDetails.significance || ""}
+                    onChange={(e) =>
+                      setEditedDetails({
+                        ...editedDetails,
+                        significance: e.target.value,
+                      })
+                    }
                     placeholder="Impact on the story..."
                     rows={3}
                     data-testid="input-plot-significance"
@@ -325,12 +415,14 @@ export default function EntityPreviewDialog({
             <X className="w-4 h-4 mr-2" />
             Cancel
           </Button>
-          <Button
-            onClick={handleConfirm}
-            data-testid="button-confirm-entity"
-          >
+          <Button onClick={handleConfirm} data-testid="button-confirm-entity">
             <Check className="w-4 h-4 mr-2" />
-            Create {entity.type === 'character' ? 'Character' : entity.type === 'location' ? 'Location' : 'Plot Point'}
+            Create{" "}
+            {entity.type === "character"
+              ? "Character"
+              : entity.type === "location"
+                ? "Location"
+                : "Plot Point"}
           </Button>
         </DialogFooter>
       </DialogContent>

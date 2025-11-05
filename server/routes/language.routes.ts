@@ -10,31 +10,40 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.body.notebookId;
-    
+
     // Validate notebook ownership before allowing write
     if (notebookId) {
-      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, userId);
+      const ownsNotebook = await storage.validateNotebookOwnership(
+        notebookId,
+        userId,
+      );
       if (!ownsNotebook) {
-        console.warn(`[Security] Unauthorized language access attempt - userId: ${userId}, notebookId: ${notebookId}`);
-        return res.status(404).json({ error: 'Language not found' });
+        console.warn(
+          `[Security] Unauthorized language access attempt - userId: ${userId}, notebookId: ${notebookId}`,
+        );
+        return res.status(404).json({ error: "Language not found" });
       }
     }
-    
+
     const validatedLanguage = insertLanguageSchema.parse(req.body);
     const savedLanguage = await storage.createLanguage(validatedLanguage);
     res.json(savedLanguage);
   } catch (error) {
-    console.error('Error saving language:', error);
+    console.error("Error saving language:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const languageId = req.body.id || 'unknown';
-      console.warn(`[Security] Unauthorized language operation - userId: ${userId}, languageId: ${languageId}`);
-      return res.status(404).json({ error: 'Not found' });
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const languageId = req.body.id || "unknown";
+      console.warn(
+        `[Security] Unauthorized language operation - userId: ${userId}, languageId: ${languageId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to save language' });
+    res.status(500).json({ error: "Failed to save language" });
   }
 });
 
@@ -43,25 +52,27 @@ router.get("/", readRateLimiter, async (req: any, res) => {
     const search = req.query.search as string;
     const notebookId = req.query.notebookId as string;
     const userId = req.user.claims.sub;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     const languages = await storage.getUserLanguages(userId, notebookId);
-    
+
     // Filter by search text if provided
     let filtered = languages;
     if (search) {
-      filtered = filtered.filter(language =>
-        language.name?.toLowerCase().includes(search.toLowerCase())
+      filtered = filtered.filter((language) =>
+        language.name?.toLowerCase().includes(search.toLowerCase()),
       );
     }
-    
+
     res.json(filtered);
   } catch (error) {
-    console.error('Error fetching languages:', error);
-    res.status(500).json({ error: 'Failed to fetch languages' });
+    console.error("Error fetching languages:", error);
+    res.status(500).json({ error: "Failed to fetch languages" });
   }
 });
 
@@ -69,16 +80,18 @@ router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     const languages = await storage.getUserLanguages(userId, notebookId);
     res.json(languages);
   } catch (error) {
-    console.error('Error fetching languages:', error);
-    res.status(500).json({ error: 'Failed to fetch languages' });
+    console.error("Error fetching languages:", error);
+    res.status(500).json({ error: "Failed to fetch languages" });
   }
 });
 
@@ -86,19 +99,25 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
-    const language = await storage.getLanguage(req.params.id, userId, notebookId);
+
+    const language = await storage.getLanguage(
+      req.params.id,
+      userId,
+      notebookId,
+    );
     if (!language) {
-      return res.status(404).json({ error: 'Language not found' });
+      return res.status(404).json({ error: "Language not found" });
     }
     res.json(language);
   } catch (error) {
-    console.error('Error fetching language:', error);
-    res.status(500).json({ error: 'Failed to fetch language' });
+    console.error("Error fetching language:", error);
+    res.status(500).json({ error: "Failed to fetch language" });
   }
 });
 
@@ -106,20 +125,28 @@ router.patch("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const updates = insertLanguageSchema.partial().parse(req.body);
-    const updatedLanguage = await storage.updateLanguage(req.params.id, userId, updates);
+    const updatedLanguage = await storage.updateLanguage(
+      req.params.id,
+      userId,
+      updates,
+    );
     res.json(updatedLanguage);
   } catch (error) {
-    console.error('Error updating language:', error);
+    console.error("Error updating language:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const languageId = req.params.id || 'unknown';
-      console.warn(`[Security] Unauthorized language operation - userId: ${userId}, languageId: ${languageId}`);
-      return res.status(404).json({ error: 'Not found' });
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const languageId = req.params.id || "unknown";
+      console.warn(
+        `[Security] Unauthorized language operation - userId: ${userId}, languageId: ${languageId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to update language' });
+    res.status(500).json({ error: "Failed to update language" });
   }
 });
 
@@ -129,14 +156,16 @@ router.delete("/:id", writeRateLimiter, async (req: any, res) => {
     await storage.deleteLanguage(req.params.id, userId);
     res.status(204).send();
   } catch (error) {
-    console.error('Error deleting language:', error);
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const languageId = req.params.id || 'unknown';
-      console.warn(`[Security] Unauthorized language operation - userId: ${userId}, languageId: ${languageId}`);
-      return res.status(404).json({ error: 'Not found' });
+    console.error("Error deleting language:", error);
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const languageId = req.params.id || "unknown";
+      console.warn(
+        `[Security] Unauthorized language operation - userId: ${userId}, languageId: ${languageId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to delete language' });
+    res.status(500).json({ error: "Failed to delete language" });
   }
 });
 

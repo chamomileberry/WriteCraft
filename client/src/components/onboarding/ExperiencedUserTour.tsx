@@ -1,15 +1,22 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Sparkles, 
-  BookText, 
-  FolderTree, 
-  Palette, 
+import {
+  Sparkles,
+  BookText,
+  FolderTree,
+  Palette,
   MessageSquare,
   ArrowRight,
-  Check
+  Check,
 } from "lucide-react";
 
 interface ExperiencedUserTourProps {
@@ -22,50 +29,58 @@ const tourSteps = [
   {
     title: "AI-Powered Generators",
     icon: Sparkles,
-    description: "Create characters, worlds, plots, and more with AI assistance. Access 40+ specialized generators from the top menu.",
+    description:
+      "Create characters, worlds, plots, and more with AI assistance. Access 40+ specialized generators from the top menu.",
     features: [
       "Character & World Builders",
       "Plot & Conflict Generators",
       "Writing Prompts & Ideas",
-      "Magic Systems & Cultures"
-    ]
+      "Magic Systems & Cultures",
+    ],
   },
   {
     title: "Writing Guides & Assistant",
     icon: BookText,
-    description: "Access comprehensive writing guides and get real-time AI assistance while you write.",
+    description:
+      "Access comprehensive writing guides and get real-time AI assistance while you write.",
     features: [
       "Expert Writing Guides",
       "Conversational AI Assistant",
       "Context-Aware Suggestions",
-      "Literary Examples & Tips"
-    ]
+      "Literary Examples & Tips",
+    ],
   },
   {
     title: "Organize with Projects",
     icon: FolderTree,
-    description: "Keep everything organized with Projects and Notebooks. Link related content and track your worldbuilding.",
+    description:
+      "Keep everything organized with Projects and Notebooks. Link related content and track your worldbuilding.",
     features: [
       "Hierarchical Projects",
       "Rich Text Notebooks",
       "Timeline & Family Trees",
-      "Cross-Reference Content"
-    ]
+      "Cross-Reference Content",
+    ],
   },
   {
     title: "Visual Canvas",
     icon: Palette,
-    description: "Create visual diagrams, character relationship maps, and story structures on an infinite canvas.",
+    description:
+      "Create visual diagrams, character relationship maps, and story structures on an infinite canvas.",
     features: [
       "Story Diagrams & Mind Maps",
       "Character Relationship Graphs",
       "Plot Structure Visualization",
-      "Link to Projects"
-    ]
-  }
+      "Link to Projects",
+    ],
+  },
 ];
 
-export function ExperiencedUserTour({ isOpen, onComplete, onSkip }: ExperiencedUserTourProps) {
+export function ExperiencedUserTour({
+  isOpen,
+  onComplete,
+  onSkip,
+}: ExperiencedUserTourProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const progress = ((currentStep + 1) / tourSteps.length) * 100;
   const step = tourSteps[currentStep];
@@ -87,8 +102,8 @@ export function ExperiencedUserTour({ isOpen, onComplete, onSkip }: ExperiencedU
 
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent 
-        className="max-w-2xl" 
+      <DialogContent
+        className="max-w-2xl"
         data-testid="dialog-experienced-tour"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
@@ -115,7 +130,9 @@ export function ExperiencedUserTour({ isOpen, onComplete, onSkip }: ExperiencedU
 
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>Step {currentStep + 1} of {tourSteps.length}</span>
+              <span>
+                Step {currentStep + 1} of {tourSteps.length}
+              </span>
               <span>{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-2" />
@@ -140,10 +157,7 @@ export function ExperiencedUserTour({ isOpen, onComplete, onSkip }: ExperiencedU
                 Previous
               </Button>
             )}
-            <Button
-              onClick={handleNext}
-              data-testid="button-tour-next"
-            >
+            <Button onClick={handleNext} data-testid="button-tour-next">
               {currentStep < tourSteps.length - 1 ? (
                 <>
                   Next <ArrowRight className="w-4 h-4 ml-1" />

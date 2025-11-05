@@ -30,7 +30,8 @@ export function PolishButton({
 }: PolishButtonProps) {
   const [isPolishing, setIsPolishing] = useState(false);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
-  const { hasPremiumAccess, polishRemaining, premiumQuota, refetch } = useSubscription();
+  const { hasPremiumAccess, polishRemaining, premiumQuota, refetch } =
+    useSubscription();
   const { toast } = useToast();
 
   const handlePolish = async () => {
@@ -74,7 +75,7 @@ export function PolishButton({
           title: "Content Polished!",
           description: `${polishRemaining - 1} Polish uses remaining this month.`,
         });
-        
+
         // Refetch quota to update UI
         refetch();
       } else {
@@ -84,7 +85,8 @@ export function PolishButton({
       console.error("Polish error:", error);
       toast({
         title: "Polish Failed",
-        description: error.message || "Failed to polish content. Please try again.",
+        description:
+          error.message || "Failed to polish content. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -113,7 +115,9 @@ export function PolishButton({
               <Sparkles className="h-4 w-4" />
             )}
             {size !== "icon" && (
-              <span className="ml-2">{isPolishing ? "Polishing..." : "Polish"}</span>
+              <span className="ml-2">
+                {isPolishing ? "Polishing..." : "Polish"}
+              </span>
             )}
           </Button>
         </TooltipTrigger>

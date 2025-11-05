@@ -1,15 +1,15 @@
 /**
  * AI Helper - Centralized AI generation with cost optimization
- * 
+ *
  * This module provides utilities for:
  * - Haiku 4.5 model for all operations (optimal cost/performance)
  * - Prompt caching to reduce costs by 90%
  * - Usage tracking for billing
  */
 
-import Anthropic from '@anthropic-ai/sdk';
-import { modelSelector, type OperationType } from '../services/modelSelector';
-import { promptCache } from './promptCache';
+import Anthropic from "@anthropic-ai/sdk";
+import { modelSelector, type OperationType } from "../services/modelSelector";
+import { promptCache } from "./promptCache";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -34,7 +34,9 @@ export interface AICallResult {
 /**
  * Make an AI call with intelligent model selection and optional prompt caching
  */
-export async function makeAICall(options: CachedAICallOptions): Promise<AICallResult> {
+export async function makeAICall(
+  options: CachedAICallOptions,
+): Promise<AICallResult> {
   const {
     operationType,
     userId,
@@ -42,40 +44,40 @@ export async function makeAICall(options: CachedAICallOptions): Promise<AICallRe
     userPrompt,
     maxTokens = 2048,
     textLength = 0,
-    enableCaching = true
+    enableCaching = true,
   } = options;
 
   // Select appropriate model based on operation type
   const model = modelSelector.selectModel(operationType, textLength);
 
   // Prepare system messages with caching if enabled and user is known
-  const systemMessages: Anthropic.Messages.MessageCreateParams['system'] = [];
-  
+  const systemMessages: Anthropic.Messages.MessageCreateParams["system"] = [];
+
   if (enableCaching && userId) {
     // Check if we have a cached version of this prompt
     const cachedPrompt = promptCache.getCachedPrompt(userId, operationType);
-    
+
     if (cachedPrompt === systemPrompt) {
       // Same prompt - use cache control to leverage Anthropic's caching
       systemMessages.push({
-        type: 'text',
+        type: "text",
         text: systemPrompt,
-        cache_control: { type: 'ephemeral' }
+        cache_control: { type: "ephemeral" },
       });
     } else {
       // Different prompt - update cache and mark for caching
       promptCache.setCachedPrompt(userId, operationType, systemPrompt);
       systemMessages.push({
-        type: 'text',
+        type: "text",
         text: systemPrompt,
-        cache_control: { type: 'ephemeral' }
+        cache_control: { type: "ephemeral" },
       });
     }
   } else {
     // No caching - just use the system prompt
     systemMessages.push({
-      type: 'text',
-      text: systemPrompt
+      type: "text",
+      text: systemPrompt,
     });
   }
 
@@ -84,20 +86,18 @@ export async function makeAICall(options: CachedAICallOptions): Promise<AICallRe
     model,
     system: systemMessages,
     max_tokens: maxTokens,
-    messages: [
-      { role: 'user', content: userPrompt }
-    ],
+    messages: [{ role: "user", content: userPrompt }],
   });
 
   const content = response.content[0];
-  if (content.type !== 'text') {
-    throw new Error('Unexpected response format from Anthropic API');
+  if (content.type !== "text") {
+    throw new Error("Unexpected response format from Anthropic API");
   }
 
   return {
     content: content.text,
     usage: response.usage,
-    model
+    model,
   };
 }
 
@@ -108,27 +108,25 @@ export async function makeSimpleAICall(
   operationType: OperationType,
   prompt: string,
   textLength: number = 0,
-  maxTokens: number = 1024
+  maxTokens: number = 1024,
 ): Promise<AICallResult> {
   const model = modelSelector.selectModel(operationType, textLength);
 
   const response = await anthropic.messages.create({
     model,
     max_tokens: maxTokens,
-    messages: [
-      { role: 'user', content: prompt }
-    ],
+    messages: [{ role: "user", content: prompt }],
   });
 
   const content = response.content[0];
-  if (content.type !== 'text') {
-    throw new Error('Unexpected response format from Anthropic API');
+  if (content.type !== "text") {
+    throw new Error("Unexpected response format from Anthropic API");
   }
 
   return {
     content: content.text,
     usage: response.usage,
-    model
+    model,
   };
 }
 
@@ -139,7 +137,7 @@ export async function makeConversationalAICall(options: {
   operationType: OperationType;
   userId: string;
   systemPrompt: string;
-  conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }>;
+  conversationHistory: Array<{ role: "user" | "assistant"; content: string }>;
   newMessage: string;
   maxTokens?: number;
 }): Promise<AICallResult> {
@@ -149,35 +147,38 @@ export async function makeConversationalAICall(options: {
     systemPrompt,
     conversationHistory,
     newMessage,
-    maxTokens = 1024
+    maxTokens = 1024,
   } = options;
 
   // Select model for conversational tasks (Haiku 4.5 for all operations)
   const model = modelSelector.selectModel(operationType);
 
   // Use caching for system prompt
-  const cachedPrompt = promptCache.getCachedPrompt(userId, 'conversation_system');
-  const systemMessages: Anthropic.Messages.MessageCreateParams['system'] = [];
+  const cachedPrompt = promptCache.getCachedPrompt(
+    userId,
+    "conversation_system",
+  );
+  const systemMessages: Anthropic.Messages.MessageCreateParams["system"] = [];
 
   if (cachedPrompt === systemPrompt) {
     systemMessages.push({
-      type: 'text',
+      type: "text",
       text: systemPrompt,
-      cache_control: { type: 'ephemeral' }
+      cache_control: { type: "ephemeral" },
     });
   } else {
-    promptCache.setCachedPrompt(userId, 'conversation_system', systemPrompt);
+    promptCache.setCachedPrompt(userId, "conversation_system", systemPrompt);
     systemMessages.push({
-      type: 'text',
+      type: "text",
       text: systemPrompt,
-      cache_control: { type: 'ephemeral' }
+      cache_control: { type: "ephemeral" },
     });
   }
 
   // Build messages array
   const messages = [
     ...conversationHistory,
-    { role: 'user' as const, content: newMessage }
+    { role: "user" as const, content: newMessage },
   ];
 
   const response = await anthropic.messages.create({
@@ -188,13 +189,13 @@ export async function makeConversationalAICall(options: {
   });
 
   const content = response.content[0];
-  if (content.type !== 'text') {
-    throw new Error('Unexpected response format from Anthropic API');
+  if (content.type !== "text") {
+    throw new Error("Unexpected response format from Anthropic API");
   }
 
   return {
     content: content.text,
     usage: response.usage,
-    model
+    model,
   };
 }

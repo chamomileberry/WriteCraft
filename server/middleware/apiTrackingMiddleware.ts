@@ -1,24 +1,29 @@
-import type { Request, Response, NextFunction, RequestHandler } from 'express';
-import { serverAnalytics, SERVER_EVENTS } from '../services/serverAnalytics';
+import type { Request, Response, NextFunction, RequestHandler } from "express";
+import { serverAnalytics, SERVER_EVENTS } from "../services/serverAnalytics";
 
 /**
  * Middleware to track API request volume for IDS baseline analysis
  * This helps establish normal usage patterns to set appropriate thresholds
  */
-export const trackApiRequest: RequestHandler = (req: any, res: Response, next: NextFunction) => {
+export const trackApiRequest: RequestHandler = (
+  req: any,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     // Skip tracking for health checks and static assets
-    const skipPaths = ['/health', '/api/health', '/assets', '/favicon.ico'];
-    if (skipPaths.some(path => req.path.startsWith(path))) {
+    const skipPaths = ["/health", "/api/health", "/assets", "/favicon.ico"];
+    if (skipPaths.some((path) => req.path.startsWith(path))) {
       return next();
     }
-    
+
     // Track API request volume
-    const userId = req.user?.claims?.sub || 'anonymous';
-    const ipAddress = req.headers['x-forwarded-for']?.toString().split(',')[0].trim() || 
-                      req.socket.remoteAddress || 
-                      'unknown';
-    
+    const userId = req.user?.claims?.sub || "anonymous";
+    const ipAddress =
+      req.headers["x-forwarded-for"]?.toString().split(",")[0].trim() ||
+      req.socket.remoteAddress ||
+      "unknown";
+
     serverAnalytics.capture({
       distinctId: userId,
       event: SERVER_EVENTS.API_REQUEST,
@@ -27,16 +32,16 @@ export const trackApiRequest: RequestHandler = (req: any, res: Response, next: N
         path: req.path,
         endpoint: req.originalUrl,
         ipAddress,
-        userAgent: req.headers['user-agent'],
+        userAgent: req.headers["user-agent"],
         authenticated: !!req.user,
         timestamp: new Date().toISOString(),
       },
     });
-    
+
     next();
   } catch (error) {
     // Don't block the request if tracking fails
-    console.error('[API Tracking] Failed to track request:', error);
+    console.error("[API Tracking] Failed to track request:", error);
     next();
   }
 };
@@ -58,14 +63,14 @@ export function trackContentPaste(params: {
       event: SERVER_EVENTS.CONTENT_PASTE,
       properties: {
         contentLength: params.contentLength,
-        contentType: params.contentType || 'unknown',
+        contentType: params.contentType || "unknown",
         endpoint: params.endpoint,
         triggerDetection: params.triggerDetection || false,
         timestamp: new Date().toISOString(),
       },
     });
   } catch (error) {
-    console.error('[API Tracking] Failed to track content paste:', error);
+    console.error("[API Tracking] Failed to track content paste:", error);
   }
 }
 
@@ -80,8 +85,10 @@ export function trackLoginAttempt(params: {
   method?: string; // 'password', 'google', 'github', etc.
 }): void {
   try {
-    const event = params.success ? SERVER_EVENTS.LOGIN_SUCCESS : SERVER_EVENTS.LOGIN_FAILURE;
-    
+    const event = params.success
+      ? SERVER_EVENTS.LOGIN_SUCCESS
+      : SERVER_EVENTS.LOGIN_FAILURE;
+
     serverAnalytics.capture({
       distinctId: params.userId || params.ipAddress,
       event,
@@ -89,11 +96,11 @@ export function trackLoginAttempt(params: {
         success: params.success,
         ipAddress: params.ipAddress,
         userAgent: params.userAgent,
-        method: params.method || 'unknown',
+        method: params.method || "unknown",
         timestamp: new Date().toISOString(),
       },
     });
-    
+
     // Also capture generic login_attempt event for overall tracking
     serverAnalytics.capture({
       distinctId: params.userId || params.ipAddress,
@@ -102,11 +109,11 @@ export function trackLoginAttempt(params: {
         success: params.success,
         ipAddress: params.ipAddress,
         userAgent: params.userAgent,
-        method: params.method || 'unknown',
+        method: params.method || "unknown",
         timestamp: new Date().toISOString(),
       },
     });
   } catch (error) {
-    console.error('[API Tracking] Failed to track login attempt:', error);
+    console.error("[API Tracking] Failed to track login attempt:", error);
   }
 }

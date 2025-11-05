@@ -1,10 +1,10 @@
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
+} from "@/components/ui/tooltip";
 
 interface FeatureTooltipProps {
   title: string;
@@ -18,7 +18,12 @@ interface FeatureTooltipProps {
   };
 }
 
-export function FeatureTooltip({ title, description, children, comparison }: FeatureTooltipProps) {
+export function FeatureTooltip({
+  title,
+  description,
+  children,
+  comparison,
+}: FeatureTooltipProps) {
   return (
     <TooltipProvider>
       <Tooltip delayDuration={200}>
@@ -28,13 +33,19 @@ export function FeatureTooltip({ title, description, children, comparison }: Fea
             <HelpCircle className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         </TooltipTrigger>
-        <TooltipContent side="right" className="max-w-xs" data-testid="tooltip-feature-info">
+        <TooltipContent
+          side="right"
+          className="max-w-xs"
+          data-testid="tooltip-feature-info"
+        >
           <div className="space-y-2">
             <div>
               <p className="font-semibold text-sm">{title}</p>
-              <p className="text-xs text-muted-foreground mt-1">{description}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {description}
+              </p>
             </div>
-            
+
             {comparison && (
               <div className="border-t pt-2 mt-2">
                 <p className="text-xs font-semibold mb-1">Tier Comparison:</p>
@@ -53,7 +64,9 @@ export function FeatureTooltip({ title, description, children, comparison }: Fea
                   )}
                   {comparison.professional && (
                     <div className="flex justify-between gap-4">
-                      <span className="text-muted-foreground">Professional:</span>
+                      <span className="text-muted-foreground">
+                        Professional:
+                      </span>
                       <span>{comparison.professional}</span>
                     </div>
                   )}

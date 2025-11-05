@@ -1,7 +1,7 @@
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Loader2, ExternalLink, Plus } from 'lucide-react';
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Loader2, ExternalLink, Plus } from "lucide-react";
 
 interface SearchResult {
   id: string;
@@ -37,7 +37,7 @@ export function ContentSearch({
         className="w-64"
         data-testid="input-search-content"
       />
-      
+
       {/* Search Results Dropdown */}
       {searchQuery && (
         <div className="absolute top-full left-0 right-0 z-50 border-b bg-muted/40 max-h-32 overflow-y-auto">
@@ -58,7 +58,9 @@ export function ContentSearch({
                         <Badge variant="outline" className="text-xs">
                           {item.type}
                         </Badge>
-                        <span className="text-sm font-medium truncate">{item.title}</span>
+                        <span className="text-sm font-medium truncate">
+                          {item.title}
+                        </span>
                       </div>
                       {item.subtitle && (
                         <p className="text-xs text-muted-foreground truncate mt-1">
@@ -92,7 +94,9 @@ export function ContentSearch({
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground py-2">No results found</p>
+              <p className="text-sm text-muted-foreground py-2">
+                No results found
+              </p>
             )}
           </div>
         </div>

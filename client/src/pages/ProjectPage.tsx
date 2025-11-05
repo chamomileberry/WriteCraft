@@ -4,10 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, Search, Edit, Calendar, FileText, Trash2, Share2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  Search,
+  Edit,
+  Calendar,
+  FileText,
+  Trash2,
+  Share2,
+} from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
-import { useWorkspaceStore, type PanelDescriptor } from "@/stores/workspaceStore";
+import {
+  useWorkspaceStore,
+  type PanelDescriptor,
+} from "@/stores/workspaceStore";
 import { ProjectViewer } from "@/components/ProjectViewer";
 import { ProjectContainer } from "@/components/ProjectContainer";
 import Header from "@/components/Header";
@@ -25,26 +37,29 @@ interface Project {
   excerpt?: string;
   wordCount: number;
   tags: string[];
-  status: 'draft' | 'published' | 'archived';
+  status: "draft" | "published" | "archived";
   userId: string;
   createdAt: string;
   updatedAt: string;
 }
 
-type ViewMode = 'list' | 'view' | 'edit';
+type ViewMode = "list" | "view" | "edit";
 
 export default function ProjectPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null,
+  );
   const [isContentModalOpen, setIsContentModalOpen] = useState(false);
   const [sharingProject, setSharingProject] = useState<Project | null>(null);
-  const [activeTab, setActiveTab] = useState<'owned' | 'shared'>('owned');
+  const [activeTab, setActiveTab] = useState<"owned" | "shared">("owned");
   const [showLimitDialog, setShowLimitDialog] = useState(false);
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const { checkLimit, gracePeriodExpired, gracePeriodDaysRemaining } = useSubscription();
+  const { checkLimit, gracePeriodExpired, gracePeriodDaysRemaining } =
+    useSubscription();
 
   // Header handlers
   const handleSearch = (query: string) => {
@@ -52,13 +67,13 @@ export default function ProjectPage() {
   };
 
   const handleNavigate = (toolId: string) => {
-    if (toolId === 'notebook') {
-      navigate('/notebook');
-    } else if (toolId === 'projects') {
+    if (toolId === "notebook") {
+      navigate("/notebook");
+    } else if (toolId === "projects") {
       // Already on projects page
       return;
     } else {
-      navigate('/');
+      navigate("/");
     }
   };
 
@@ -66,32 +81,35 @@ export default function ProjectPage() {
     setIsContentModalOpen(true);
   };
 
-  const handleSelectContentType = (contentType: string, notebookId?: string) => {
+  const handleSelectContentType = (
+    contentType: string,
+    notebookId?: string,
+  ) => {
     setIsContentModalOpen(false);
     const mapping = getMappingById(contentType);
     if (mapping) {
-      const url = notebookId 
+      const url = notebookId
         ? `/editor/${mapping.urlSegment}/new?notebookId=${notebookId}`
         : `/editor/${mapping.urlSegment}/new`;
       navigate(url);
     } else {
-      navigate('/notebook');
+      navigate("/notebook");
     }
   };
 
   // Fetch projects
   const { data: projects = [], isLoading } = useQuery({
-    queryKey: ['/api/projects'],
+    queryKey: ["/api/projects"],
     enabled: true,
   });
 
   // Search projects
   const { data: searchResults = [], isLoading: isSearching } = useQuery({
-    queryKey: ['/api/projects/search', searchQuery],
+    queryKey: ["/api/projects/search", searchQuery],
     queryFn: async () => {
       const encodedQuery = encodeURIComponent(searchQuery);
       const response = await fetch(`/api/projects/search?q=${encodedQuery}`, {
-        credentials: 'include'
+        credentials: "include",
       });
       if (!response.ok) {
         throw new Error(`${response.status}: ${response.statusText}`);
@@ -104,76 +122,82 @@ export default function ProjectPage() {
   // Create new project mutation
   const createProjectMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/projects', {
-        title: 'Untitled Project',
-        content: '',
-        status: 'draft',
-        tags: []
+      const response = await apiRequest("POST", "/api/projects", {
+        title: "Untitled Project",
+        content: "",
+        status: "draft",
+        tags: [],
       });
       return response.json() as Promise<Project>;
     },
     onSuccess: (newProject: Project) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       // Redirect to the editor for the new project
       navigate(`/projects/${newProject.id}/edit`);
-    }
+    },
   });
 
   // Delete project mutation
   const deleteProjectMutation = useMutation({
     mutationFn: async (projectId: string) => {
-      await apiRequest('DELETE', `/api/projects/${projectId}`);
+      await apiRequest("DELETE", `/api/projects/${projectId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
-    }
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+    },
   });
 
   // Handle clicking a project card (not the edit button) - goes to view mode
   const handleProjectClick = (projectId: string) => {
     setSelectedProjectId(projectId);
-    setViewMode('view');
+    setViewMode("view");
   };
 
   // Handle clicking the edit button on a project card - goes straight to edit mode
   const handleProjectEdit = (projectId: string) => {
     setSelectedProjectId(projectId);
-    setViewMode('edit');
+    setViewMode("edit");
   };
 
   // Handle clicking "Edit Project" button in viewer
   const handleStartEditing = () => {
-    setViewMode('edit');
+    setViewMode("edit");
   };
 
   // Handle back navigation
   const handleBack = () => {
     setSelectedProjectId(null);
-    setViewMode('list');
+    setViewMode("list");
   };
 
   // Filter projects based on active tab
-  const ownedProjects = (projects as Project[]).filter((p: Project) => !(p as any).isShared);
-  const sharedProjects = (projects as Project[]).filter((p: Project) => (p as any).isShared);
-  const filteredByTab = activeTab === 'owned' ? ownedProjects : sharedProjects;
-  
-  // Apply tab filter to search results too
-  const filteredSearchResults = (searchResults as Project[]).filter((p: Project) => 
-    activeTab === 'owned' ? !(p as any).isShared : (p as any).isShared
+  const ownedProjects = (projects as Project[]).filter(
+    (p: Project) => !(p as any).isShared,
   );
-  
-  const displayedProjects = searchQuery.trim().length > 0 ? filteredSearchResults : filteredByTab;
+  const sharedProjects = (projects as Project[]).filter(
+    (p: Project) => (p as any).isShared,
+  );
+  const filteredByTab = activeTab === "owned" ? ownedProjects : sharedProjects;
+
+  // Apply tab filter to search results too
+  const filteredSearchResults = (searchResults as Project[]).filter(
+    (p: Project) =>
+      activeTab === "owned" ? !(p as any).isShared : (p as any).isShared,
+  );
+
+  const displayedProjects =
+    searchQuery.trim().length > 0 ? filteredSearchResults : filteredByTab;
 
   const handleNewProject = async () => {
     // Check if user can create a project
-    const limitCheck = await checkLimit('create_project');
-    
+    const limitCheck = await checkLimit("create_project");
+
     // Block ONLY if not allowed AND not in grace period
     if (!limitCheck.allowed && !limitCheck.inGracePeriod) {
       setShowLimitDialog(true);
       return;
     }
-    
+
     // Show toast warning if in grace period but still allow creation
     if (limitCheck.inGracePeriod && limitCheck.gracePeriodWarning) {
       toast({
@@ -182,28 +206,39 @@ export default function ProjectPage() {
         duration: 5000,
       });
     }
-    
+
     createProjectMutation.mutate();
   };
 
-  const handleDeleteProject = async (e: React.MouseEvent, projectId: string) => {
+  const handleDeleteProject = async (
+    e: React.MouseEvent,
+    projectId: string,
+  ) => {
     e.stopPropagation();
-    if (window.confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+    if (
+      window.confirm(
+        "Are you sure you want to delete this project? This action cannot be undone.",
+      )
+    ) {
       deleteProjectMutation.mutate(projectId);
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'published': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'draft': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      case 'archived': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-      default: return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      case "published":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "draft":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      case "archived":
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+      default:
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
     }
   };
 
   // Render view/edit modes
-  if (viewMode === 'view' && selectedProjectId) {
+  if (viewMode === "view" && selectedProjectId) {
     return (
       <div className="h-screen">
         <ProjectViewer
@@ -215,13 +250,10 @@ export default function ProjectPage() {
     );
   }
 
-  if (viewMode === 'edit' && selectedProjectId) {
+  if (viewMode === "edit" && selectedProjectId) {
     return (
       <div className="h-screen">
-        <ProjectContainer
-          projectId={selectedProjectId}
-          onBack={handleBack}
-        />
+        <ProjectContainer projectId={selectedProjectId} onBack={handleBack} />
       </div>
     );
   }
@@ -229,7 +261,7 @@ export default function ProjectPage() {
   // Default list view
   return (
     <div className="min-h-screen bg-background">
-      <Header 
+      <Header
         onSearch={handleSearch}
         searchQuery={searchQuery}
         onNavigate={handleNavigate}
@@ -239,33 +271,40 @@ export default function ProjectPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-foreground" data-testid="text-projects-title">Projects</h1>
-              <p className="text-muted-foreground mt-2">Your creative writing projects and stories</p>
+              <h1
+                className="text-3xl font-bold text-foreground"
+                data-testid="text-projects-title"
+              >
+                Projects
+              </h1>
+              <p className="text-muted-foreground mt-2">
+                Your creative writing projects and stories
+              </p>
             </div>
-            <Button 
-              onClick={handleNewProject} 
+            <Button
+              onClick={handleNewProject}
               disabled={createProjectMutation.isPending}
               data-testid="button-new-project"
             >
               <Plus className="mr-2 h-4 w-4" />
-              {createProjectMutation.isPending ? 'Creating...' : 'New Project'}
+              {createProjectMutation.isPending ? "Creating..." : "New Project"}
             </Button>
           </div>
 
           {/* Tabs */}
           <div className="flex items-center gap-2 mb-4">
             <Button
-              variant={activeTab === 'owned' ? 'default' : 'outline'}
+              variant={activeTab === "owned" ? "default" : "outline"}
               size="sm"
-              onClick={() => setActiveTab('owned')}
+              onClick={() => setActiveTab("owned")}
               data-testid="button-tab-owned-projects"
             >
               My Projects ({ownedProjects.length})
             </Button>
             <Button
-              variant={activeTab === 'shared' ? 'default' : 'outline'}
+              variant={activeTab === "shared" ? "default" : "outline"}
               size="sm"
-              onClick={() => setActiveTab('shared')}
+              onClick={() => setActiveTab("shared")}
               data-testid="button-tab-shared-projects"
             >
               Shared with Me ({sharedProjects.length})
@@ -305,20 +344,24 @@ export default function ProjectPage() {
           <div className="text-center py-12">
             <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium text-foreground mb-2">
-              {searchQuery.trim().length > 0 
-                ? 'No projects found' 
-                : activeTab === 'owned' ? 'No projects yet' : 'No shared projects'}
+              {searchQuery.trim().length > 0
+                ? "No projects found"
+                : activeTab === "owned"
+                  ? "No projects yet"
+                  : "No shared projects"}
             </h3>
             <p className="text-muted-foreground mb-6">
-              {searchQuery.trim().length > 0 
-                ? 'Try a different search term or create a new project'
-                : activeTab === 'owned' 
-                  ? 'Create your first project to start writing'
-                  : 'No projects have been shared with you yet'
-              }
+              {searchQuery.trim().length > 0
+                ? "Try a different search term or create a new project"
+                : activeTab === "owned"
+                  ? "Create your first project to start writing"
+                  : "No projects have been shared with you yet"}
             </p>
-            {searchQuery.trim().length === 0 && activeTab === 'owned' && (
-              <Button onClick={handleNewProject} data-testid="button-create-first-project">
+            {searchQuery.trim().length === 0 && activeTab === "owned" && (
+              <Button
+                onClick={handleNewProject}
+                data-testid="button-create-first-project"
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Create Your First Project
               </Button>
@@ -327,8 +370,8 @@ export default function ProjectPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayedProjects.map((project: Project) => (
-              <Card 
-                key={project.id} 
+              <Card
+                key={project.id}
                 className="hover-elevate cursor-pointer transition-colors group"
                 onClick={() => handleProjectClick(project.id)}
                 data-testid={`card-project-${project.id}`}
@@ -342,25 +385,42 @@ export default function ProjectPage() {
                         </CardTitle>
                         <div className="flex gap-1 shrink-0">
                           {(project as any).isShared && (
-                            <Badge variant="secondary" data-testid={`badge-shared-project-${project.id}`} className="text-xs">
+                            <Badge
+                              variant="secondary"
+                              data-testid={`badge-shared-project-${project.id}`}
+                              className="text-xs"
+                            >
                               Shared
                             </Badge>
                           )}
-                          {(project as any).isShared && (project as any).sharePermission === 'view' && (
-                            <Badge variant="outline" data-testid={`badge-readonly-project-${project.id}`} className="text-xs">
-                              Read-Only
-                            </Badge>
-                          )}
+                          {(project as any).isShared &&
+                            (project as any).sharePermission === "view" && (
+                              <Badge
+                                variant="outline"
+                                data-testid={`badge-readonly-project-${project.id}`}
+                                className="text-xs"
+                              >
+                                Read-Only
+                              </Badge>
+                            )}
                         </div>
                       </div>
-                      {(project as any).isShared && (project as any).sharedBy && (
-                        <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                          <span>Shared by {(project as any).sharedBy.firstName || (project as any).sharedBy.email}</span>
-                          <Badge variant="outline" className="text-[10px] px-1 py-0">
-                            {(project as any).sharePermission}
-                          </Badge>
-                        </div>
-                      )}
+                      {(project as any).isShared &&
+                        (project as any).sharedBy && (
+                          <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                            <span>
+                              Shared by{" "}
+                              {(project as any).sharedBy.firstName ||
+                                (project as any).sharedBy.email}
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] px-1 py-0"
+                            >
+                              {(project as any).sharePermission}
+                            </Badge>
+                          </div>
+                        )}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       {/* Share button only for owned projects */}
@@ -379,7 +439,8 @@ export default function ProjectPage() {
                         </Button>
                       )}
                       {/* Edit/Delete buttons only for owned projects or edit permission */}
-                      {(!(project as any).isShared || (project as any).sharePermission === 'edit') && (
+                      {(!(project as any).isShared ||
+                        (project as any).sharePermission === "edit") && (
                         <>
                           <Button
                             variant="ghost"
@@ -398,7 +459,9 @@ export default function ProjectPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={(e) => handleDeleteProject(e, project.id)}
+                              onClick={(e) =>
+                                handleDeleteProject(e, project.id)
+                              }
                               className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
                               data-testid={`button-delete-project-${project.id}`}
                             >
@@ -411,31 +474,44 @@ export default function ProjectPage() {
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Calendar className="h-4 w-4" />
-                    <span>{new Date(project.updatedAt).toLocaleDateString()}</span>
+                    <span>
+                      {new Date(project.updatedAt).toLocaleDateString()}
+                    </span>
                     <span>•</span>
-                    <span data-testid={`text-wordcount-${project.id}`}>{project.wordCount} words</span>
+                    <span data-testid={`text-wordcount-${project.id}`}>
+                      {project.wordCount} words
+                    </span>
                   </div>
                 </CardHeader>
                 <CardContent>
                   {project.excerpt && (
-                    <p className="text-muted-foreground text-sm line-clamp-3 mb-3" data-testid={`text-excerpt-${project.id}`}>
+                    <p
+                      className="text-muted-foreground text-sm line-clamp-3 mb-3"
+                      data-testid={`text-excerpt-${project.id}`}
+                    >
                       {project.excerpt}
                     </p>
                   )}
                   <div className="flex items-center justify-between">
                     <div className="flex flex-wrap gap-1">
-                      <Badge 
-                        variant="secondary" 
+                      <Badge
+                        variant="secondary"
                         className={getStatusColor(project.status)}
                         data-testid={`badge-status-${project.id}`}
                       >
                         {project.status}
                       </Badge>
-                      {project.tags && project.tags.slice(0, 2).map((tag, index) => (
-                        <Badge key={index} variant="outline" className="text-xs" data-testid={`badge-tag-${project.id}-${index}`}>
-                          {tag}
-                        </Badge>
-                      ))}
+                      {project.tags &&
+                        project.tags.slice(0, 2).map((tag, index) => (
+                          <Badge
+                            key={index}
+                            variant="outline"
+                            className="text-xs"
+                            data-testid={`badge-tag-${project.id}-${index}`}
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
                       {project.tags && project.tags.length > 2 && (
                         <Badge variant="outline" className="text-xs">
                           +{project.tags.length - 2}
@@ -449,13 +525,13 @@ export default function ProjectPage() {
           </div>
         )}
       </div>
-      
+
       <ContentTypeModal
         isOpen={isContentModalOpen}
         onClose={() => setIsContentModalOpen(false)}
         onSelectType={handleSelectContentType}
       />
-      
+
       {/* Share Dialog */}
       {sharingProject && (
         <ShareDialog
@@ -467,7 +543,7 @@ export default function ProjectPage() {
           ownerId={sharingProject.userId}
         />
       )}
-      
+
       {/* Limit Exceeded Dialog */}
       <LimitExceededDialog
         open={showLimitDialog}

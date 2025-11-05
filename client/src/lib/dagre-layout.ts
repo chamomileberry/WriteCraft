@@ -1,19 +1,19 @@
-import dagre from 'dagre';
-import { Node, Edge } from '@xyflow/react';
+import dagre from "dagre";
+import { Node, Edge } from "@xyflow/react";
 
 export function getLayoutedElements(
   nodes: Node[],
   edges: Edge[],
   options: {
-    direction?: 'TB' | 'LR';
+    direction?: "TB" | "LR";
     nodeWidth?: number;
     nodeHeight?: number;
     rankSep?: number;
     nodeSep?: number;
-  } = {}
+  } = {},
 ) {
   const {
-    direction = 'TB',
+    direction = "TB",
     nodeWidth = 160,
     nodeHeight = 220,
     rankSep = 340,
@@ -22,7 +22,7 @@ export function getLayoutedElements(
 
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
-  
+
   dagreGraph.setGraph({
     rankdir: direction,
     ranksep: rankSep,
@@ -31,9 +31,9 @@ export function getLayoutedElements(
 
   // Add nodes to dagre graph
   nodes.forEach((node) => {
-    dagreGraph.setNode(node.id, { 
-      width: nodeWidth, 
-      height: nodeHeight 
+    dagreGraph.setNode(node.id, {
+      width: nodeWidth,
+      height: nodeHeight,
     });
   });
 

@@ -1,8 +1,8 @@
-import { db } from '../db';
-import { auditLogs, userSubscriptions, users } from '@shared/schema';
-import type { InsertAuditLog } from '@shared/schema';
-import { eq, and, desc, sql, inArray } from 'drizzle-orm';
-import type { Request } from 'express';
+import { db } from "../db";
+import { auditLogs, userSubscriptions, users } from "@shared/schema";
+import type { InsertAuditLog } from "@shared/schema";
+import { eq, and, desc, sql, inArray } from "drizzle-orm";
+import type { Request } from "express";
 
 /**
  * Audit Log Service - Team tier exclusive feature
@@ -20,9 +20,9 @@ export class AuditLogService {
         .where(eq(userSubscriptions.id, teamSubscriptionId))
         .limit(1);
 
-      return subscription.length > 0 && subscription[0].tier === 'team';
+      return subscription.length > 0 && subscription[0].tier === "team";
     } catch (error) {
-      console.error('[AUDIT] Failed to check audit status:', error);
+      console.error("[AUDIT] Failed to check audit status:", error);
       return false;
     }
   }
@@ -34,7 +34,7 @@ export class AuditLogService {
   static async logAction(params: {
     userId: string;
     teamSubscriptionId: string;
-    action: 'create' | 'update' | 'delete' | 'share' | 'invite' | 'role_change';
+    action: "create" | "update" | "delete" | "share" | "invite" | "role_change";
     resourceType: string;
     resourceId?: string;
     resourceName?: string;
@@ -59,13 +59,13 @@ export class AuditLogService {
         changesBefore: params.changesBefore || null,
         changesAfter: params.changesAfter || null,
         ipAddress: params.req ? this.getClientIp(params.req) : null,
-        userAgent: params.req?.headers['user-agent'] || null,
+        userAgent: params.req?.headers["user-agent"] || null,
       };
 
       await db.insert(auditLogs).values(auditLog);
     } catch (error) {
       // Don't throw - audit logging failure shouldn't break the application
-      console.error('[AUDIT] Failed to log action:', error);
+      console.error("[AUDIT] Failed to log action:", error);
     }
   }
 
@@ -106,19 +106,26 @@ export class AuditLogService {
       const userIds = Array.from(
         new Set(
           logs
-            .map(log => log.userId)
-            .filter((id): id is string => typeof id === 'string' && id.length > 0),
+            .map((log) => log.userId)
+            .filter(
+              (id): id is string => typeof id === "string" && id.length > 0,
+            ),
         ),
       );
 
-      const usersById = new Map<string, { id: string; email: string | null; name: string | null }>();
+      const usersById = new Map<
+        string,
+        { id: string; email: string | null; name: string | null }
+      >();
 
       if (userIds.length > 0) {
         const userRecords = await db
           .select({
             id: users.id,
             email: users.email,
-            name: sql<string | null>`concat_ws(' ', ${users.firstName}, ${users.lastName})`.as('name'),
+            name: sql<
+              string | null
+            >`concat_ws(' ', ${users.firstName}, ${users.lastName})`.as("name"),
           })
           .from(users)
           .where(inArray(users.id, userIds as [string, ...string[]]));
@@ -128,9 +135,9 @@ export class AuditLogService {
         }
       }
 
-      const logsWithUsers = logs.map(log => ({
+      const logsWithUsers = logs.map((log) => ({
         ...log,
-        user: log.userId ? usersById.get(log.userId) ?? null : null,
+        user: log.userId ? (usersById.get(log.userId) ?? null) : null,
       }));
 
       // Get total count for pagination
@@ -146,7 +153,7 @@ export class AuditLogService {
         offset: params.offset || 0,
       };
     } catch (error) {
-      console.error('[AUDIT] Failed to get audit logs:', error);
+      console.error("[AUDIT] Failed to get audit logs:", error);
       throw error;
     }
   }
@@ -155,16 +162,18 @@ export class AuditLogService {
    * Get client IP address from request
    */
   private static getClientIp(req: Request): string {
-    const forwarded = req.headers['x-forwarded-for'];
-    
+    const forwarded = req.headers["x-forwarded-for"];
+
     if (forwarded) {
       const ips = Array.isArray(forwarded) ? forwarded[0] : forwarded;
-      return ips.split(',')[0].trim();
+      return ips.split(",")[0].trim();
     }
-    
-    return req.headers['x-real-ip'] as string || 
-           req.socket.remoteAddress || 
-           'unknown';
+
+    return (
+      (req.headers["x-real-ip"] as string) ||
+      req.socket.remoteAddress ||
+      "unknown"
+    );
   }
 
   /**
@@ -173,14 +182,20 @@ export class AuditLogService {
   static createSnapshot(data: any): any {
     // Remove sensitive fields before logging
     const snapshot = { ...data };
-    const sensitiveFields = ['password', 'passwordHash', 'apiKey', 'secret', 'token'];
-    
+    const sensitiveFields = [
+      "password",
+      "passwordHash",
+      "apiKey",
+      "secret",
+      "token",
+    ];
+
     for (const field of sensitiveFields) {
       if (snapshot[field]) {
-        snapshot[field] = '[REDACTED]';
+        snapshot[field] = "[REDACTED]";
       }
     }
-    
+
     return snapshot;
   }
 }

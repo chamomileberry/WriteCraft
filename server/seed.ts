@@ -2,8 +2,9 @@ import { storage } from "./storage";
 
 const sampleGuides = [
   {
-    title: 'Mastering Character Development',
-    description: 'Learn how to create compelling, three-dimensional characters that readers will love and remember',
+    title: "Mastering Character Development",
+    description:
+      "Learn how to create compelling, three-dimensional characters that readers will love and remember",
     content: `# Mastering Character Development
 
 Great characters are the heart of any story. They drive the plot, engage readers emotionally, and make your narrative memorable. Here's how to create compelling characters that feel real and relatable.
@@ -66,18 +67,20 @@ Each character should have a unique voice:
 4. **The Relationship Web:** Map out all their important relationships
 
 Remember, great characters take time to develop. Don't be afraid to revise and refine as you write your story.`,
-    excerpt: 'Great characters are the heart of any story. They drive the plot, engage readers emotionally, and make your narrative memorable...',
-    category: 'Character Writing',
+    excerpt:
+      "Great characters are the heart of any story. They drive the plot, engage readers emotionally, and make your narrative memorable...",
+    category: "Character Writing",
     readTime: 12,
-    difficulty: 'Intermediate',
+    difficulty: "Intermediate",
     rating: 5,
-    author: 'Sarah Mitchell',
-    tags: ['characters', 'development', 'psychology', 'writing craft'],
-    published: true
+    author: "Sarah Mitchell",
+    tags: ["characters", "development", "psychology", "writing craft"],
+    published: true,
   },
   {
-    title: 'Dialogue That Sings',
-    description: 'Techniques for writing natural, engaging dialogue that advances your story and reveals character',
+    title: "Dialogue That Sings",
+    description:
+      "Techniques for writing natural, engaging dialogue that advances your story and reveals character",
     content: `# Dialogue That Sings
 
 Good dialogue serves multiple purposes: it reveals character, advances plot, provides information naturally, and creates rhythm in your prose. Here's how to master the art of conversation on the page.
@@ -168,18 +171,20 @@ Use italics or clearly mark when characters are thinking vs. speaking.
 4. **Subtext practice:** Write a scene where characters say one thing but mean another
 
 Great dialogue takes practice, but it's one of the most powerful tools in a writer's arsenal. When done well, it brings characters to life and keeps readers turning pages.`,
-    excerpt: 'Good dialogue serves multiple purposes: it reveals character, advances plot, and provides information naturally...',
-    category: 'Writing Craft',
+    excerpt:
+      "Good dialogue serves multiple purposes: it reveals character, advances plot, and provides information naturally...",
+    category: "Writing Craft",
     readTime: 8,
-    difficulty: 'Beginner',
+    difficulty: "Beginner",
     rating: 5,
-    author: 'Marcus Rodriguez',
-    tags: ['dialogue', 'conversation', 'voice', 'character'],
-    published: true
+    author: "Marcus Rodriguez",
+    tags: ["dialogue", "conversation", "voice", "character"],
+    published: true,
   },
   {
-    title: 'World Building for Fantasy',
-    description: 'Create immersive fantasy worlds with consistent rules, rich history, and believable cultures',
+    title: "World Building for Fantasy",
+    description:
+      "Create immersive fantasy worlds with consistent rules, rich history, and believable cultures",
     content: `# World Building for Fantasy
 
 Creating a fantasy world is one of the most exciting aspects of the genre, but it can also be overwhelming. How do you build a world that feels real, lived-in, and internally consistent? This guide will walk you through the essential elements.
@@ -299,18 +304,20 @@ Don't info-dump everything at once. Reveal world details naturally through:
 4. **The Legend:** Invent a myth that explains something about your world
 
 Remember, world building should serve your story, not overshadow it. Create enough depth to make your world feel real, but don't let the details bog down your narrative.`,
-    excerpt: 'A well-crafted fantasy world feels real to readers. It has its own geography, history, culture, and rules...',
-    category: 'World Building',
+    excerpt:
+      "A well-crafted fantasy world feels real to readers. It has its own geography, history, culture, and rules...",
+    category: "World Building",
     readTime: 15,
-    difficulty: 'Advanced',
+    difficulty: "Advanced",
     rating: 5,
-    author: 'Elena Blackwood',
-    tags: ['fantasy', 'world-building', 'magic systems', 'cultures'],
-    published: true
+    author: "Elena Blackwood",
+    tags: ["fantasy", "world-building", "magic systems", "cultures"],
+    published: true,
   },
   {
-    title: 'Show Don\'t Tell Mastery',
-    description: 'Transform exposition into engaging scenes that immerse readers in your story world',
+    title: "Show Don't Tell Mastery",
+    description:
+      "Transform exposition into engaging scenes that immerse readers in your story world",
     content: `# Show Don't Tell Mastery
 
 "Show don't tell" is one of the most fundamental principles of good storytelling, yet it's often misunderstood. This guide will help you master the technique that separates amateur writing from professional prose.
@@ -462,18 +469,20 @@ The best writing uses both techniques strategically:
 - **Tell** to provide necessary information efficiently
 
 Remember, showing takes more words than telling, so use it wisely. Your goal is to create an immersive experience that lets readers feel like they're living the story alongside your characters.`,
-    excerpt: 'Instead of telling readers what happened, show them through action, dialogue, and sensory details...',
-    category: 'Writing Craft',
+    excerpt:
+      "Instead of telling readers what happened, show them through action, dialogue, and sensory details...",
+    category: "Writing Craft",
     readTime: 10,
-    difficulty: 'Intermediate',
+    difficulty: "Intermediate",
     rating: 5,
-    author: 'David Chen',
-    tags: ['show don\'t tell', 'exposition', 'immersion', 'craft'],
-    published: true
+    author: "David Chen",
+    tags: ["show don't tell", "exposition", "immersion", "craft"],
+    published: true,
   },
   {
-    title: 'Plot Pacing Fundamentals',
-    description: 'Control the rhythm of your story to keep readers engaged from first page to last',
+    title: "Plot Pacing Fundamentals",
+    description:
+      "Control the rhythm of your story to keep readers engaged from first page to last",
     content: `# Plot Pacing Fundamentals
 
 Pacing is the speed at which your story unfolds—the rhythm that keeps readers turning pages or causes them to set your book aside. Master pacing, and you master one of the most crucial elements of storytelling.
@@ -704,18 +713,20 @@ Reading aloud reveals:
 - Places where you naturally pause or rush
 
 Remember: Perfect pacing serves your story's emotional needs. Fast isn't always better—sometimes readers need time to process, feel, and connect. The key is intentional pacing that guides readers through the experience you want them to have.`,
-    excerpt: 'Pacing is the speed at which your story unfolds. Too fast and readers feel rushed; too slow and they lose interest...',
-    category: 'Story Structure',
+    excerpt:
+      "Pacing is the speed at which your story unfolds. Too fast and readers feel rushed; too slow and they lose interest...",
+    category: "Story Structure",
     readTime: 14,
-    difficulty: 'Intermediate',
+    difficulty: "Intermediate",
     rating: 4,
-    author: 'Rachel Green',
-    tags: ['pacing', 'plot', 'tension', 'structure'],
-    published: true
+    author: "Rachel Green",
+    tags: ["pacing", "plot", "tension", "structure"],
+    published: true,
   },
   {
-    title: 'Writing Authentic Romance',
-    description: 'Craft believable romantic relationships with emotional depth and genuine chemistry',
+    title: "Writing Authentic Romance",
+    description:
+      "Craft believable romantic relationships with emotional depth and genuine chemistry",
     content: `# Writing Authentic Romance
 
 Romance isn't just about the destination—it's about the journey. Authentic romantic relationships in fiction mirror the complexity, vulnerability, and growth that real relationships require. Here's how to create romance that resonates.
@@ -931,28 +942,29 @@ Romantic dialogue should:
 3. Let their personalities shine through their word choices and speaking patterns
 
 Remember: Authentic romance comes from authentic characters. Focus on creating people readers care about, then let their relationship develop naturally from their personalities, circumstances, and emotional needs.`,
-    excerpt: 'Romance isn\'t just about the destination—it\'s about the journey. Authentic relationships develop gradually...',
-    category: 'Genre Writing',
+    excerpt:
+      "Romance isn't just about the destination—it's about the journey. Authentic relationships develop gradually...",
+    category: "Genre Writing",
     readTime: 11,
-    difficulty: 'Beginner',
+    difficulty: "Beginner",
     rating: 4,
-    author: 'Amy Foster',
-    tags: ['romance', 'relationships', 'emotion', 'character development'],
-    published: true
-  }
+    author: "Amy Foster",
+    tags: ["romance", "relationships", "emotion", "character development"],
+    published: true,
+  },
 ];
 
 export async function seedDatabase() {
-  console.log('Seeding database with sample writing guides...');
-  
+  console.log("Seeding database with sample writing guides...");
+
   try {
     for (const guide of sampleGuides) {
       await storage.createGuide(guide);
       console.log(`Created guide: ${guide.title}`);
     }
-    console.log('Database seeding completed successfully!');
+    console.log("Database seeding completed successfully!");
   } catch (error) {
-    console.error('Error seeding database:', error);
+    console.error("Error seeding database:", error);
   }
 }
 

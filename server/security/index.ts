@@ -10,11 +10,11 @@ export {
   SecurityAuditLog,
   requireAdmin,
   enforceRowLevelSecurity,
-  initializeSecurityCleanup
-} from './middleware';
+  initializeSecurityCleanup,
+} from "./middleware";
 
-export { default as secureUserRoutes } from './userRoutes';
+export { default as secureUserRoutes } from "./userRoutes";
 
 // Re-export for backwards compatibility
-import { secureAuthentication } from './middleware';
+import { secureAuthentication } from "./middleware";
 export const isAuthenticated = secureAuthentication;

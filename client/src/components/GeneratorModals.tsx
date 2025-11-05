@@ -16,18 +16,18 @@ import PlantGenerator from "@/components/PlantGenerator";
 import DescriptionGenerator from "@/components/DescriptionGenerator";
 import WritingPrompts from "@/components/WritingPrompts";
 
-export type GeneratorType = 
-  | 'character-generator'
-  | 'plot-generator'
-  | 'setting-generator'
-  | 'creature-generator'
-  | 'name-generator'
-  | 'conflict-generator'
-  | 'theme-explorer'
-  | 'mood-palette'
-  | 'plant-generator'
-  | 'description-generator'
-  | 'writing-prompts'
+export type GeneratorType =
+  | "character-generator"
+  | "plot-generator"
+  | "setting-generator"
+  | "creature-generator"
+  | "name-generator"
+  | "conflict-generator"
+  | "theme-explorer"
+  | "mood-palette"
+  | "plant-generator"
+  | "description-generator"
+  | "writing-prompts"
   | null;
 
 interface GeneratorModalsProps {
@@ -36,43 +36,46 @@ interface GeneratorModalsProps {
 }
 
 const GENERATOR_TITLES: Record<Exclude<GeneratorType, null>, string> = {
-  'character-generator': 'Character Generator',
-  'plot-generator': 'Plot Generator',
-  'setting-generator': 'Setting Generator',
-  'creature-generator': 'Creature Generator',
-  'name-generator': 'Name Generator',
-  'conflict-generator': 'Conflict Generator',
-  'theme-explorer': 'Theme Explorer',
-  'mood-palette': 'Mood Palette',
-  'plant-generator': 'Plant Generator',
-  'description-generator': 'Description Generator',
-  'writing-prompts': 'Writing Prompts',
+  "character-generator": "Character Generator",
+  "plot-generator": "Plot Generator",
+  "setting-generator": "Setting Generator",
+  "creature-generator": "Creature Generator",
+  "name-generator": "Name Generator",
+  "conflict-generator": "Conflict Generator",
+  "theme-explorer": "Theme Explorer",
+  "mood-palette": "Mood Palette",
+  "plant-generator": "Plant Generator",
+  "description-generator": "Description Generator",
+  "writing-prompts": "Writing Prompts",
 };
 
-export function GeneratorModals({ activeGenerator, onClose }: GeneratorModalsProps) {
+export function GeneratorModals({
+  activeGenerator,
+  onClose,
+}: GeneratorModalsProps) {
   const renderGenerator = () => {
     switch (activeGenerator) {
-      case 'character-generator':
+      case "character-generator":
         return <CharacterGenerator />;
-      case 'plot-generator':
+      case "plot-generator":
         return <PlotGenerator />;
-      case 'setting-generator':
+      case "setting-generator":
         return <SettingGenerator />;
-      case 'creature-generator':
+      case "creature-generator":
         return <CreatureGenerator />;
-      case 'name-generator':
+      case "name-generator":
         return <NameGenerator />;
-      case 'conflict-generator':
+      case "conflict-generator":
         return <ConflictGenerator />;
-      case 'theme-explorer':
+      case "theme-explorer":
         return <ThemeExplorer />;
-      case 'mood-palette':
+      case "mood-palette":
         return <MoodPalette />;
-      case 'plant-generator':
+      case "plant-generator":
         return <PlantGenerator />;
-      case 'description-generator':
+      case "description-generator":
         return <DescriptionGenerator />;
-      case 'writing-prompts':
+      case "writing-prompts":
         return <WritingPrompts />;
       default:
         return null;
@@ -85,7 +88,9 @@ export function GeneratorModals({ activeGenerator, onClose }: GeneratorModalsPro
     <GeneratorDialog open={true} onOpenChange={(open) => !open && onClose()}>
       <GeneratorDialogContent className="max-w-6xl max-h-[90vh]">
         <GeneratorDialogHeader>
-          <GeneratorDialogTitle>{GENERATOR_TITLES[activeGenerator]}</GeneratorDialogTitle>
+          <GeneratorDialogTitle>
+            {GENERATOR_TITLES[activeGenerator]}
+          </GeneratorDialogTitle>
         </GeneratorDialogHeader>
         <div className="mt-4 overflow-y-auto max-h-[calc(90vh-8rem)]">
           {renderGenerator()}

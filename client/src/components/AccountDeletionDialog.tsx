@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,12 +6,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertTriangle, Download } from 'lucide-react';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, AlertTriangle, Download } from "lucide-react";
 
 interface AccountDeletionDialogProps {
   open: boolean;
@@ -28,22 +28,22 @@ export function AccountDeletionDialog({
   isPending,
   onExportData,
 }: AccountDeletionDialogProps) {
-  const [confirmText, setConfirmText] = useState('');
+  const [confirmText, setConfirmText] = useState("");
   const [showDataExportPrompt, setShowDataExportPrompt] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
 
-  const isConfirmed = confirmText === 'DELETE';
+  const isConfirmed = confirmText === "DELETE";
 
   const handleConfirm = async () => {
     if (!isConfirmed) return;
     await onConfirm();
     // Reset state
-    setConfirmText('');
+    setConfirmText("");
     setShowDataExportPrompt(true);
   };
 
   const handleCancel = () => {
-    setConfirmText('');
+    setConfirmText("");
     setShowDataExportPrompt(true);
     onOpenChange(false);
   };
@@ -60,7 +60,7 @@ export function AccountDeletionDialog({
       setShowDataExportPrompt(false);
     } catch (error) {
       // Error handling is done in the parent component via toast
-      console.error('Export failed:', error);
+      console.error("Export failed:", error);
     } finally {
       setIsExporting(false);
     }
@@ -68,14 +68,18 @@ export function AccountDeletionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]" data-testid="dialog-account-deletion">
+      <DialogContent
+        className="sm:max-w-[500px]"
+        data-testid="dialog-account-deletion"
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-destructive">
             <AlertTriangle className="h-5 w-5" />
             Delete Account Permanently
           </DialogTitle>
           <DialogDescription>
-            This action cannot be undone. This will permanently delete your account and all associated data.
+            This action cannot be undone. This will permanently delete your
+            account and all associated data.
           </DialogDescription>
         </DialogHeader>
 
@@ -85,7 +89,9 @@ export function AccountDeletionDialog({
             <Alert>
               <Download className="h-4 w-4" />
               <AlertDescription className="flex items-center justify-between gap-2">
-                <span className="flex-1">Would you like to export your data before deleting?</span>
+                <span className="flex-1">
+                  Would you like to export your data before deleting?
+                </span>
                 <div className="flex gap-2">
                   <Button
                     type="button"
@@ -141,7 +147,8 @@ export function AccountDeletionDialog({
           {/* Confirmation Input */}
           <div className="space-y-2">
             <Label htmlFor="confirm-delete">
-              Type <span className="font-mono font-bold">DELETE</span> to confirm
+              Type <span className="font-mono font-bold">DELETE</span> to
+              confirm
             </Label>
             <Input
               id="confirm-delete"
@@ -154,8 +161,8 @@ export function AccountDeletionDialog({
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Once deleted, your account cannot be recovered. If you have an active subscription, it will be canceled
-            immediately.
+            Once deleted, your account cannot be recovered. If you have an
+            active subscription, it will be canceled immediately.
           </p>
         </div>
 

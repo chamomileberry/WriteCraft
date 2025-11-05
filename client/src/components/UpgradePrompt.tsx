@@ -1,6 +1,15 @@
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Crown } from 'lucide-react';
-import { Link } from 'wouter';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Crown } from "lucide-react";
+import { Link } from "wouter";
 
 interface UpgradePromptProps {
   open: boolean;
@@ -13,13 +22,13 @@ interface UpgradePromptProps {
 export function UpgradePrompt({
   open,
   onOpenChange,
-  title = 'Upgrade Required',
+  title = "Upgrade Required",
   description,
   feature,
 }: UpgradePromptProps) {
   const defaultDescription = feature
     ? `You've reached the limit for ${feature} on your current plan. Upgrade to unlock unlimited access.`
-    : 'Upgrade to a paid plan to access this feature and unlock unlimited creative potential.';
+    : "Upgrade to a paid plan to access this feature and unlock unlimited creative potential.";
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>

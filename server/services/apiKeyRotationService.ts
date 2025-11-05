@@ -1,11 +1,15 @@
-import { db } from '../db';
-import { apiKeyRotations, apiKeyRotationAudit, securityAlerts } from '@shared/schema';
-import { eq, and, lte, gte } from 'drizzle-orm';
-import { sql } from 'drizzle-orm';
+import { db } from "../db";
+import {
+  apiKeyRotations,
+  apiKeyRotationAudit,
+  securityAlerts,
+} from "@shared/schema";
+import { eq, and, lte, gte } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 
 export interface ApiKeyRotationConfig {
   keyName: string;
-  keyType: 'external_api' | 'encryption' | 'signing' | 'database';
+  keyType: "external_api" | "encryption" | "signing" | "database";
   description: string;
   rotationIntervalDays?: number;
 }
@@ -13,7 +17,10 @@ export interface ApiKeyRotationConfig {
 /**
  * Registers an API key for rotation tracking
  */
-export async function registerApiKey(config: ApiKeyRotationConfig, userId?: string): Promise<void> {
+export async function registerApiKey(
+  config: ApiKeyRotationConfig,
+  userId?: string,
+): Promise<void> {
   const rotationIntervalDays = config.rotationIntervalDays || 90;
   const now = new Date();
   const nextRotationDue = new Date(now);
@@ -37,7 +44,7 @@ export async function registerApiKey(config: ApiKeyRotationConfig, userId?: stri
     rotationIntervalDays,
     lastRotatedAt: now,
     nextRotationDue,
-    rotationStatus: 'current',
+    rotationStatus: "current",
     rotationCount: 0,
   });
 
@@ -49,13 +56,15 @@ export async function registerApiKey(config: ApiKeyRotationConfig, userId?: stri
   if (keyRecord) {
     await db.insert(apiKeyRotationAudit).values({
       keyRotationId: keyRecord.id,
-      action: 'created',
+      action: "created",
       performedBy: userId || null,
       notes: `Registered ${config.keyName} for rotation tracking`,
     });
   }
 
-  console.log(`[API Key Rotation] Registered ${config.keyName} for rotation every ${rotationIntervalDays} days`);
+  console.log(
+    `[API Key Rotation] Registered ${config.keyName} for rotation every ${rotationIntervalDays} days`,
+  );
 }
 
 /**
@@ -71,34 +80,41 @@ export async function checkRotationStatus(): Promise<void> {
 
   for (const key of keys) {
     const daysUntilRotation = Math.ceil(
-      (key.nextRotationDue.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+      (key.nextRotationDue.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
     );
 
-    let newStatus: 'current' | 'due' | 'overdue' = 'current';
+    let newStatus: "current" | "due" | "overdue" = "current";
     let shouldNotify = false;
 
     if (daysUntilRotation <= 0) {
-      newStatus = 'overdue';
+      newStatus = "overdue";
       shouldNotify = true;
     } else if (daysUntilRotation <= 7) {
-      newStatus = 'due';
+      newStatus = "due";
       shouldNotify = true;
     }
 
     // Update status if changed
     if (key.rotationStatus !== newStatus) {
-      await db.update(apiKeyRotations)
-        .set({ 
+      await db
+        .update(apiKeyRotations)
+        .set({
           rotationStatus: newStatus,
           updatedAt: now,
         })
         .where(eq(apiKeyRotations.id, key.id));
 
-      console.log(`[API Key Rotation] ${key.keyName} status updated to ${newStatus}`);
+      console.log(
+        `[API Key Rotation] ${key.keyName} status updated to ${newStatus}`,
+      );
     }
 
     // Send notification if needed and not already sent recently
-    if (shouldNotify && (!key.notificationSent || shouldResendNotification(key.lastNotificationSentAt))) {
+    if (
+      shouldNotify &&
+      (!key.notificationSent ||
+        shouldResendNotification(key.lastNotificationSentAt))
+    ) {
       await sendRotationNotification(key);
     }
   }
@@ -109,37 +125,39 @@ export async function checkRotationStatus(): Promise<void> {
  */
 function shouldResendNotification(lastSentAt: Date | null): boolean {
   if (!lastSentAt) return true;
-  
+
   const daysSinceLastNotification = Math.ceil(
-    (Date.now() - lastSentAt.getTime()) / (1000 * 60 * 60 * 24)
+    (Date.now() - lastSentAt.getTime()) / (1000 * 60 * 60 * 24),
   );
-  
+
   return daysSinceLastNotification >= 7;
 }
 
 /**
  * Send rotation notification and create security alert
  */
-async function sendRotationNotification(key: typeof apiKeyRotations.$inferSelect): Promise<void> {
+async function sendRotationNotification(
+  key: typeof apiKeyRotations.$inferSelect,
+): Promise<void> {
   const now = new Date();
   const daysOverdue = Math.ceil(
-    (now.getTime() - key.nextRotationDue.getTime()) / (1000 * 60 * 60 * 24)
+    (now.getTime() - key.nextRotationDue.getTime()) / (1000 * 60 * 60 * 24),
   );
 
-  let severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'MEDIUM';
-  let alertType = 'KEY_ROTATION_DUE';
-  let message = '';
+  let severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" = "MEDIUM";
+  let alertType = "KEY_ROTATION_DUE";
+  let message = "";
 
   if (daysOverdue > 30) {
-    severity = 'CRITICAL';
-    alertType = 'KEY_ROTATION_OVERDUE';
+    severity = "CRITICAL";
+    alertType = "KEY_ROTATION_OVERDUE";
     message = `CRITICAL: ${key.keyName} is ${daysOverdue} days overdue for rotation`;
   } else if (daysOverdue > 0) {
-    severity = 'HIGH';
-    alertType = 'KEY_ROTATION_OVERDUE';
+    severity = "HIGH";
+    alertType = "KEY_ROTATION_OVERDUE";
     message = `${key.keyName} is ${daysOverdue} days overdue for rotation`;
   } else {
-    severity = 'MEDIUM';
+    severity = "MEDIUM";
     message = `${key.keyName} is due for rotation within 7 days`;
   }
 
@@ -159,7 +177,8 @@ async function sendRotationNotification(key: typeof apiKeyRotations.$inferSelect
   });
 
   // Update notification status
-  await db.update(apiKeyRotations)
+  await db
+    .update(apiKeyRotations)
     .set({
       notificationSent: true,
       lastNotificationSentAt: now,
@@ -170,21 +189,26 @@ async function sendRotationNotification(key: typeof apiKeyRotations.$inferSelect
   // Log the notification
   await db.insert(apiKeyRotationAudit).values({
     keyRotationId: key.id,
-    action: 'notification_sent',
+    action: "notification_sent",
     notes: message,
   });
 
-  console.log(`[API Key Rotation] Notification sent for ${key.keyName}: ${message}`);
+  console.log(
+    `[API Key Rotation] Notification sent for ${key.keyName}: ${message}`,
+  );
 }
 
 /**
  * Mark a key as rotated
  */
-export async function markKeyRotated(keyName: string, userId?: string): Promise<void> {
+export async function markKeyRotated(
+  keyName: string,
+  userId?: string,
+): Promise<void> {
   const key = await db.query.apiKeyRotations.findFirst({
     where: and(
       eq(apiKeyRotations.keyName, keyName),
-      eq(apiKeyRotations.isActive, true)
+      eq(apiKeyRotations.isActive, true),
     ),
   });
 
@@ -197,11 +221,12 @@ export async function markKeyRotated(keyName: string, userId?: string): Promise<
   nextRotationDue.setDate(nextRotationDue.getDate() + key.rotationIntervalDays);
 
   // Update rotation record
-  await db.update(apiKeyRotations)
+  await db
+    .update(apiKeyRotations)
     .set({
       lastRotatedAt: now,
       nextRotationDue,
-      rotationStatus: 'current',
+      rotationStatus: "current",
       rotationCount: (key.rotationCount || 0) + 1,
       lastRotatedBy: userId || null,
       notificationSent: false,
@@ -213,12 +238,14 @@ export async function markKeyRotated(keyName: string, userId?: string): Promise<
   // Log the rotation
   await db.insert(apiKeyRotationAudit).values({
     keyRotationId: key.id,
-    action: 'rotated',
+    action: "rotated",
     performedBy: userId || null,
     notes: `Key rotated. Next rotation due: ${nextRotationDue.toISOString()}`,
   });
 
-  console.log(`[API Key Rotation] ${keyName} marked as rotated. Next rotation: ${nextRotationDue.toISOString()}`);
+  console.log(
+    `[API Key Rotation] ${keyName} marked as rotated. Next rotation: ${nextRotationDue.toISOString()}`,
+  );
 }
 
 /**
@@ -260,21 +287,21 @@ export async function getKeyRotationHistory(keyName: string) {
 export async function initializeCommonKeys(): Promise<void> {
   const commonKeys: ApiKeyRotationConfig[] = [
     {
-      keyName: 'ANTHROPIC_API_KEY',
-      keyType: 'external_api',
-      description: 'Anthropic Claude API key for AI writing assistance',
+      keyName: "ANTHROPIC_API_KEY",
+      keyType: "external_api",
+      description: "Anthropic Claude API key for AI writing assistance",
       rotationIntervalDays: 90,
     },
     {
-      keyName: 'MFA_ENCRYPTION_KEY',
-      keyType: 'encryption',
-      description: 'Encryption key for MFA secrets storage',
+      keyName: "MFA_ENCRYPTION_KEY",
+      keyType: "encryption",
+      description: "Encryption key for MFA secrets storage",
       rotationIntervalDays: 90,
     },
     {
-      keyName: 'SESSION_SECRET',
-      keyType: 'signing',
-      description: 'Secret for session signing and encryption',
+      keyName: "SESSION_SECRET",
+      keyType: "signing",
+      description: "Secret for session signing and encryption",
       rotationIntervalDays: 90,
     },
   ];

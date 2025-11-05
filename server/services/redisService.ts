@@ -1,4 +1,4 @@
-import { createClient } from 'redis';
+import { createClient } from "redis";
 
 export type RedisClient = ReturnType<typeof createClient>;
 
@@ -13,7 +13,10 @@ export async function getRedisClient(): Promise<RedisClient> {
   }
 
   // Use Replit Redis URL if available, otherwise use default local connection
-  const redisUrl = process.env.REDIS_URL || process.env.REPLIT_DB_URL || 'redis://localhost:6379';
+  const redisUrl =
+    process.env.REDIS_URL ||
+    process.env.REPLIT_DB_URL ||
+    "redis://localhost:6379";
 
   redisClient = createClient({
     url: redisUrl,
@@ -21,8 +24,8 @@ export async function getRedisClient(): Promise<RedisClient> {
       connectTimeout: 10000,
       reconnectStrategy: (retries) => {
         if (retries > 10) {
-          console.error('[REDIS] Max reconnection attempts reached');
-          return new Error('Max reconnection attempts reached');
+          console.error("[REDIS] Max reconnection attempts reached");
+          return new Error("Max reconnection attempts reached");
         }
         const delay = Math.min(retries * 100, 3000);
         console.log(`[REDIS] Reconnecting in ${delay}ms (attempt ${retries})`);
@@ -31,20 +34,20 @@ export async function getRedisClient(): Promise<RedisClient> {
     },
   });
 
-  redisClient.on('error', (err) => {
-    console.error('[REDIS ERROR]', err);
+  redisClient.on("error", (err) => {
+    console.error("[REDIS ERROR]", err);
   });
 
-  redisClient.on('connect', () => {
-    console.log('[REDIS] Connected successfully');
+  redisClient.on("connect", () => {
+    console.log("[REDIS] Connected successfully");
   });
 
-  redisClient.on('ready', () => {
-    console.log('[REDIS] Client ready');
+  redisClient.on("ready", () => {
+    console.log("[REDIS] Client ready");
   });
 
-  redisClient.on('reconnecting', () => {
-    console.log('[REDIS] Reconnecting...');
+  redisClient.on("reconnecting", () => {
+    console.log("[REDIS] Reconnecting...");
   });
 
   await redisClient.connect();
@@ -59,7 +62,7 @@ export async function closeRedisClient(): Promise<void> {
   if (redisClient) {
     await redisClient.quit();
     redisClient = null;
-    console.log('[REDIS] Connection closed');
+    console.log("[REDIS] Connection closed");
   }
 }
 
@@ -72,7 +75,7 @@ export async function isRedisAvailable(): Promise<boolean> {
     await client.ping();
     return true;
   } catch (error) {
-    console.error('[REDIS] Health check failed:', error);
+    console.error("[REDIS] Health check failed:", error);
     return false;
   }
 }
@@ -86,7 +89,7 @@ export class InMemoryStore extends Map<string, any> {
 
   setEx(key: string, ttl: number, value: any): void {
     this.set(key, value);
-    
+
     // Clear existing timeout if any
     const existingTimeout = this.ttlMap.get(key);
     if (existingTimeout) {
@@ -116,8 +119,8 @@ export class InMemoryStore extends Map<string, any> {
   }
 
   async findKeys(pattern: string): Promise<string[]> {
-    const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
-    return Array.from(super.keys()).filter(key => regex.test(key));
+    const regex = new RegExp("^" + pattern.replace(/\*/g, ".*") + "$");
+    return Array.from(super.keys()).filter((key) => regex.test(key));
   }
 }
 

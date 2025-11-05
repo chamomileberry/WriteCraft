@@ -31,54 +31,55 @@ export async function getBannedPhrasesInstruction(): Promise<string> {
 
   for (const phrase of phrases) {
     switch (phrase.category) {
-      case 'forbidden_phrase':
+      case "forbidden_phrase":
         forbiddenPhrases.push(phrase.phrase);
         break;
-      case 'banned_transition':
+      case "banned_transition":
         bannedTransitions.push(phrase.phrase);
         break;
-      case 'word_replacement':
+      case "word_replacement":
         if (phrase.replacement) {
           wordReplacements.push({
             phrase: phrase.phrase,
-            replacement: phrase.replacement
+            replacement: phrase.replacement,
           });
         }
         break;
-      case 'robotic_pattern':
+      case "robotic_pattern":
         roboticPatterns.push(phrase.phrase);
         break;
     }
   }
 
   // Format the instruction
-  let instruction = '\n\nCRITICAL STYLE REQUIREMENTS - WRITE LIKE A HUMAN:\n\n';
+  let instruction = "\n\nCRITICAL STYLE REQUIREMENTS - WRITE LIKE A HUMAN:\n\n";
 
   // Forbidden phrases section
   if (forbiddenPhrases.length > 0) {
-    instruction += 'ABSOLUTELY FORBIDDEN PHRASES AND WORDS (NEVER use any of these):\n';
+    instruction +=
+      "ABSOLUTELY FORBIDDEN PHRASES AND WORDS (NEVER use any of these):\n";
     // Group forbidden phrases into chunks for readability
     const chunkSize = 10;
     for (let i = 0; i < forbiddenPhrases.length; i += chunkSize) {
       const chunk = forbiddenPhrases.slice(i, i + chunkSize);
-      instruction += '• ' + chunk.map(p => `"${p}"`).join(', ') + '\n';
+      instruction += "• " + chunk.map((p) => `"${p}"`).join(", ") + "\n";
     }
-    instruction += '\n';
+    instruction += "\n";
   }
 
   // Banned transitions section
   if (bannedTransitions.length > 0) {
-    instruction += 'BANNED TRANSITION WORDS (avoid overusing these):\n';
-    instruction += '• ' + bannedTransitions.join(', ') + '\n\n';
+    instruction += "BANNED TRANSITION WORDS (avoid overusing these):\n";
+    instruction += "• " + bannedTransitions.join(", ") + "\n\n";
   }
 
   // Word replacements section
   if (wordReplacements.length > 0) {
-    instruction += 'WORD REPLACEMENTS (use natural alternatives):\n';
+    instruction += "WORD REPLACEMENTS (use natural alternatives):\n";
     for (const { phrase, replacement } of wordReplacements) {
       instruction += `• Instead of "${phrase}" → use: ${replacement}\n`;
     }
-    instruction += '\n';
+    instruction += "\n";
   }
 
   // Human voice guidelines (static)
@@ -102,7 +103,7 @@ export async function getBannedPhrasesInstruction(): Promise<string> {
 
   // Robotic patterns section
   if (roboticPatterns.length > 0) {
-    instruction += 'AVOID THESE ROBOTIC PATTERNS:\n';
+    instruction += "AVOID THESE ROBOTIC PATTERNS:\n";
     for (const pattern of roboticPatterns) {
       instruction += `✗ ${pattern}\n`;
     }
@@ -123,7 +124,7 @@ export async function getBannedPhrasesInstruction(): Promise<string> {
   // Cache the result
   cache = {
     timestamp: Date.now(),
-    instruction
+    instruction,
   };
 
   return instruction;

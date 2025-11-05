@@ -1,8 +1,8 @@
-import { useState, useRef, useCallback } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
-import { queryClient } from '@/lib/queryClient';
-import type { Editor } from '@tiptap/react';
+import { useState, useRef, useCallback } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient } from "@/lib/queryClient";
+import type { Editor } from "@tiptap/react";
 
 export interface UseAutosaveOptions {
   /** The TipTap editor instance */
@@ -29,7 +29,7 @@ export interface UseAutosaveOptions {
 
 export interface UseAutosaveReturn {
   /** Current save status */
-  saveStatus: 'saved' | 'saving' | 'unsaved';
+  saveStatus: "saved" | "saving" | "unsaved";
   /** Timestamp of last successful save */
   lastSaveTime: Date | null;
   /** Whether a save operation is currently in progress */
@@ -54,11 +54,13 @@ export function useAutosave({
   onError,
   debounceMs = 2000,
   autoSaveCondition = () => true,
-  successMessage = 'Document saved successfully',
-  errorMessage = 'Failed to save document. Please try again.',
+  successMessage = "Document saved successfully",
+  errorMessage = "Failed to save document. Please try again.",
   invalidateQueries = [],
 }: UseAutosaveOptions): UseAutosaveReturn {
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
+  const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">(
+    "saved",
+  );
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   const [isManualSave, setIsManualSave] = useState(false);
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -68,43 +70,43 @@ export function useAutosave({
   const saveMutation = useMutation({
     mutationFn: mutationFunction,
     onSuccess: (data) => {
-      setSaveStatus('saved');
+      setSaveStatus("saved");
       setLastSaveTime(new Date());
-      
+
       // Invalidate specified queries
       if (invalidateQueries.length > 0) {
-        invalidateQueries.forEach(queryKey => {
+        invalidateQueries.forEach((queryKey) => {
           queryClient.invalidateQueries({ queryKey });
         });
       }
-      
+
       // Only show toast for manual saves, not autosaves
       if (isManualSave) {
         toast({
-          title: 'Saved',
+          title: "Saved",
           description: successMessage,
         });
         setIsManualSave(false);
       }
-      
+
       // Call custom success handler
       onSuccess?.(data);
     },
     onError: (error: any) => {
-      console.error('Error saving:', error);
-      setSaveStatus('unsaved');
-      
+      console.error("Error saving:", error);
+      setSaveStatus("unsaved");
+
       // Show error toast for both manual and auto saves since errors need user attention
       toast({
-        title: 'Save failed',
+        title: "Save failed",
         description: errorMessage,
-        variant: 'destructive',
+        variant: "destructive",
       });
-      
+
       if (isManualSave) {
         setIsManualSave(false);
       }
-      
+
       // Call custom error handler
       onError?.(error);
     },
@@ -113,60 +115,60 @@ export function useAutosave({
   // Manual save function
   const handleSave = useCallback(async () => {
     if (!editor) return;
-    
+
     setIsManualSave(true);
-    setSaveStatus('saving');
+    setSaveStatus("saving");
     const data = saveDataFunction();
-    
+
     // Check if saveDataFunction returned null (validation failed)
     if (data === null) {
-      setSaveStatus('unsaved');
+      setSaveStatus("unsaved");
       setIsManualSave(false);
       return;
     }
-    
+
     await saveMutation.mutateAsync(data);
   }, [editor, saveDataFunction, saveMutation]);
 
   // Auto save function
   const handleAutoSave = useCallback(async () => {
-    if (!editor || saveStatus === 'saving') return;
-    
+    if (!editor || saveStatus === "saving") return;
+
     // Check if autosave condition allows saving
     if (!autoSaveCondition()) {
-      setSaveStatus('unsaved');
+      setSaveStatus("unsaved");
       return;
     }
-    
+
     const data = saveDataFunction();
-    
+
     // Check if saveDataFunction returned null (validation failed)
     if (data === null) {
-      setSaveStatus('unsaved');
+      setSaveStatus("unsaved");
       return;
     }
-    
+
     // Don't set isManualSave for autosaves (keeps it false)
-    setSaveStatus('saving');
+    setSaveStatus("saving");
     await saveMutation.mutateAsync(data);
   }, [editor, saveDataFunction, saveMutation, saveStatus, autoSaveCondition]);
 
   // Trigger autosave with debouncing
   const triggerAutosave = useCallback(() => {
-    setSaveStatus('unsaved');
-    
+    setSaveStatus("unsaved");
+
     // Clear existing timeout
     if (autosaveTimeoutRef.current) {
       clearTimeout(autosaveTimeoutRef.current);
     }
-    
+
     // Set new timeout
     autosaveTimeoutRef.current = setTimeout(() => {
       if (autoSaveCondition()) {
         handleAutoSave();
       } else {
         // Reset status to unsaved if condition prevents save
-        setSaveStatus('unsaved');
+        setSaveStatus("unsaved");
       }
     }, debounceMs);
   }, [autoSaveCondition, handleAutoSave, debounceMs]);
@@ -178,8 +180,8 @@ export function useAutosave({
 
   // Format save time for display
   const formatSaveTime = useCallback((date: Date | null) => {
-    if (!date) return '';
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (!date) return "";
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }, []);
 
   return {

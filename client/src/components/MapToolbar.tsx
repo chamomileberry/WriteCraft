@@ -58,14 +58,14 @@ export default function MapToolbar({
   canUndo,
   canRedo,
 }: MapToolbarProps) {
-  const ToolButton = ({ 
-    tool, 
-    icon: Icon, 
-    label 
-  }: { 
-    tool: MapTool; 
-    icon: React.ElementType; 
-    label: string 
+  const ToolButton = ({
+    tool,
+    icon: Icon,
+    label,
+  }: {
+    tool: MapTool;
+    icon: React.ElementType;
+    label: string;
   }) => (
     <Button
       variant={selectedTool === tool ? "default" : "outline"}

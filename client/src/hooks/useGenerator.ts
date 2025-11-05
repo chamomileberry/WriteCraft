@@ -1,11 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useLocation } from 'wouter';
-import { useSubscription } from '@/hooks/useSubscription';
-import { logger } from '@/lib/logger';
-import { analytics, EVENTS } from '@/lib/posthog';
+import { useState, useRef, useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useLocation } from "wouter";
+import { useSubscription } from "@/hooks/useSubscription";
+import { logger } from "@/lib/logger";
+import { analytics, EVENTS } from "@/lib/posthog";
 
 export interface UseGeneratorOptions<TResult, TParams = any> {
   /** API endpoint for generation */
@@ -65,12 +65,12 @@ export function useGenerator<TResult, TParams = any>({
   itemTypeName,
   userId,
   notebookId,
-  saveEndpoint = '/api/saved-items',
+  saveEndpoint = "/api/saved-items",
   resolveResultId,
   validateBeforeGenerate,
   formatForClipboard,
   prepareSavePayload,
-  invalidateOnSave = [['/api/saved-items']],
+  invalidateOnSave = [["/api/saved-items"]],
   onGenerateSuccess,
   onGenerateError,
   buildNavigateRoute,
@@ -99,42 +99,44 @@ export function useGenerator<TResult, TParams = any>({
 
       try {
         const params = getGenerateParams();
-        const response = await apiRequest('POST', generateEndpoint, params, { signal });
+        const response = await apiRequest("POST", generateEndpoint, params, {
+          signal,
+        });
         return response.json() as Promise<TResult>;
       } catch (error) {
         // Don't throw AbortError to user
-        if (error instanceof Error && error.name === 'AbortError') {
+        if (error instanceof Error && error.name === "AbortError") {
           logger.debug(`${itemTypeName} generation was cancelled`);
-          throw new Error('Generation cancelled');
+          throw new Error("Generation cancelled");
         }
         throw error;
       }
     },
     onSuccess: (data) => {
       setResult(data);
-      
+
       // Track generation event in PostHog
       analytics.track(EVENTS.CONTENT_GENERATED, {
         content_type: itemTypeName,
         endpoint: generateEndpoint,
       });
-      
+
       onGenerateSuccess?.(data);
     },
     onError: (error) => {
       logger.error(`Error generating ${itemTypeName}:`, error);
-      
+
       // Track generation failure
       analytics.track(EVENTS.GENERATION_CANCELLED, {
         content_type: itemTypeName,
         endpoint: generateEndpoint,
-        error_message: error instanceof Error ? error.message : 'Unknown error',
+        error_message: error instanceof Error ? error.message : "Unknown error",
       });
-      
+
       toast({
-        title: 'Generation Failed',
+        title: "Generation Failed",
         description: `Failed to generate ${itemTypeName}. Please try again.`,
-        variant: 'destructive',
+        variant: "destructive",
       });
       onGenerateError?.(error);
     },
@@ -153,12 +155,14 @@ export function useGenerator<TResult, TParams = any>({
       const signal = saveAbortControllerRef.current.signal;
 
       if (!result) {
-        throw new Error('No result to save');
+        throw new Error("No result to save");
       }
 
       // Validate userId is provided for save operation
       if (!userId && !prepareSavePayload) {
-        throw new Error('User ID is required to save. Please ensure you are logged in.');
+        throw new Error(
+          "User ID is required to save. Please ensure you are logged in.",
+        );
       }
 
       // Validate result has ID if resolver provided or if result is an object with id
@@ -167,7 +171,7 @@ export function useGenerator<TResult, TParams = any>({
         : (result as any)?.id;
 
       if (!resultId && !prepareSavePayload) {
-        throw new Error('No ID found for result');
+        throw new Error("No ID found for result");
       }
 
       // Use custom prepare function or build default payload from context
@@ -182,32 +186,36 @@ export function useGenerator<TResult, TParams = any>({
           };
 
       try {
-        const response = await apiRequest('POST', saveEndpoint, payload, { signal });
+        const response = await apiRequest("POST", saveEndpoint, payload, {
+          signal,
+        });
         return response.json();
       } catch (error) {
         // Don't throw AbortError to user
-        if (error instanceof Error && error.name === 'AbortError') {
+        if (error instanceof Error && error.name === "AbortError") {
           logger.debug(`${itemTypeName} save was cancelled`);
-          throw new Error('Save cancelled');
+          throw new Error("Save cancelled");
         }
         throw error;
       }
     },
     onSuccess: (savedData) => {
       // Invalidate specified queries
-      invalidateOnSave.forEach(queryKey => {
+      invalidateOnSave.forEach((queryKey) => {
         queryClient.invalidateQueries({ queryKey });
       });
-      
+
       // Track save event in PostHog
       analytics.track(EVENTS.GENERATION_SAVED, {
         content_type: itemTypeName,
         notebook_id: notebookId,
       });
-      
+
       // Check if we should navigate after save
-      const navigateRoute = buildNavigateRoute ? buildNavigateRoute(result!, savedData) : null;
-      
+      const navigateRoute = buildNavigateRoute
+        ? buildNavigateRoute(result!, savedData)
+        : null;
+
       if (navigateRoute) {
         // Auto-navigate to the created item
         toast({
@@ -216,7 +224,7 @@ export function useGenerator<TResult, TParams = any>({
         });
         setLocation(navigateRoute);
       } else {
-        // Default: just show success message  
+        // Default: just show success message
         toast({
           title: `${capitalize(itemTypeName)} saved!`,
           description: `${capitalize(itemTypeName)} has been saved to your collection.`,
@@ -225,11 +233,14 @@ export function useGenerator<TResult, TParams = any>({
     },
     onError: (error) => {
       logger.error(`Error saving ${itemTypeName}:`, error);
-      const errorMessage = error instanceof Error ? error.message : `Failed to save ${itemTypeName}. Please try again.`;
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : `Failed to save ${itemTypeName}. Please try again.`;
       toast({
-        title: 'Save Failed',
+        title: "Save Failed",
         description: errorMessage,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
@@ -253,9 +264,9 @@ export function useGenerator<TResult, TParams = any>({
       const validationError = validateBeforeGenerate();
       if (validationError) {
         toast({
-          title: 'Validation Error',
+          title: "Validation Error",
           description: validationError,
-          variant: 'destructive',
+          variant: "destructive",
         });
         return;
       }
@@ -263,13 +274,13 @@ export function useGenerator<TResult, TParams = any>({
 
     // Check AI generation limit
     try {
-      const limitCheck = await checkLimit('ai_generations');
+      const limitCheck = await checkLimit("ai_generations");
       if (!limitCheck.allowed) {
         setShowUpgradePrompt(true);
         return;
       }
     } catch (error) {
-      logger.error('Error checking limit:', error);
+      logger.error("Error checking limit:", error);
       // Continue with generation even if limit check fails (server will enforce)
     }
 
@@ -288,7 +299,7 @@ export function useGenerator<TResult, TParams = any>({
     if (!result) return;
 
     let text: string;
-    
+
     if (formatForClipboard) {
       text = formatForClipboard(result);
     } else {
@@ -303,11 +314,11 @@ export function useGenerator<TResult, TParams = any>({
         description: `${capitalize(itemTypeName)} has been copied to your clipboard.`,
       });
     } catch (error) {
-      logger.error('Failed to copy to clipboard:', error);
+      logger.error("Failed to copy to clipboard:", error);
       toast({
-        title: 'Copy Failed',
-        description: 'Failed to copy to clipboard. Please try again.',
-        variant: 'destructive',
+        title: "Copy Failed",
+        description: "Failed to copy to clipboard. Please try again.",
+        variant: "destructive",
       });
     }
   };
@@ -316,9 +327,9 @@ export function useGenerator<TResult, TParams = any>({
   const saveToCollection = () => {
     if (!result) {
       toast({
-        title: 'Nothing to Save',
+        title: "Nothing to Save",
         description: `Please generate a ${itemTypeName} first.`,
-        variant: 'destructive',
+        variant: "destructive",
       });
       return;
     }

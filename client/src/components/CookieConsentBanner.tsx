@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Cookie, X, Settings } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Cookie, X, Settings } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,10 +9,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Link } from 'wouter';
+} from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Link } from "wouter";
 
 interface CookiePreferences {
   necessary: boolean;
@@ -20,8 +20,8 @@ interface CookiePreferences {
   functional: boolean;
 }
 
-const COOKIE_CONSENT_KEY = 'writecraft_cookie_consent';
-const COOKIE_PREFERENCES_KEY = 'writecraft_cookie_preferences';
+const COOKIE_CONSENT_KEY = "writecraft_cookie_consent";
+const COOKIE_PREFERENCES_KEY = "writecraft_cookie_preferences";
 
 export function CookieConsentBanner() {
   const [showBanner, setShowBanner] = useState(false);
@@ -45,14 +45,14 @@ export function CookieConsentBanner() {
         try {
           setPreferences(JSON.parse(savedPrefs));
         } catch (e) {
-          console.error('Failed to parse cookie preferences:', e);
+          console.error("Failed to parse cookie preferences:", e);
         }
       }
     }
   }, []);
 
   const savePreferences = (prefs: CookiePreferences) => {
-    localStorage.setItem(COOKIE_CONSENT_KEY, 'true');
+    localStorage.setItem(COOKIE_CONSENT_KEY, "true");
     localStorage.setItem(COOKIE_PREFERENCES_KEY, JSON.stringify(prefs));
     setPreferences(prefs);
     setShowBanner(false);
@@ -61,12 +61,12 @@ export function CookieConsentBanner() {
     // Apply preferences (e.g., disable analytics if opted out)
     if (!prefs.analytics) {
       // Disable PostHog if analytics is disabled
-      if (typeof window !== 'undefined' && window.posthog) {
+      if (typeof window !== "undefined" && window.posthog) {
         window.posthog.opt_out_capturing();
       }
     } else {
       // Re-enable PostHog if analytics is enabled
-      if (typeof window !== 'undefined' && window.posthog) {
+      if (typeof window !== "undefined" && window.posthog) {
         window.posthog.opt_in_capturing();
       }
     }
@@ -100,7 +100,7 @@ export function CookieConsentBanner() {
 
   return (
     <>
-      <div 
+      <div
         className="fixed bottom-0 left-0 right-0 z-[100] p-4 sm:p-6 pointer-events-none"
         data-testid="cookie-consent-banner"
       >
@@ -108,13 +108,18 @@ export function CookieConsentBanner() {
           <Card className="p-4 sm:p-6 shadow-lg border-2">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <Cookie className="h-6 w-6 flex-shrink-0 text-primary" />
-              
+
               <div className="flex-1 space-y-2">
                 <h3 className="font-semibold text-base">We use cookies</h3>
                 <p className="text-sm text-muted-foreground">
-                  We use cookies and similar technologies to enhance your experience, analyze usage, and provide essential functionality. 
-                  You can customize your preferences or accept all cookies.{' '}
-                  <Link href="/privacy" className="text-primary hover:underline">
+                  We use cookies and similar technologies to enhance your
+                  experience, analyze usage, and provide essential
+                  functionality. You can customize your preferences or accept
+                  all cookies.{" "}
+                  <Link
+                    href="/privacy"
+                    className="text-primary hover:underline"
+                  >
                     Learn more
                   </Link>
                 </p>
@@ -153,14 +158,18 @@ export function CookieConsentBanner() {
 
       {/* Cookie Settings Dialog */}
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
-        <DialogContent className="sm:max-w-[500px]" data-testid="dialog-cookie-settings">
+        <DialogContent
+          className="sm:max-w-[500px]"
+          data-testid="dialog-cookie-settings"
+        >
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Cookie className="h-5 w-5" />
               Cookie Preferences
             </DialogTitle>
             <DialogDescription>
-              Manage your cookie preferences. Some cookies are necessary for the site to function properly.
+              Manage your cookie preferences. Some cookies are necessary for the
+              site to function properly.
             </DialogDescription>
           </DialogHeader>
 
@@ -169,7 +178,10 @@ export function CookieConsentBanner() {
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="necessary" className="font-semibold text-base">
+                  <Label
+                    htmlFor="necessary"
+                    className="font-semibold text-base"
+                  >
                     Necessary Cookies
                   </Label>
                   <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
@@ -177,7 +189,9 @@ export function CookieConsentBanner() {
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Essential for the website to function. These cookies enable core functionality like security, authentication, and session management.
+                  Essential for the website to function. These cookies enable
+                  core functionality like security, authentication, and session
+                  management.
                 </p>
               </div>
               <Switch
@@ -195,7 +209,8 @@ export function CookieConsentBanner() {
                   Analytics Cookies
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  Help us understand how you use WriteCraft so we can improve the product. We use PostHog for privacy-focused analytics.
+                  Help us understand how you use WriteCraft so we can improve
+                  the product. We use PostHog for privacy-focused analytics.
                 </p>
               </div>
               <Switch
@@ -215,7 +230,8 @@ export function CookieConsentBanner() {
                   Functional Cookies
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  Remember your preferences and settings to provide a personalized experience (theme, language, UI customizations).
+                  Remember your preferences and settings to provide a
+                  personalized experience (theme, language, UI customizations).
                 </p>
               </div>
               <Switch
@@ -244,7 +260,10 @@ export function CookieConsentBanner() {
             >
               Reject Optional
             </Button>
-            <Button onClick={saveCustomPreferences} data-testid="button-save-preferences">
+            <Button
+              onClick={saveCustomPreferences}
+              data-testid="button-save-preferences"
+            >
               Save Preferences
             </Button>
           </DialogFooter>

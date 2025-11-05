@@ -14,6 +14,7 @@ The WriteCraft platform supports two types of image uploads with different visib
 **Authentication:** Not required (generates signed URL only)
 
 **Request:**
+
 ```http
 POST /api/upload/image
 Content-Type: application/json
@@ -26,6 +27,7 @@ Content-Type: application/json
 **Important:** While the upload endpoint doesn't require authentication to generate a signed URL, the finalize endpoint DOES require authentication. This prevents abuse while allowing flexible upload flows.
 
 **Response:**
+
 ```json
 {
   "uploadURL": "https://storage.googleapis.com/...",
@@ -39,6 +41,7 @@ Content-Type: application/json
 **Authentication:** Required (session-based authentication via cookies)
 
 **Request:**
+
 ```http
 POST /api/upload/finalize
 Content-Type: application/json
@@ -50,19 +53,21 @@ Cookie: connect.sid=<session-cookie>
 ```
 
 **Example:**
+
 ```javascript
 // After uploading file to signed URL
-const finalizeResponse = await fetch('/api/upload/finalize', {
-  method: 'POST',
-  credentials: 'include', // Include session cookies
+const finalizeResponse = await fetch("/api/upload/finalize", {
+  method: "POST",
+  credentials: "include", // Include session cookies
   headers: {
-    'Content-Type': 'application/json'
+    "Content-Type": "application/json",
   },
-  body: JSON.stringify({ objectPath })
+  body: JSON.stringify({ objectPath }),
 });
 ```
 
 **Response:**
+
 ```json
 {
   "objectPath": "/objects/avatars/{uuid}" or "/objects/uploads/{uuid}"
@@ -74,6 +79,7 @@ const finalizeResponse = await fetch('/api/upload/finalize', {
 ### Public Mode (`visibility: "public"`)
 
 **Use cases:**
+
 - Profile photos/avatars
 - Public user-generated content
 - Shared assets accessible to all users
@@ -89,6 +95,7 @@ const finalizeResponse = await fetch('/api/upload/finalize', {
 ### Private Mode (`visibility: "private"` or omitted)
 
 **Use cases:**
+
 - Manuscript images
 - Private worldbuilding content images
 - User-specific assets
@@ -128,15 +135,15 @@ import { ImageUpload } from '@/components/ui/image-upload';
 
 ### Component Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `visibility` | `'public' \| 'private'` | `'private'` | Controls upload destination and access |
-| `value` | `string` | - | Current image URL |
-| `onChange` | `(url: string) => void` | - | Callback when image changes |
-| `label` | `string` | `'Image'` | Label for the upload field |
-| `maxFileSize` | `number` | `5` | Max file size in MB |
-| `disabled` | `boolean` | `false` | Disable the upload |
-| `accept` | `string` | `'image/jpeg,image/png,image/gif,image/webp'` | Accepted file types |
+| Prop          | Type                    | Default                                       | Description                            |
+| ------------- | ----------------------- | --------------------------------------------- | -------------------------------------- |
+| `visibility`  | `'public' \| 'private'` | `'private'`                                   | Controls upload destination and access |
+| `value`       | `string`                | -                                             | Current image URL                      |
+| `onChange`    | `(url: string) => void` | -                                             | Callback when image changes            |
+| `label`       | `string`                | `'Image'`                                     | Label for the upload field             |
+| `maxFileSize` | `number`                | `5`                                           | Max file size in MB                    |
+| `disabled`    | `boolean`               | `false`                                       | Disable the upload                     |
+| `accept`      | `string`                | `'image/jpeg,image/png,image/gif,image/webp'` | Accepted file types                    |
 
 ## Backend Implementation
 
@@ -144,12 +151,12 @@ import { ImageUpload } from '@/components/ui/image-upload';
 
 ```typescript
 // Public upload URL generation
-await objectStorageService.getPublicObjectUploadURL()
+await objectStorageService.getPublicObjectUploadURL();
 // Returns: { uploadURL: string, objectId: string }
 // Path: {PUBLIC_PATH}/avatars/{uuid}
 
-// Private upload URL generation  
-await objectStorageService.getObjectEntityUploadURL()
+// Private upload URL generation
+await objectStorageService.getObjectEntityUploadURL();
 // Returns: { uploadURL: string, objectId: string }
 // Path: {PRIVATE_DIR}/uploads/{uuid}
 ```
@@ -174,14 +181,15 @@ GET /objects/uploads/xyz-789-ghi
 
 ## Environment Variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `PUBLIC_OBJECT_SEARCH_PATHS` | Comma-separated public storage paths | `/bucket-name/public` |
-| `PRIVATE_OBJECT_DIR` | Private storage directory | `/bucket-name/.private` |
+| Variable                     | Description                          | Example                 |
+| ---------------------------- | ------------------------------------ | ----------------------- |
+| `PUBLIC_OBJECT_SEARCH_PATHS` | Comma-separated public storage paths | `/bucket-name/public`   |
+| `PRIVATE_OBJECT_DIR`         | Private storage directory            | `/bucket-name/.private` |
 
 ## Security Considerations
 
 ### Public Uploads
+
 - **Upload URL generation:** No authentication required (generates signed URL only)
 - **Finalize endpoint:** Requires authentication to prevent spam and associate uploads with users
 - **File access:** Stored in public bucket with public read access
@@ -189,8 +197,9 @@ GET /objects/uploads/xyz-789-ghi
 - **Use cases:** User-facing content like avatars that need to be accessible without authentication
 
 ### Private Uploads
+
 - **Upload URL generation:** No authentication required (generates signed URL only)
-- **Finalize endpoint:** Requires authentication and sets ACL policy with owner metadata  
+- **Finalize endpoint:** Requires authentication and sets ACL policy with owner metadata
 - **File access:** Requires authentication and ownership validation
 - **ACL policy:** Set with owner userId and visibility metadata
 - **Use cases:** Sensitive or user-specific content that should not be publicly accessible
@@ -259,6 +268,7 @@ To migrate an existing upload to public visibility:
 **Cause:** Object path doesn't match storage location
 
 **Solution:** Verify object path format matches visibility mode:
+
 - Public: `/objects/avatars/{uuid}`
 - Private: `/objects/uploads/{uuid}`
 

@@ -1,18 +1,20 @@
-import { useLocation } from 'wouter';
-import GuideEditor from '@/components/GuideEditor';
-import Header from '@/components/Header';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { useLocation } from "wouter";
+import GuideEditor from "@/components/GuideEditor";
+import Header from "@/components/Header";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 interface GuideEditPageWithSidebarProps {
   params: { id: string };
 }
 
-export default function GuideEditPageWithSidebar({ params }: GuideEditPageWithSidebarProps) {
+export default function GuideEditPageWithSidebar({
+  params,
+}: GuideEditPageWithSidebarProps) {
   const [, setLocation] = useLocation();
 
   const handleBack = () => {
-    setLocation('/guides');
+    setLocation("/guides");
   };
 
   const handleSearch = (query: string) => {
@@ -21,25 +23,25 @@ export default function GuideEditPageWithSidebar({ params }: GuideEditPageWithSi
 
   const handleNavigate = (view: string) => {
     switch (view) {
-      case 'notebook':
-        setLocation('/notebook');
+      case "notebook":
+        setLocation("/notebook");
         break;
-      case 'manuscripts':
-        setLocation('/manuscripts');
+      case "manuscripts":
+        setLocation("/manuscripts");
         break;
       default:
-        setLocation('/');
+        setLocation("/");
     }
   };
 
   const handleCreateNew = () => {
-    setLocation('/?create=true');
+    setLocation("/?create=true");
   };
 
   return (
     <div className="min-h-screen bg-background">
       {/* Main Navigation Header */}
-      <Header 
+      <Header
         onSearch={handleSearch}
         onNavigate={handleNavigate}
         onCreateNew={handleCreateNew}
@@ -51,8 +53,8 @@ export default function GuideEditPageWithSidebar({ params }: GuideEditPageWithSi
           {/* Document-specific header with back button */}
           <header className="flex items-center justify-between p-3 sm:p-4 border-b bg-background">
             <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
                 onClick={handleBack}
                 data-testid="button-back-to-guides"
@@ -67,10 +69,7 @@ export default function GuideEditPageWithSidebar({ params }: GuideEditPageWithSi
 
           {/* Editor Content */}
           <main className="flex-1 overflow-y-auto">
-            <GuideEditor 
-              guideId={params.id}
-              onBack={handleBack}
-            />
+            <GuideEditor guideId={params.id} onBack={handleBack} />
           </main>
         </div>
       </div>

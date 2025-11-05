@@ -43,18 +43,20 @@ export function getTestApp() {
   return testApp;
 }
 
-export async function createTestUser(overrides?: Partial<TestUser>): Promise<TestUser> {
-  const randomId = nanoid().toLowerCase().replace(/_/g, '-'); // Ensure lowercase and replace underscores
+export async function createTestUser(
+  overrides?: Partial<TestUser>,
+): Promise<TestUser> {
+  const randomId = nanoid().toLowerCase().replace(/_/g, "-"); // Ensure lowercase and replace underscores
   const userId = `test-user-${randomId}`;
   const email = overrides?.email || `test-${randomId}@example.com`;
-  
+
   const user = await storage.createUser({
     id: userId,
     email,
     firstName: overrides?.firstName || "Test",
     lastName: overrides?.lastName || "User",
   });
-  
+
   return {
     id: user.id,
     email: user.email!,
@@ -63,13 +65,16 @@ export async function createTestUser(overrides?: Partial<TestUser>): Promise<Tes
   };
 }
 
-export async function createTestNotebook(userId: string, overrides?: Partial<TestNotebook>): Promise<TestNotebook> {
+export async function createTestNotebook(
+  userId: string,
+  overrides?: Partial<TestNotebook>,
+): Promise<TestNotebook> {
   const notebook = await storage.createNotebook({
     name: overrides?.name || "Test Notebook",
     description: "Test notebook for automated tests",
     userId,
   });
-  
+
   return {
     id: notebook.id,
     name: notebook.name,
@@ -80,7 +85,7 @@ export async function createTestNotebook(userId: string, overrides?: Partial<Tes
 export async function createTestCharacter(
   userId: string,
   notebookId: string,
-  overrides?: Partial<TestCharacter>
+  overrides?: Partial<TestCharacter>,
 ): Promise<TestCharacter> {
   const character = await storage.createCharacter({
     givenName: overrides?.givenName || "Test Character",
@@ -89,7 +94,7 @@ export async function createTestCharacter(
     userId,
     notebookId,
   });
-  
+
   return {
     id: character.id,
     givenName: character.givenName!,
@@ -106,7 +111,7 @@ export async function createTestLocation(userId: string, notebookId: string) {
     userId,
     notebookId,
   });
-  
+
   return location;
 }
 
@@ -138,7 +143,7 @@ export async function cleanupTestData() {
   // 1. Track created test resources (users, notebooks, characters, etc.)
   // 2. Delete them in the correct order (respecting foreign key constraints)
   // 3. Or use database transactions and rollback
-  // 
+  //
   // For this MVP, we're documenting the pattern but not implementing full cleanup
   // as it would require extending the storage layer with batch delete operations
 }

@@ -3,18 +3,34 @@ import { bannedPhrases } from "@shared/schema";
 
 const bannedPhrasesData = [
   // Forbidden Phrases
-  { category: "forbidden", phrase: "provide/gain/offer valuable insights", isActive: true },
+  {
+    category: "forbidden",
+    phrase: "provide/gain/offer valuable insights",
+    isActive: true,
+  },
   { category: "forbidden", phrase: "indelible mark", isActive: true },
   { category: "forbidden", phrase: "unwavering commitment", isActive: true },
   { category: "forbidden", phrase: "stark reminder", isActive: true },
   { category: "forbidden", phrase: "sheds/shed light on", isActive: true },
   { category: "forbidden", phrase: "nuanced understanding", isActive: true },
-  { category: "forbidden", phrase: "multifaceted nature/approach", isActive: true },
+  {
+    category: "forbidden",
+    phrase: "multifaceted nature/approach",
+    isActive: true,
+  },
   { category: "forbidden", phrase: "complex interplay", isActive: true },
   { category: "forbidden", phrase: "intricate relationship", isActive: true },
-  { category: "forbidden", phrase: "potential to revolutionize", isActive: true },
+  {
+    category: "forbidden",
+    phrase: "potential to revolutionize",
+    isActive: true,
+  },
   { category: "forbidden", phrase: "transformative power", isActive: true },
-  { category: "forbidden", phrase: "significant milestone/stride/turning point", isActive: true },
+  {
+    category: "forbidden",
+    phrase: "significant milestone/stride/turning point",
+    isActive: true,
+  },
   { category: "forbidden", phrase: "unique blend/perspective", isActive: true },
   { category: "forbidden", phrase: "beacon of hope", isActive: true },
   { category: "forbidden", phrase: "pave the way", isActive: true },
@@ -24,7 +40,11 @@ const bannedPhrasesData = [
   { category: "forbidden", phrase: "delve into", isActive: true },
   { category: "forbidden", phrase: "to put it simply", isActive: true },
   { category: "forbidden", phrase: "key takeaway", isActive: true },
-  { category: "forbidden", phrase: "from a broader perspective", isActive: true },
+  {
+    category: "forbidden",
+    phrase: "from a broader perspective",
+    isActive: true,
+  },
   { category: "forbidden", phrase: "generally speaking", isActive: true },
   { category: "forbidden", phrase: "arguably", isActive: true },
   { category: "forbidden", phrase: "to some extent", isActive: true },
@@ -32,10 +52,22 @@ const bannedPhrasesData = [
   { category: "forbidden", phrase: "rich tapestry", isActive: true },
   { category: "forbidden", phrase: "vibrant tapestry", isActive: true },
   { category: "forbidden", phrase: "opens new avenues", isActive: true },
-  { category: "forbidden", phrase: "adds a layer of complexity", isActive: true },
+  {
+    category: "forbidden",
+    phrase: "adds a layer of complexity",
+    isActive: true,
+  },
   { category: "forbidden", phrase: "fostering a sense", isActive: true },
-  { category: "forbidden", phrase: "plays a crucial/pivotal role", isActive: true },
-  { category: "forbidden", phrase: "garnered significant attention", isActive: true },
+  {
+    category: "forbidden",
+    phrase: "plays a crucial/pivotal role",
+    isActive: true,
+  },
+  {
+    category: "forbidden",
+    phrase: "garnered significant attention",
+    isActive: true,
+  },
   { category: "forbidden", phrase: "continues to inspire", isActive: true },
   { category: "forbidden", phrase: "seamless/seamlessly", isActive: true },
   { category: "forbidden", phrase: "scalable solution", isActive: true },
@@ -48,7 +80,11 @@ const bannedPhrasesData = [
   { category: "forbidden", phrase: "leverage", isActive: true },
   { category: "forbidden", phrase: "utilize", isActive: true },
   { category: "forbidden", phrase: "optimize", isActive: true },
-  { category: "forbidden", phrase: "navigate/navigating the landscape/complexities", isActive: true },
+  {
+    category: "forbidden",
+    phrase: "navigate/navigating the landscape/complexities",
+    isActive: true,
+  },
   { category: "forbidden", phrase: "showcasing", isActive: true },
   { category: "forbidden", phrase: "meticulous", isActive: true },
   { category: "forbidden", phrase: "intriguing", isActive: true },
@@ -62,7 +98,11 @@ const bannedPhrasesData = [
   { category: "forbidden", phrase: "take a dive into", isActive: true },
   { category: "forbidden", phrase: "dive into", isActive: true },
   { category: "forbidden", phrase: "deep dive into", isActive: true },
-  { category: "forbidden", phrase: "embark on a journey/voyage", isActive: true },
+  {
+    category: "forbidden",
+    phrase: "embark on a journey/voyage",
+    isActive: true,
+  },
   { category: "forbidden", phrase: "explore the world of", isActive: true },
   { category: "forbidden", phrase: "analyze", isActive: true },
   { category: "forbidden", phrase: "elevate", isActive: true },
@@ -71,13 +111,25 @@ const bannedPhrasesData = [
   { category: "forbidden", phrase: "harness", isActive: true },
   { category: "forbidden", phrase: "at the end of the day", isActive: true },
   { category: "forbidden", phrase: "it's worth noting that", isActive: true },
-  { category: "forbidden", phrase: "it's important to note/consider/remember", isActive: true },
+  {
+    category: "forbidden",
+    phrase: "it's important to note/consider/remember",
+    isActive: true,
+  },
   { category: "forbidden", phrase: "ensure", isActive: true },
   { category: "forbidden", phrase: "it's essential to", isActive: true },
-  { category: "forbidden", phrase: "there are a few considerations", isActive: true },
+  {
+    category: "forbidden",
+    phrase: "there are a few considerations",
+    isActive: true,
+  },
   { category: "forbidden", phrase: "cannot be overstated", isActive: true },
   { category: "forbidden", phrase: "ever-evolving", isActive: true },
-  { category: "forbidden", phrase: "rapidly expanding/evolving", isActive: true },
+  {
+    category: "forbidden",
+    phrase: "rapidly expanding/evolving",
+    isActive: true,
+  },
   { category: "forbidden", phrase: "tailored", isActive: true },
   { category: "forbidden", phrase: "underpins", isActive: true },
   { category: "forbidden", phrase: "bustling", isActive: true },
@@ -87,10 +139,18 @@ const bannedPhrasesData = [
   { category: "forbidden", phrase: "designed to enhance", isActive: true },
   { category: "forbidden", phrase: "daunting", isActive: true },
   { category: "forbidden", phrase: "the world of", isActive: true },
-  { category: "forbidden", phrase: "in today's digital age/world", isActive: true },
+  {
+    category: "forbidden",
+    phrase: "in today's digital age/world",
+    isActive: true,
+  },
   { category: "forbidden", phrase: "when it comes to", isActive: true },
   { category: "forbidden", phrase: "in the realm of", isActive: true },
-  { category: "forbidden", phrase: "unlock/unveil the secrets", isActive: true },
+  {
+    category: "forbidden",
+    phrase: "unlock/unveil the secrets",
+    isActive: true,
+  },
   { category: "forbidden", phrase: "in the landscape of", isActive: true },
   { category: "forbidden", phrase: "in the dynamic world of", isActive: true },
   { category: "forbidden", phrase: "reverberate", isActive: true },
@@ -153,7 +213,11 @@ const bannedPhrasesData = [
   { category: "forbidden", phrase: "fundamentally", isActive: true },
   { category: "forbidden", phrase: "essentially", isActive: true },
   { category: "forbidden", phrase: "accordingly", isActive: true },
-  { category: "forbidden", phrase: "consequently (when overused)", isActive: true },
+  {
+    category: "forbidden",
+    phrase: "consequently (when overused)",
+    isActive: true,
+  },
   { category: "forbidden", phrase: "hence", isActive: true },
   { category: "forbidden", phrase: "thereby", isActive: true },
   { category: "forbidden", phrase: "thereof", isActive: true },
@@ -177,7 +241,11 @@ const bannedPhrasesData = [
   { category: "forbidden", phrase: "amplify", isActive: true },
   { category: "forbidden", phrase: "augment", isActive: true },
   { category: "forbidden", phrase: "enrich/enriches", isActive: true },
-  { category: "forbidden", phrase: "illuminate (figuratively)", isActive: true },
+  {
+    category: "forbidden",
+    phrase: "illuminate (figuratively)",
+    isActive: true,
+  },
   { category: "forbidden", phrase: "digital transformation", isActive: true },
   { category: "forbidden", phrase: "cloud-based", isActive: true },
   { category: "forbidden", phrase: "AI-powered", isActive: true },
@@ -221,7 +289,11 @@ const bannedPhrasesData = [
   { category: "forbidden", phrase: "actionable", isActive: true },
   { category: "forbidden", phrase: "impactful", isActive: true },
   { category: "forbidden", phrase: "certainly here are/is", isActive: true },
-  { category: "forbidden", phrase: "based on the information provided", isActive: true },
+  {
+    category: "forbidden",
+    phrase: "based on the information provided",
+    isActive: true,
+  },
   { category: "forbidden", phrase: "it is worth noting", isActive: true },
   { category: "forbidden", phrase: "it is important to note", isActive: true },
   { category: "forbidden", phrase: "simply put", isActive: true },
@@ -280,11 +352,11 @@ const bannedPhrasesData = [
 
 async function seedBannedPhrases() {
   console.log("Seeding banned phrases...");
-  
+
   try {
     // Check if phrases already exist
     const existing = await db.select().from(bannedPhrases).limit(1);
-    
+
     if (existing.length > 0) {
       console.log("Banned phrases already exist. Skipping seed.");
       return;
@@ -292,8 +364,10 @@ async function seedBannedPhrases() {
 
     // Insert all phrases
     await db.insert(bannedPhrases).values(bannedPhrasesData);
-    
-    console.log(`Successfully seeded ${bannedPhrasesData.length} banned phrases.`);
+
+    console.log(
+      `Successfully seeded ${bannedPhrasesData.length} banned phrases.`,
+    );
   } catch (error) {
     console.error("Error seeding banned phrases:", error);
     throw error;

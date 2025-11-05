@@ -1,8 +1,8 @@
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest } from "@/lib/queryClient";
 
 /**
  * Centralized API functions for WriteCraft
- * 
+ *
  * This file provides a clean, organized interface for all API calls throughout the application.
  * Benefits:
  * - Single source of truth for API endpoints
@@ -12,7 +12,7 @@ import { apiRequest } from '@/lib/queryClient';
  */
 
 // Re-export apiRequest for components that need direct access
-export { apiRequest } from '@/lib/queryClient';
+export { apiRequest } from "@/lib/queryClient";
 
 // ============================================================================
 // AUTH
@@ -20,22 +20,25 @@ export { apiRequest } from '@/lib/queryClient';
 
 export const authApi = {
   getUser: async () => {
-    const res = await fetch('/api/auth/user', { credentials: 'include' });
+    const res = await fetch("/api/auth/user", { credentials: "include" });
     if (!res.ok) return null;
     return res.json();
   },
 
   login: () => {
-    window.location.href = '/api/login';
+    window.location.href = "/api/login";
   },
 
   logout: async () => {
-    const res = await apiRequest('POST', '/api/logout',);
+    const res = await apiRequest("POST", "/api/logout");
     return res.json();
   },
 
-  updateProfile: async (updates: { displayName?: string; avatarUrl?: string }) => {
-    const res = await apiRequest('PUT', '/api/auth/user', updates);
+  updateProfile: async (updates: {
+    displayName?: string;
+    avatarUrl?: string;
+  }) => {
+    const res = await apiRequest("PUT", "/api/auth/user", updates);
     return res.json();
   },
 };
@@ -46,29 +49,36 @@ export const authApi = {
 
 export const notebooksApi = {
   list: async () => {
-    const res = await fetch('/api/notebooks', { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch notebooks');
+    const res = await fetch("/api/notebooks", { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch notebooks");
     return res.json();
   },
 
-  create: async (data: { name: string; description?: string; imageUrl?: string }) => {
-    const res = await apiRequest('POST', '/api/notebooks', data);
+  create: async (data: {
+    name: string;
+    description?: string;
+    imageUrl?: string;
+  }) => {
+    const res = await apiRequest("POST", "/api/notebooks", data);
     return res.json();
   },
 
   get: async (id: string) => {
-    const res = await fetch(`/api/notebooks/${id}`, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch notebook');
+    const res = await fetch(`/api/notebooks/${id}`, { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch notebook");
     return res.json();
   },
 
-  update: async (id: string, updates: { name?: string; description?: string; imageUrl?: string }) => {
-    const res = await apiRequest('PUT', `/api/notebooks/${id}`, updates);
+  update: async (
+    id: string,
+    updates: { name?: string; description?: string; imageUrl?: string },
+  ) => {
+    const res = await apiRequest("PUT", `/api/notebooks/${id}`, updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest('DELETE', `/api/notebooks/${id}`);
+    const res = await apiRequest("DELETE", `/api/notebooks/${id}`);
     return res.json();
   },
 };
@@ -79,37 +89,39 @@ export const notebooksApi = {
 
 export const charactersApi = {
   list: async (notebookId: string) => {
-    const res = await fetch(`/api/characters?notebookId=${notebookId}`, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch characters');
+    const res = await fetch(`/api/characters?notebookId=${notebookId}`, {
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to fetch characters");
     return res.json();
   },
 
   get: async (id: string, notebookId?: string) => {
-    const url = notebookId 
+    const url = notebookId
       ? `/api/characters/${id}?notebookId=${notebookId}`
       : `/api/characters/${id}`;
-    const res = await fetch(url, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch character');
+    const res = await fetch(url, { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch character");
     return res.json();
   },
 
   create: async (data: any) => {
-    const res = await apiRequest('POST', '/api/characters', data);
+    const res = await apiRequest("POST", "/api/characters", data);
     return res.json();
   },
 
   update: async (id: string, updates: any) => {
-    const res = await apiRequest('PUT', `/api/characters/${id}`, updates);
+    const res = await apiRequest("PUT", `/api/characters/${id}`, updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest('DELETE', `/api/characters/${id}`);
+    const res = await apiRequest("DELETE", `/api/characters/${id}`);
     return res.json();
   },
 
   generate: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-character', params);
+    const res = await apiRequest("POST", "/api/ai/generate-character", params);
     return res.json();
   },
 
@@ -117,37 +129,50 @@ export const charactersApi = {
     const url = notebookId
       ? `/api/characters/autocomplete/${field}?q=${encodeURIComponent(query)}&notebookId=${notebookId}`
       : `/api/characters/autocomplete/${field}?q=${encodeURIComponent(query)}`;
-    const res = await fetch(url, { credentials: 'include' });
+    const res = await fetch(url, { credentials: "include" });
     if (!res.ok) return [];
     return res.json();
   },
 
   consolidate: {
     getIncomplete: async (notebookId: string) => {
-      const res = await fetch(`/api/characters/consolidate/incomplete?notebookId=${notebookId}`, { credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to fetch incomplete characters');
+      const res = await fetch(
+        `/api/characters/consolidate/incomplete?notebookId=${notebookId}`,
+        { credentials: "include" },
+      );
+      if (!res.ok) throw new Error("Failed to fetch incomplete characters");
       return res.json();
     },
 
     getDuplicates: async (notebookId: string, threshold: number = 85) => {
-      const res = await fetch(`/api/characters/consolidate/duplicates?notebookId=${notebookId}&threshold=${threshold}`, { credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to fetch duplicate characters');
+      const res = await fetch(
+        `/api/characters/consolidate/duplicates?notebookId=${notebookId}&threshold=${threshold}`,
+        { credentials: "include" },
+      );
+      if (!res.ok) throw new Error("Failed to fetch duplicate characters");
       return res.json();
     },
 
     getStats: async (notebookId: string) => {
-      const res = await fetch(`/api/characters/consolidate/stats?notebookId=${notebookId}`, { credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to fetch stats');
+      const res = await fetch(
+        `/api/characters/consolidate/stats?notebookId=${notebookId}`,
+        { credentials: "include" },
+      );
+      if (!res.ok) throw new Error("Failed to fetch stats");
       return res.json();
     },
 
     mergeCharacters: async (sourceId: string, targetId: string) => {
-      const res = await apiRequest('POST', '/api/characters/consolidate/merge', { sourceId, targetId });
+      const res = await apiRequest(
+        "POST",
+        "/api/characters/consolidate/merge",
+        { sourceId, targetId },
+      );
       return res.json();
     },
 
     deleteCharacter: async (id: string) => {
-      const res = await apiRequest('DELETE', `/api/characters/${id}`);
+      const res = await apiRequest("DELETE", `/api/characters/${id}`);
       return res.json();
     },
   },
@@ -159,68 +184,113 @@ export const charactersApi = {
 
 export const projectsApi = {
   list: async () => {
-    const res = await fetch('/api/projects', { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch projects');
+    const res = await fetch("/api/projects", { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch projects");
     return res.json();
   },
 
   search: async (query: string) => {
-    const res = await fetch(`/api/projects/search?q=${encodeURIComponent(query)}`, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to search projects');
+    const res = await fetch(
+      `/api/projects/search?q=${encodeURIComponent(query)}`,
+      { credentials: "include" },
+    );
+    if (!res.ok) throw new Error("Failed to search projects");
     return res.json();
   },
 
   get: async (id: string) => {
-    const res = await fetch(`/api/projects/${id}`, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch project');
+    const res = await fetch(`/api/projects/${id}`, { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch project");
     return res.json();
   },
 
-  create: async (data: { title: string; description?: string; genre?: string }) => {
-    const res = await apiRequest('POST', '/api/projects', data);
+  create: async (data: {
+    title: string;
+    description?: string;
+    genre?: string;
+  }) => {
+    const res = await apiRequest("POST", "/api/projects", data);
     return res.json();
   },
 
-  update: async (id: string, updates: { title?: string; description?: string; genre?: string }) => {
-    const res = await apiRequest('PUT', `/api/projects/${id}`, updates);
+  update: async (
+    id: string,
+    updates: { title?: string; description?: string; genre?: string },
+  ) => {
+    const res = await apiRequest("PUT", `/api/projects/${id}`, updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest('DELETE', `/api/projects/${id}`);
+    const res = await apiRequest("DELETE", `/api/projects/${id}`);
     return res.json();
   },
 
   sections: {
     list: async (projectId: string) => {
-      const res = await fetch(`/api/projects/${projectId}/sections`, { credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to fetch sections');
+      const res = await fetch(`/api/projects/${projectId}/sections`, {
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to fetch sections");
       return res.json();
     },
 
     get: async (projectId: string, sectionId: string) => {
-      const res = await fetch(`/api/projects/${projectId}/sections/${sectionId}`, { credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to fetch section');
+      const res = await fetch(
+        `/api/projects/${projectId}/sections/${sectionId}`,
+        { credentials: "include" },
+      );
+      if (!res.ok) throw new Error("Failed to fetch section");
       return res.json();
     },
 
-    create: async (projectId: string, data: { title: string; parentId?: string; order?: number }) => {
-      const res = await apiRequest('POST', `/api/projects/${projectId}/sections`, data);
+    create: async (
+      projectId: string,
+      data: { title: string; parentId?: string; order?: number },
+    ) => {
+      const res = await apiRequest(
+        "POST",
+        `/api/projects/${projectId}/sections`,
+        data,
+      );
       return res.json();
     },
 
-    update: async (projectId: string, sectionId: string, updates: { title?: string; content?: string; parentId?: string; order?: number }) => {
-      const res = await apiRequest('PUT', `/api/projects/${projectId}/sections/${sectionId}`, updates);
+    update: async (
+      projectId: string,
+      sectionId: string,
+      updates: {
+        title?: string;
+        content?: string;
+        parentId?: string;
+        order?: number;
+      },
+    ) => {
+      const res = await apiRequest(
+        "PUT",
+        `/api/projects/${projectId}/sections/${sectionId}`,
+        updates,
+      );
       return res.json();
     },
 
     delete: async (projectId: string, sectionId: string) => {
-      const res = await apiRequest('DELETE', `/api/projects/${projectId}/sections/${sectionId}`);
+      const res = await apiRequest(
+        "DELETE",
+        `/api/projects/${projectId}/sections/${sectionId}`,
+      );
       return res.json();
     },
 
-    reorder: async (projectId: string, updates: Array<{ id: string; order: number; parentId: string | null }>) => {
-      const res = await apiRequest('PUT', `/api/projects/${projectId}/sections/reorder`, { updates });
+    reorder: async (
+      projectId: string,
+      updates: Array<{ id: string; order: number; parentId: string | null }>,
+    ) => {
+      const res = await apiRequest(
+        "PUT",
+        `/api/projects/${projectId}/sections/reorder`,
+        { updates },
+      );
       return res.json();
     },
   },
@@ -232,49 +302,57 @@ export const projectsApi = {
 
 export const savedItemsApi = {
   list: async (userId?: string, notebookId?: string, type?: string) => {
-    let url = '/api/saved-items';
+    let url = "/api/saved-items";
     const params = new URLSearchParams();
-    if (userId) params.append('userId', userId);
-    if (notebookId) params.append('notebookId', notebookId);
-    if (type) params.append('type', type);
+    if (userId) params.append("userId", userId);
+    if (notebookId) params.append("notebookId", notebookId);
+    if (type) params.append("type", type);
     if (params.toString()) url += `?${params.toString()}`;
-    
-    const res = await fetch(url, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch saved items');
+
+    const res = await fetch(url, { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch saved items");
     return res.json();
   },
 
   listByNotebook: async (notebookId: string, type?: string) => {
     let url = `/api/saved-items/notebook/${notebookId}`;
     if (type) url += `?type=${type}`;
-    const res = await fetch(url, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch saved items');
+    const res = await fetch(url, { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch saved items");
     return res.json();
   },
 
   get: async (id: string) => {
-    const res = await fetch(`/api/saved-items/${id}`, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch item');
+    const res = await fetch(`/api/saved-items/${id}`, {
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to fetch item");
     return res.json();
   },
 
-  create: async (data: { userId: string; itemType: string; itemId: string; notebookId?: string; itemData?: any }) => {
-    const res = await apiRequest('POST', '/api/saved-items', data);
+  create: async (data: {
+    userId: string;
+    itemType: string;
+    itemId: string;
+    notebookId?: string;
+    itemData?: any;
+  }) => {
+    const res = await apiRequest("POST", "/api/saved-items", data);
     return res.json();
   },
 
   update: async (id: string, updates: any) => {
-    const res = await apiRequest('PUT', `/api/saved-items/${id}`, updates);
+    const res = await apiRequest("PUT", `/api/saved-items/${id}`, updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest('DELETE', `/api/saved-items/${id}`);
+    const res = await apiRequest("DELETE", `/api/saved-items/${id}`);
     return res.json();
   },
 
   deleteByItemId: async (itemId: string) => {
-    const res = await apiRequest('DELETE', `/api/saved-items/item/${itemId}`);
+    const res = await apiRequest("DELETE", `/api/saved-items/item/${itemId}`);
     return res.json();
   },
 };
@@ -285,35 +363,48 @@ export const savedItemsApi = {
 
 export const guidesApi = {
   list: async (category?: string, searchTerm?: string) => {
-    let url = '/api/guides';
+    let url = "/api/guides";
     const params = new URLSearchParams();
-    if (category) params.append('category', category);
-    if (searchTerm) params.append('search', searchTerm);
+    if (category) params.append("category", category);
+    if (searchTerm) params.append("search", searchTerm);
     if (params.toString()) url += `?${params.toString()}`;
-    
-    const res = await fetch(url, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch guides');
+
+    const res = await fetch(url, { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch guides");
     return res.json();
   },
 
   get: async (id: string) => {
-    const res = await fetch(`/api/guides/${id}`, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch guide');
+    const res = await fetch(`/api/guides/${id}`, { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch guide");
     return res.json();
   },
 
-  create: async (data: { title: string; category: string; content: string; description?: string }) => {
-    const res = await apiRequest('POST', '/api/guides', data);
+  create: async (data: {
+    title: string;
+    category: string;
+    content: string;
+    description?: string;
+  }) => {
+    const res = await apiRequest("POST", "/api/guides", data);
     return res.json();
   },
 
-  update: async (id: string, updates: { title?: string; category?: string; content?: string; description?: string }) => {
-    const res = await apiRequest('PUT', `/api/guides/${id}`, updates);
+  update: async (
+    id: string,
+    updates: {
+      title?: string;
+      category?: string;
+      content?: string;
+      description?: string;
+    },
+  ) => {
+    const res = await apiRequest("PUT", `/api/guides/${id}`, updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest('DELETE', `/api/guides/${id}`);
+    const res = await apiRequest("DELETE", `/api/guides/${id}`);
     return res.json();
   },
 };
@@ -324,57 +415,61 @@ export const guidesApi = {
 
 export const generatorsApi = {
   character: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-character', params);
+    const res = await apiRequest("POST", "/api/ai/generate-character", params);
     return res.json();
   },
 
   name: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-name', params);
+    const res = await apiRequest("POST", "/api/ai/generate-name", params);
     return res.json();
   },
 
   plot: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-plot', params);
+    const res = await apiRequest("POST", "/api/ai/generate-plot", params);
     return res.json();
   },
 
   setting: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-setting', params);
+    const res = await apiRequest("POST", "/api/ai/generate-setting", params);
     return res.json();
   },
 
   creature: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-creature', params);
+    const res = await apiRequest("POST", "/api/ai/generate-creature", params);
     return res.json();
   },
 
   conflict: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-conflict', params);
+    const res = await apiRequest("POST", "/api/ai/generate-conflict", params);
     return res.json();
   },
 
   theme: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-theme', params);
+    const res = await apiRequest("POST", "/api/ai/generate-theme", params);
     return res.json();
   },
 
   mood: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-mood', params);
+    const res = await apiRequest("POST", "/api/ai/generate-mood", params);
     return res.json();
   },
 
   description: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-description', params);
+    const res = await apiRequest(
+      "POST",
+      "/api/ai/generate-description",
+      params,
+    );
     return res.json();
   },
 
   plant: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-plant', params);
+    const res = await apiRequest("POST", "/api/ai/generate-plant", params);
     return res.json();
   },
 
   prompt: async (params: any) => {
-    const res = await apiRequest('POST', '/api/ai/generate-prompt', params);
+    const res = await apiRequest("POST", "/api/ai/generate-prompt", params);
     return res.json();
   },
 };
@@ -385,42 +480,74 @@ export const generatorsApi = {
 
 export const writingAssistantApi = {
   analyze: async (params: { text: string; context?: any }) => {
-    const res = await apiRequest('POST', '/api/writing-assistant/analyze', params);
+    const res = await apiRequest(
+      "POST",
+      "/api/writing-assistant/analyze",
+      params,
+    );
     return res.json();
   },
 
   rephrase: async (params: { text: string; style?: string; context?: any }) => {
-    const res = await apiRequest('POST', '/api/writing-assistant/rephrase', params);
+    const res = await apiRequest(
+      "POST",
+      "/api/writing-assistant/rephrase",
+      params,
+    );
     return res.json();
   },
 
   proofread: async (params: { text: string; context?: any }) => {
-    const res = await apiRequest('POST', '/api/writing-assistant/proofread', params);
+    const res = await apiRequest(
+      "POST",
+      "/api/writing-assistant/proofread",
+      params,
+    );
     return res.json();
   },
 
   synonyms: async (params: { word: string; context?: string }) => {
-    const res = await apiRequest('POST', '/api/writing-assistant/synonyms', params);
+    const res = await apiRequest(
+      "POST",
+      "/api/writing-assistant/synonyms",
+      params,
+    );
     return res.json();
   },
 
   definition: async (params: { word: string }) => {
-    const res = await apiRequest('POST', '/api/writing-assistant/definition', params);
+    const res = await apiRequest(
+      "POST",
+      "/api/writing-assistant/definition",
+      params,
+    );
     return res.json();
   },
 
   questions: async (params: { text: string; context?: any }) => {
-    const res = await apiRequest('POST', '/api/writing-assistant/questions', params);
+    const res = await apiRequest(
+      "POST",
+      "/api/writing-assistant/questions",
+      params,
+    );
     return res.json();
   },
 
   improve: async (params: { text: string; context?: any }) => {
-    const res = await apiRequest('POST', '/api/writing-assistant/improve', params);
+    const res = await apiRequest(
+      "POST",
+      "/api/writing-assistant/improve",
+      params,
+    );
     return res.json();
   },
 
-  chat: async (params: { message: string; conversationHistory?: any[]; context?: any }) => {
-    const res = await apiRequest('POST', '/api/writing-assistant/chat', params);
+  chat: async (params: {
+    message: string;
+    conversationHistory?: any[];
+    context?: any;
+  }) => {
+    const res = await apiRequest("POST", "/api/writing-assistant/chat", params);
     return res.json();
   },
 };
@@ -430,8 +557,12 @@ export const writingAssistantApi = {
 // ============================================================================
 
 export const aiFieldAssistApi = {
-  suggest: async (params: { field: string; context: any; notebookId?: string }) => {
-    const res = await apiRequest('POST', '/api/ai/field-assist', params);
+  suggest: async (params: {
+    field: string;
+    context: any;
+    notebookId?: string;
+  }) => {
+    const res = await apiRequest("POST", "/api/ai/field-assist", params);
     return res.json();
   },
 };
@@ -442,24 +573,29 @@ export const aiFieldAssistApi = {
 
 export const uploadApi = {
   initiateImageUpload: async (filename: string, contentType: string) => {
-    const res = await apiRequest('POST', '/api/upload/image', { filename, contentType });
+    const res = await apiRequest("POST", "/api/upload/image", {
+      filename,
+      contentType,
+    });
     return res.json();
   },
 
   uploadToPresignedUrl: async (presignedUrl: string, file: File) => {
     const res = await fetch(presignedUrl, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Content-Type': file.type,
+        "Content-Type": file.type,
       },
       body: file,
     });
-    if (!res.ok) throw new Error('Failed to upload file');
+    if (!res.ok) throw new Error("Failed to upload file");
     return res;
   },
 
   finalizeUpload: async (objectPath: string) => {
-    const res = await apiRequest('POST', '/api/upload/finalize', { objectPath });
+    const res = await apiRequest("POST", "/api/upload/finalize", {
+      objectPath,
+    });
     return res.json();
   },
 };
@@ -470,8 +606,10 @@ export const uploadApi = {
 
 export const searchApi = {
   global: async (query: string) => {
-    const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to search');
+    const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`, {
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to search");
     return res.json();
   },
 };
@@ -482,18 +620,23 @@ export const searchApi = {
 
 export const pinnedContentApi = {
   list: async () => {
-    const res = await fetch('/api/pinned-content', { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch pinned content');
+    const res = await fetch("/api/pinned-content", { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch pinned content");
     return res.json();
   },
 
-  create: async (data: { contentType: string; contentId: string; title: string; subtitle?: string }) => {
-    const res = await apiRequest('POST', '/api/pinned-content', data);
+  create: async (data: {
+    contentType: string;
+    contentId: string;
+    title: string;
+    subtitle?: string;
+  }) => {
+    const res = await apiRequest("POST", "/api/pinned-content", data);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest('DELETE', `/api/pinned-content/${id}`);
+    const res = await apiRequest("DELETE", `/api/pinned-content/${id}`);
     return res.json();
   },
 };
@@ -504,36 +647,42 @@ export const pinnedContentApi = {
 
 export const notesApi = {
   list: async (userId?: string, type?: string, documentId?: string) => {
-    let url = '/api/notes';
+    let url = "/api/notes";
     const params = new URLSearchParams();
-    if (userId) params.append('userId', userId);
-    if (type) params.append('type', type);
-    if (documentId) params.append('documentId', documentId);
+    if (userId) params.append("userId", userId);
+    if (type) params.append("type", type);
+    if (documentId) params.append("documentId", documentId);
     if (params.toString()) url += `?${params.toString()}`;
-    
-    const res = await fetch(url, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch notes');
+
+    const res = await fetch(url, { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch notes");
     return res.json();
   },
 
   get: async (id: string) => {
-    const res = await fetch(`/api/notes/${id}`, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch note');
+    const res = await fetch(`/api/notes/${id}`, { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch note");
     return res.json();
   },
 
-  create: async (data: { title: string; content?: string; type: string; parentId?: string; documentId?: string }) => {
-    const res = await apiRequest('POST', '/api/notes', data);
+  create: async (data: {
+    title: string;
+    content?: string;
+    type: string;
+    parentId?: string;
+    documentId?: string;
+  }) => {
+    const res = await apiRequest("POST", "/api/notes", data);
     return res.json();
   },
 
   update: async (id: string, updates: any) => {
-    const res = await apiRequest('PUT', `/api/notes/${id}`, updates);
+    const res = await apiRequest("PUT", `/api/notes/${id}`, updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest('DELETE', `/api/notes/${id}`);
+    const res = await apiRequest("DELETE", `/api/notes/${id}`);
     return res.json();
   },
 };
@@ -544,29 +693,31 @@ export const notesApi = {
 
 export const quickNotesApi = {
   list: async () => {
-    const res = await fetch('/api/quick-note', { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch quick notes');
+    const res = await fetch("/api/quick-note", { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch quick notes");
     return res.json();
   },
 
   get: async (id: string) => {
-    const res = await fetch(`/api/quick-note/${id}`, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch quick note');
+    const res = await fetch(`/api/quick-note/${id}`, {
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to fetch quick note");
     return res.json();
   },
 
   create: async (data: { title?: string; content: string }) => {
-    const res = await apiRequest('POST', '/api/quick-note', data);
+    const res = await apiRequest("POST", "/api/quick-note", data);
     return res.json();
   },
 
   update: async (id: string, updates: { title?: string; content: string }) => {
-    const res = await apiRequest('PUT', `/api/quick-note/${id}`, updates);
+    const res = await apiRequest("PUT", `/api/quick-note/${id}`, updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest('DELETE', `/api/quick-note/${id}`);
+    const res = await apiRequest("DELETE", `/api/quick-note/${id}`);
     return res.json();
   },
 };
@@ -577,20 +728,27 @@ export const quickNotesApi = {
 
 export const chatMessagesApi = {
   list: async (conversationId?: string) => {
-    let url = '/api/chat-messages';
+    let url = "/api/chat-messages";
     if (conversationId) url += `?conversationId=${conversationId}`;
-    const res = await fetch(url, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch chat messages');
+    const res = await fetch(url, { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch chat messages");
     return res.json();
   },
 
-  create: async (data: { conversationId: string; role: string; content: string }) => {
-    const res = await apiRequest('POST', '/api/chat-messages', data);
+  create: async (data: {
+    conversationId: string;
+    role: string;
+    content: string;
+  }) => {
+    const res = await apiRequest("POST", "/api/chat-messages", data);
     return res.json();
   },
 
   delete: async (conversationId: string) => {
-    const res = await apiRequest('DELETE', `/api/chat-messages?conversationId=${conversationId}`);
+    const res = await apiRequest(
+      "DELETE",
+      `/api/chat-messages?conversationId=${conversationId}`,
+    );
     return res.json();
   },
 };
@@ -602,29 +760,38 @@ export const chatMessagesApi = {
 export const collaborationApi = {
   shares: {
     list: async (resourceType: string, resourceId: string) => {
-      const res = await fetch(`/api/shares/${resourceType}/${resourceId}`, { credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to fetch shares');
+      const res = await fetch(`/api/shares/${resourceType}/${resourceId}`, {
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to fetch shares");
       return res.json();
     },
 
-    create: async (data: { resourceType: string; resourceId: string; sharedWithEmail: string; permission: string }) => {
-      const res = await apiRequest('POST', '/api/shares', data);
+    create: async (data: {
+      resourceType: string;
+      resourceId: string;
+      sharedWithEmail: string;
+      permission: string;
+    }) => {
+      const res = await apiRequest("POST", "/api/shares", data);
       return res.json();
     },
 
     update: async (id: string, permission: string) => {
-      const res = await apiRequest('PUT', `/api/shares/${id}`, { permission });
+      const res = await apiRequest("PUT", `/api/shares/${id}`, { permission });
       return res.json();
     },
 
     delete: async (id: string) => {
-      const res = await apiRequest('DELETE', `/api/shares/${id}`);
+      const res = await apiRequest("DELETE", `/api/shares/${id}`);
       return res.json();
     },
 
     getSharedWithMe: async () => {
-      const res = await fetch('/api/shares/shared-with-me', { credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to fetch shared resources');
+      const res = await fetch("/api/shares/shared-with-me", {
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to fetch shared resources");
       return res.json();
     },
   },
@@ -636,24 +803,26 @@ export const collaborationApi = {
 
 export const importApi = {
   upload: async (formData: FormData) => {
-    const res = await fetch('/api/import/upload', {
-      method: 'POST',
+    const res = await fetch("/api/import/upload", {
+      method: "POST",
       body: formData,
-      credentials: 'include',
+      credentials: "include",
     });
-    if (!res.ok) throw new Error('Failed to upload import file');
+    if (!res.ok) throw new Error("Failed to upload import file");
     return res.json();
   },
 
   status: async (jobId: string) => {
-    const res = await fetch(`/api/import/status/${jobId}`, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch import status');
+    const res = await fetch(`/api/import/status/${jobId}`, {
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to fetch import status");
     return res.json();
   },
 
   history: async () => {
-    const res = await fetch('/api/import/history', { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch import history');
+    const res = await fetch("/api/import/history", { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch import history");
     return res.json();
   },
 };
@@ -665,23 +834,32 @@ export const importApi = {
 export const imagesApi = {
   pexels: {
     search: async (query: string, perPage: number = 15) => {
-      const res = await fetch(`/api/pexels/search?query=${encodeURIComponent(query)}&per_page=${perPage}`, { credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to search images');
+      const res = await fetch(
+        `/api/pexels/search?query=${encodeURIComponent(query)}&per_page=${perPage}`,
+        { credentials: "include" },
+      );
+      if (!res.ok) throw new Error("Failed to search images");
       return res.json();
     },
   },
 
   stockImages: {
     search: async (query: string, count: number = 9) => {
-      const res = await fetch(`/api/stock-images/search?query=${encodeURIComponent(query)}&count=${count}`, { credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to search stock images');
+      const res = await fetch(
+        `/api/stock-images/search?query=${encodeURIComponent(query)}&count=${count}`,
+        { credentials: "include" },
+      );
+      if (!res.ok) throw new Error("Failed to search stock images");
       return res.json();
     },
   },
 
   ideogram: {
-    generate: async (prompt: string, size: string = '1024x1024') => {
-      const res = await apiRequest('POST', '/api/ideogram/generate', { prompt, size });
+    generate: async (prompt: string, size: string = "1024x1024") => {
+      const res = await apiRequest("POST", "/api/ideogram/generate", {
+        prompt,
+        size,
+      });
       return res.json();
     },
   },
@@ -694,30 +872,41 @@ export const imagesApi = {
 export const adminApi = {
   bannedPhrases: {
     list: async (category?: string, search?: string, active?: boolean) => {
-      let url = '/api/admin/banned-phrases';
+      let url = "/api/admin/banned-phrases";
       const params = new URLSearchParams();
-      if (category) params.append('category', category);
-      if (search) params.append('search', search);
-      if (active !== undefined) params.append('active', active.toString());
+      if (category) params.append("category", category);
+      if (search) params.append("search", search);
+      if (active !== undefined) params.append("active", active.toString());
       if (params.toString()) url += `?${params.toString()}`;
-      
-      const res = await fetch(url, { credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to fetch banned phrases');
+
+      const res = await fetch(url, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch banned phrases");
       return res.json();
     },
 
-    create: async (data: { phrase: string; category: string; isActive?: boolean }) => {
-      const res = await apiRequest('POST', '/api/admin/banned-phrases', data);
+    create: async (data: {
+      phrase: string;
+      category: string;
+      isActive?: boolean;
+    }) => {
+      const res = await apiRequest("POST", "/api/admin/banned-phrases", data);
       return res.json();
     },
 
-    update: async (id: string, updates: { phrase?: string; category?: string; isActive?: boolean }) => {
-      const res = await apiRequest('PUT', `/api/admin/banned-phrases/${id}`, updates);
+    update: async (
+      id: string,
+      updates: { phrase?: string; category?: string; isActive?: boolean },
+    ) => {
+      const res = await apiRequest(
+        "PUT",
+        `/api/admin/banned-phrases/${id}`,
+        updates,
+      );
       return res.json();
     },
 
     delete: async (id: string) => {
-      const res = await apiRequest('DELETE', `/api/admin/banned-phrases/${id}`);
+      const res = await apiRequest("DELETE", `/api/admin/banned-phrases/${id}`);
       return res.json();
     },
   },
@@ -729,13 +918,19 @@ export const adminApi = {
 
 export const familyTreeApi = {
   get: async (notebookId: string) => {
-    const res = await fetch(`/api/family-tree/${notebookId}`, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch family tree');
+    const res = await fetch(`/api/family-tree/${notebookId}`, {
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to fetch family tree");
     return res.json();
   },
 
   save: async (notebookId: string, data: any) => {
-    const res = await apiRequest('POST', `/api/family-tree/${notebookId}`, data);
+    const res = await apiRequest(
+      "POST",
+      `/api/family-tree/${notebookId}`,
+      data,
+    );
     return res.json();
   },
 };
@@ -746,30 +941,35 @@ export const familyTreeApi = {
 
 export const foldersApi = {
   list: async (userId?: string, type?: string, documentId?: string) => {
-    let url = '/api/folders';
+    let url = "/api/folders";
     const params = new URLSearchParams();
-    if (userId) params.append('userId', userId);
-    if (type) params.append('type', type);
-    if (documentId) params.append('documentId', documentId);
+    if (userId) params.append("userId", userId);
+    if (type) params.append("type", type);
+    if (documentId) params.append("documentId", documentId);
     if (params.toString()) url += `?${params.toString()}`;
-    
-    const res = await fetch(url, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch folders');
+
+    const res = await fetch(url, { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch folders");
     return res.json();
   },
 
-  create: async (data: { name: string; type: string; parentId?: string; documentId?: string }) => {
-    const res = await apiRequest('POST', '/api/folders', data);
+  create: async (data: {
+    name: string;
+    type: string;
+    parentId?: string;
+    documentId?: string;
+  }) => {
+    const res = await apiRequest("POST", "/api/folders", data);
     return res.json();
   },
 
   update: async (id: string, updates: any) => {
-    const res = await apiRequest('PUT', `/api/folders/${id}`, updates);
+    const res = await apiRequest("PUT", `/api/folders/${id}`, updates);
     return res.json();
   },
 
   delete: async (id: string) => {
-    const res = await apiRequest('DELETE', `/api/folders/${id}`);
+    const res = await apiRequest("DELETE", `/api/folders/${id}`);
     return res.json();
   },
 };

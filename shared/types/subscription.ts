@@ -1,5 +1,9 @@
-export type SubscriptionTier = 'free' | 'author' | 'professional' | 'team';
-export type SubscriptionStatus = 'active' | 'past_due' | 'canceled' | 'trialing';
+export type SubscriptionTier = "free" | "author" | "professional" | "team";
+export type SubscriptionStatus =
+  | "active"
+  | "past_due"
+  | "canceled"
+  | "trialing";
 
 export interface UserSubscription {
   id: string;
@@ -40,7 +44,7 @@ export interface TierLimits {
 
 export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
   free: {
-    name: 'Writer',
+    name: "Writer",
     price: 0,
     annualPrice: 0,
     maxProjects: 3,
@@ -57,10 +61,10 @@ export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
     hasTeamAnalytics: false,
     hasRoleBasedPermissions: false,
     hasTeamResourceLibrary: false,
-    exportFormats: ['txt', 'docx'] // Basic text exports only
+    exportFormats: ["txt", "docx"], // Basic text exports only
   },
   author: {
-    name: 'Author',
+    name: "Author",
     price: 19,
     annualPrice: 180, // 21% discount (~21%)
     maxProjects: null,
@@ -77,10 +81,10 @@ export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
     hasTeamAnalytics: false,
     hasRoleBasedPermissions: false,
     hasTeamResourceLibrary: false,
-    exportFormats: ['txt', 'docx', 'pdf', 'html'] // Working formats only
+    exportFormats: ["txt", "docx", "pdf", "html"], // Working formats only
   },
   professional: {
-    name: 'Professional',
+    name: "Professional",
     price: 39,
     annualPrice: 372, // 21% discount (~21%)
     maxProjects: null,
@@ -97,10 +101,10 @@ export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
     hasTeamAnalytics: false,
     hasRoleBasedPermissions: false,
     hasTeamResourceLibrary: false,
-    exportFormats: ['txt', 'docx', 'pdf', 'html'] // Working formats only
+    exportFormats: ["txt", "docx", "pdf", "html"], // Working formats only
   },
   team: {
-    name: 'Team',
+    name: "Team",
     price: 79,
     annualPrice: 756, // 20% discount (~20%)
     maxProjects: null,
@@ -117,6 +121,6 @@ export const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
     hasTeamAnalytics: true, // Team-exclusive - IMPLEMENTED
     hasRoleBasedPermissions: true, // Team-exclusive - IMPLEMENTED
     hasTeamResourceLibrary: false, // NOT YET IMPLEMENTED - UI doesn't exist
-    exportFormats: ['txt', 'docx', 'pdf', 'html'] // Working formats only
-  }
+    exportFormats: ["txt", "docx", "pdf", "html"], // Working formats only
+  },
 };

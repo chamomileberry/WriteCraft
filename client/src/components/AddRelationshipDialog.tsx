@@ -1,9 +1,15 @@
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Users, Heart, Baby, UserPlus } from 'lucide-react';
-import type { FamilyTreeMember } from '@shared/schema';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Users, Heart, Baby, UserPlus } from "lucide-react";
+import type { FamilyTreeMember } from "@shared/schema";
 
-export type RelationshipType = 'parent' | 'spouse' | 'child' | 'sibling';
+export type RelationshipType = "parent" | "spouse" | "child" | "sibling";
 
 type MemberWithCharacter = FamilyTreeMember & {
   character?: {
@@ -26,33 +32,33 @@ export function AddRelationshipDialog({
   open,
   onOpenChange,
   member,
-  onSelectRelationshipType
+  onSelectRelationshipType,
 }: AddRelationshipDialogProps) {
   if (!member) return null;
 
   const relationshipOptions = [
     {
-      type: 'parent' as RelationshipType,
-      label: 'Add Parent',
-      description: 'Add a parent (will be positioned above)',
+      type: "parent" as RelationshipType,
+      label: "Add Parent",
+      description: "Add a parent (will be positioned above)",
       icon: Users,
     },
     {
-      type: 'spouse' as RelationshipType,
-      label: 'Add Spouse',
-      description: 'Add a spouse or partner (positioned beside)',
+      type: "spouse" as RelationshipType,
+      label: "Add Spouse",
+      description: "Add a spouse or partner (positioned beside)",
       icon: Heart,
     },
     {
-      type: 'child' as RelationshipType,
-      label: 'Add Child',
-      description: 'Add a child (will be positioned below)',
+      type: "child" as RelationshipType,
+      label: "Add Child",
+      description: "Add a child (will be positioned below)",
       icon: Baby,
     },
     {
-      type: 'sibling' as RelationshipType,
-      label: 'Add Sibling',
-      description: 'Add a sibling (positioned on same level)',
+      type: "sibling" as RelationshipType,
+      label: "Add Sibling",
+      description: "Add a sibling (positioned on same level)",
       icon: UserPlus,
     },
   ];
@@ -62,17 +68,20 @@ export function AddRelationshipDialog({
       const parts = [
         member.character.givenName,
         member.character.middleName,
-        member.character.familyName
+        member.character.familyName,
       ].filter(Boolean);
-      if (parts.length > 0) return parts.join(' ');
+      if (parts.length > 0) return parts.join(" ");
       if (member.character.nickname) return member.character.nickname;
     }
-    return member.inlineName || 'Unknown';
+    return member.inlineName || "Unknown";
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md" data-testid="dialog-add-relationship">
+      <DialogContent
+        className="sm:max-w-md"
+        data-testid="dialog-add-relationship"
+      >
         <DialogHeader>
           <DialogTitle>Add Relationship</DialogTitle>
           <DialogDescription>

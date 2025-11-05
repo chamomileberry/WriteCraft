@@ -1,11 +1,27 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Label } from "@/components/ui/label";
-import { Map, MapPin, Clock, Users, Copy, Heart, Loader2, Sparkles, Cloud } from "lucide-react";
+import {
+  Map,
+  MapPin,
+  Clock,
+  Users,
+  Copy,
+  Heart,
+  Loader2,
+  Sparkles,
+  Cloud,
+} from "lucide-react";
 import type { Setting } from "@shared/schema";
 import { GENRE_CATEGORIES, SETTING_TYPE_CATEGORIES } from "@shared/genres";
 import { useGenerator } from "@/hooks/useGenerator";
@@ -20,17 +36,22 @@ export default function SettingGenerator() {
   const [selectedSettingType, setSelectedSettingType] = useState<string>("");
   const { user } = useAuth();
   const { notebookId, validateNotebook } = useRequireNotebook({
-    errorMessage: 'Please create or select a notebook before generating settings.'
+    errorMessage:
+      "Please create or select a notebook before generating settings.",
   });
 
   const generator = useGenerator<Setting>({
-    generateEndpoint: '/api/settings/generate',
+    generateEndpoint: "/api/settings/generate",
     getGenerateParams: () => ({
-      genre: selectedGenre && selectedGenre !== "any" ? selectedGenre : undefined,
-      settingType: selectedSettingType && selectedSettingType !== "any" ? selectedSettingType : undefined,
-      notebookId
+      genre:
+        selectedGenre && selectedGenre !== "any" ? selectedGenre : undefined,
+      settingType:
+        selectedSettingType && selectedSettingType !== "any"
+          ? selectedSettingType
+          : undefined,
+      notebookId,
     }),
-    itemTypeName: 'setting',
+    itemTypeName: "setting",
     userId: user?.id ?? undefined,
     notebookId: notebookId ?? undefined,
     validateBeforeGenerate: validateNotebook,
@@ -48,11 +69,11 @@ ${setting.description}
 ${setting.atmosphere}
 
 **Cultural Elements:**
-${setting.culturalElements.join(', ')}
+${setting.culturalElements.join(", ")}
 
 **Notable Features:**
-${setting.notableFeatures.join(', ')}`,
-    invalidateOnSave: [['/api/saved-items']],
+${setting.notableFeatures.join(", ")}`,
+    invalidateOnSave: [["/api/saved-items"]],
   });
 
   const generatedSetting = generator.result;
@@ -60,7 +81,9 @@ ${setting.notableFeatures.join(', ')}`,
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-serif font-bold mb-4">Setting Generator</h1>
+        <h1 className="text-4xl font-serif font-bold mb-4">
+          Setting Generator
+        </h1>
         <p className="text-muted-foreground text-lg">
           Create immersive worlds and locations for your stories
         </p>
@@ -79,7 +102,7 @@ ${setting.notableFeatures.join(', ')}`,
         </CardHeader>
         <CardContent className="space-y-6">
           <GeneratorNotebookControls />
-          
+
           {/* Genre Selection */}
           <div className="space-y-2">
             <Label>Genre (Optional)</Label>
@@ -116,7 +139,7 @@ ${setting.notableFeatures.join(', ')}`,
             />
           </div>
 
-          <Button 
+          <Button
             onClick={generator.generate}
             disabled={generator.isGenerating}
             className="w-full"
@@ -144,7 +167,9 @@ ${setting.notableFeatures.join(', ')}`,
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-3xl mb-2">{generatedSetting.name}</CardTitle>
+                <CardTitle className="text-3xl mb-2">
+                  {generatedSetting.name}
+                </CardTitle>
                 <CardDescription className="text-base">
                   <div className="flex flex-wrap gap-2 mt-2">
                     <Badge variant="outline" className="gap-1">
@@ -173,21 +198,21 @@ ${setting.notableFeatures.join(', ')}`,
                   onPolished={(polished) => {
                     generator.setResult({
                       ...generatedSetting,
-                      description: polished
+                      description: polished,
                     });
                   }}
                 />
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={generator.copyToClipboard}
                   data-testid="button-copy-setting"
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={generator.saveToCollection}
                   disabled={generator.isSaving || !generatedSetting?.id}
                   data-testid="button-save-setting"

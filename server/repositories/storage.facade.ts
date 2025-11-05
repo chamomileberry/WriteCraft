@@ -1,97 +1,190 @@
-import { type IStorage } from '../storage';
+import { type IStorage } from "../storage";
 import {
-  type User, type InsertUser, type UpsertUser,
-  type Character, type UpdateCharacter, type InsertCharacter,
-  type Plot, type InsertPlot,
-  type Prompt, type InsertPrompt,
-  type Location, type InsertLocation,
-  type Setting, type InsertSetting,
-  type Item, type InsertItem,
-  type Organization, type InsertOrganization,
-  type Creature, type InsertCreature,
-  type Species, type InsertSpecies,
-  type Culture, type InsertCulture,
-  type Document, type InsertDocument,
-  type Food, type InsertFood,
-  type Language, type InsertLanguage,
-  type Religion, type InsertReligion,
-  type Technology, type InsertTechnology,
-  type Weapon, type InsertWeapon,
-  type Profession, type InsertProfession,
-  type Rank, type InsertRank,
-  type Condition, type InsertCondition,
-  type SavedItem, type InsertSavedItem,
-  type GeneratedName, type InsertName,
-  type Theme, type InsertTheme,
-  type Mood, type InsertMood,
-  type Conflict, type InsertConflict,
-  type InsertGuide, type Guide,
-  type GuideCategory, type InsertGuideCategory,
-  type GuideReference, type InsertGuideReference,
-  type Project, type InsertProject,
-  type ProjectSection, type InsertProjectSection,
-  type ProjectLink, type InsertProjectLink,
-  type Folder, type InsertFolder,
-  type Note, type InsertNote,
-  type Plant, type InsertPlant,
-  type Description, type InsertDescription,
-  type Ethnicity, type InsertEthnicity,
-  type Drink, type InsertDrink,
-  type Armor, type InsertArmor,
-  type Accessory, type InsertAccessory,
-  type Clothing, type InsertClothing,
-  type Material, type InsertMaterial,
-  type Settlement, type InsertSettlement,
-  type Society, type InsertSociety,
-  type Faction, type InsertFaction,
-  type MilitaryUnit, type InsertMilitaryUnit,
-  type Myth, type InsertMyth,
-  type Legend, type InsertLegend,
-  type Event, type InsertEvent,
-  type Spell, type InsertSpell,
-  type Resource, type InsertResource,
-  type Building, type InsertBuilding,
-  type Animal, type InsertAnimal,
-  type Transportation, type InsertTransportation,
-  type NaturalLaw, type InsertNaturalLaw,
-  type Tradition, type InsertTradition,
-  type Ritual, type InsertRitual,
-  type FamilyTree, type InsertFamilyTree,
-  type FamilyTreeMember, type InsertFamilyTreeMember,
-  type FamilyTreeRelationship, type InsertFamilyTreeRelationship,
-  type Timeline, type InsertTimeline,
-  type TimelineEvent, type InsertTimelineEvent,
-  type TimelineRelationship, type InsertTimelineRelationship,
-  type Ceremony, type InsertCeremony,
-  type Map, type InsertMap,
-  type Music, type InsertMusic,
-  type Dance, type InsertDance,
-  type Law, type InsertLaw,
-  type Policy, type InsertPolicy,
-  type Potion, type InsertPotion,
-  type ChatMessage, type InsertChatMessage,
-  type ConversationThread, type InsertConversationThread,
-  type Notebook, type InsertNotebook, type UpdateNotebook,
-  type ImportJob, type InsertImportJob, type UpdateImportJob,
-  type PinnedContent, type InsertPinnedContent,
-  type Canvas, type InsertCanvas,
-  type UserPreferences, type InsertUserPreferences,
-  type ConversationSummary, type InsertConversationSummary,
-  type Feedback, type InsertFeedback
-} from '@shared/schema';
+  type User,
+  type InsertUser,
+  type UpsertUser,
+  type Character,
+  type UpdateCharacter,
+  type InsertCharacter,
+  type Plot,
+  type InsertPlot,
+  type Prompt,
+  type InsertPrompt,
+  type Location,
+  type InsertLocation,
+  type Setting,
+  type InsertSetting,
+  type Item,
+  type InsertItem,
+  type Organization,
+  type InsertOrganization,
+  type Creature,
+  type InsertCreature,
+  type Species,
+  type InsertSpecies,
+  type Culture,
+  type InsertCulture,
+  type Document,
+  type InsertDocument,
+  type Food,
+  type InsertFood,
+  type Language,
+  type InsertLanguage,
+  type Religion,
+  type InsertReligion,
+  type Technology,
+  type InsertTechnology,
+  type Weapon,
+  type InsertWeapon,
+  type Profession,
+  type InsertProfession,
+  type Rank,
+  type InsertRank,
+  type Condition,
+  type InsertCondition,
+  type SavedItem,
+  type InsertSavedItem,
+  type GeneratedName,
+  type InsertName,
+  type Theme,
+  type InsertTheme,
+  type Mood,
+  type InsertMood,
+  type Conflict,
+  type InsertConflict,
+  type InsertGuide,
+  type Guide,
+  type GuideCategory,
+  type InsertGuideCategory,
+  type GuideReference,
+  type InsertGuideReference,
+  type Project,
+  type InsertProject,
+  type ProjectSection,
+  type InsertProjectSection,
+  type ProjectLink,
+  type InsertProjectLink,
+  type Folder,
+  type InsertFolder,
+  type Note,
+  type InsertNote,
+  type Plant,
+  type InsertPlant,
+  type Description,
+  type InsertDescription,
+  type Ethnicity,
+  type InsertEthnicity,
+  type Drink,
+  type InsertDrink,
+  type Armor,
+  type InsertArmor,
+  type Accessory,
+  type InsertAccessory,
+  type Clothing,
+  type InsertClothing,
+  type Material,
+  type InsertMaterial,
+  type Settlement,
+  type InsertSettlement,
+  type Society,
+  type InsertSociety,
+  type Faction,
+  type InsertFaction,
+  type MilitaryUnit,
+  type InsertMilitaryUnit,
+  type Myth,
+  type InsertMyth,
+  type Legend,
+  type InsertLegend,
+  type Event,
+  type InsertEvent,
+  type Spell,
+  type InsertSpell,
+  type Resource,
+  type InsertResource,
+  type Building,
+  type InsertBuilding,
+  type Animal,
+  type InsertAnimal,
+  type Transportation,
+  type InsertTransportation,
+  type NaturalLaw,
+  type InsertNaturalLaw,
+  type Tradition,
+  type InsertTradition,
+  type Ritual,
+  type InsertRitual,
+  type FamilyTree,
+  type InsertFamilyTree,
+  type FamilyTreeMember,
+  type InsertFamilyTreeMember,
+  type FamilyTreeRelationship,
+  type InsertFamilyTreeRelationship,
+  type Timeline,
+  type InsertTimeline,
+  type TimelineEvent,
+  type InsertTimelineEvent,
+  type TimelineRelationship,
+  type InsertTimelineRelationship,
+  type Ceremony,
+  type InsertCeremony,
+  type Map,
+  type InsertMap,
+  type Music,
+  type InsertMusic,
+  type Dance,
+  type InsertDance,
+  type Law,
+  type InsertLaw,
+  type Policy,
+  type InsertPolicy,
+  type Potion,
+  type InsertPotion,
+  type ChatMessage,
+  type InsertChatMessage,
+  type ConversationThread,
+  type InsertConversationThread,
+  type Notebook,
+  type InsertNotebook,
+  type UpdateNotebook,
+  type ImportJob,
+  type InsertImportJob,
+  type UpdateImportJob,
+  type PinnedContent,
+  type InsertPinnedContent,
+  type Canvas,
+  type InsertCanvas,
+  type UserPreferences,
+  type InsertUserPreferences,
+  type ConversationSummary,
+  type InsertConversationSummary,
+  type Feedback,
+  type InsertFeedback,
+} from "@shared/schema";
 
-import { UserRepository } from './user.repository';
-import { NotebookRepository } from './notebook.repository';
-import { CharacterRepository } from './character.repository';
-import { FamilyTreeRepository } from './family-tree.repository';
-import { ProjectRepository } from './project.repository';
-import { contentRepository } from './content.repository';
-import { searchRepository } from './search.repository';
-import { ImportRepository } from './import.repository';
-import { ShareRepository } from './share.repository';
-import { db } from '../db';
-import { eq, and, desc, or, ilike, isNull, sql, inArray } from 'drizzle-orm';
-import { guides, savedItems, notebooks, timelines, timelineEvents, userPreferences, conversationSummaries, conversationThreads, chatMessages, feedback } from '@shared/schema';
+import { UserRepository } from "./user.repository";
+import { NotebookRepository } from "./notebook.repository";
+import { CharacterRepository } from "./character.repository";
+import { FamilyTreeRepository } from "./family-tree.repository";
+import { ProjectRepository } from "./project.repository";
+import { contentRepository } from "./content.repository";
+import { searchRepository } from "./search.repository";
+import { ImportRepository } from "./import.repository";
+import { ShareRepository } from "./share.repository";
+import { db } from "../db";
+import { eq, and, desc, or, ilike, isNull, sql, inArray } from "drizzle-orm";
+import {
+  guides,
+  savedItems,
+  notebooks,
+  timelines,
+  timelineEvents,
+  userPreferences,
+  conversationSummaries,
+  conversationThreads,
+  chatMessages,
+  feedback,
+} from "@shared/schema";
 
 export class StorageFacade implements IStorage {
   private userRepository = new UserRepository();
@@ -119,7 +212,10 @@ export class StorageFacade implements IStorage {
     return await this.userRepository.upsertUser(user);
   }
 
-  async updateUser(id: string, updates: Partial<InsertUser>): Promise<User | undefined> {
+  async updateUser(
+    id: string,
+    updates: Partial<InsertUser>,
+  ): Promise<User | undefined> {
     return await this.userRepository.updateUser(id, updates);
   }
 
@@ -140,7 +236,11 @@ export class StorageFacade implements IStorage {
     return await this.notebookRepository.getUserNotebooks(userId);
   }
 
-  async updateNotebook(id: string, userId: string, updates: UpdateNotebook): Promise<Notebook | undefined> {
+  async updateNotebook(
+    id: string,
+    userId: string,
+    updates: UpdateNotebook,
+  ): Promise<Notebook | undefined> {
     return await this.notebookRepository.updateNotebook(id, userId, updates);
   }
 
@@ -148,8 +248,14 @@ export class StorageFacade implements IStorage {
     await this.notebookRepository.deleteNotebook(id, userId);
   }
 
-  async validateNotebookOwnership(notebookId: string, userId: string): Promise<boolean> {
-    return await this.notebookRepository.validateNotebookOwnership(notebookId, userId);
+  async validateNotebookOwnership(
+    notebookId: string,
+    userId: string,
+  ): Promise<boolean> {
+    return await this.notebookRepository.validateNotebookOwnership(
+      notebookId,
+      userId,
+    );
   }
 
   // Import Job methods
@@ -157,7 +263,10 @@ export class StorageFacade implements IStorage {
     return await this.importRepository.createImportJob(job);
   }
 
-  async getImportJob(id: string, userId: string): Promise<ImportJob | undefined> {
+  async getImportJob(
+    id: string,
+    userId: string,
+  ): Promise<ImportJob | undefined> {
     return await this.importRepository.getImportJob(id, userId);
   }
 
@@ -165,15 +274,17 @@ export class StorageFacade implements IStorage {
     return await this.importRepository.getUserImportJobs(userId);
   }
 
-  async updateImportJob(id: string, updates: UpdateImportJob): Promise<ImportJob | undefined> {
+  async updateImportJob(
+    id: string,
+    updates: UpdateImportJob,
+  ): Promise<ImportJob | undefined> {
     return await this.importRepository.updateImportJob(id, updates);
   }
 
   // Generic content ownership validation
-  validateContentOwnership<T extends { userId?: string | null, notebookId?: string | null }>(
-    content: T | undefined,
-    userId: string
-  ): boolean {
+  validateContentOwnership<
+    T extends { userId?: string | null; notebookId?: string | null },
+  >(content: T | undefined, userId: string): boolean {
     if (!content) return false;
     return content.userId === userId;
   }
@@ -183,32 +294,65 @@ export class StorageFacade implements IStorage {
     return await this.characterRepository.createCharacter(character);
   }
 
-  async getCharacter(id: string, userId: string, notebookId: string): Promise<Character | undefined> {
+  async getCharacter(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Character | undefined> {
     return await this.characterRepository.getCharacter(id, userId, notebookId);
   }
 
-  async getUserCharacters(userId: string, notebookId: string): Promise<Character[]> {
+  async getUserCharacters(
+    userId: string,
+    notebookId: string,
+  ): Promise<Character[]> {
     return await this.characterRepository.getUserCharacters(userId, notebookId);
   }
 
-  async updateCharacter(id: string, userId: string, updates: UpdateCharacter, notebookId: string): Promise<Character> {
-    return await this.characterRepository.updateCharacter(id, userId, updates, notebookId);
+  async updateCharacter(
+    id: string,
+    userId: string,
+    updates: UpdateCharacter,
+    notebookId: string,
+  ): Promise<Character> {
+    return await this.characterRepository.updateCharacter(
+      id,
+      userId,
+      updates,
+      notebookId,
+    );
   }
 
-  async deleteCharacter(id: string, userId: string, notebookId: string): Promise<void> {
+  async deleteCharacter(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<void> {
     await this.characterRepository.deleteCharacter(id, userId, notebookId);
   }
 
-  async getCharactersWithIssues(userId: string, notebookId: string): Promise<{
+  async getCharactersWithIssues(
+    userId: string,
+    notebookId: string,
+  ): Promise<{
     missingFamilyName: Character[];
     missingDescription: Character[];
     missingImage: Character[];
   }> {
-    return await this.characterRepository.getCharactersWithIssues(userId, notebookId);
+    return await this.characterRepository.getCharactersWithIssues(
+      userId,
+      notebookId,
+    );
   }
 
-  async getPotentialDuplicates(userId: string, notebookId: string): Promise<Character[][]> {
-    return await this.characterRepository.getPotentialDuplicates(userId, notebookId);
+  async getPotentialDuplicates(
+    userId: string,
+    notebookId: string,
+  ): Promise<Character[][]> {
+    return await this.characterRepository.getPotentialDuplicates(
+      userId,
+      notebookId,
+    );
   }
 
   // Plot methods
@@ -216,7 +360,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createPlot(plot);
   }
 
-  async getPlot(id: string, userId: string, notebookId: string): Promise<Plot | undefined> {
+  async getPlot(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Plot | undefined> {
     return await contentRepository.getPlot(id, userId, notebookId);
   }
 
@@ -229,7 +377,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createPrompt(prompt);
   }
 
-  async getPrompt(id: string, userId: string, notebookId: string): Promise<Prompt | undefined> {
+  async getPrompt(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Prompt | undefined> {
     return await contentRepository.getPrompt(id, userId, notebookId);
   }
 
@@ -246,19 +398,40 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createLocation(location);
   }
 
-  async getLocation(id: string, userId: string, notebookId: string): Promise<Location | undefined> {
+  async getLocation(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Location | undefined> {
     return await contentRepository.getLocation(id, userId, notebookId);
   }
 
-  async getUserLocations(userId: string, notebookId: string): Promise<Location[]> {
+  async getUserLocations(
+    userId: string,
+    notebookId: string,
+  ): Promise<Location[]> {
     return await contentRepository.getUserLocations(userId, notebookId);
   }
 
-  async updateLocation(id: string, userId: string, updates: Partial<InsertLocation>, notebookId: string): Promise<Location> {
-    return await contentRepository.updateLocation(id, userId, updates, notebookId);
+  async updateLocation(
+    id: string,
+    userId: string,
+    updates: Partial<InsertLocation>,
+    notebookId: string,
+  ): Promise<Location> {
+    return await contentRepository.updateLocation(
+      id,
+      userId,
+      updates,
+      notebookId,
+    );
   }
 
-  async deleteLocation(id: string, userId: string, notebookId: string): Promise<void> {
+  async deleteLocation(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<void> {
     await contentRepository.deleteLocation(id, userId, notebookId);
   }
 
@@ -267,15 +440,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createSetting(setting);
   }
 
-  async getSetting(id: string, userId: string, notebookId: string): Promise<Setting | undefined> {
+  async getSetting(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Setting | undefined> {
     return await contentRepository.getSetting(id, userId, notebookId);
   }
 
-  async getUserSettings(userId: string, notebookId: string): Promise<Setting[]> {
+  async getUserSettings(
+    userId: string,
+    notebookId: string,
+  ): Promise<Setting[]> {
     return await contentRepository.getUserSettings(userId, notebookId);
   }
 
-  async updateSetting(id: string, userId: string, updates: Partial<InsertSetting>): Promise<Setting> {
+  async updateSetting(
+    id: string,
+    userId: string,
+    updates: Partial<InsertSetting>,
+  ): Promise<Setting> {
     return await contentRepository.updateSetting(id, userId, updates);
   }
 
@@ -284,7 +468,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createItem(item);
   }
 
-  async getItem(id: string, userId: string, notebookId: string): Promise<Item | undefined> {
+  async getItem(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Item | undefined> {
     return await contentRepository.getItem(id, userId, notebookId);
   }
 
@@ -292,32 +480,64 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserItems(userId, notebookId);
   }
 
-  async updateItem(id: string, userId: string, updates: Partial<InsertItem>, notebookId: string): Promise<Item> {
+  async updateItem(
+    id: string,
+    userId: string,
+    updates: Partial<InsertItem>,
+    notebookId: string,
+  ): Promise<Item> {
     return await contentRepository.updateItem(id, userId, updates, notebookId);
   }
 
-  async deleteItem(id: string, userId: string, notebookId: string): Promise<void> {
+  async deleteItem(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<void> {
     await contentRepository.deleteItem(id, userId, notebookId);
   }
 
   // Organization methods
-  async createOrganization(organization: InsertOrganization): Promise<Organization> {
+  async createOrganization(
+    organization: InsertOrganization,
+  ): Promise<Organization> {
     return await contentRepository.createOrganization(organization);
   }
 
-  async getOrganization(id: string, userId: string, notebookId: string): Promise<Organization | undefined> {
+  async getOrganization(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Organization | undefined> {
     return await contentRepository.getOrganization(id, userId, notebookId);
   }
 
-  async getUserOrganizations(userId: string, notebookId: string): Promise<Organization[]> {
+  async getUserOrganizations(
+    userId: string,
+    notebookId: string,
+  ): Promise<Organization[]> {
     return await contentRepository.getUserOrganizations(userId, notebookId);
   }
 
-  async updateOrganization(id: string, userId: string, updates: Partial<InsertOrganization>, notebookId: string): Promise<Organization> {
-    return await contentRepository.updateOrganization(id, userId, updates, notebookId);
+  async updateOrganization(
+    id: string,
+    userId: string,
+    updates: Partial<InsertOrganization>,
+    notebookId: string,
+  ): Promise<Organization> {
+    return await contentRepository.updateOrganization(
+      id,
+      userId,
+      updates,
+      notebookId,
+    );
   }
 
-  async deleteOrganization(id: string, userId: string, notebookId: string): Promise<void> {
+  async deleteOrganization(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<void> {
     await contentRepository.deleteOrganization(id, userId, notebookId);
   }
 
@@ -326,15 +546,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createCreature(creature);
   }
 
-  async getCreature(id: string, userId: string, notebookId: string): Promise<Creature | undefined> {
+  async getCreature(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Creature | undefined> {
     return await contentRepository.getCreature(id, userId, notebookId);
   }
 
-  async getUserCreatures(userId: string, notebookId: string): Promise<Creature[]> {
+  async getUserCreatures(
+    userId: string,
+    notebookId: string,
+  ): Promise<Creature[]> {
     return await contentRepository.getUserCreatures(userId, notebookId);
   }
 
-  async updateCreature(id: string, userId: string, updates: Partial<InsertCreature>): Promise<Creature> {
+  async updateCreature(
+    id: string,
+    userId: string,
+    updates: Partial<InsertCreature>,
+  ): Promise<Creature> {
     return await contentRepository.updateCreature(id, userId, updates);
   }
 
@@ -343,7 +574,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createSpecies(species);
   }
 
-  async getSpecies(id: string, userId: string, notebookId: string): Promise<Species | undefined> {
+  async getSpecies(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Species | undefined> {
     return await contentRepository.getSpecies(id, userId, notebookId);
   }
 
@@ -351,11 +586,18 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserSpecies(userId, notebookId);
   }
 
-  async findSpeciesByName(name: string, notebookId: string): Promise<Species | undefined> {
+  async findSpeciesByName(
+    name: string,
+    notebookId: string,
+  ): Promise<Species | undefined> {
     return await contentRepository.findSpeciesByName(name, notebookId);
   }
 
-  async updateSpecies(id: string, userId: string, updates: Partial<InsertSpecies>): Promise<Species> {
+  async updateSpecies(
+    id: string,
+    userId: string,
+    updates: Partial<InsertSpecies>,
+  ): Promise<Species> {
     return await contentRepository.updateSpecies(id, userId, updates);
   }
 
@@ -368,25 +610,46 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createCulture(culture);
   }
 
-  async getCulture(id: string, userId: string, notebookId: string): Promise<Culture | undefined> {
+  async getCulture(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Culture | undefined> {
     return await contentRepository.getCulture(id, userId, notebookId);
   }
 
-  async getUserCultures(userId: string, notebookId: string): Promise<Culture[]> {
+  async getUserCultures(
+    userId: string,
+    notebookId: string,
+  ): Promise<Culture[]> {
     return await contentRepository.getUserCultures(userId, notebookId);
   }
 
-  async updateCulture(id: string, userId: string, updates: Partial<InsertCulture>, notebookId: string): Promise<Culture> {
-    return await contentRepository.updateCulture(id, userId, updates, notebookId);
+  async updateCulture(
+    id: string,
+    userId: string,
+    updates: Partial<InsertCulture>,
+    notebookId: string,
+  ): Promise<Culture> {
+    return await contentRepository.updateCulture(
+      id,
+      userId,
+      updates,
+      notebookId,
+    );
   }
 
-  async deleteCulture(id: string, userId: string, notebookId: string): Promise<void> {
+  async deleteCulture(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<void> {
     await contentRepository.deleteCulture(id, userId, notebookId);
   }
 
   // Magic system methods (not implemented - table doesn't exist)
   async createMagic(): Promise<any> {
-    throw new Error('Magic system not implemented');
+    throw new Error("Magic system not implemented");
   }
 
   async getMagic(id: string): Promise<any | undefined> {
@@ -398,7 +661,7 @@ export class StorageFacade implements IStorage {
   }
 
   async updateMagic(id: string, userId: string, updates: any): Promise<any> {
-    throw new Error('Magic system not implemented');
+    throw new Error("Magic system not implemented");
   }
 
   // Document methods
@@ -406,15 +669,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createDocument(document);
   }
 
-  async getDocument(id: string, userId: string, notebookId: string): Promise<Document | undefined> {
+  async getDocument(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Document | undefined> {
     return await contentRepository.getDocument(id, userId, notebookId);
   }
 
-  async getUserDocuments(userId: string, notebookId: string): Promise<Document[]> {
+  async getUserDocuments(
+    userId: string,
+    notebookId: string,
+  ): Promise<Document[]> {
     return await contentRepository.getUserDocuments(userId, notebookId);
   }
 
-  async updateDocument(id: string, userId: string, updates: Partial<InsertDocument>): Promise<Document> {
+  async updateDocument(
+    id: string,
+    userId: string,
+    updates: Partial<InsertDocument>,
+  ): Promise<Document> {
     return await contentRepository.updateDocument(id, userId, updates);
   }
 
@@ -427,7 +701,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createFood(food);
   }
 
-  async getFood(id: string, userId: string, notebookId: string): Promise<Food | undefined> {
+  async getFood(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Food | undefined> {
     return await contentRepository.getFood(id, userId, notebookId);
   }
 
@@ -435,7 +713,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserFoods(userId, notebookId);
   }
 
-  async updateFood(id: string, userId: string, updates: Partial<InsertFood>): Promise<Food> {
+  async updateFood(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFood>,
+  ): Promise<Food> {
     return await contentRepository.updateFood(id, userId, updates);
   }
 
@@ -448,15 +730,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createLanguage(language);
   }
 
-  async getLanguage(id: string, userId: string, notebookId: string): Promise<Language | undefined> {
+  async getLanguage(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Language | undefined> {
     return await contentRepository.getLanguage(id, userId, notebookId);
   }
 
-  async getUserLanguages(userId: string, notebookId: string): Promise<Language[]> {
+  async getUserLanguages(
+    userId: string,
+    notebookId: string,
+  ): Promise<Language[]> {
     return await contentRepository.getUserLanguages(userId, notebookId);
   }
 
-  async updateLanguage(id: string, userId: string, updates: Partial<InsertLanguage>): Promise<Language> {
+  async updateLanguage(
+    id: string,
+    userId: string,
+    updates: Partial<InsertLanguage>,
+  ): Promise<Language> {
     return await contentRepository.updateLanguage(id, userId, updates);
   }
 
@@ -469,15 +762,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createReligion(religion);
   }
 
-  async getReligion(id: string, userId: string, notebookId: string): Promise<Religion | undefined> {
+  async getReligion(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Religion | undefined> {
     return await contentRepository.getReligion(id, userId, notebookId);
   }
 
-  async getUserReligions(userId: string, notebookId: string): Promise<Religion[]> {
+  async getUserReligions(
+    userId: string,
+    notebookId: string,
+  ): Promise<Religion[]> {
     return await contentRepository.getUserReligions(userId, notebookId);
   }
 
-  async updateReligion(id: string, userId: string, updates: Partial<InsertReligion>): Promise<Religion> {
+  async updateReligion(
+    id: string,
+    userId: string,
+    updates: Partial<InsertReligion>,
+  ): Promise<Religion> {
     return await contentRepository.updateReligion(id, userId, updates);
   }
 
@@ -490,15 +794,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createTechnology(technology);
   }
 
-  async getTechnology(id: string, userId: string, notebookId: string): Promise<Technology | undefined> {
+  async getTechnology(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Technology | undefined> {
     return await contentRepository.getTechnology(id, userId, notebookId);
   }
 
-  async getUserTechnologies(userId: string, notebookId: string): Promise<Technology[]> {
+  async getUserTechnologies(
+    userId: string,
+    notebookId: string,
+  ): Promise<Technology[]> {
     return await contentRepository.getUserTechnologies(userId, notebookId);
   }
 
-  async updateTechnology(id: string, userId: string, updates: Partial<InsertTechnology>): Promise<Technology> {
+  async updateTechnology(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTechnology>,
+  ): Promise<Technology> {
     return await contentRepository.updateTechnology(id, userId, updates);
   }
 
@@ -511,7 +826,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createWeapon(weapon);
   }
 
-  async getWeapon(id: string, userId: string, notebookId: string): Promise<Weapon | undefined> {
+  async getWeapon(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Weapon | undefined> {
     return await contentRepository.getWeapon(id, userId, notebookId);
   }
 
@@ -519,11 +838,25 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserWeapons(userId, notebookId);
   }
 
-  async updateWeapon(id: string, userId: string, notebookId: string, updates: Partial<InsertWeapon>): Promise<Weapon> {
-    return await contentRepository.updateWeapon(id, userId, notebookId, updates);
+  async updateWeapon(
+    id: string,
+    userId: string,
+    notebookId: string,
+    updates: Partial<InsertWeapon>,
+  ): Promise<Weapon> {
+    return await contentRepository.updateWeapon(
+      id,
+      userId,
+      notebookId,
+      updates,
+    );
   }
 
-  async deleteWeapon(id: string, userId: string, notebookId: string): Promise<void> {
+  async deleteWeapon(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<void> {
     await contentRepository.deleteWeapon(id, userId, notebookId);
   }
 
@@ -532,15 +865,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createProfession(profession);
   }
 
-  async getProfession(id: string, userId: string, notebookId: string): Promise<Profession | undefined> {
+  async getProfession(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Profession | undefined> {
     return await contentRepository.getProfession(id, userId, notebookId);
   }
 
-  async getUserProfessions(userId: string, notebookId: string): Promise<Profession[]> {
+  async getUserProfessions(
+    userId: string,
+    notebookId: string,
+  ): Promise<Profession[]> {
     return await contentRepository.getUserProfessions(userId, notebookId);
   }
 
-  async updateProfession(id: string, userId: string, updates: Partial<InsertProfession>): Promise<Profession> {
+  async updateProfession(
+    id: string,
+    userId: string,
+    updates: Partial<InsertProfession>,
+  ): Promise<Profession> {
     return await contentRepository.updateProfession(id, userId, updates);
   }
 
@@ -553,7 +897,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createRank(rank);
   }
 
-  async getRank(id: string, userId: string, notebookId: string): Promise<Rank | undefined> {
+  async getRank(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Rank | undefined> {
     return await contentRepository.getRank(id, userId, notebookId);
   }
 
@@ -561,7 +909,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserRanks(userId, notebookId);
   }
 
-  async updateRank(id: string, userId: string, updates: Partial<InsertRank>): Promise<Rank> {
+  async updateRank(
+    id: string,
+    userId: string,
+    updates: Partial<InsertRank>,
+  ): Promise<Rank> {
     return await contentRepository.updateRank(id, userId, updates);
   }
 
@@ -574,15 +926,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createCondition(condition);
   }
 
-  async getCondition(id: string, userId: string, notebookId: string): Promise<Condition | undefined> {
+  async getCondition(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Condition | undefined> {
     return await contentRepository.getCondition(id, userId, notebookId);
   }
 
-  async getUserConditions(userId: string, notebookId: string): Promise<Condition[]> {
+  async getUserConditions(
+    userId: string,
+    notebookId: string,
+  ): Promise<Condition[]> {
     return await contentRepository.getUserConditions(userId, notebookId);
   }
 
-  async updateCondition(id: string, userId: string, updates: Partial<InsertCondition>): Promise<Condition> {
+  async updateCondition(
+    id: string,
+    userId: string,
+    updates: Partial<InsertCondition>,
+  ): Promise<Condition> {
     return await contentRepository.updateCondition(id, userId, updates);
   }
 
@@ -595,7 +958,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createPlant(plant);
   }
 
-  async getPlant(id: string, userId: string, notebookId: string): Promise<Plant | undefined> {
+  async getPlant(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Plant | undefined> {
     return await contentRepository.getPlant(id, userId, notebookId);
   }
 
@@ -603,28 +970,50 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserPlants(userId, notebookId);
   }
 
-  async updatePlant(id: string, userId: string, updates: Partial<InsertPlant>, notebookId: string): Promise<Plant> {
+  async updatePlant(
+    id: string,
+    userId: string,
+    updates: Partial<InsertPlant>,
+    notebookId: string,
+  ): Promise<Plant> {
     return await contentRepository.updatePlant(id, userId, updates, notebookId);
   }
 
-  async deletePlant(id: string, userId: string, notebookId: string): Promise<void> {
+  async deletePlant(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<void> {
     await contentRepository.deletePlant(id, userId, notebookId);
   }
 
   // Description methods
-  async createDescription(description: InsertDescription): Promise<Description> {
+  async createDescription(
+    description: InsertDescription,
+  ): Promise<Description> {
     return await contentRepository.createDescription(description);
   }
 
-  async getDescription(id: string, userId: string, notebookId: string): Promise<Description | undefined> {
+  async getDescription(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Description | undefined> {
     return await contentRepository.getDescription(id, userId, notebookId);
   }
 
-  async getUserDescriptions(userId: string, notebookId: string): Promise<Description[]> {
+  async getUserDescriptions(
+    userId: string,
+    notebookId: string,
+  ): Promise<Description[]> {
     return await contentRepository.getUserDescriptions(userId, notebookId);
   }
 
-  async updateDescription(id: string, userId: string, updates: Partial<InsertDescription>): Promise<Description> {
+  async updateDescription(
+    id: string,
+    userId: string,
+    updates: Partial<InsertDescription>,
+  ): Promise<Description> {
     return await contentRepository.updateDescription(id, userId, updates);
   }
 
@@ -637,15 +1026,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createEthnicity(ethnicity);
   }
 
-  async getEthnicity(id: string, userId: string, notebookId: string): Promise<Ethnicity | undefined> {
+  async getEthnicity(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Ethnicity | undefined> {
     return await contentRepository.getEthnicity(id, userId, notebookId);
   }
 
-  async getUserEthnicities(userId: string, notebookId: string): Promise<Ethnicity[]> {
+  async getUserEthnicities(
+    userId: string,
+    notebookId: string,
+  ): Promise<Ethnicity[]> {
     return await contentRepository.getUserEthnicities(userId, notebookId);
   }
 
-  async updateEthnicity(id: string, userId: string, updates: Partial<InsertEthnicity>): Promise<Ethnicity> {
+  async updateEthnicity(
+    id: string,
+    userId: string,
+    updates: Partial<InsertEthnicity>,
+  ): Promise<Ethnicity> {
     return await contentRepository.updateEthnicity(id, userId, updates);
   }
 
@@ -658,7 +1058,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createDrink(drink);
   }
 
-  async getDrink(id: string, userId: string, notebookId: string): Promise<Drink | undefined> {
+  async getDrink(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Drink | undefined> {
     return await contentRepository.getDrink(id, userId, notebookId);
   }
 
@@ -666,7 +1070,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserDrinks(userId, notebookId);
   }
 
-  async updateDrink(id: string, userId: string, updates: Partial<InsertDrink>): Promise<Drink> {
+  async updateDrink(
+    id: string,
+    userId: string,
+    updates: Partial<InsertDrink>,
+  ): Promise<Drink> {
     return await contentRepository.updateDrink(id, userId, updates);
   }
 
@@ -679,7 +1087,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createArmor(armor);
   }
 
-  async getArmor(id: string, userId: string, notebookId: string): Promise<Armor | undefined> {
+  async getArmor(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Armor | undefined> {
     return await contentRepository.getArmor(id, userId, notebookId);
   }
 
@@ -687,7 +1099,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserArmor(userId, notebookId);
   }
 
-  async updateArmor(id: string, userId: string, updates: Partial<InsertArmor>): Promise<Armor> {
+  async updateArmor(
+    id: string,
+    userId: string,
+    updates: Partial<InsertArmor>,
+  ): Promise<Armor> {
     return await contentRepository.updateArmor(id, userId, updates);
   }
 
@@ -700,15 +1116,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createAccessory(accessory);
   }
 
-  async getAccessory(id: string, userId: string, notebookId: string): Promise<Accessory | undefined> {
+  async getAccessory(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Accessory | undefined> {
     return await contentRepository.getAccessory(id, userId, notebookId);
   }
 
-  async getUserAccessories(userId: string, notebookId: string): Promise<Accessory[]> {
+  async getUserAccessories(
+    userId: string,
+    notebookId: string,
+  ): Promise<Accessory[]> {
     return await contentRepository.getUserAccessories(userId, notebookId);
   }
 
-  async updateAccessory(id: string, userId: string, updates: Partial<InsertAccessory>): Promise<Accessory> {
+  async updateAccessory(
+    id: string,
+    userId: string,
+    updates: Partial<InsertAccessory>,
+  ): Promise<Accessory> {
     return await contentRepository.updateAccessory(id, userId, updates);
   }
 
@@ -721,15 +1148,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createClothing(clothing);
   }
 
-  async getClothing(id: string, userId: string, notebookId: string): Promise<Clothing | undefined> {
+  async getClothing(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Clothing | undefined> {
     return await contentRepository.getClothing(id, userId, notebookId);
   }
 
-  async getUserClothing(userId: string, notebookId: string): Promise<Clothing[]> {
+  async getUserClothing(
+    userId: string,
+    notebookId: string,
+  ): Promise<Clothing[]> {
     return await contentRepository.getUserClothing(userId, notebookId);
   }
 
-  async updateClothing(id: string, userId: string, updates: Partial<InsertClothing>): Promise<Clothing> {
+  async updateClothing(
+    id: string,
+    userId: string,
+    updates: Partial<InsertClothing>,
+  ): Promise<Clothing> {
     return await contentRepository.updateClothing(id, userId, updates);
   }
 
@@ -742,15 +1180,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createMaterial(material);
   }
 
-  async getMaterial(id: string, userId: string, notebookId: string): Promise<Material | undefined> {
+  async getMaterial(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Material | undefined> {
     return await contentRepository.getMaterial(id, userId, notebookId);
   }
 
-  async getUserMaterials(userId: string, notebookId: string): Promise<Material[]> {
+  async getUserMaterials(
+    userId: string,
+    notebookId: string,
+  ): Promise<Material[]> {
     return await contentRepository.getUserMaterials(userId, notebookId);
   }
 
-  async updateMaterial(id: string, userId: string, updates: Partial<InsertMaterial>): Promise<Material> {
+  async updateMaterial(
+    id: string,
+    userId: string,
+    updates: Partial<InsertMaterial>,
+  ): Promise<Material> {
     return await contentRepository.updateMaterial(id, userId, updates);
   }
 
@@ -763,15 +1212,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createSettlement(settlement);
   }
 
-  async getSettlement(id: string, userId: string, notebookId: string): Promise<Settlement | undefined> {
+  async getSettlement(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Settlement | undefined> {
     return await contentRepository.getSettlement(id, userId, notebookId);
   }
 
-  async getUserSettlements(userId: string, notebookId: string): Promise<Settlement[]> {
+  async getUserSettlements(
+    userId: string,
+    notebookId: string,
+  ): Promise<Settlement[]> {
     return await contentRepository.getUserSettlements(userId, notebookId);
   }
 
-  async updateSettlement(id: string, userId: string, updates: Partial<InsertSettlement>): Promise<Settlement> {
+  async updateSettlement(
+    id: string,
+    userId: string,
+    updates: Partial<InsertSettlement>,
+  ): Promise<Settlement> {
     return await contentRepository.updateSettlement(id, userId, updates);
   }
 
@@ -784,15 +1244,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createSociety(society);
   }
 
-  async getSociety(id: string, userId: string, notebookId: string): Promise<Society | undefined> {
+  async getSociety(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Society | undefined> {
     return await contentRepository.getSociety(id, userId, notebookId);
   }
 
-  async getUserSocieties(userId: string, notebookId: string): Promise<Society[]> {
+  async getUserSocieties(
+    userId: string,
+    notebookId: string,
+  ): Promise<Society[]> {
     return await contentRepository.getUserSocieties(userId, notebookId);
   }
 
-  async updateSociety(id: string, userId: string, updates: Partial<InsertSociety>): Promise<Society> {
+  async updateSociety(
+    id: string,
+    userId: string,
+    updates: Partial<InsertSociety>,
+  ): Promise<Society> {
     return await contentRepository.updateSociety(id, userId, updates);
   }
 
@@ -805,7 +1276,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createFaction(faction);
   }
 
-  async getFaction(id: string, userId: string, notebookId: string): Promise<Faction | undefined> {
+  async getFaction(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Faction | undefined> {
     return await contentRepository.getFaction(id, userId, notebookId);
   }
 
@@ -813,28 +1288,55 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserFaction(userId, notebookId);
   }
 
-  async updateFaction(id: string, userId: string, updates: Partial<InsertFaction>, notebookId: string): Promise<Faction> {
-    return await contentRepository.updateFaction(id, userId, updates, notebookId);
+  async updateFaction(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFaction>,
+    notebookId: string,
+  ): Promise<Faction> {
+    return await contentRepository.updateFaction(
+      id,
+      userId,
+      updates,
+      notebookId,
+    );
   }
 
-  async deleteFaction(id: string, userId: string, notebookId: string): Promise<void> {
+  async deleteFaction(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<void> {
     await contentRepository.deleteFaction(id, userId, notebookId);
   }
 
   // Military Unit methods
-  async createMilitaryUnit(militaryUnit: InsertMilitaryUnit): Promise<MilitaryUnit> {
+  async createMilitaryUnit(
+    militaryUnit: InsertMilitaryUnit,
+  ): Promise<MilitaryUnit> {
     return await contentRepository.createMilitaryUnit(militaryUnit);
   }
 
-  async getMilitaryUnit(id: string, userId: string, notebookId: string): Promise<MilitaryUnit | undefined> {
+  async getMilitaryUnit(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<MilitaryUnit | undefined> {
     return await contentRepository.getMilitaryUnit(id, userId, notebookId);
   }
 
-  async getUserMilitaryUnits(userId: string, notebookId: string): Promise<MilitaryUnit[]> {
+  async getUserMilitaryUnits(
+    userId: string,
+    notebookId: string,
+  ): Promise<MilitaryUnit[]> {
     return await contentRepository.getUserMilitaryUnits(userId, notebookId);
   }
 
-  async updateMilitaryUnit(id: string, userId: string, updates: Partial<InsertMilitaryUnit>): Promise<MilitaryUnit> {
+  async updateMilitaryUnit(
+    id: string,
+    userId: string,
+    updates: Partial<InsertMilitaryUnit>,
+  ): Promise<MilitaryUnit> {
     return await contentRepository.updateMilitaryUnit(id, userId, updates);
   }
 
@@ -847,7 +1349,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createMyth(myth);
   }
 
-  async getMyth(id: string, userId: string, notebookId: string): Promise<Myth | undefined> {
+  async getMyth(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Myth | undefined> {
     return await contentRepository.getMyth(id, userId, notebookId);
   }
 
@@ -855,7 +1361,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserMyths(userId, notebookId);
   }
 
-  async updateMyth(id: string, userId: string, updates: Partial<InsertMyth>): Promise<Myth> {
+  async updateMyth(
+    id: string,
+    userId: string,
+    updates: Partial<InsertMyth>,
+  ): Promise<Myth> {
     return await contentRepository.updateMyth(id, userId, updates);
   }
 
@@ -868,7 +1378,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createLegend(legend);
   }
 
-  async getLegend(id: string, userId: string, notebookId: string): Promise<Legend | undefined> {
+  async getLegend(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Legend | undefined> {
     return await contentRepository.getLegend(id, userId, notebookId);
   }
 
@@ -876,7 +1390,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserLegends(userId, notebookId);
   }
 
-  async updateLegend(id: string, userId: string, updates: Partial<InsertLegend>): Promise<Legend> {
+  async updateLegend(
+    id: string,
+    userId: string,
+    updates: Partial<InsertLegend>,
+  ): Promise<Legend> {
     return await contentRepository.updateLegend(id, userId, updates);
   }
 
@@ -889,7 +1407,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createEvent(event);
   }
 
-  async getEvent(id: string, userId: string, notebookId: string): Promise<Event | undefined> {
+  async getEvent(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Event | undefined> {
     return await contentRepository.getEvent(id, userId, notebookId);
   }
 
@@ -897,7 +1419,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserEvents(userId, notebookId);
   }
 
-  async updateEvent(id: string, userId: string, updates: Partial<InsertEvent>): Promise<Event> {
+  async updateEvent(
+    id: string,
+    userId: string,
+    updates: Partial<InsertEvent>,
+  ): Promise<Event> {
     return await contentRepository.updateEvent(id, userId, updates);
   }
 
@@ -910,7 +1436,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createSpell(spell);
   }
 
-  async getSpell(id: string, userId: string, notebookId: string): Promise<Spell | undefined> {
+  async getSpell(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Spell | undefined> {
     return await contentRepository.getSpell(id, userId, notebookId);
   }
 
@@ -918,7 +1448,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserSpells(userId, notebookId);
   }
 
-  async updateSpell(id: string, userId: string, updates: Partial<InsertSpell>): Promise<Spell> {
+  async updateSpell(
+    id: string,
+    userId: string,
+    updates: Partial<InsertSpell>,
+  ): Promise<Spell> {
     return await contentRepository.updateSpell(id, userId, updates);
   }
 
@@ -931,15 +1465,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createResource(resource);
   }
 
-  async getResource(id: string, userId: string, notebookId: string): Promise<Resource | undefined> {
+  async getResource(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Resource | undefined> {
     return await contentRepository.getResource(id, userId, notebookId);
   }
 
-  async getUserResources(userId: string, notebookId: string): Promise<Resource[]> {
+  async getUserResources(
+    userId: string,
+    notebookId: string,
+  ): Promise<Resource[]> {
     return await contentRepository.getUserResources(userId, notebookId);
   }
 
-  async updateResource(id: string, userId: string, updates: Partial<InsertResource>): Promise<Resource> {
+  async updateResource(
+    id: string,
+    userId: string,
+    updates: Partial<InsertResource>,
+  ): Promise<Resource> {
     return await contentRepository.updateResource(id, userId, updates);
   }
 
@@ -952,15 +1497,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createBuilding(building);
   }
 
-  async getBuilding(id: string, userId: string, notebookId: string): Promise<Building | undefined> {
+  async getBuilding(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Building | undefined> {
     return await contentRepository.getBuilding(id, userId, notebookId);
   }
 
-  async getUserBuildings(userId: string, notebookId: string): Promise<Building[]> {
+  async getUserBuildings(
+    userId: string,
+    notebookId: string,
+  ): Promise<Building[]> {
     return await contentRepository.getUserBuildings(userId, notebookId);
   }
 
-  async updateBuilding(id: string, userId: string, updates: Partial<InsertBuilding>): Promise<Building> {
+  async updateBuilding(
+    id: string,
+    userId: string,
+    updates: Partial<InsertBuilding>,
+  ): Promise<Building> {
     return await contentRepository.updateBuilding(id, userId, updates);
   }
 
@@ -973,7 +1529,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createAnimal(animal);
   }
 
-  async getAnimal(id: string, userId: string, notebookId: string): Promise<Animal | undefined> {
+  async getAnimal(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Animal | undefined> {
     return await contentRepository.getAnimal(id, userId, notebookId);
   }
 
@@ -981,7 +1541,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserAnimals(userId, notebookId);
   }
 
-  async updateAnimal(id: string, userId: string, updates: Partial<InsertAnimal>): Promise<Animal> {
+  async updateAnimal(
+    id: string,
+    userId: string,
+    updates: Partial<InsertAnimal>,
+  ): Promise<Animal> {
     return await contentRepository.updateAnimal(id, userId, updates);
   }
 
@@ -990,19 +1554,32 @@ export class StorageFacade implements IStorage {
   }
 
   // Transportation methods
-  async createTransportation(transportation: InsertTransportation): Promise<Transportation> {
+  async createTransportation(
+    transportation: InsertTransportation,
+  ): Promise<Transportation> {
     return await contentRepository.createTransportation(transportation);
   }
 
-  async getTransportation(id: string, userId: string, notebookId: string): Promise<Transportation | undefined> {
+  async getTransportation(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Transportation | undefined> {
     return await contentRepository.getTransportation(id, userId, notebookId);
   }
 
-  async getUserTransportation(userId: string, notebookId: string): Promise<Transportation[]> {
+  async getUserTransportation(
+    userId: string,
+    notebookId: string,
+  ): Promise<Transportation[]> {
     return await contentRepository.getUserTransportation(userId, notebookId);
   }
 
-  async updateTransportation(id: string, userId: string, updates: Partial<InsertTransportation>): Promise<Transportation> {
+  async updateTransportation(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTransportation>,
+  ): Promise<Transportation> {
     return await contentRepository.updateTransportation(id, userId, updates);
   }
 
@@ -1015,15 +1592,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createNaturalLaw(naturalLaw);
   }
 
-  async getNaturalLaw(id: string, userId: string, notebookId: string): Promise<NaturalLaw | undefined> {
+  async getNaturalLaw(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<NaturalLaw | undefined> {
     return await contentRepository.getNaturalLaw(id, userId, notebookId);
   }
 
-  async getUserNaturalLaws(userId: string, notebookId: string): Promise<NaturalLaw[]> {
+  async getUserNaturalLaws(
+    userId: string,
+    notebookId: string,
+  ): Promise<NaturalLaw[]> {
     return await contentRepository.getUserNaturalLaws(userId, notebookId);
   }
 
-  async updateNaturalLaw(id: string, userId: string, updates: Partial<InsertNaturalLaw>): Promise<NaturalLaw> {
+  async updateNaturalLaw(
+    id: string,
+    userId: string,
+    updates: Partial<InsertNaturalLaw>,
+  ): Promise<NaturalLaw> {
     return await contentRepository.updateNaturalLaw(id, userId, updates);
   }
 
@@ -1036,15 +1624,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createTradition(tradition);
   }
 
-  async getTradition(id: string, userId: string, notebookId: string): Promise<Tradition | undefined> {
+  async getTradition(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Tradition | undefined> {
     return await contentRepository.getTradition(id, userId, notebookId);
   }
 
-  async getUserTraditions(userId: string, notebookId: string): Promise<Tradition[]> {
+  async getUserTraditions(
+    userId: string,
+    notebookId: string,
+  ): Promise<Tradition[]> {
     return await contentRepository.getUserTraditions(userId, notebookId);
   }
 
-  async updateTradition(id: string, userId: string, updates: Partial<InsertTradition>): Promise<Tradition> {
+  async updateTradition(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTradition>,
+  ): Promise<Tradition> {
     return await contentRepository.updateTradition(id, userId, updates);
   }
 
@@ -1057,7 +1656,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createRitual(ritual);
   }
 
-  async getRitual(id: string, userId: string, notebookId: string): Promise<Ritual | undefined> {
+  async getRitual(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Ritual | undefined> {
     return await contentRepository.getRitual(id, userId, notebookId);
   }
 
@@ -1065,7 +1668,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserRituals(userId, notebookId);
   }
 
-  async updateRitual(id: string, userId: string, updates: Partial<InsertRitual>): Promise<Ritual> {
+  async updateRitual(
+    id: string,
+    userId: string,
+    updates: Partial<InsertRitual>,
+  ): Promise<Ritual> {
     return await contentRepository.updateRitual(id, userId, updates);
   }
 
@@ -1078,16 +1685,38 @@ export class StorageFacade implements IStorage {
     return await this.familyTreeRepository.createFamilyTree(familyTree);
   }
 
-  async getFamilyTree(id: string, userId: string, notebookId: string): Promise<FamilyTree | undefined> {
-    return await this.familyTreeRepository.getFamilyTree(id, userId, notebookId);
+  async getFamilyTree(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<FamilyTree | undefined> {
+    return await this.familyTreeRepository.getFamilyTree(
+      id,
+      userId,
+      notebookId,
+    );
   }
 
-  async getUserFamilyTrees(userId: string, notebookId: string): Promise<FamilyTree[]> {
-    return await this.familyTreeRepository.getUserFamilyTrees(userId, notebookId);
+  async getUserFamilyTrees(
+    userId: string,
+    notebookId: string,
+  ): Promise<FamilyTree[]> {
+    return await this.familyTreeRepository.getUserFamilyTrees(
+      userId,
+      notebookId,
+    );
   }
 
-  async updateFamilyTree(id: string, userId: string, updates: Partial<InsertFamilyTree>): Promise<FamilyTree> {
-    return await this.familyTreeRepository.updateFamilyTree(id, userId, updates);
+  async updateFamilyTree(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFamilyTree>,
+  ): Promise<FamilyTree> {
+    return await this.familyTreeRepository.updateFamilyTree(
+      id,
+      userId,
+      updates,
+    );
   }
 
   async deleteFamilyTree(id: string, userId: string): Promise<void> {
@@ -1095,37 +1724,80 @@ export class StorageFacade implements IStorage {
   }
 
   // Family Tree Member methods
-  async createFamilyTreeMember(member: InsertFamilyTreeMember): Promise<FamilyTreeMember> {
+  async createFamilyTreeMember(
+    member: InsertFamilyTreeMember,
+  ): Promise<FamilyTreeMember> {
     return await this.familyTreeRepository.createFamilyTreeMember(member);
   }
 
-  async getFamilyTreeMembers(treeId: string, userId: string): Promise<FamilyTreeMember[]> {
+  async getFamilyTreeMembers(
+    treeId: string,
+    userId: string,
+  ): Promise<FamilyTreeMember[]> {
     return await this.familyTreeRepository.getFamilyTreeMembers(treeId, userId);
   }
 
-  async updateFamilyTreeMember(id: string, userId: string, updates: Partial<InsertFamilyTreeMember>): Promise<FamilyTreeMember> {
-    return await this.familyTreeRepository.updateFamilyTreeMember(id, userId, updates);
+  async updateFamilyTreeMember(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFamilyTreeMember>,
+  ): Promise<FamilyTreeMember> {
+    return await this.familyTreeRepository.updateFamilyTreeMember(
+      id,
+      userId,
+      updates,
+    );
   }
 
-  async deleteFamilyTreeMember(id: string, userId: string, treeId: string): Promise<void> {
+  async deleteFamilyTreeMember(
+    id: string,
+    userId: string,
+    treeId: string,
+  ): Promise<void> {
     await this.familyTreeRepository.deleteFamilyTreeMember(id, userId, treeId);
   }
 
   // Family Tree Relationship methods
-  async createFamilyTreeRelationship(relationship: InsertFamilyTreeRelationship): Promise<FamilyTreeRelationship> {
-    return await this.familyTreeRepository.createFamilyTreeRelationship(relationship);
+  async createFamilyTreeRelationship(
+    relationship: InsertFamilyTreeRelationship,
+  ): Promise<FamilyTreeRelationship> {
+    return await this.familyTreeRepository.createFamilyTreeRelationship(
+      relationship,
+    );
   }
 
-  async getFamilyTreeRelationships(treeId: string, userId: string): Promise<FamilyTreeRelationship[]> {
-    return await this.familyTreeRepository.getFamilyTreeRelationships(treeId, userId);
+  async getFamilyTreeRelationships(
+    treeId: string,
+    userId: string,
+  ): Promise<FamilyTreeRelationship[]> {
+    return await this.familyTreeRepository.getFamilyTreeRelationships(
+      treeId,
+      userId,
+    );
   }
 
-  async updateFamilyTreeRelationship(id: string, userId: string, updates: Partial<InsertFamilyTreeRelationship>): Promise<FamilyTreeRelationship> {
-    return await this.familyTreeRepository.updateFamilyTreeRelationship(id, userId, updates);
+  async updateFamilyTreeRelationship(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFamilyTreeRelationship>,
+  ): Promise<FamilyTreeRelationship> {
+    return await this.familyTreeRepository.updateFamilyTreeRelationship(
+      id,
+      userId,
+      updates,
+    );
   }
 
-  async deleteFamilyTreeRelationship(id: string, userId: string, treeId: string): Promise<void> {
-    await this.familyTreeRepository.deleteFamilyTreeRelationship(id, userId, treeId);
+  async deleteFamilyTreeRelationship(
+    id: string,
+    userId: string,
+    treeId: string,
+  ): Promise<void> {
+    await this.familyTreeRepository.deleteFamilyTreeRelationship(
+      id,
+      userId,
+      treeId,
+    );
   }
 
   // Timeline methods
@@ -1133,15 +1805,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createTimeline(timeline);
   }
 
-  async getTimeline(id: string, userId: string, notebookId: string): Promise<Timeline | undefined> {
+  async getTimeline(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Timeline | undefined> {
     return await contentRepository.getTimeline(id, userId, notebookId);
   }
 
-  async getUserTimelines(userId: string, notebookId: string): Promise<Timeline[]> {
+  async getUserTimelines(
+    userId: string,
+    notebookId: string,
+  ): Promise<Timeline[]> {
     return await contentRepository.getUserTimelines(userId, notebookId);
   }
 
-  async updateTimeline(id: string, userId: string, updates: Partial<InsertTimeline>): Promise<Timeline> {
+  async updateTimeline(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTimeline>,
+  ): Promise<Timeline> {
     return await contentRepository.updateTimeline(id, userId, updates);
   }
 
@@ -1154,15 +1837,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createCeremony(ceremony);
   }
 
-  async getCeremony(id: string, userId: string, notebookId: string): Promise<Ceremony | undefined> {
+  async getCeremony(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Ceremony | undefined> {
     return await contentRepository.getCeremony(id, userId, notebookId);
   }
 
-  async getUserCeremonies(userId: string, notebookId: string): Promise<Ceremony[]> {
+  async getUserCeremonies(
+    userId: string,
+    notebookId: string,
+  ): Promise<Ceremony[]> {
     return await contentRepository.getUserCeremonies(userId, notebookId);
   }
 
-  async updateCeremony(id: string, userId: string, updates: Partial<InsertCeremony>): Promise<Ceremony> {
+  async updateCeremony(
+    id: string,
+    userId: string,
+    updates: Partial<InsertCeremony>,
+  ): Promise<Ceremony> {
     return await contentRepository.updateCeremony(id, userId, updates);
   }
 
@@ -1175,7 +1869,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createMap(map);
   }
 
-  async getMap(id: string, userId: string, notebookId: string): Promise<Map | undefined> {
+  async getMap(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Map | undefined> {
     return await contentRepository.getMap(id, userId, notebookId);
   }
 
@@ -1183,7 +1881,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserMaps(userId, notebookId);
   }
 
-  async updateMap(id: string, userId: string, updates: Partial<InsertMap>): Promise<Map> {
+  async updateMap(
+    id: string,
+    userId: string,
+    updates: Partial<InsertMap>,
+  ): Promise<Map> {
     return await contentRepository.updateMap(id, userId, updates);
   }
 
@@ -1196,7 +1898,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createMusic(music);
   }
 
-  async getMusic(id: string, userId: string, notebookId: string): Promise<Music | undefined> {
+  async getMusic(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Music | undefined> {
     return await contentRepository.getMusic(id, userId, notebookId);
   }
 
@@ -1204,7 +1910,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserMusic(userId, notebookId);
   }
 
-  async updateMusic(id: string, userId: string, updates: Partial<InsertMusic>): Promise<Music> {
+  async updateMusic(
+    id: string,
+    userId: string,
+    updates: Partial<InsertMusic>,
+  ): Promise<Music> {
     return await contentRepository.updateMusic(id, userId, updates);
   }
 
@@ -1217,7 +1927,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createDance(dance);
   }
 
-  async getDance(id: string, userId: string, notebookId: string): Promise<Dance | undefined> {
+  async getDance(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Dance | undefined> {
     return await contentRepository.getDance(id, userId, notebookId);
   }
 
@@ -1225,7 +1939,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserDances(userId, notebookId);
   }
 
-  async updateDance(id: string, userId: string, updates: Partial<InsertDance>): Promise<Dance> {
+  async updateDance(
+    id: string,
+    userId: string,
+    updates: Partial<InsertDance>,
+  ): Promise<Dance> {
     return await contentRepository.updateDance(id, userId, updates);
   }
 
@@ -1238,7 +1956,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createLaw(law);
   }
 
-  async getLaw(id: string, userId: string, notebookId: string): Promise<Law | undefined> {
+  async getLaw(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Law | undefined> {
     return await contentRepository.getLaw(id, userId, notebookId);
   }
 
@@ -1246,7 +1968,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserLaws(userId, notebookId);
   }
 
-  async updateLaw(id: string, userId: string, updates: Partial<InsertLaw>): Promise<Law> {
+  async updateLaw(
+    id: string,
+    userId: string,
+    updates: Partial<InsertLaw>,
+  ): Promise<Law> {
     return await contentRepository.updateLaw(id, userId, updates);
   }
 
@@ -1259,7 +1985,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createPolicy(policy);
   }
 
-  async getPolicy(id: string, userId: string, notebookId: string): Promise<Policy | undefined> {
+  async getPolicy(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Policy | undefined> {
     return await contentRepository.getPolicy(id, userId, notebookId);
   }
 
@@ -1267,7 +1997,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserPolicies(userId, notebookId);
   }
 
-  async updatePolicy(id: string, userId: string, updates: Partial<InsertPolicy>): Promise<Policy> {
+  async updatePolicy(
+    id: string,
+    userId: string,
+    updates: Partial<InsertPolicy>,
+  ): Promise<Policy> {
     return await contentRepository.updatePolicy(id, userId, updates);
   }
 
@@ -1280,7 +2014,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createPotion(potion);
   }
 
-  async getPotion(id: string, userId: string, notebookId: string): Promise<Potion | undefined> {
+  async getPotion(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Potion | undefined> {
     return await contentRepository.getPotion(id, userId, notebookId);
   }
 
@@ -1288,7 +2026,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserPotions(userId, notebookId);
   }
 
-  async updatePotion(id: string, userId: string, updates: Partial<InsertPotion>): Promise<Potion> {
+  async updatePotion(
+    id: string,
+    userId: string,
+    updates: Partial<InsertPotion>,
+  ): Promise<Potion> {
     return await contentRepository.updatePotion(id, userId, updates);
   }
 
@@ -1301,11 +2043,18 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createName(name);
   }
 
-  async getName(id: string, userId: string, notebookId: string): Promise<GeneratedName | undefined> {
+  async getName(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<GeneratedName | undefined> {
     return await contentRepository.getName(id, userId, notebookId);
   }
 
-  async getUserNames(userId: string, notebookId: string): Promise<GeneratedName[]> {
+  async getUserNames(
+    userId: string,
+    notebookId: string,
+  ): Promise<GeneratedName[]> {
     return await contentRepository.getUserNames(userId, notebookId);
   }
 
@@ -1314,7 +2063,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createTheme(theme);
   }
 
-  async getTheme(id: string, userId: string, notebookId: string): Promise<Theme | undefined> {
+  async getTheme(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Theme | undefined> {
     return await contentRepository.getTheme(id, userId, notebookId);
   }
 
@@ -1322,7 +2075,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserThemes(userId, notebookId);
   }
 
-  async updateTheme(id: string, userId: string, updates: Partial<InsertTheme>): Promise<Theme> {
+  async updateTheme(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTheme>,
+  ): Promise<Theme> {
     return await contentRepository.updateTheme(id, userId, updates);
   }
 
@@ -1331,7 +2088,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createMood(mood);
   }
 
-  async getMood(id: string, userId: string, notebookId: string): Promise<Mood | undefined> {
+  async getMood(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Mood | undefined> {
     return await contentRepository.getMood(id, userId, notebookId);
   }
 
@@ -1344,15 +2105,26 @@ export class StorageFacade implements IStorage {
     return await contentRepository.createConflict(conflict);
   }
 
-  async getConflict(id: string, userId: string, notebookId: string): Promise<Conflict | undefined> {
+  async getConflict(
+    id: string,
+    userId: string,
+    notebookId: string,
+  ): Promise<Conflict | undefined> {
     return await contentRepository.getConflict(id, userId, notebookId);
   }
 
-  async getUserConflicts(userId: string, notebookId: string): Promise<Conflict[]> {
+  async getUserConflicts(
+    userId: string,
+    notebookId: string,
+  ): Promise<Conflict[]> {
     return await contentRepository.getUserConflicts(userId, notebookId);
   }
 
-  async updateConflict(id: string, userId: string, updates: Partial<InsertConflict>): Promise<Conflict> {
+  async updateConflict(
+    id: string,
+    userId: string,
+    updates: Partial<InsertConflict>,
+  ): Promise<Conflict> {
     return await contentRepository.updateConflict(id, userId, updates);
   }
 
@@ -1367,7 +2139,9 @@ export class StorageFacade implements IStorage {
 
   async getGuides(category?: string): Promise<Guide[]> {
     const conditions = category ? [eq(guides.category, category)] : [];
-    return await db.select().from(guides)
+    return await db
+      .select()
+      .from(guides)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(guides.createdAt));
   }
@@ -1377,18 +2151,23 @@ export class StorageFacade implements IStorage {
     const conditions = [
       or(
         ilike(guides.title, searchPattern),
-        ilike(guides.content, searchPattern)
-      )
+        ilike(guides.content, searchPattern),
+      ),
     ];
     if (category) {
       conditions.push(eq(guides.category, category));
     }
-    return await db.select().from(guides)
+    return await db
+      .select()
+      .from(guides)
       .where(and(...conditions))
       .orderBy(desc(guides.createdAt));
   }
 
-  async updateGuide(id: string, updates: Partial<InsertGuide>): Promise<Guide | undefined> {
+  async updateGuide(
+    id: string,
+    updates: Partial<InsertGuide>,
+  ): Promise<Guide | undefined> {
     return await contentRepository.updateGuide(id, updates);
   }
 
@@ -1397,7 +2176,9 @@ export class StorageFacade implements IStorage {
   }
 
   // Guide category methods
-  async createGuideCategory(category: InsertGuideCategory): Promise<GuideCategory> {
+  async createGuideCategory(
+    category: InsertGuideCategory,
+  ): Promise<GuideCategory> {
     return await contentRepository.createGuideCategory(category);
   }
 
@@ -1405,7 +2186,10 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getGuideCategories();
   }
 
-  async updateGuideCategory(id: string, updates: Partial<InsertGuideCategory>): Promise<GuideCategory | undefined> {
+  async updateGuideCategory(
+    id: string,
+    updates: Partial<InsertGuideCategory>,
+  ): Promise<GuideCategory | undefined> {
     return await contentRepository.updateGuideCategory(id, updates);
   }
 
@@ -1413,12 +2197,16 @@ export class StorageFacade implements IStorage {
     return await contentRepository.deleteGuideCategory(id);
   }
 
-  async reorderGuideCategories(categoryOrders: Array<{ id: string; order: number }>): Promise<void> {
+  async reorderGuideCategories(
+    categoryOrders: Array<{ id: string; order: number }>,
+  ): Promise<void> {
     return await contentRepository.reorderGuideCategories(categoryOrders);
   }
 
   // Guide reference methods
-  async createGuideReference(reference: InsertGuideReference): Promise<GuideReference> {
+  async createGuideReference(
+    reference: InsertGuideReference,
+  ): Promise<GuideReference> {
     return await contentRepository.createGuideReference(reference);
   }
 
@@ -1434,8 +2222,14 @@ export class StorageFacade implements IStorage {
     return await contentRepository.deleteGuideReferences(sourceGuideId);
   }
 
-  async syncGuideReferences(sourceGuideId: string, targetGuideIds: string[]): Promise<void> {
-    return await contentRepository.syncGuideReferences(sourceGuideId, targetGuideIds);
+  async syncGuideReferences(
+    sourceGuideId: string,
+    targetGuideIds: string[],
+  ): Promise<void> {
+    return await contentRepository.syncGuideReferences(
+      sourceGuideId,
+      targetGuideIds,
+    );
   }
 
   // Saved item methods
@@ -1443,99 +2237,142 @@ export class StorageFacade implements IStorage {
     return await contentRepository.saveItem(savedItem);
   }
 
-  async unsaveItem(userId: string, itemType: string, itemId: string): Promise<void> {
+  async unsaveItem(
+    userId: string,
+    itemType: string,
+    itemId: string,
+  ): Promise<void> {
     await contentRepository.unsaveItem(userId, itemType, itemId);
   }
 
-  async unsaveItemFromNotebook(userId: string, itemType: string, itemId: string, notebookId: string): Promise<void> {
-    await db.delete(savedItems)
-      .where(and(
-        eq(savedItems.userId, userId),
-        eq(savedItems.itemType, itemType),
-        eq(savedItems.itemId, itemId),
-        eq(savedItems.notebookId, notebookId)
-      ));
+  async unsaveItemFromNotebook(
+    userId: string,
+    itemType: string,
+    itemId: string,
+    notebookId: string,
+  ): Promise<void> {
+    await db
+      .delete(savedItems)
+      .where(
+        and(
+          eq(savedItems.userId, userId),
+          eq(savedItems.itemType, itemType),
+          eq(savedItems.itemId, itemId),
+          eq(savedItems.notebookId, notebookId),
+        ),
+      );
   }
 
-  async getUserSavedItems(userId: string, itemType?: string): Promise<SavedItem[]> {
+  async getUserSavedItems(
+    userId: string,
+    itemType?: string,
+  ): Promise<SavedItem[]> {
     return await contentRepository.getUserSavedItems(userId, itemType);
   }
 
-  async getUserSavedItemsByNotebook(userId: string, notebookId: string, itemType?: string): Promise<SavedItem[]> {
+  async getUserSavedItemsByNotebook(
+    userId: string,
+    notebookId: string,
+    itemType?: string,
+  ): Promise<SavedItem[]> {
     const conditions = [
       eq(savedItems.userId, userId),
-      eq(savedItems.notebookId, notebookId)
+      eq(savedItems.notebookId, notebookId),
     ];
     if (itemType) {
       conditions.push(eq(savedItems.itemType, itemType));
     }
-    return await db.select().from(savedItems)
+    return await db
+      .select()
+      .from(savedItems)
       .where(and(...conditions))
       .orderBy(desc(savedItems.createdAt));
   }
 
-  async getSavedItemsByNotebookBatch(userId: string, notebookId: string): Promise<SavedItem[]> {
-    const [notebook] = await db.select()
+  async getSavedItemsByNotebookBatch(
+    userId: string,
+    notebookId: string,
+  ): Promise<SavedItem[]> {
+    const [notebook] = await db
+      .select()
       .from(notebooks)
-      .where(and(
-        eq(notebooks.id, notebookId),
-        eq(notebooks.userId, userId)
-      ))
+      .where(and(eq(notebooks.id, notebookId), eq(notebooks.userId, userId)))
       .limit(1);
 
     if (!notebook) {
       return [];
     }
 
-    return await db.select().from(savedItems)
-      .where(and(
-        eq(savedItems.userId, userId),
-        eq(savedItems.notebookId, notebookId)
-      ))
+    return await db
+      .select()
+      .from(savedItems)
+      .where(
+        and(
+          eq(savedItems.userId, userId),
+          eq(savedItems.notebookId, notebookId),
+        ),
+      )
       .orderBy(desc(savedItems.createdAt));
   }
 
-  async isItemSaved(userId: string, itemType: string, itemId: string): Promise<boolean> {
+  async isItemSaved(
+    userId: string,
+    itemType: string,
+    itemId: string,
+  ): Promise<boolean> {
     return await contentRepository.isItemSaved(userId, itemType, itemId);
   }
 
-  async updateSavedItemData(savedItemId: string, userId: string, itemData: any): Promise<SavedItem | undefined> {
-    const [updated] = await db.update(savedItems)
-      .set({ 
-        itemData
+  async updateSavedItemData(
+    savedItemId: string,
+    userId: string,
+    itemData: any,
+  ): Promise<SavedItem | undefined> {
+    const [updated] = await db
+      .update(savedItems)
+      .set({
+        itemData,
       })
-      .where(and(
-        eq(savedItems.id, savedItemId),
-        eq(savedItems.userId, userId)
-      ))
+      .where(and(eq(savedItems.id, savedItemId), eq(savedItems.userId, userId)))
       .returning();
     return updated || undefined;
   }
 
-  async updateSavedItemDataByItem(userId: string, itemType: string, itemId: string, notebookId: string, itemData: any): Promise<SavedItem | undefined> {
-    const [updated] = await db.update(savedItems)
-      .set({ 
-        itemData
+  async updateSavedItemDataByItem(
+    userId: string,
+    itemType: string,
+    itemId: string,
+    notebookId: string,
+    itemData: any,
+  ): Promise<SavedItem | undefined> {
+    const [updated] = await db
+      .update(savedItems)
+      .set({
+        itemData,
       })
-      .where(and(
-        eq(savedItems.userId, userId),
-        eq(savedItems.itemType, itemType),
-        eq(savedItems.itemId, itemId),
-        eq(savedItems.notebookId, notebookId)
-      ))
+      .where(
+        and(
+          eq(savedItems.userId, userId),
+          eq(savedItems.itemType, itemType),
+          eq(savedItems.itemId, itemId),
+          eq(savedItems.notebookId, notebookId),
+        ),
+      )
       .returning();
     return updated || undefined;
   }
 
-  async updateSavedItemType(savedItemId: string, userId: string, newItemType: string): Promise<SavedItem | undefined> {
-    const [updated] = await db.update(savedItems)
-      .set({ 
-        itemType: newItemType
+  async updateSavedItemType(
+    savedItemId: string,
+    userId: string,
+    newItemType: string,
+  ): Promise<SavedItem | undefined> {
+    const [updated] = await db
+      .update(savedItems)
+      .set({
+        itemType: newItemType,
       })
-      .where(and(
-        eq(savedItems.id, savedItemId),
-        eq(savedItems.userId, userId)
-      ))
+      .where(and(eq(savedItems.id, savedItemId), eq(savedItems.userId, userId)))
       .returning();
     return updated || undefined;
   }
@@ -1553,7 +2390,11 @@ export class StorageFacade implements IStorage {
     return await this.projectRepository.getUserProjects(userId);
   }
 
-  async updateProject(id: string, userId: string, updates: Partial<InsertProject>): Promise<Project> {
+  async updateProject(
+    id: string,
+    userId: string,
+    updates: Partial<InsertProject>,
+  ): Promise<Project> {
     return await this.projectRepository.updateProject(id, userId, updates);
   }
 
@@ -1566,11 +2407,16 @@ export class StorageFacade implements IStorage {
   }
 
   // Project Section methods
-  async createProjectSection(section: InsertProjectSection): Promise<ProjectSection> {
+  async createProjectSection(
+    section: InsertProjectSection,
+  ): Promise<ProjectSection> {
     return await this.projectRepository.createProjectSection(section);
   }
 
-  async getProjectSection(id: string, projectId: string): Promise<ProjectSection | undefined> {
+  async getProjectSection(
+    id: string,
+    projectId: string,
+  ): Promise<ProjectSection | undefined> {
     return await this.projectRepository.getProjectSection(id, projectId);
   }
 
@@ -1578,16 +2424,30 @@ export class StorageFacade implements IStorage {
     return await this.projectRepository.getProjectSections(projectId);
   }
 
-  async updateProjectSection(id: string, projectId: string, updates: Partial<InsertProjectSection>): Promise<ProjectSection> {
-    return await this.projectRepository.updateProjectSection(id, projectId, updates);
+  async updateProjectSection(
+    id: string,
+    projectId: string,
+    updates: Partial<InsertProjectSection>,
+  ): Promise<ProjectSection> {
+    return await this.projectRepository.updateProjectSection(
+      id,
+      projectId,
+      updates,
+    );
   }
 
   async deleteProjectSection(id: string, projectId: string): Promise<void> {
     await this.projectRepository.deleteProjectSection(id, projectId);
   }
 
-  async reorderProjectSections(projectId: string, sectionOrders: { id: string; position: number; parentId?: string | null }[]): Promise<void> {
-    await this.projectRepository.reorderProjectSections(projectId, sectionOrders);
+  async reorderProjectSections(
+    projectId: string,
+    sectionOrders: { id: string; position: number; parentId?: string | null }[],
+  ): Promise<void> {
+    await this.projectRepository.reorderProjectSections(
+      projectId,
+      sectionOrders,
+    );
   }
 
   // Universal search method
@@ -1600,7 +2460,10 @@ export class StorageFacade implements IStorage {
     return await this.projectRepository.createProjectLink(link);
   }
 
-  async getProjectLinks(projectId: string, userId: string): Promise<ProjectLink[]> {
+  async getProjectLinks(
+    projectId: string,
+    userId: string,
+  ): Promise<ProjectLink[]> {
     return await this.projectRepository.getProjectLinks(projectId, userId);
   }
 
@@ -1617,20 +2480,53 @@ export class StorageFacade implements IStorage {
     return await contentRepository.pinContent(pin);
   }
 
-  async unpinContent(userId: string, itemType: string, itemId: string, notebookId: string): Promise<void> {
+  async unpinContent(
+    userId: string,
+    itemType: string,
+    itemId: string,
+    notebookId: string,
+  ): Promise<void> {
     await contentRepository.unpinContent(userId, itemType, itemId, notebookId);
   }
 
-  async getUserPinnedContent(userId: string, notebookId: string, category?: string): Promise<PinnedContent[]> {
-    return await contentRepository.getUserPinnedContent(userId, notebookId, category);
+  async getUserPinnedContent(
+    userId: string,
+    notebookId: string,
+    category?: string,
+  ): Promise<PinnedContent[]> {
+    return await contentRepository.getUserPinnedContent(
+      userId,
+      notebookId,
+      category,
+    );
   }
 
-  async reorderPinnedContent(userId: string, itemId: string, newOrder: number, notebookId: string): Promise<void> {
-    await contentRepository.reorderPinnedContent(userId, itemId, newOrder, notebookId);
+  async reorderPinnedContent(
+    userId: string,
+    itemId: string,
+    newOrder: number,
+    notebookId: string,
+  ): Promise<void> {
+    await contentRepository.reorderPinnedContent(
+      userId,
+      itemId,
+      newOrder,
+      notebookId,
+    );
   }
 
-  async isContentPinned(userId: string, itemType: string, itemId: string, notebookId: string): Promise<boolean> {
-    return await contentRepository.isContentPinned(userId, itemType, itemId, notebookId);
+  async isContentPinned(
+    userId: string,
+    itemType: string,
+    itemId: string,
+    notebookId: string,
+  ): Promise<boolean> {
+    return await contentRepository.isContentPinned(
+      userId,
+      itemType,
+      itemId,
+      notebookId,
+    );
   }
 
   // Canvas methods
@@ -1646,11 +2542,18 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserCanvases(userId);
   }
 
-  async getProjectCanvases(projectId: string, userId: string): Promise<Canvas[]> {
+  async getProjectCanvases(
+    projectId: string,
+    userId: string,
+  ): Promise<Canvas[]> {
     return await contentRepository.getProjectCanvases(projectId, userId);
   }
 
-  async updateCanvas(id: string, userId: string, updates: Partial<InsertCanvas>): Promise<Canvas> {
+  async updateCanvas(
+    id: string,
+    userId: string,
+    updates: Partial<InsertCanvas>,
+  ): Promise<Canvas> {
     return await contentRepository.updateCanvas(id, userId, updates);
   }
 
@@ -1671,11 +2574,18 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserFolders(userId, type);
   }
 
-  async getDocumentFolders(documentId: string, userId: string): Promise<Folder[]> {
+  async getDocumentFolders(
+    documentId: string,
+    userId: string,
+  ): Promise<Folder[]> {
     return await contentRepository.getDocumentFolders(documentId, userId);
   }
 
-  async updateFolder(id: string, userId: string, updates: Partial<InsertFolder>): Promise<Folder> {
+  async updateFolder(
+    id: string,
+    userId: string,
+    updates: Partial<InsertFolder>,
+  ): Promise<Folder> {
     return await contentRepository.updateFolder(id, userId, updates);
   }
 
@@ -1708,7 +2618,11 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getDocumentNotes(documentId, userId);
   }
 
-  async updateNote(id: string, userId: string, updates: Partial<InsertNote>): Promise<Note> {
+  async updateNote(
+    id: string,
+    userId: string,
+    updates: Partial<InsertNote>,
+  ): Promise<Note> {
     return await contentRepository.updateNote(id, userId, updates);
   }
 
@@ -1717,7 +2631,11 @@ export class StorageFacade implements IStorage {
   }
 
   // Quick note methods
-  async createQuickNote(userId: string, title: string, content: string): Promise<Note> {
+  async createQuickNote(
+    userId: string,
+    title: string,
+    content: string,
+  ): Promise<Note> {
     return await contentRepository.createQuickNote(userId, title, content);
   }
 
@@ -1725,11 +2643,18 @@ export class StorageFacade implements IStorage {
     return await contentRepository.getUserQuickNote(userId);
   }
 
-  async getQuickNoteById(id: string, userId: string): Promise<Note | undefined> {
+  async getQuickNoteById(
+    id: string,
+    userId: string,
+  ): Promise<Note | undefined> {
     return await contentRepository.getQuickNoteById(id, userId);
   }
 
-  async updateQuickNote(id: string, userId: string, updates: { title?: string; content?: string }): Promise<Note> {
+  async updateQuickNote(
+    id: string,
+    userId: string,
+    updates: { title?: string; content?: string },
+  ): Promise<Note> {
     return await contentRepository.updateQuickNote(id, userId, updates);
   }
 
@@ -1738,37 +2663,73 @@ export class StorageFacade implements IStorage {
   }
 
   // Chat message methods
-  async createChatMessage(chatMessage: InsertChatMessage): Promise<ChatMessage> {
+  async createChatMessage(
+    chatMessage: InsertChatMessage,
+  ): Promise<ChatMessage> {
     return await contentRepository.createChatMessage(chatMessage);
   }
 
-  async getChatMessages(userId: string, projectId?: string, guideId?: string, limit?: number): Promise<ChatMessage[]> {
-    return await contentRepository.getChatMessages(userId, projectId, guideId, limit);
+  async getChatMessages(
+    userId: string,
+    projectId?: string,
+    guideId?: string,
+    limit?: number,
+  ): Promise<ChatMessage[]> {
+    return await contentRepository.getChatMessages(
+      userId,
+      projectId,
+      guideId,
+      limit,
+    );
   }
 
-  async deleteChatHistory(userId: string, projectId?: string, guideId?: string): Promise<void> {
+  async deleteChatHistory(
+    userId: string,
+    projectId?: string,
+    guideId?: string,
+  ): Promise<void> {
     await contentRepository.deleteChatHistory(userId, projectId, guideId);
   }
 
-  // Timeline Event methods  
-  async createTimelineEvent(event: InsertTimelineEvent): Promise<TimelineEvent> {
+  // Timeline Event methods
+  async createTimelineEvent(
+    event: InsertTimelineEvent,
+  ): Promise<TimelineEvent> {
     return await contentRepository.createTimelineEvent(event);
   }
 
-  async getTimelineEvent(id: string, userId: string, timelineId: string): Promise<TimelineEvent | undefined> {
+  async getTimelineEvent(
+    id: string,
+    userId: string,
+    timelineId: string,
+  ): Promise<TimelineEvent | undefined> {
     return await contentRepository.getTimelineEvent(id, userId, timelineId);
   }
 
-  async getTimelineEvents(timelineId: string, userId: string): Promise<TimelineEvent[]> {
+  async getTimelineEvents(
+    timelineId: string,
+    userId: string,
+  ): Promise<TimelineEvent[]> {
     return await contentRepository.getTimelineEvents(timelineId, userId);
   }
 
-  async getTimelineEventsForNotebook(notebookId: string, userId: string): Promise<TimelineEvent[]> {
-    const ownsNotebook = await this.notebookRepository.validateNotebookOwnership(notebookId, userId);
-    const hasSharedAccess = await this.shareRepository.validateShareAccess(userId, 'notebook', notebookId);
+  async getTimelineEventsForNotebook(
+    notebookId: string,
+    userId: string,
+  ): Promise<TimelineEvent[]> {
+    const ownsNotebook =
+      await this.notebookRepository.validateNotebookOwnership(
+        notebookId,
+        userId,
+      );
+    const hasSharedAccess = await this.shareRepository.validateShareAccess(
+      userId,
+      "notebook",
+      notebookId,
+    );
 
     if (!ownsNotebook && !hasSharedAccess) {
-      throw new Error('Unauthorized: You do not have access to this notebook');
+      throw new Error("Unauthorized: You do not have access to this notebook");
     }
 
     const results = await db
@@ -1779,36 +2740,66 @@ export class StorageFacade implements IStorage {
       .orderBy(timelineEvents.startDate);
 
     return results.map((r) => r.timelineEvents);
-    return await contentRepository.getTimelineEventsForNotebook(notebookId, userId);
+    return await contentRepository.getTimelineEventsForNotebook(
+      notebookId,
+      userId,
+    );
   }
 
-  async updateTimelineEvent(id: string, userId: string, updates: Partial<InsertTimelineEvent>): Promise<TimelineEvent> {
+  async updateTimelineEvent(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTimelineEvent>,
+  ): Promise<TimelineEvent> {
     return await contentRepository.updateTimelineEvent(id, userId, updates);
   }
 
-  async deleteTimelineEvent(id: string, userId: string, timelineId: string): Promise<void> {
+  async deleteTimelineEvent(
+    id: string,
+    userId: string,
+    timelineId: string,
+  ): Promise<void> {
     await contentRepository.deleteTimelineEvent(id, userId, timelineId);
   }
 
   // Timeline Relationship methods
-  async createTimelineRelationship(relationship: InsertTimelineRelationship): Promise<TimelineRelationship> {
+  async createTimelineRelationship(
+    relationship: InsertTimelineRelationship,
+  ): Promise<TimelineRelationship> {
     return await contentRepository.createTimelineRelationship(relationship);
   }
 
-  async getTimelineRelationships(timelineId: string, userId: string): Promise<TimelineRelationship[]> {
+  async getTimelineRelationships(
+    timelineId: string,
+    userId: string,
+  ): Promise<TimelineRelationship[]> {
     return await contentRepository.getTimelineRelationships(timelineId, userId);
   }
 
-  async updateTimelineRelationship(id: string, userId: string, updates: Partial<InsertTimelineRelationship>): Promise<TimelineRelationship> {
-    return await contentRepository.updateTimelineRelationship(id, userId, updates);
+  async updateTimelineRelationship(
+    id: string,
+    userId: string,
+    updates: Partial<InsertTimelineRelationship>,
+  ): Promise<TimelineRelationship> {
+    return await contentRepository.updateTimelineRelationship(
+      id,
+      userId,
+      updates,
+    );
   }
 
-  async deleteTimelineRelationship(id: string, userId: string, timelineId: string): Promise<void> {
+  async deleteTimelineRelationship(
+    id: string,
+    userId: string,
+    timelineId: string,
+  ): Promise<void> {
     await contentRepository.deleteTimelineRelationship(id, userId, timelineId);
   }
 
   // User preferences methods
-  async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {
+  async getUserPreferences(
+    userId: string,
+  ): Promise<UserPreferences | undefined> {
     const [prefs] = await db
       .select()
       .from(userPreferences)
@@ -1816,25 +2807,40 @@ export class StorageFacade implements IStorage {
     return prefs || undefined;
   }
 
-  async upsertUserPreferences(userId: string, preferences: Partial<InsertUserPreferences>): Promise<UserPreferences> {
+  async upsertUserPreferences(
+    userId: string,
+    preferences: Partial<InsertUserPreferences>,
+  ): Promise<UserPreferences> {
     const [result] = await db
       .insert(userPreferences)
       .values({ ...preferences, userId })
       .onConflictDoUpdate({
         target: userPreferences.userId,
-        set: { ...preferences, updatedAt: new Date() }
+        set: { ...preferences, updatedAt: new Date() },
       })
       .returning();
     return result;
   }
 
   // Conversation summary methods
-  async getConversationSummary(userId: string, projectId?: string | null, guideId?: string | null): Promise<ConversationSummary | undefined> {
+  async getConversationSummary(
+    userId: string,
+    projectId?: string | null,
+    guideId?: string | null,
+  ): Promise<ConversationSummary | undefined> {
     const conditions = [eq(conversationSummaries.userId, userId)];
 
     // Always apply scope constraints - use NULL for undefined/null parameters
-    conditions.push(projectId ? eq(conversationSummaries.projectId, projectId) : isNull(conversationSummaries.projectId));
-    conditions.push(guideId ? eq(conversationSummaries.guideId, guideId) : isNull(conversationSummaries.guideId));
+    conditions.push(
+      projectId
+        ? eq(conversationSummaries.projectId, projectId)
+        : isNull(conversationSummaries.projectId),
+    );
+    conditions.push(
+      guideId
+        ? eq(conversationSummaries.guideId, guideId)
+        : isNull(conversationSummaries.guideId),
+    );
 
     const [summary] = await db
       .select()
@@ -1843,11 +2849,13 @@ export class StorageFacade implements IStorage {
     return summary || undefined;
   }
 
-  async upsertConversationSummary(summary: InsertConversationSummary): Promise<ConversationSummary> {
+  async upsertConversationSummary(
+    summary: InsertConversationSummary,
+  ): Promise<ConversationSummary> {
     const existingSummary = await this.getConversationSummary(
       summary.userId,
       summary.projectId || null,
-      summary.guideId || null
+      summary.guideId || null,
     );
 
     if (existingSummary) {
@@ -1866,11 +2874,20 @@ export class StorageFacade implements IStorage {
     }
   }
 
-  async updateConversationSummary(id: string, userId: string, updates: Partial<InsertConversationSummary>): Promise<ConversationSummary | undefined> {
+  async updateConversationSummary(
+    id: string,
+    userId: string,
+    updates: Partial<InsertConversationSummary>,
+  ): Promise<ConversationSummary | undefined> {
     const [updated] = await db
       .update(conversationSummaries)
       .set({ ...updates, updatedAt: new Date() })
-      .where(and(eq(conversationSummaries.id, id), eq(conversationSummaries.userId, userId)))
+      .where(
+        and(
+          eq(conversationSummaries.id, id),
+          eq(conversationSummaries.userId, userId),
+        ),
+      )
       .returning();
     return updated || undefined;
   }
@@ -1885,10 +2902,7 @@ export class StorageFacade implements IStorage {
   }
 
   async getAllFeedback(): Promise<Feedback[]> {
-    return await db
-      .select()
-      .from(feedback)
-      .orderBy(desc(feedback.createdAt));
+    return await db.select().from(feedback).orderBy(desc(feedback.createdAt));
   }
 
   async getFeedback(id: string): Promise<Feedback | undefined> {
@@ -1899,7 +2913,10 @@ export class StorageFacade implements IStorage {
     return result || undefined;
   }
 
-  async updateFeedbackStatus(id: string, status: string): Promise<Feedback | undefined> {
+  async updateFeedbackStatus(
+    id: string,
+    status: string,
+  ): Promise<Feedback | undefined> {
     const [updated] = await db
       .update(feedback)
       .set({ status, updatedAt: new Date() })
@@ -1916,7 +2933,10 @@ export class StorageFacade implements IStorage {
       .orderBy(desc(feedback.createdAt));
   }
 
-  async markFeedbackReplyAsRead(feedbackId: string, userId: string): Promise<Feedback | undefined> {
+  async markFeedbackReplyAsRead(
+    feedbackId: string,
+    userId: string,
+  ): Promise<Feedback | undefined> {
     const [updated] = await db
       .update(feedback)
       .set({ hasUnreadReply: false, updatedAt: new Date() })
@@ -1929,24 +2949,35 @@ export class StorageFacade implements IStorage {
     const [result] = await db
       .select({ count: sql<number>`COUNT(*)::int` })
       .from(feedback)
-      .where(and(
-        eq(feedback.userId, userId),
-        eq(feedback.hasUnreadReply, true)
-      ));
+      .where(
+        and(eq(feedback.userId, userId), eq(feedback.hasUnreadReply, true)),
+      );
     return result?.count || 0;
   }
 
-  async replyToFeedback(feedbackId: string, reply: string, adminUserId: string): Promise<Feedback | undefined> {
+  async replyToFeedback(
+    feedbackId: string,
+    reply: string,
+    adminUserId: string,
+  ): Promise<Feedback | undefined> {
     const [updated] = await db
       .update(feedback)
-      .set({ adminReply: reply, adminRepliedAt: new Date(), adminRepliedBy: adminUserId, hasUnreadReply: true, updatedAt: new Date() })
+      .set({
+        adminReply: reply,
+        adminRepliedAt: new Date(),
+        adminRepliedBy: adminUserId,
+        hasUnreadReply: true,
+        updatedAt: new Date(),
+      })
       .where(eq(feedback.id, feedbackId))
       .returning();
     return updated || undefined;
   }
 
   // Conversation thread methods
-  async createConversationThread(thread: InsertConversationThread): Promise<ConversationThread> {
+  async createConversationThread(
+    thread: InsertConversationThread,
+  ): Promise<ConversationThread> {
     const [newThread] = await db
       .insert(conversationThreads)
       .values(thread)
@@ -1954,18 +2985,28 @@ export class StorageFacade implements IStorage {
     return newThread;
   }
 
-  async getConversationThread(id: string, userId: string): Promise<ConversationThread | undefined> {
+  async getConversationThread(
+    id: string,
+    userId: string,
+  ): Promise<ConversationThread | undefined> {
     const [thread] = await db
       .select()
       .from(conversationThreads)
-      .where(and(
-        eq(conversationThreads.id, id),
-        eq(conversationThreads.userId, userId)
-      ));
+      .where(
+        and(
+          eq(conversationThreads.id, id),
+          eq(conversationThreads.userId, userId),
+        ),
+      );
     return thread || undefined;
   }
 
-  async getConversationThreads(filters: { userId: string, projectId?: string, guideId?: string, isActive?: boolean }): Promise<ConversationThread[]> {
+  async getConversationThreads(filters: {
+    userId: string;
+    projectId?: string;
+    guideId?: string;
+    isActive?: boolean;
+  }): Promise<ConversationThread[]> {
     const conditions = [eq(conversationThreads.userId, filters.userId)];
 
     // Add projectId filter if provided
@@ -1990,7 +3031,11 @@ export class StorageFacade implements IStorage {
       .orderBy(desc(conversationThreads.lastActivityAt));
   }
 
-  async searchConversationThreads(userId: string, query: string, filters?: { projectId?: string, guideId?: string }): Promise<ConversationThread[]> {
+  async searchConversationThreads(
+    userId: string,
+    query: string,
+    filters?: { projectId?: string; guideId?: string },
+  ): Promise<ConversationThread[]> {
     const searchPattern = `%${query}%`;
     const conditions = [eq(conversationThreads.userId, userId)];
 
@@ -2009,7 +3054,7 @@ export class StorageFacade implements IStorage {
       sql`EXISTS (
         SELECT 1 FROM unnest(${conversationThreads.tags}) AS tag 
         WHERE tag ILIKE ${searchPattern}
-      )`
+      )`,
     );
 
     conditions.push(searchConditions!);
@@ -2033,7 +3078,7 @@ export class StorageFacade implements IStorage {
 
     const matchingMessages = await db
       .select({
-        threadId: chatMessages.threadId
+        threadId: chatMessages.threadId,
       })
       .from(chatMessages)
       .where(and(...messageConditions))
@@ -2041,14 +3086,14 @@ export class StorageFacade implements IStorage {
 
     // Get threads for matching messages
     const messageThreadIds = matchingMessages
-      .map(m => m.threadId)
+      .map((m) => m.threadId)
       .filter((id): id is string => id !== null);
 
     let messageThreads: ConversationThread[] = [];
     if (messageThreadIds.length > 0) {
       const messageThreadConditions = [
         eq(conversationThreads.userId, userId),
-        inArray(conversationThreads.id, messageThreadIds)
+        inArray(conversationThreads.id, messageThreadIds),
       ];
 
       messageThreads = await db
@@ -2061,7 +3106,7 @@ export class StorageFacade implements IStorage {
     // Combine and deduplicate results
     const allThreads = [...threads, ...messageThreads];
     const uniqueThreads = Array.from(
-      new Map(allThreads.map(t => [t.id, t])).values()
+      new Map(allThreads.map((t) => [t.id, t])).values(),
     );
 
     // Sort by lastActivityAt descending
@@ -2072,17 +3117,23 @@ export class StorageFacade implements IStorage {
     });
   }
 
-  async updateConversationThread(id: string, userId: string, updates: Partial<InsertConversationThread>): Promise<ConversationThread | undefined> {
+  async updateConversationThread(
+    id: string,
+    userId: string,
+    updates: Partial<InsertConversationThread>,
+  ): Promise<ConversationThread | undefined> {
     const [updated] = await db
       .update(conversationThreads)
       .set({
         ...updates,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
-      .where(and(
-        eq(conversationThreads.id, id),
-        eq(conversationThreads.userId, userId)
-      ))
+      .where(
+        and(
+          eq(conversationThreads.id, id),
+          eq(conversationThreads.userId, userId),
+        ),
+      )
       .returning();
     return updated || undefined;
   }
@@ -2092,12 +3143,14 @@ export class StorageFacade implements IStorage {
       .update(conversationThreads)
       .set({
         lastActivityAt: new Date(),
-        messageCount: sql`${conversationThreads.messageCount} + 1`
+        messageCount: sql`${conversationThreads.messageCount} + 1`,
       })
-      .where(and(
-        eq(conversationThreads.id, threadId),
-        eq(conversationThreads.userId, userId)
-      ));
+      .where(
+        and(
+          eq(conversationThreads.id, threadId),
+          eq(conversationThreads.userId, userId),
+        ),
+      );
   }
 
   async deleteConversationThread(id: string, userId: string): Promise<void> {
@@ -2108,23 +3161,33 @@ export class StorageFacade implements IStorage {
       .where(eq(conversationThreads.id, id));
 
     if (!existing) {
-      throw new Error('Conversation thread not found');
+      throw new Error("Conversation thread not found");
     }
     if (existing.userId !== userId) {
-      throw new Error('Unauthorized: You do not own this conversation thread');
+      throw new Error("Unauthorized: You do not own this conversation thread");
     }
 
     // Delete the thread (cascade will handle messages)
     await db
       .delete(conversationThreads)
-      .where(and(
-        eq(conversationThreads.id, id),
-        eq(conversationThreads.userId, userId)
-      ));
+      .where(
+        and(
+          eq(conversationThreads.id, id),
+          eq(conversationThreads.userId, userId),
+        ),
+      );
   }
 
-  async getChatMessagesByThread(threadId: string, userId: string, limit?: number): Promise<ChatMessage[]> {
-    return await contentRepository.getChatMessagesByThread(threadId, userId, limit);
+  async getChatMessagesByThread(
+    threadId: string,
+    userId: string,
+    limit?: number,
+  ): Promise<ChatMessage[]> {
+    return await contentRepository.getChatMessagesByThread(
+      threadId,
+      userId,
+      limit,
+    );
   }
 }
 

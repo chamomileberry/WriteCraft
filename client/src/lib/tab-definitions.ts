@@ -1,10 +1,10 @@
 import { FormTabConfig } from "@/components/forms/types";
-import { 
-  createBasicInfoFields, 
-  createValueFields, 
-  createPhysicalFields, 
+import {
+  createBasicInfoFields,
+  createValueFields,
+  createPhysicalFields,
   createHistoryField,
-  createRelationshipFields
+  createRelationshipFields,
 } from "./field-definitions";
 
 /**
@@ -19,13 +19,13 @@ import {
  */
 export function createBasicInfoTab(
   contentType: string,
-  typeOptions?: string[]
+  typeOptions?: string[],
 ): FormTabConfig {
   return {
     id: "basic",
     label: "Basic Info",
     icon: "Info",
-    fields: createBasicInfoFields(contentType, typeOptions)
+    fields: createBasicInfoFields(contentType, typeOptions),
   };
 }
 
@@ -38,7 +38,7 @@ export function createPhysicalTab(contentType: string): FormTabConfig {
     id: "physical",
     label: "Physical Properties",
     icon: "Package",
-    fields: createPhysicalFields(contentType)
+    fields: createPhysicalFields(contentType),
   };
 }
 
@@ -58,16 +58,16 @@ export function createHistoryTab(contentType: string): FormTabConfig {
         label: "Cultural Significance",
         type: "textarea",
         placeholder: `The cultural importance and meaning of this ${contentType}...`,
-        description: `How this ${contentType} is viewed and used in society`
+        description: `How this ${contentType} is viewed and used in society`,
       },
       {
         name: "legends",
         label: "Legends & Stories",
         type: "textarea",
         placeholder: `Famous stories and legends about this ${contentType}...`,
-        description: `Notable tales, myths, or historical events involving this ${contentType}`
-      }
-    ]
+        description: `Notable tales, myths, or historical events involving this ${contentType}`,
+      },
+    ],
   };
 }
 
@@ -86,16 +86,17 @@ export function createValueTab(): FormTabConfig {
         label: "Availability",
         type: "text",
         placeholder: "Common in cities, rare in wilderness, etc.",
-        description: "Where and how easily this can be obtained"
+        description: "Where and how easily this can be obtained",
       },
       {
         name: "tradability",
         label: "Trade Information",
         type: "textarea",
-        placeholder: "Trading restrictions, preferred currencies, market conditions...",
-        description: "Important information about buying, selling, and trading"
-      }
-    ]
+        placeholder:
+          "Trading restrictions, preferred currencies, market conditions...",
+        description: "Important information about buying, selling, and trading",
+      },
+    ],
   };
 }
 
@@ -107,7 +108,7 @@ export function createRelationshipsTab(): FormTabConfig {
     id: "relationships",
     label: "Relationships",
     icon: "Users",
-    fields: createRelationshipFields()
+    fields: createRelationshipFields(),
   };
 }
 
@@ -126,30 +127,30 @@ export function createStatsTab(contentType: string): FormTabConfig {
         label: "Damage",
         type: "text",
         placeholder: "Damage rating or dice (e.g., 1d8+2)",
-        description: "Damage dealt by this item"
+        description: "Damage dealt by this item",
       },
       {
         name: "range",
         label: "Range",
         type: "text",
         placeholder: "Melee, 100 feet, etc.",
-        description: "Effective range of use"
+        description: "Effective range of use",
       },
       {
         name: "requirements",
         label: "Requirements",
         type: "text",
         placeholder: "Strength needed, training required, etc.",
-        description: "Prerequisites for using this item"
+        description: "Prerequisites for using this item",
       },
       {
         name: "maintenance",
         label: "Maintenance",
         type: "textarea",
         placeholder: `How to care for and maintain this ${contentType}...`,
-        description: "Upkeep requirements and care instructions"
-      }
-    ]
+        description: "Upkeep requirements and care instructions",
+      },
+    ],
   };
 }
 
@@ -168,23 +169,23 @@ export function createAbilitiesTab(contentType: string): FormTabConfig {
         label: "Special Abilities",
         type: "tags",
         placeholder: "flight, fire resistance, telepathy...",
-        description: "Special abilities or powers (comma-separated)"
+        description: "Special abilities or powers (comma-separated)",
       },
       {
         name: "enchantments",
         label: "Enchantments",
         type: "tags",
         placeholder: "fire damage, glowing, self-repairing...",
-        description: "Magical properties and enchantments (comma-separated)"
+        description: "Magical properties and enchantments (comma-separated)",
       },
       {
         name: "limitations",
         label: "Limitations",
         type: "textarea",
         placeholder: `Restrictions, drawbacks, or limitations of this ${contentType}...`,
-        description: "Any restrictions or negative aspects"
-      }
-    ]
+        description: "Any restrictions or negative aspects",
+      },
+    ],
   };
 }
 
@@ -197,7 +198,7 @@ export function createAbilitiesTab(contentType: string): FormTabConfig {
  */
 export function createItemTabSet(
   contentType: string,
-  typeOptions: string[]
+  typeOptions: string[],
 ): FormTabConfig[] {
   return [
     createBasicInfoTab(contentType, typeOptions),
@@ -205,7 +206,7 @@ export function createItemTabSet(
     createPhysicalTab(contentType),
     createAbilitiesTab(contentType),
     createValueTab(),
-    createHistoryTab(contentType)
+    createHistoryTab(contentType),
   ];
 }
 
@@ -214,7 +215,7 @@ export function createItemTabSet(
  */
 export function createCreatureTabSet(
   contentType: string,
-  typeOptions: string[]
+  typeOptions: string[],
 ): FormTabConfig[] {
   return [
     createBasicInfoTab(contentType, typeOptions),
@@ -228,23 +229,23 @@ export function createCreatureTabSet(
           label: "Physical Description",
           type: "textarea",
           placeholder: `Describe the physical appearance of this ${contentType}...`,
-          description: "Detailed description of physical characteristics"
+          description: "Detailed description of physical characteristics",
         },
         {
           name: "size",
           label: "Size",
           type: "text",
           placeholder: "Small, Medium, Large, etc.",
-          description: "The size category of this creature"
+          description: "The size category of this creature",
         },
         {
           name: "habitat",
           label: "Habitat",
           type: "text",
           placeholder: "Forest, desert, underwater, etc.",
-          description: "Natural environment where this creature lives"
-        }
-      ]
+          description: "Natural environment where this creature lives",
+        },
+      ],
     },
     {
       id: "behavior",
@@ -256,26 +257,26 @@ export function createCreatureTabSet(
           label: "Behavior",
           type: "textarea",
           placeholder: `How does this ${contentType} typically behave...`,
-          description: "Typical behavioral patterns and temperament"
+          description: "Typical behavioral patterns and temperament",
         },
         {
           name: "intelligence",
           label: "Intelligence",
           type: "text",
           placeholder: "Animal, Human-like, Genius, etc.",
-          description: "Level and type of intelligence"
+          description: "Level and type of intelligence",
         },
         {
           name: "socialStructure",
           label: "Social Structure",
           type: "textarea",
           placeholder: "Pack hunter, solitary, hive mind, etc.",
-          description: "How they interact with their own kind"
-        }
-      ]
+          description: "How they interact with their own kind",
+        },
+      ],
     },
     createAbilitiesTab(contentType),
-    createHistoryTab(contentType)
+    createHistoryTab(contentType),
   ];
 }
 
@@ -284,7 +285,7 @@ export function createCreatureTabSet(
  */
 export function createLocationTabSet(
   contentType: string,
-  typeOptions: string[]
+  typeOptions: string[],
 ): FormTabConfig[] {
   return [
     createBasicInfoTab(contentType, typeOptions),
@@ -298,23 +299,23 @@ export function createLocationTabSet(
           label: "Geography",
           type: "textarea",
           placeholder: "The physical layout and geographical features...",
-          description: "Terrain, climate, and physical characteristics"
+          description: "Terrain, climate, and physical characteristics",
         },
         {
           name: "size",
           label: "Size",
           type: "text",
           placeholder: "Area or dimensions",
-          description: "How large this location is"
+          description: "How large this location is",
         },
         {
           name: "landmarks",
           label: "Notable Landmarks",
           type: "tags",
           placeholder: "castle, river, ancient tree...",
-          description: "Important features and landmarks (comma-separated)"
-        }
-      ]
+          description: "Important features and landmarks (comma-separated)",
+        },
+      ],
     },
     {
       id: "inhabitants",
@@ -326,25 +327,25 @@ export function createLocationTabSet(
           label: "Population",
           type: "text",
           placeholder: "Number and types of inhabitants",
-          description: "Who lives here and how many"
+          description: "Who lives here and how many",
         },
         {
           name: "culture",
           label: "Culture",
           type: "textarea",
           placeholder: "Local customs, traditions, and way of life...",
-          description: "Cultural practices and social norms"
+          description: "Cultural practices and social norms",
         },
         {
           name: "government",
           label: "Government",
           type: "text",
           placeholder: "Type of governance or leadership",
-          description: "How this place is ruled or organized"
-        }
-      ]
+          description: "How this place is ruled or organized",
+        },
+      ],
     },
-    createHistoryTab(contentType)
+    createHistoryTab(contentType),
   ];
 }
 
@@ -353,7 +354,7 @@ export function createLocationTabSet(
  */
 export function createOrganizationTabSet(
   contentType: string,
-  typeOptions: string[]
+  typeOptions: string[],
 ): FormTabConfig[] {
   return [
     createBasicInfoTab(contentType, typeOptions),
@@ -368,23 +369,24 @@ export function createOrganizationTabSet(
           type: "autocomplete-character",
           placeholder: "Search or create leaders...",
           description: "Current leaders of this organization",
-          multiple: true
+          multiple: true,
         },
         {
           name: "structure",
           label: "Organizational Structure",
           type: "textarea",
           placeholder: "How the organization is structured and organized...",
-          description: "Hierarchy, ranks, departments, and organizational layout"
+          description:
+            "Hierarchy, ranks, departments, and organizational layout",
         },
         {
           name: "membership",
           label: "Membership",
           type: "textarea",
           placeholder: "Who can join, requirements, member count...",
-          description: "Information about membership and joining requirements"
-        }
-      ]
+          description: "Information about membership and joining requirements",
+        },
+      ],
     },
     {
       id: "purpose",
@@ -396,25 +398,25 @@ export function createOrganizationTabSet(
           label: "Primary Purpose",
           type: "textarea",
           placeholder: "The main goals and objectives of this organization...",
-          description: "What this organization exists to accomplish"
+          description: "What this organization exists to accomplish",
         },
         {
           name: "activities",
           label: "Activities",
-          type: "textarea", 
+          type: "textarea",
           placeholder: "Day-to-day activities and operations...",
-          description: "What this organization actually does"
+          description: "What this organization actually does",
         },
         {
           name: "resources",
           label: "Resources",
           type: "textarea",
           placeholder: "Funding, assets, capabilities...",
-          description: "Resources, funding sources, and capabilities"
-        }
-      ]
+          description: "Resources, funding sources, and capabilities",
+        },
+      ],
     },
     createRelationshipsTab(),
-    createHistoryTab(contentType)
+    createHistoryTab(contentType),
   ];
 }

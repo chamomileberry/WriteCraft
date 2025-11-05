@@ -16,7 +16,7 @@ export const characterNavigation: CharacterNavigationSection[] = [
     icon: User,
     description: "Basic information and identity",
     tabIds: ["basic"],
-    color: "bg-card dark:bg-card border-border dark:border-border"
+    color: "bg-card dark:bg-card border-border dark:border-border",
   },
   {
     id: "appearance",
@@ -24,7 +24,7 @@ export const characterNavigation: CharacterNavigationSection[] = [
     icon: Eye,
     description: "Physical appearance and traits",
     tabIds: ["physical", "facial", "marks"],
-    color: "bg-card dark:bg-card border-border dark:border-border"
+    color: "bg-card dark:bg-card border-border dark:border-border",
   },
   {
     id: "mind",
@@ -32,7 +32,7 @@ export const characterNavigation: CharacterNavigationSection[] = [
     icon: Brain,
     description: "Personality, relationships, and mental traits",
     tabIds: ["personality", "flaws"],
-    color: "bg-card dark:bg-card border-border dark:border-border"
+    color: "bg-card dark:bg-card border-border dark:border-border",
   },
   {
     id: "powers",
@@ -40,7 +40,7 @@ export const characterNavigation: CharacterNavigationSection[] = [
     icon: Zap,
     description: "Abilities, skills, and special powers",
     tabIds: ["skills", "supernatural", "equipment"],
-    color: "bg-card dark:bg-card border-border dark:border-border"
+    color: "bg-card dark:bg-card border-border dark:border-border",
   },
   {
     id: "background",
@@ -48,6 +48,6 @@ export const characterNavigation: CharacterNavigationSection[] = [
     icon: BookOpen,
     description: "History, lifestyle, and cultural background",
     tabIds: ["background", "legacy"],
-    color: "bg-card dark:bg-card border-border dark:border-border"
-  }
+    color: "bg-card dark:bg-card border-border dark:border-border",
+  },
 ];

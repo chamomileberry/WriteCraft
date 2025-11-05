@@ -11,11 +11,11 @@ import { RedisStore } from "connect-redis";
 import { getRedisClient } from "./services/redisClient";
 import { sessionManager } from "./services/sessionManager";
 import { storage } from "./storage";
-import { 
-  authRateLimiter, 
-  sessionRateLimiter, 
-  userSearchRateLimiter, 
-  profileRateLimiter 
+import {
+  authRateLimiter,
+  sessionRateLimiter,
+  userSearchRateLimiter,
+  profileRateLimiter,
 } from "./security/rateLimiters";
 
 if (!process.env.REPLIT_DOMAINS) {
@@ -26,43 +26,45 @@ const getOidcConfig = memoize(
   async () => {
     return await client.discovery(
       new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
-      process.env.REPL_ID!
+      process.env.REPL_ID!,
     );
   },
-  { maxAge: 3600 * 1000 }
+  { maxAge: 3600 * 1000 },
 );
 
 // Helper function to check if path is a static asset
 // Used by session, passport, and CSRF middlewares to skip unnecessary processing
 const isStaticAsset = (path: string): boolean => {
   return (
-    path.startsWith('/@fs/') ||
-    path.startsWith('/@vite/') ||
-    path.startsWith('/assets/') ||
-    path.startsWith('/node_modules/') ||
-    path.startsWith('/@id/') ||
-    path === '/api/csp-report' // CSP reports are browser-generated
+    path.startsWith("/@fs/") ||
+    path.startsWith("/@vite/") ||
+    path.startsWith("/assets/") ||
+    path.startsWith("/node_modules/") ||
+    path.startsWith("/@id/") ||
+    path === "/api/csp-report" // CSP reports are browser-generated
   );
 };
 
 export async function getSession(): Promise<RequestHandler[]> {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  
+
   // Try to use Redis for session storage (faster, scalable)
   const redisClient = await getRedisClient();
-  
+
   let sessionStore;
   if (redisClient) {
     sessionStore = new RedisStore({
       client: redisClient,
-      prefix: 'writecraft:session:',
+      prefix: "writecraft:session:",
       ttl: sessionTtl / 1000, // Redis expects TTL in seconds
     });
-    console.log('[SESSION] Using Redis session store');
+    console.log("[SESSION] Using Redis session store");
   } else {
     // Fallback to PostgreSQL if Redis is not available
-    console.log('[SESSION] Redis unavailable, falling back to PostgreSQL session store');
-    const connectPg = (await import('connect-pg-simple')).default;
+    console.log(
+      "[SESSION] Redis unavailable, falling back to PostgreSQL session store",
+    );
+    const connectPg = (await import("connect-pg-simple")).default;
     const pgStore = connectPg(session);
     sessionStore = new pgStore({
       conString: process.env.DATABASE_URL,
@@ -72,7 +74,7 @@ export async function getSession(): Promise<RequestHandler[]> {
       pruneSessionInterval: 60 * 15, // Prune expired sessions every 15 minutes (in seconds)
     });
   }
-  
+
   const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET!,
     store: sessionStore,
@@ -81,7 +83,7 @@ export async function getSession(): Promise<RequestHandler[]> {
     cookie: {
       httpOnly: true,
       secure: true,
-      sameSite: 'lax', // CSRF protection
+      sameSite: "lax", // CSRF protection
       maxAge: sessionTtl,
     },
   });
@@ -118,7 +120,7 @@ export async function getSession(): Promise<RequestHandler[]> {
 
 function updateUserSession(
   user: any,
-  tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers
+  tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
 ) {
   user.claims = tokens.claims();
   user.access_token = tokens.access_token;
@@ -126,9 +128,7 @@ function updateUserSession(
   user.expires_at = user.claims?.exp;
 }
 
-async function upsertUser(
-  claims: any,
-) {
+async function upsertUser(claims: any) {
   await storage.upsertUser({
     id: claims["sub"],
     email: claims["email"],
@@ -141,7 +141,8 @@ async function upsertUser(
 export async function setupAuth(app: Express) {
   app.set("trust proxy", 1);
 
-  const [conditionalSessionMiddleware, conditionalCsrfMiddleware] = await getSession();
+  const [conditionalSessionMiddleware, conditionalCsrfMiddleware] =
+    await getSession();
 
   // Apply session middleware (conditionally skips static assets)
   app.use(conditionalSessionMiddleware);
@@ -166,7 +167,7 @@ export async function setupAuth(app: Express) {
 
   const verify: VerifyFunction = async (
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
-    verified: passport.AuthenticateCallback
+    verified: passport.AuthenticateCallback,
   ) => {
     const user = {};
     updateUserSession(user, tokens);
@@ -174,8 +175,7 @@ export async function setupAuth(app: Express) {
     verified(null, user);
   };
 
-  for (const domain of process.env
-    .REPLIT_DOMAINS!.split(",")) {
+  for (const domain of process.env.REPLIT_DOMAINS!.split(",")) {
     const strategy = new Strategy(
       {
         name: `replitauth:${domain}`,
@@ -200,54 +200,60 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/callback", authRateLimiter, (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, (err: any, user: any) => {
-      if (err) {
-        console.error('[AUTH] Authentication error:', err);
-        return res.redirect("/api/login");
-      }
-      if (!user) {
-        return res.redirect("/api/login");
-      }
-      
-      // Store the return URL before regenerating session
-      const returnTo = (req.session as any).returnTo || "/";
-      
-      // Regenerate session to prevent session fixation attacks
-      req.session.regenerate((regenerateErr) => {
-        if (regenerateErr) {
-          console.error('[AUTH] Session regeneration error:', regenerateErr);
+    passport.authenticate(
+      `replitauth:${req.hostname}`,
+      (err: any, user: any) => {
+        if (err) {
+          console.error("[AUTH] Authentication error:", err);
           return res.redirect("/api/login");
         }
-        
-        // Restore returnTo after regeneration
-        (req.session as any).returnTo = returnTo;
-        
-        req.logIn(user, async (loginErr) => {
-          if (loginErr) {
-            console.error('[AUTH] Login error:', loginErr);
+        if (!user) {
+          return res.redirect("/api/login");
+        }
+
+        // Store the return URL before regenerating session
+        const returnTo = (req.session as any).returnTo || "/";
+
+        // Regenerate session to prevent session fixation attacks
+        req.session.regenerate((regenerateErr) => {
+          if (regenerateErr) {
+            console.error("[AUTH] Session regeneration error:", regenerateErr);
             return res.redirect("/api/login");
           }
-          
-          // Register session for concurrent session limiting
-          const userId = user.claims?.sub;
-          const sessionId = req.sessionID;
-          if (userId && sessionId) {
-            try {
-              await sessionManager.registerSession(userId, sessionId, req);
-              console.log(`[SESSION] Registered session for user ${userId}`);
-            } catch (sessionErr) {
-              console.error('[SESSION] Failed to register session:', sessionErr);
-              // Don't fail the login, just log the error
+
+          // Restore returnTo after regeneration
+          (req.session as any).returnTo = returnTo;
+
+          req.logIn(user, async (loginErr) => {
+            if (loginErr) {
+              console.error("[AUTH] Login error:", loginErr);
+              return res.redirect("/api/login");
             }
-          }
-          
-          // Clear returnTo and redirect
-          const destination = (req.session as any).returnTo || "/";
-          delete (req.session as any).returnTo;
-          return res.redirect(destination);
+
+            // Register session for concurrent session limiting
+            const userId = user.claims?.sub;
+            const sessionId = req.sessionID;
+            if (userId && sessionId) {
+              try {
+                await sessionManager.registerSession(userId, sessionId, req);
+                console.log(`[SESSION] Registered session for user ${userId}`);
+              } catch (sessionErr) {
+                console.error(
+                  "[SESSION] Failed to register session:",
+                  sessionErr,
+                );
+                // Don't fail the login, just log the error
+              }
+            }
+
+            // Clear returnTo and redirect
+            const destination = (req.session as any).returnTo || "/";
+            delete (req.session as any).returnTo;
+            return res.redirect(destination);
+          });
         });
-      });
-    })(req, res, next);
+      },
+    )(req, res, next);
   });
 
   // SECURITY: GET logout endpoint for OIDC redirect flow with CSRF mitigation
@@ -266,14 +272,19 @@ export async function setupAuth(app: Express) {
     if (referer) {
       try {
         const refererUrl = new URL(referer);
-        const requestHost = host?.split(':')[0]; // Remove port if present
+        const requestHost = host?.split(":")[0]; // Remove port if present
         const refererHost = refererUrl.hostname;
 
         // Block if referer is from different domain
-        if (refererHost !== requestHost && refererHost !== `www.${requestHost}`) {
-          console.warn(`[SECURITY] Blocked cross-origin logout attempt from ${refererHost} to ${requestHost}`);
+        if (
+          refererHost !== requestHost &&
+          refererHost !== `www.${requestHost}`
+        ) {
+          console.warn(
+            `[SECURITY] Blocked cross-origin logout attempt from ${refererHost} to ${requestHost}`,
+          );
           return res.status(403).json({
-            message: "Logout must be initiated from the same domain"
+            message: "Logout must be initiated from the same domain",
           });
         }
       } catch (error) {
@@ -284,7 +295,9 @@ export async function setupAuth(app: Express) {
     } else if (req.isAuthenticated && req.isAuthenticated()) {
       // No referer but user is authenticated - potentially suspicious
       // Some browsers don't send referer, so we allow but log it
-      console.warn(`[SECURITY] Logout without referer header - user: ${(req.user as any)?.claims?.sub}`);
+      console.warn(
+        `[SECURITY] Logout without referer header - user: ${(req.user as any)?.claims?.sub}`,
+      );
     }
 
     const userId = (req.user as any)?.claims?.sub;
@@ -297,7 +310,7 @@ export async function setupAuth(app: Express) {
           await sessionManager.removeSession(userId, sessionId);
           console.log(`[SESSION] Removed session for user ${userId}`);
         } catch (sessionErr) {
-          console.error('[SESSION] Failed to remove session:', sessionErr);
+          console.error("[SESSION] Failed to remove session:", sessionErr);
         }
       }
 
@@ -305,91 +318,103 @@ export async function setupAuth(app: Express) {
         client.buildEndSessionUrl(config, {
           client_id: process.env.REPL_ID!,
           post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
-        }).href
+        }).href,
       );
     });
   });
 
   // Get current authenticated user
-  app.get("/api/auth/user", isAuthenticated, profileRateLimiter, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+  app.get(
+    "/api/auth/user",
+    isAuthenticated,
+    profileRateLimiter,
+    async (req: any, res) => {
+      try {
+        const userId = req.user.claims.sub;
+        const user = await storage.getUser(userId);
+
+        if (!user) {
+          return res.status(404).json({ error: "User not found" });
+        }
+
+        res.json(user);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        res.status(500).json({ error: "Failed to fetch user" });
       }
-      
-      res.json(user);
-    } catch (error) {
-      console.error('Error fetching user:', error);
-      res.status(500).json({ error: 'Failed to fetch user' });
-    }
-  });
+    },
+  );
 
   // User search endpoint for collaboration
-  app.get("/api/auth/users/search", isAuthenticated, userSearchRateLimiter, async (req: any, res) => {
-    try {
-      const query = req.query.q;
-      if (typeof query !== "string" || query.length < 2) {
-        return res.json([]);
-      }
+  app.get(
+    "/api/auth/users/search",
+    isAuthenticated,
+    userSearchRateLimiter,
+    async (req: any, res) => {
+      try {
+        const query = req.query.q;
+        if (typeof query !== "string" || query.length < 2) {
+          return res.json([]);
+        }
 
-      const users = await storage.searchUsers(query);
-      
-      // Remove sensitive information and current user from results
-      const currentUserId = req.user.claims.sub;
-      const sanitizedUsers = users
-        .filter((u: any) => u.id !== currentUserId)
-        .map((u: any) => ({
-          id: u.id,
-          email: u.email,
-          firstName: u.firstName,
-          lastName: u.lastName,
-          profileImageUrl: u.profileImageUrl,
-        }));
-      
-      res.json(sanitizedUsers);
-    } catch (error) {
-      console.error('Error searching users:', error);
-      res.status(500).json({ error: 'Failed to search users' });
-    }
-  });
+        const users = await storage.searchUsers(query);
+
+        // Remove sensitive information and current user from results
+        const currentUserId = req.user.claims.sub;
+        const sanitizedUsers = users
+          .filter((u: any) => u.id !== currentUserId)
+          .map((u: any) => ({
+            id: u.id,
+            email: u.email,
+            firstName: u.firstName,
+            lastName: u.lastName,
+            profileImageUrl: u.profileImageUrl,
+          }));
+
+        res.json(sanitizedUsers);
+      } catch (error) {
+        console.error("Error searching users:", error);
+        res.status(500).json({ error: "Failed to search users" });
+      }
+    },
+  );
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   // SECURITY: Block test mode bypass in production
-  if (process.env.NODE_ENV === 'production' && req.headers['x-test-user-id']) {
-    console.error(`[SECURITY CRITICAL] Test mode bypass attempt in production - IP: ${req.ip}, User-Agent: ${req.headers['user-agent']}`);
+  if (process.env.NODE_ENV === "production" && req.headers["x-test-user-id"]) {
+    console.error(
+      `[SECURITY CRITICAL] Test mode bypass attempt in production - IP: ${req.ip}, User-Agent: ${req.headers["user-agent"]}`,
+    );
     // Log additional details for security audit
     const securityLog = {
-      type: 'TEST_MODE_BYPASS_ATTEMPT',
+      type: "TEST_MODE_BYPASS_ATTEMPT",
       timestamp: new Date().toISOString(),
       ip: req.ip,
       headers: {
-        'x-test-user-id': req.headers['x-test-user-id'],
-        'user-agent': req.headers['user-agent'],
-        'referer': req.headers['referer']
-      }
+        "x-test-user-id": req.headers["x-test-user-id"],
+        "user-agent": req.headers["user-agent"],
+        referer: req.headers["referer"],
+      },
     };
-    console.error('[SECURITY AUDIT]', JSON.stringify(securityLog));
+    console.error("[SECURITY AUDIT]", JSON.stringify(securityLog));
     return res.status(403).json({ message: "Forbidden" });
   }
-  
+
   // Enhanced test mode validation - only in actual test environment
-  if (process.env.NODE_ENV === 'test' && req.headers['x-test-user-id']) {
-    const testUserId = req.headers['x-test-user-id'] as string;
-    
+  if (process.env.NODE_ENV === "test" && req.headers["x-test-user-id"]) {
+    const testUserId = req.headers["x-test-user-id"] as string;
+
     // Validate test user ID format to prevent injection
     if (!/^test-user-[a-z0-9-]+$/.test(testUserId)) {
       console.error(`[SECURITY] Invalid test user ID format: ${testUserId}`);
       return res.status(403).json({ message: "Forbidden" });
     }
-    
+
     (req as any).user = {
       claims: {
-        sub: testUserId
-      }
+        sub: testUserId,
+      },
     };
     return next();
   }

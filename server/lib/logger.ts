@@ -1,55 +1,57 @@
-import pino from 'pino';
+import pino from "pino";
 
-const isDevelopment = process.env.NODE_ENV === 'development';
+const isDevelopment = process.env.NODE_ENV === "development";
 
 // Create Pino logger instance with appropriate configuration
 export const logger = pino({
-  level: process.env.LOG_LEVEL || (isDevelopment ? 'debug' : 'info'),
-  
+  level: process.env.LOG_LEVEL || (isDevelopment ? "debug" : "info"),
+
   // Pretty print in development, JSON in production
-  transport: isDevelopment ? {
-    target: 'pino-pretty',
-    options: {
-      colorize: true,
-      translateTime: 'HH:MM:ss',
-      ignore: 'pid,hostname',
-      singleLine: false,
-    }
-  } : undefined,
-  
+  transport: isDevelopment
+    ? {
+        target: "pino-pretty",
+        options: {
+          colorize: true,
+          translateTime: "HH:MM:ss",
+          ignore: "pid,hostname",
+          singleLine: false,
+        },
+      }
+    : undefined,
+
   // Base context for all logs
   base: {
     env: process.env.NODE_ENV,
-    version: process.env.npm_package_version || 'unknown',
+    version: process.env.npm_package_version || "unknown",
   },
-  
+
   // Redact sensitive fields
   redact: {
     paths: [
-      'password',
-      'apiKey',
-      'token',
-      'secret',
-      'authorization',
-      'cookie',
-      '*.password',
-      '*.apiKey',
-      '*.token',
-      '*.secret',
-      'req.headers.authorization',
-      'req.headers.cookie',
+      "password",
+      "apiKey",
+      "token",
+      "secret",
+      "authorization",
+      "cookie",
+      "*.password",
+      "*.apiKey",
+      "*.token",
+      "*.secret",
+      "req.headers.authorization",
+      "req.headers.cookie",
       'res.headers["set-cookie"]',
     ],
     remove: true,
   },
-  
+
   // Serialize errors properly
   serializers: {
     err: pino.stdSerializers.err,
     req: pino.stdSerializers.req,
     res: pino.stdSerializers.res,
   },
-  
+
   // Timestamp format
   timestamp: pino.stdTimeFunctions.isoTime,
 });
@@ -74,13 +76,16 @@ export function logAIOperation(
     duration?: number;
     success: boolean;
     error?: string;
-  }
+  },
 ) {
-  logger.info({
-    type: 'ai_operation',
-    operation,
-    ...metadata,
-  }, `AI operation: ${operation}`);
+  logger.info(
+    {
+      type: "ai_operation",
+      operation,
+      ...metadata,
+    },
+    `AI operation: ${operation}`,
+  );
 }
 
 /**
@@ -91,16 +96,19 @@ export function logSecurityEvent(
   metadata: {
     userId?: string;
     ipAddress?: string;
-    severity: 'low' | 'medium' | 'high' | 'critical';
+    severity: "low" | "medium" | "high" | "critical";
     blocked: boolean;
     reason: string;
-  }
+  },
 ) {
-  logger.warn({
-    type: 'security_event',
-    event,
-    ...metadata,
-  }, `Security event: ${event}`);
+  logger.warn(
+    {
+      type: "security_event",
+      event,
+      ...metadata,
+    },
+    `Security event: ${event}`,
+  );
 }
 
 /**
@@ -113,14 +121,17 @@ export function logAPIError(
     userId?: string;
     statusCode?: number;
     duration?: number;
-  }
+  },
 ) {
-  logger.error({
-    type: 'api_error',
-    endpoint,
-    err: error,
-    ...metadata,
-  }, `API error on ${endpoint}: ${error.message}`);
+  logger.error(
+    {
+      type: "api_error",
+      endpoint,
+      err: error,
+      ...metadata,
+    },
+    `API error on ${endpoint}: ${error.message}`,
+  );
 }
 
 /**
@@ -134,14 +145,17 @@ export function logDatabaseOperation(
     success: boolean;
     error?: string;
     rowCount?: number;
-  }
+  },
 ) {
-  const level = metadata.success ? 'debug' : 'error';
-  logger[level]({
-    type: 'database_operation',
-    operation,
-    ...metadata,
-  }, `Database operation: ${operation}`);
+  const level = metadata.success ? "debug" : "error";
+  logger[level](
+    {
+      type: "database_operation",
+      operation,
+      ...metadata,
+    },
+    `Database operation: ${operation}`,
+  );
 }
 
 /**
@@ -155,13 +169,16 @@ export function logUserAction(
     resourceId?: string;
     ipAddress?: string;
     details?: Record<string, any>;
-  }
+  },
 ) {
-  logger.info({
-    type: 'user_action',
-    action,
-    ...metadata,
-  }, `User action: ${action}`);
+  logger.info(
+    {
+      type: "user_action",
+      action,
+      ...metadata,
+    },
+    `User action: ${action}`,
+  );
 }
 
 /**
@@ -170,14 +187,17 @@ export function logUserAction(
 export function logPerformance(
   operation: string,
   duration: number,
-  metadata?: Record<string, any>
+  metadata?: Record<string, any>,
 ) {
-  logger.info({
-    type: 'performance',
-    operation,
-    duration,
-    ...metadata,
-  }, `Performance: ${operation} took ${duration}ms`);
+  logger.info(
+    {
+      type: "performance",
+      operation,
+      duration,
+      ...metadata,
+    },
+    `Performance: ${operation} took ${duration}ms`,
+  );
 }
 
 export default logger;

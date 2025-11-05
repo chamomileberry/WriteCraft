@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,7 +41,17 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
-import { Key, Plus, Trash2, RefreshCw, Copy, Check, Eye, EyeOff, Crown } from "lucide-react";
+import {
+  Key,
+  Plus,
+  Trash2,
+  RefreshCw,
+  Copy,
+  Check,
+  Eye,
+  EyeOff,
+  Crown,
+} from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface ApiKey {
@@ -61,7 +77,9 @@ export function APIKeysSettings() {
   const { tier } = useSubscription();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
-  const [newKeyScope, setNewKeyScope] = useState<"read" | "write" | "admin">("read");
+  const [newKeyScope, setNewKeyScope] = useState<"read" | "write" | "admin">(
+    "read",
+  );
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState(false);
   const [showNewKey, setShowNewKey] = useState(true);
@@ -74,14 +92,14 @@ export function APIKeysSettings() {
     queryKey: ["/api/api-keys"],
     enabled: hasApiAccess,
   });
-  
+
   const apiKeys = data?.apiKeys || [];
 
   // Create API key mutation
   const createKeyMutation = useMutation({
     mutationFn: async (data: { name: string; scope: string }) => {
       const response = await apiRequest("POST", "/api/api-keys", data);
-      return await response.json() as NewKeyResponse;
+      return (await response.json()) as NewKeyResponse;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/api-keys"] });
@@ -90,7 +108,8 @@ export function APIKeysSettings() {
       setNewKeyScope("read");
       toast({
         title: "API key created",
-        description: "Your new API key has been created. Make sure to copy it now!",
+        description:
+          "Your new API key has been created. Make sure to copy it now!",
       });
     },
     onError: (error: any) => {
@@ -126,8 +145,11 @@ export function APIKeysSettings() {
   // Rotate API key mutation
   const rotateKeyMutation = useMutation({
     mutationFn: async (keyId: string) => {
-      const response = await apiRequest("POST", `/api/api-keys/${keyId}/rotate`);
-      return await response.json() as NewKeyResponse;
+      const response = await apiRequest(
+        "POST",
+        `/api/api-keys/${keyId}/rotate`,
+      );
+      return (await response.json()) as NewKeyResponse;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/api-keys"] });
@@ -135,7 +157,8 @@ export function APIKeysSettings() {
       setShowNewKey(true);
       toast({
         title: "API key rotated",
-        description: "Your API key has been rotated. Make sure to copy the new key!",
+        description:
+          "Your API key has been rotated. Make sure to copy the new key!",
       });
     },
     onError: () => {
@@ -195,8 +218,9 @@ export function APIKeysSettings() {
             <div>
               <h3 className="font-semibold mb-2">Professional Feature</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                API access is available on Professional and Team plans. Upgrade to access the WriteCraft API
-                and integrate your writing workflow with external tools.
+                API access is available on Professional and Team plans. Upgrade
+                to access the WriteCraft API and integrate your writing workflow
+                with external tools.
               </p>
             </div>
             <Button variant="default" data-testid="button-upgrade-api">
@@ -234,7 +258,8 @@ export function APIKeysSettings() {
                 <DialogHeader>
                   <DialogTitle>Create API Key</DialogTitle>
                   <DialogDescription>
-                    Create a new API key to access the WriteCraft API programmatically
+                    Create a new API key to access the WriteCraft API
+                    programmatically
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
@@ -253,14 +278,28 @@ export function APIKeysSettings() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="key-scope">Permissions</Label>
-                    <Select value={newKeyScope} onValueChange={(v) => setNewKeyScope(v as "read" | "write" | "admin")}>
-                      <SelectTrigger id="key-scope" data-testid="select-api-key-scope">
+                    <Select
+                      value={newKeyScope}
+                      onValueChange={(v) =>
+                        setNewKeyScope(v as "read" | "write" | "admin")
+                      }
+                    >
+                      <SelectTrigger
+                        id="key-scope"
+                        data-testid="select-api-key-scope"
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="read">Read Only - View data</SelectItem>
-                        <SelectItem value="write">Read & Write - View and modify data</SelectItem>
-                        <SelectItem value="admin">Admin - Full access including deletion</SelectItem>
+                        <SelectItem value="read">
+                          Read Only - View data
+                        </SelectItem>
+                        <SelectItem value="write">
+                          Read & Write - View and modify data
+                        </SelectItem>
+                        <SelectItem value="admin">
+                          Admin - Full access including deletion
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground">
@@ -308,28 +347,41 @@ export function APIKeysSettings() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
-                          <h4 className="font-semibold truncate" data-testid={`text-key-name-${key.id}`}>
+                          <h4
+                            className="font-semibold truncate"
+                            data-testid={`text-key-name-${key.id}`}
+                          >
                             {key.name}
                           </h4>
-                          <Badge variant="secondary" data-testid={`badge-key-scope-${key.id}`}>
+                          <Badge
+                            variant="secondary"
+                            data-testid={`badge-key-scope-${key.id}`}
+                          >
                             {key.scope}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground font-mono mb-2" data-testid={`text-key-prefix-${key.id}`}>
+                        <p
+                          className="text-sm text-muted-foreground font-mono mb-2"
+                          data-testid={`text-key-prefix-${key.id}`}
+                        >
                           {key.prefix}••••••••••••••••••••••••••••••
                         </p>
                         <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
                           <span data-testid={`text-key-usage-${key.id}`}>
-                            {key.requestsThisMonth.toLocaleString()} / {key.monthlyRateLimit.toLocaleString()} requests this month
+                            {key.requestsThisMonth.toLocaleString()} /{" "}
+                            {key.monthlyRateLimit.toLocaleString()} requests
+                            this month
                           </span>
                           {key.lastUsed && (
                             <span data-testid={`text-key-last-used-${key.id}`}>
-                              Last used: {new Date(key.lastUsed).toLocaleDateString()}
+                              Last used:{" "}
+                              {new Date(key.lastUsed).toLocaleDateString()}
                             </span>
                           )}
                           {key.expiresAt && (
                             <span data-testid={`text-key-expires-${key.id}`}>
-                              Expires: {new Date(key.expiresAt).toLocaleDateString()}
+                              Expires:{" "}
+                              {new Date(key.expiresAt).toLocaleDateString()}
                             </span>
                           )}
                         </div>
@@ -356,16 +408,24 @@ export function APIKeysSettings() {
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </AlertDialogTrigger>
-                          <AlertDialogContent data-testid={`dialog-revoke-key-${key.id}`}>
+                          <AlertDialogContent
+                            data-testid={`dialog-revoke-key-${key.id}`}
+                          >
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Revoke API Key</AlertDialogTitle>
+                              <AlertDialogTitle>
+                                Revoke API Key
+                              </AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to revoke "{key.name}"? This action cannot be undone and any
-                                applications using this key will stop working immediately.
+                                Are you sure you want to revoke "{key.name}"?
+                                This action cannot be undone and any
+                                applications using this key will stop working
+                                immediately.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel data-testid={`button-cancel-revoke-${key.id}`}>
+                              <AlertDialogCancel
+                                data-testid={`button-cancel-revoke-${key.id}`}
+                              >
                                 Cancel
                               </AlertDialogCancel>
                               <AlertDialogAction
@@ -394,7 +454,8 @@ export function APIKeysSettings() {
             <DialogHeader>
               <DialogTitle>API Key Created Successfully</DialogTitle>
               <DialogDescription>
-                Make sure to copy your API key now. You won't be able to see it again!
+                Make sure to copy your API key now. You won't be able to see it
+                again!
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -403,7 +464,11 @@ export function APIKeysSettings() {
                 <div className="flex gap-2">
                   <div className="relative flex-1">
                     <Input
-                      value={showNewKey ? newlyCreatedKey : "•".repeat(newlyCreatedKey.length)}
+                      value={
+                        showNewKey
+                          ? newlyCreatedKey
+                          : "•".repeat(newlyCreatedKey.length)
+                      }
                       readOnly
                       className="font-mono text-sm pr-10"
                       data-testid="input-new-api-key"
@@ -415,24 +480,36 @@ export function APIKeysSettings() {
                       onClick={() => setShowNewKey(!showNewKey)}
                       data-testid="button-toggle-key-visibility"
                     >
-                      {showNewKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showNewKey ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
                     </Button>
                   </div>
                   <Button
                     onClick={() => handleCopyKey(newlyCreatedKey)}
                     data-testid="button-copy-api-key"
                   >
-                    {copiedKey ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+                    {copiedKey ? (
+                      <Check className="w-4 h-4 mr-2" />
+                    ) : (
+                      <Copy className="w-4 h-4 mr-2" />
+                    )}
                     {copiedKey ? "Copied!" : "Copy"}
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Store this key securely. It provides access to your WriteCraft data.
+                  Store this key securely. It provides access to your WriteCraft
+                  data.
                 </p>
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handleCloseNewKeyDialog} data-testid="button-close-new-key-dialog">
+              <Button
+                onClick={handleCloseNewKeyDialog}
+                data-testid="button-close-new-key-dialog"
+              >
                 I've Saved My Key
               </Button>
             </DialogFooter>

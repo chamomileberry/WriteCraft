@@ -1,22 +1,25 @@
-import { ReactRenderer } from '@tiptap/react';
-import tippy from 'tippy.js';
-import MentionList from '@/components/MentionList';
+import { ReactRenderer } from "@tiptap/react";
+import tippy from "tippy.js";
+import MentionList from "@/components/MentionList";
 
 export const suggestion = {
   items: async ({ query }: { query: string }) => {
     if (!query) return [];
-    
+
     try {
-      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`, {
-        credentials: 'include'
-      });
-      
+      const response = await fetch(
+        `/api/search?q=${encodeURIComponent(query)}`,
+        {
+          credentials: "include",
+        },
+      );
+
       if (!response.ok) return [];
-      
+
       const results = await response.json();
       return results.slice(0, 10); // Limit to 10 suggestions
     } catch (error) {
-      console.error('Error fetching suggestions:', error);
+      console.error("Error fetching suggestions:", error);
       return [];
     }
   },
@@ -36,14 +39,14 @@ export const suggestion = {
           return;
         }
 
-        popup = tippy('body', {
+        popup = tippy("body", {
           getReferenceClientRect: props.clientRect,
           appendTo: () => document.body,
           content: component.element,
           showOnCreate: true,
           interactive: true,
-          trigger: 'manual',
-          placement: 'bottom-start',
+          trigger: "manual",
+          placement: "bottom-start",
         });
       },
 
@@ -63,14 +66,14 @@ export const suggestion = {
       command: ({ editor, range, props }: any) => {
         // Guard against malformed search results
         if (!props || !props.id) {
-          console.error('Invalid mention props:', props);
+          console.error("Invalid mention props:", props);
           return;
         }
 
         const mentionData = {
           id: props.id,
           label: props.title || props.id, // Fallback to id if title is missing
-          type: props.type || 'item'
+          type: props.type || "item",
         };
 
         editor
@@ -78,25 +81,29 @@ export const suggestion = {
           .focus()
           .insertContentAt(range, [
             {
-              type: 'mention',
+              type: "mention",
               attrs: mentionData,
             },
             {
-              type: 'text',
-              text: ' ',
+              type: "text",
+              text: " ",
             },
           ])
           .run();
       },
 
       onKeyDown: (props: any) => {
-        if (props.event.key === 'Escape') {
+        if (props.event.key === "Escape") {
           popup[0].hide();
           return true;
         }
 
-        return (component.ref && typeof component.ref === 'object' && component.ref !== null && 'onKeyDown' in component.ref && typeof (component.ref as any).onKeyDown === 'function') 
-          ? (component.ref as any).onKeyDown(props) 
+        return component.ref &&
+          typeof component.ref === "object" &&
+          component.ref !== null &&
+          "onKeyDown" in component.ref &&
+          typeof (component.ref as any).onKeyDown === "function"
+          ? (component.ref as any).onKeyDown(props)
           : false;
       },
 

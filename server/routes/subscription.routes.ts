@@ -1,7 +1,10 @@
 import { Router } from "express";
 import { subscriptionService } from "../services/subscriptionService";
 import { TIER_LIMITS } from "@shared/types/subscription";
-import { analyticsRateLimiter, generousRateLimiter } from "../security/rateLimiters";
+import {
+  analyticsRateLimiter,
+  generousRateLimiter,
+} from "../security/rateLimiters";
 
 const router = Router();
 
@@ -12,17 +15,17 @@ const router = Router();
 router.get("/", generousRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
-    
+
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const subscription = await subscriptionService.getUserSubscription(userId);
-    
+
     res.json(subscription);
   } catch (error) {
-    console.error('Error fetching subscription:', error);
-    res.status(500).json({ error: 'Failed to fetch subscription' });
+    console.error("Error fetching subscription:", error);
+    res.status(500).json({ error: "Failed to fetch subscription" });
   }
 });
 
@@ -34,8 +37,8 @@ router.get("/tiers", generousRateLimiter, async (req: any, res) => {
   try {
     res.json(TIER_LIMITS);
   } catch (error) {
-    console.error('Error fetching tiers:', error);
-    res.status(500).json({ error: 'Failed to fetch tiers' });
+    console.error("Error fetching tiers:", error);
+    res.status(500).json({ error: "Failed to fetch tiers" });
   }
 });
 
@@ -46,18 +49,21 @@ router.get("/tiers", generousRateLimiter, async (req: any, res) => {
 router.get("/usage", analyticsRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
-    
+
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const days = parseInt(req.query.days as string) || 30;
-    const statistics = await subscriptionService.getUsageStatistics(userId, days);
-    
+    const statistics = await subscriptionService.getUsageStatistics(
+      userId,
+      days,
+    );
+
     res.json(statistics);
   } catch (error) {
-    console.error('Error fetching usage statistics:', error);
-    res.status(500).json({ error: 'Failed to fetch usage statistics' });
+    console.error("Error fetching usage statistics:", error);
+    res.status(500).json({ error: "Failed to fetch usage statistics" });
   }
 });
 
@@ -68,35 +74,41 @@ router.get("/usage", analyticsRateLimiter, async (req: any, res) => {
 router.get("/premium-quota", analyticsRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
-    
+
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const subscription = await subscriptionService.getUserSubscription(userId);
-    
+
     // Get usage for both premium operations
     const [polishUsage, extendedThinkingUsage] = await Promise.all([
-      subscriptionService.getMonthlyPremiumUsage(userId, 'polish'),
-      subscriptionService.getMonthlyPremiumUsage(userId, 'extended_thinking')
+      subscriptionService.getMonthlyPremiumUsage(userId, "polish"),
+      subscriptionService.getMonthlyPremiumUsage(userId, "extended_thinking"),
     ]);
-    
+
     res.json({
       polish: {
         used: polishUsage,
         limit: subscription.limits.polishUsesPerMonth,
-        remaining: Math.max(0, subscription.limits.polishUsesPerMonth - polishUsage)
+        remaining: Math.max(
+          0,
+          subscription.limits.polishUsesPerMonth - polishUsage,
+        ),
       },
       extendedThinking: {
         used: extendedThinkingUsage,
         limit: subscription.limits.extendedThinkingPerMonth,
-        remaining: Math.max(0, subscription.limits.extendedThinkingPerMonth - extendedThinkingUsage)
+        remaining: Math.max(
+          0,
+          subscription.limits.extendedThinkingPerMonth - extendedThinkingUsage,
+        ),
       },
-      tier: subscription.effectiveTier
+      tier: subscription.effectiveTier,
     });
   } catch (error) {
-    console.error('Error fetching premium quota:', error);
-    res.status(500).json({ error: 'Failed to fetch premium quota' });
+    console.error("Error fetching premium quota:", error);
+    res.status(500).json({ error: "Failed to fetch premium quota" });
   }
 });
 
@@ -108,21 +120,21 @@ router.post("/check-limit", analyticsRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     const { action } = req.body;
-    
+
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     if (!action) {
-      return res.status(400).json({ error: 'Action is required' });
+      return res.status(400).json({ error: "Action is required" });
     }
 
     const result = await subscriptionService.canPerformAction(userId, action);
-    
+
     res.json(result);
   } catch (error) {
-    console.error('Error checking limit:', error);
-    res.status(500).json({ error: 'Failed to check limit' });
+    console.error("Error checking limit:", error);
+    res.status(500).json({ error: "Failed to check limit" });
   }
 });
 
@@ -133,18 +145,18 @@ router.post("/check-limit", analyticsRateLimiter, async (req: any, res) => {
 router.get("/analytics", analyticsRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
-    
+
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const days = parseInt(req.query.days as string) || 30;
     const analytics = await subscriptionService.getAnalytics(userId, days);
-    
+
     res.json(analytics);
   } catch (error) {
-    console.error('Error fetching analytics:', error);
-    res.status(500).json({ error: 'Failed to fetch analytics' });
+    console.error("Error fetching analytics:", error);
+    res.status(500).json({ error: "Failed to fetch analytics" });
   }
 });
 
@@ -155,17 +167,17 @@ router.get("/analytics", analyticsRateLimiter, async (req: any, res) => {
 router.get("/forecast", analyticsRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
-    
+
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const forecast = await subscriptionService.getUsageForecast(userId);
-    
+
     res.json(forecast);
   } catch (error) {
-    console.error('Error fetching forecast:', error);
-    res.status(500).json({ error: 'Failed to fetch forecast' });
+    console.error("Error fetching forecast:", error);
+    res.status(500).json({ error: "Failed to fetch forecast" });
   }
 });
 
@@ -176,17 +188,17 @@ router.get("/forecast", analyticsRateLimiter, async (req: any, res) => {
 router.get("/status", generousRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
-    
+
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const status = await subscriptionService.getSubscriptionStatus(userId);
-    
+
     res.json(status);
   } catch (error) {
-    console.error('Error fetching subscription status:', error);
-    res.status(500).json({ error: 'Failed to fetch subscription status' });
+    console.error("Error fetching subscription status:", error);
+    res.status(500).json({ error: "Failed to fetch subscription status" });
   }
 });
 

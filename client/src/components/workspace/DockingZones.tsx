@@ -1,8 +1,8 @@
-import { useWorkspaceStore, PanelDescriptor } from '@/stores/workspaceStore';
-import { Layers, Pin, X, ExternalLink } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import CharacterDetailPanel from './CharacterDetailPanel';
+import { useWorkspaceStore, PanelDescriptor } from "@/stores/workspaceStore";
+import { Layers, Pin, X, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import CharacterDetailPanel from "./CharacterDetailPanel";
 // import { useDrop } from 'react-dnd'; // Will implement drag drop later
 
 interface DockingZoneProps {
@@ -10,16 +10,16 @@ interface DockingZoneProps {
   className?: string;
 }
 
-export const DockingZone = ({ slot, className = '' }: DockingZoneProps) => {
+export const DockingZone = ({ slot, className = "" }: DockingZoneProps) => {
   const { getDockedPanels, undockPanel } = useWorkspaceStore();
   const dockedPanels = getDockedPanels(slot);
-  
+
   // Drag and drop will be implemented later - for now use buttons
   const isOver = false;
-  
+
   const renderPanelContent = (panel: PanelDescriptor) => {
     switch (panel.type) {
-      case 'characterDetail':
+      case "characterDetail":
         return (
           <CharacterDetailPanel
             characterId={panel.entityId!}
@@ -36,33 +36,35 @@ export const DockingZone = ({ slot, className = '' }: DockingZoneProps) => {
         );
     }
   };
-  
+
   const getSlotLabel = (slot: string) => {
     switch (slot) {
-      case 'sidebar-top': return 'Top Dock';
-      case 'sidebar-middle': return 'Middle Dock';  
-      case 'sidebar-bottom': return 'Bottom Dock';
-      default: return slot;
+      case "sidebar-top":
+        return "Top Dock";
+      case "sidebar-middle":
+        return "Middle Dock";
+      case "sidebar-bottom":
+        return "Bottom Dock";
+      default:
+        return slot;
     }
   };
-  
+
   return (
-    <div 
+    <div
       className={`${className} min-h-[60px] border-2 border-dashed transition-colors ${
-        isOver 
-          ? 'border-primary bg-primary/5' 
-          : dockedPanels.length > 0 
-            ? 'border-border bg-background' 
-            : 'border-muted bg-muted/20'
+        isOver
+          ? "border-primary bg-primary/5"
+          : dockedPanels.length > 0
+            ? "border-border bg-background"
+            : "border-muted bg-muted/20"
       }`}
       data-testid={`dock-slot-${slot}`}
     >
       {dockedPanels.length === 0 ? (
         <div className="p-4 text-center">
           <Layers className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">
-            {getSlotLabel(slot)}
-          </p>
+          <p className="text-sm text-muted-foreground">{getSlotLabel(slot)}</p>
           <p className="text-xs text-muted-foreground mt-1">
             Drag panels here to dock
           </p>
@@ -74,7 +76,9 @@ export const DockingZone = ({ slot, className = '' }: DockingZoneProps) => {
               <CardHeader className="pb-2 pr-20">
                 <div className="flex items-center gap-2">
                   <Pin className="h-3 w-3 text-primary" />
-                  <span className="text-sm font-medium truncate">{panel.title}</span>
+                  <span className="text-sm font-medium truncate">
+                    {panel.title}
+                  </span>
                 </div>
                 <div className="absolute top-2 right-2 flex gap-1">
                   <Button
@@ -89,7 +93,9 @@ export const DockingZone = ({ slot, className = '' }: DockingZoneProps) => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => useWorkspaceStore.getState().removePanel(panel.id)}
+                    onClick={() =>
+                      useWorkspaceStore.getState().removePanel(panel.id)
+                    }
                     className="h-6 w-6 p-0"
                     data-testid={`button-close-docked-${panel.id}`}
                   >

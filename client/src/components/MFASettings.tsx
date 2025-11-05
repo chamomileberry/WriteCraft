@@ -1,19 +1,25 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Shield, 
-  Download, 
-  RefreshCw, 
-  Loader2, 
+import {
+  Shield,
+  Download,
+  RefreshCw,
+  Loader2,
   Check,
   X,
-  AlertTriangle
+  AlertTriangle,
 } from "lucide-react";
 import {
   Dialog,
@@ -23,11 +29,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface MFASetupData {
   qrCode: string;
@@ -48,7 +50,9 @@ export function MFASettings() {
   const [regeneratedCodes, setRegeneratedCodes] = useState<string[]>([]);
 
   // Check MFA status
-  const { data: statusData, isLoading: statusLoading } = useQuery<{ enabled: boolean }>({
+  const { data: statusData, isLoading: statusLoading } = useQuery<{
+    enabled: boolean;
+  }>({
     queryKey: ["/api/auth/mfa/status"],
   });
 
@@ -57,8 +61,8 @@ export function MFASettings() {
   // Setup MFA mutation
   const setupMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/auth/mfa/setup",);
-      return await res.json() as MFASetupData;
+      const res = await apiRequest("POST", "/api/auth/mfa/setup");
+      return (await res.json()) as MFASetupData;
     },
     onSuccess: (data) => {
       setSetupData(data);
@@ -124,16 +128,17 @@ export function MFASettings() {
     mutationFn: async () => {
       const res = await apiRequest(
         "/api/auth/mfa/regenerate-backup-codes",
-        "POST"
+        "POST",
       );
-      return await res.json() as { backupCodes: string[] };
+      return (await res.json()) as { backupCodes: string[] };
     },
     onSuccess: (data) => {
       setRegeneratedCodes(data.backupCodes);
       setShowRegenerateDialog(true);
       toast({
         title: "Backup Codes Regenerated",
-        description: "New backup codes have been generated. Save them securely.",
+        description:
+          "New backup codes have been generated. Save them securely.",
       });
     },
     onError: () => {
@@ -158,11 +163,11 @@ export function MFASettings() {
   };
 
   const downloadBackupCodes = (codes: string[]) => {
-    const content = `WriteCraft Backup Codes\n\nGenerated: ${new Date().toLocaleString()}\n\nThese backup codes can be used if you lose access to your authenticator app.\nEach code can only be used once. Store them securely.\n\n${codes.join('\n')}\n`;
-    
-    const blob = new Blob([content], { type: 'text/plain' });
+    const content = `WriteCraft Backup Codes\n\nGenerated: ${new Date().toLocaleString()}\n\nThese backup codes can be used if you lose access to your authenticator app.\nEach code can only be used once. Store them securely.\n\n${codes.join("\n")}\n`;
+
+    const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `writecraft-backup-codes-${Date.now()}.txt`;
     document.body.appendChild(a);
@@ -207,8 +212,9 @@ export function MFASettings() {
           {!mfaEnabled ? (
             <>
               <p className="text-sm text-muted-foreground">
-                Two-factor authentication (2FA) adds an additional layer of security to your account 
-                by requiring a second form of verification when you sign in.
+                Two-factor authentication (2FA) adds an additional layer of
+                security to your account by requiring a second form of
+                verification when you sign in.
               </p>
               <Button
                 onClick={() => setupMutation.mutate()}
@@ -227,8 +233,8 @@ export function MFASettings() {
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>2FA is Active</AlertTitle>
                 <AlertDescription>
-                  Your account is protected with two-factor authentication. You'll need your 
-                  authenticator app or backup codes to sign in.
+                  Your account is protected with two-factor authentication.
+                  You'll need your authenticator app or backup codes to sign in.
                 </AlertDescription>
               </Alert>
               <div className="flex gap-2">
@@ -265,16 +271,17 @@ export function MFASettings() {
           <DialogHeader>
             <DialogTitle>Set Up Two-Factor Authentication</DialogTitle>
             <DialogDescription>
-              Scan the QR code with your authenticator app, then enter the verification code
+              Scan the QR code with your authenticator app, then enter the
+              verification code
             </DialogDescription>
           </DialogHeader>
 
           {setupData && (
             <div className="space-y-4">
               <div className="flex justify-center p-4 bg-white rounded-lg">
-                <img 
-                  src={setupData.qrCode} 
-                  alt="MFA QR Code" 
+                <img
+                  src={setupData.qrCode}
+                  alt="MFA QR Code"
                   className="w-48 h-48"
                   data-testid="img-qr-code"
                 />
@@ -289,7 +296,8 @@ export function MFASettings() {
                   data-testid="input-secret-code"
                 />
                 <p className="text-xs text-muted-foreground">
-                  If you can't scan the QR code, enter this code manually in your authenticator app
+                  If you can't scan the QR code, enter this code manually in
+                  your authenticator app
                 </p>
               </div>
 
@@ -298,7 +306,11 @@ export function MFASettings() {
                 <Input
                   id="verification-token"
                   value={verificationToken}
-                  onChange={(e) => setVerificationToken(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  onChange={(e) =>
+                    setVerificationToken(
+                      e.target.value.replace(/\D/g, "").slice(0, 6),
+                    )
+                  }
                   placeholder="000000"
                   maxLength={6}
                   className="text-center text-xl tracking-widest font-mono"
@@ -325,7 +337,9 @@ export function MFASettings() {
             </Button>
             <Button
               onClick={handleVerify}
-              disabled={verificationToken.length !== 6 || verifyMutation.isPending}
+              disabled={
+                verificationToken.length !== 6 || verifyMutation.isPending
+              }
               data-testid="button-verify-code"
             >
               {verifyMutation.isPending && (
@@ -338,12 +352,16 @@ export function MFASettings() {
       </Dialog>
 
       {/* Backup Codes Dialog */}
-      <Dialog open={showBackupCodesDialog} onOpenChange={setShowBackupCodesDialog}>
+      <Dialog
+        open={showBackupCodesDialog}
+        onOpenChange={setShowBackupCodesDialog}
+      >
         <DialogContent className="max-w-md" data-testid="dialog-backup-codes">
           <DialogHeader>
             <DialogTitle>Save Your Backup Codes</DialogTitle>
             <DialogDescription>
-              Store these codes securely. Each code can only be used once if you lose access to your authenticator.
+              Store these codes securely. Each code can only be used once if you
+              lose access to your authenticator.
             </DialogDescription>
           </DialogHeader>
 
@@ -352,11 +370,15 @@ export function MFASettings() {
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  Download or write down these codes now. You won't be able to see them again.
+                  Download or write down these codes now. You won't be able to
+                  see them again.
                 </AlertDescription>
               </Alert>
 
-              <div className="bg-muted p-4 rounded-lg space-y-1" data-testid="backup-codes-list">
+              <div
+                className="bg-muted p-4 rounded-lg space-y-1"
+                data-testid="backup-codes-list"
+              >
                 {setupData.backupCodes.map((code, index) => (
                   <div key={index} className="font-mono text-sm">
                     {code}
@@ -404,7 +426,8 @@ export function MFASettings() {
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                Disabling 2FA will make your account less secure. Only disable if necessary.
+                Disabling 2FA will make your account less secure. Only disable
+                if necessary.
               </AlertDescription>
             </Alert>
 
@@ -413,7 +436,9 @@ export function MFASettings() {
               <Input
                 id="disable-token"
                 value={disableToken}
-                onChange={(e) => setDisableToken(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                onChange={(e) =>
+                  setDisableToken(e.target.value.replace(/\D/g, "").slice(0, 6))
+                }
                 placeholder="000000"
                 maxLength={6}
                 className="text-center text-xl tracking-widest font-mono"
@@ -449,12 +474,19 @@ export function MFASettings() {
       </Dialog>
 
       {/* Regenerate Backup Codes Dialog */}
-      <Dialog open={showRegenerateDialog} onOpenChange={setShowRegenerateDialog}>
-        <DialogContent className="max-w-md" data-testid="dialog-regenerate-codes">
+      <Dialog
+        open={showRegenerateDialog}
+        onOpenChange={setShowRegenerateDialog}
+      >
+        <DialogContent
+          className="max-w-md"
+          data-testid="dialog-regenerate-codes"
+        >
           <DialogHeader>
             <DialogTitle>New Backup Codes Generated</DialogTitle>
             <DialogDescription>
-              Your old backup codes are now invalid. Save these new codes securely.
+              Your old backup codes are now invalid. Save these new codes
+              securely.
             </DialogDescription>
           </DialogHeader>
 
@@ -462,11 +494,15 @@ export function MFASettings() {
             <Alert>
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                Download or write down these codes now. Your previous codes no longer work.
+                Download or write down these codes now. Your previous codes no
+                longer work.
               </AlertDescription>
             </Alert>
 
-            <div className="bg-muted p-4 rounded-lg space-y-1" data-testid="regenerated-codes-list">
+            <div
+              className="bg-muted p-4 rounded-lg space-y-1"
+              data-testid="regenerated-codes-list"
+            >
               {regeneratedCodes.map((code, index) => (
                 <div key={index} className="font-mono text-sm">
                   {code}

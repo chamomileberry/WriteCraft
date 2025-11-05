@@ -1,31 +1,37 @@
-import { useState } from 'react';
-import { useLocation } from 'wouter';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import { useState } from "react";
+import { useLocation } from "wouter";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { useSubscription } from '@/hooks/useSubscription';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
-import { ArrowLeft, Loader2, DollarSign, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { ArrowLeft, Loader2, DollarSign, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
 
 const REFUND_REASONS = [
-  { value: 'not_as_described', label: 'Service not as described' },
-  { value: 'technical_issues', label: 'Technical issues preventing use' },
-  { value: 'accidental_purchase', label: 'Accidental purchase' },
-  { value: 'duplicate_charge', label: 'Duplicate charge' },
-  { value: 'dissatisfied', label: 'Dissatisfied with service' },
-  { value: 'other', label: 'Other reason' },
+  { value: "not_as_described", label: "Service not as described" },
+  { value: "technical_issues", label: "Technical issues preventing use" },
+  { value: "accidental_purchase", label: "Accidental purchase" },
+  { value: "duplicate_charge", label: "Duplicate charge" },
+  { value: "dissatisfied", label: "Dissatisfied with service" },
+  { value: "other", label: "Other reason" },
 ];
 
 export default function RefundRequestPage() {
@@ -33,8 +39,8 @@ export default function RefundRequestPage() {
   const { subscription, isLoading: subscriptionLoading } = useSubscription();
   const { toast } = useToast();
 
-  const [reason, setReason] = useState('');
-  const [explanation, setExplanation] = useState('');
+  const [reason, setReason] = useState("");
+  const [explanation, setExplanation] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,9 +48,9 @@ export default function RefundRequestPage() {
 
     if (!reason || !explanation.trim()) {
       toast({
-        title: 'Missing information',
-        description: 'Please select a reason and provide an explanation.',
-        variant: 'destructive',
+        title: "Missing information",
+        description: "Please select a reason and provide an explanation.",
+        variant: "destructive",
       });
       return;
     }
@@ -52,8 +58,8 @@ export default function RefundRequestPage() {
     setIsSubmitting(true);
     try {
       // Submit as feedback with 'refund' tag
-      await apiRequest('POST', '/api/feedback', {
-        type: 'refund',
+      await apiRequest("POST", "/api/feedback", {
+        type: "refund",
         subject: `Refund Request: ${REFUND_REASONS.find((r) => r.value === reason)?.label}`,
         message: explanation,
         metadata: {
@@ -64,24 +70,25 @@ export default function RefundRequestPage() {
       });
 
       toast({
-        title: 'Refund request submitted',
-        description: 'Our support team will review your request within 1-2 business days.',
+        title: "Refund request submitted",
+        description:
+          "Our support team will review your request within 1-2 business days.",
       });
 
       // Navigate back to account settings
-      setLocation('/account');
+      setLocation("/account");
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to submit refund request',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to submit refund request",
+        variant: "destructive",
       });
       setIsSubmitting(false);
     }
   };
 
   const handleCancel = () => {
-    setLocation('/account');
+    setLocation("/account");
   };
 
   if (subscriptionLoading) {
@@ -94,7 +101,7 @@ export default function RefundRequestPage() {
     );
   }
 
-  const isPaidTier = subscription?.tier !== 'free';
+  const isPaidTier = subscription?.tier !== "free";
 
   return (
     <div className="container max-w-4xl mx-auto px-4 py-8">
@@ -127,7 +134,8 @@ export default function RefundRequestPage() {
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                You don't have an active paid subscription. Refunds are only available for paid tiers.
+                You don't have an active paid subscription. Refunds are only
+                available for paid tiers.
               </AlertDescription>
             </Alert>
           ) : (
@@ -139,13 +147,22 @@ export default function RefundRequestPage() {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Plan:</span>
                     <Badge variant="secondary">
-                      {subscription?.tier && subscription.tier.charAt(0).toUpperCase() + subscription.tier.slice(1)}
+                      {subscription?.tier &&
+                        subscription.tier.charAt(0).toUpperCase() +
+                          subscription.tier.slice(1)}
                     </Badge>
                   </div>
                   {subscription?.currentPeriodEnd && (
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Billing period ends:</span>
-                      <span>{format(new Date(subscription.currentPeriodEnd), 'MMM d, yyyy')}</span>
+                      <span className="text-muted-foreground">
+                        Billing period ends:
+                      </span>
+                      <span>
+                        {format(
+                          new Date(subscription.currentPeriodEnd),
+                          "MMM d, yyyy",
+                        )}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -155,9 +172,10 @@ export default function RefundRequestPage() {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Refund Policy:</strong> Refunds are available within 7 days of your initial purchase.
-                  Subscription charges more than 7 days old are not eligible for refunds, but you can cancel your
-                  subscription at any time.
+                  <strong>Refund Policy:</strong> Refunds are available within 7
+                  days of your initial purchase. Subscription charges more than
+                  7 days old are not eligible for refunds, but you can cancel
+                  your subscription at any time.
                 </AlertDescription>
               </Alert>
 
@@ -166,7 +184,10 @@ export default function RefundRequestPage() {
                 <div className="space-y-2">
                   <Label htmlFor="reason">Reason for refund request</Label>
                   <Select value={reason} onValueChange={setReason}>
-                    <SelectTrigger id="reason" data-testid="select-refund-reason">
+                    <SelectTrigger
+                      id="reason"
+                      data-testid="select-refund-reason"
+                    >
                       <SelectValue placeholder="Select a reason" />
                     </SelectTrigger>
                     <SelectContent>
@@ -180,7 +201,9 @@ export default function RefundRequestPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="explanation">Please explain your situation</Label>
+                  <Label htmlFor="explanation">
+                    Please explain your situation
+                  </Label>
                   <Textarea
                     id="explanation"
                     placeholder="Provide details about why you're requesting a refund. Include any relevant information such as order dates, issues encountered, etc."
@@ -190,7 +213,8 @@ export default function RefundRequestPage() {
                     data-testid="textarea-refund-explanation"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Be as specific as possible to help us process your request quickly
+                    Be as specific as possible to help us process your request
+                    quickly
                   </p>
                 </div>
 
@@ -209,7 +233,9 @@ export default function RefundRequestPage() {
                     disabled={isSubmitting || !reason || !explanation.trim()}
                     data-testid="button-submit-refund"
                   >
-                    {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    {isSubmitting && (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    )}
                     Submit Refund Request
                   </Button>
                 </div>

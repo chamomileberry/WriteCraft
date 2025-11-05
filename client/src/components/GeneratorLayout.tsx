@@ -29,7 +29,9 @@ export function GeneratorLayout({
       {(title || subtitle) && (
         <div className="space-y-2">
           {title && <h3 className="text-lg font-semibold">{title}</h3>}
-          {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+          {subtitle && (
+            <p className="text-sm text-muted-foreground">{subtitle}</p>
+          )}
         </div>
       )}
 
@@ -37,9 +39,7 @@ export function GeneratorLayout({
         <div>{notebookControls}</div>
       )}
 
-      <div className="space-y-4">
-        {children}
-      </div>
+      <div className="space-y-4">{children}</div>
 
       <div className="flex justify-end pt-4">
         <Button

@@ -3,8 +3,8 @@
  * Conditionally logs based on environment
  */
 
-const isDevelopment = process.env.NODE_ENV === 'development';
-const isProduction = process.env.NODE_ENV === 'production';
+const isDevelopment = process.env.NODE_ENV === "development";
+const isProduction = process.env.NODE_ENV === "production";
 
 /**
  * Interface for structured logging context
@@ -20,7 +20,7 @@ export const logger = {
    */
   debug: (...args: unknown[]) => {
     if (isDevelopment) {
-      console.log('[DEBUG]', ...args);
+      console.log("[DEBUG]", ...args);
     }
   },
 
@@ -29,7 +29,7 @@ export const logger = {
    * Use for important application flow information
    */
   info: (...args: unknown[]) => {
-    console.info('[INFO]', ...args);
+    console.info("[INFO]", ...args);
   },
 
   /**
@@ -37,7 +37,7 @@ export const logger = {
    * Use for recoverable errors or concerning situations
    */
   warn: (...args: unknown[]) => {
-    console.warn('[WARN]', ...args);
+    console.warn("[WARN]", ...args);
   },
 
   /**
@@ -45,7 +45,7 @@ export const logger = {
    * Use for actual errors that need attention
    */
   error: (...args: unknown[]) => {
-    console.error('[ERROR]', ...args);
+    console.error("[ERROR]", ...args);
   },
 
   /**
@@ -54,7 +54,7 @@ export const logger = {
    */
   dev: (...args: unknown[]) => {
     if (isDevelopment) {
-      console.log('[DEV]', ...args);
+      console.log("[DEV]", ...args);
     }
   },
 
@@ -64,7 +64,7 @@ export const logger = {
    */
   prod: (...args: unknown[]) => {
     if (isProduction) {
-      console.log('[PROD]', ...args);
+      console.log("[PROD]", ...args);
     }
   },
 
@@ -81,17 +81,24 @@ export const logger = {
    * });
    * ```
    */
-  structured: (level: 'debug' | 'info' | 'warn' | 'error', message: string, context?: LogContext) => {
+  structured: (
+    level: "debug" | "info" | "warn" | "error",
+    message: string,
+    context?: LogContext,
+  ) => {
     const timestamp = new Date().toISOString();
 
     // Skip debug logs in production
-    if (level === 'debug' && !isDevelopment) {
+    if (level === "debug" && !isDevelopment) {
       return;
     }
 
     if (isDevelopment) {
       // Pretty-print in development
-      console.log(`[${level.toUpperCase()}] [${timestamp}] ${message}`, context || '');
+      console.log(
+        `[${level.toUpperCase()}] [${timestamp}] ${message}`,
+        context || "",
+      );
     } else {
       // Output JSON in production for log aggregation (Datadog, Sentry, etc.)
       const logData = {

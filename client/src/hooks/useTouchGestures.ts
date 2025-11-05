@@ -1,5 +1,4 @@
-
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 interface TouchGestureOptions {
   onSwipeLeft?: () => void;
@@ -55,12 +54,12 @@ export function useTouchGestures(options: TouchGestureOptions) {
       touchStartRef.current = null;
     };
 
-    document.addEventListener('touchstart', handleTouchStart);
-    document.addEventListener('touchend', handleTouchEnd);
+    document.addEventListener("touchstart", handleTouchStart);
+    document.addEventListener("touchend", handleTouchEnd);
 
     return () => {
-      document.removeEventListener('touchstart', handleTouchStart);
-      document.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener("touchstart", handleTouchStart);
+      document.removeEventListener("touchend", handleTouchEnd);
     };
   }, [onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, threshold]);
 }

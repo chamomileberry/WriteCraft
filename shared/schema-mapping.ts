@@ -150,10 +150,15 @@ export function getContentTypeSchema(contentType: string): z.ZodTypeAny | null {
  * @returns The validated data
  * @throws ZodError if validation fails
  */
-export function validateContentType<T = any>(contentType: string, data: unknown): T {
+export function validateContentType<T = any>(
+  contentType: string,
+  data: unknown,
+): T {
   const schema = getContentTypeSchema(contentType);
   if (!schema) {
-    throw new Error(`No validation schema found for content type: ${contentType}`);
+    throw new Error(
+      `No validation schema found for content type: ${contentType}`,
+    );
   }
   return schema.parse(data) as T;
 }

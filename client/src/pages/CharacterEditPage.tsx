@@ -3,25 +3,49 @@ import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { updateCharacterSchema, type UpdateCharacter, type Character } from "@shared/schema";
+import {
+  updateCharacterSchema,
+  type UpdateCharacter,
+  type Character,
+} from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiRequest } from "@/lib/queryClient";
 import { useNotebookStore } from "@/stores/notebookStore";
 import { useAuth } from "@/hooks/useAuth";
-import { 
-  ArrowLeft, 
-  Save, 
-  User, 
-  FileText, 
-  Heart, 
-  MapPin, 
+import {
+  ArrowLeft,
+  Save,
+  User,
+  FileText,
+  Heart,
+  MapPin,
   Eye,
   Brain,
   Zap,
@@ -30,7 +54,7 @@ import {
   Home,
   MessageCircle,
   Star,
-  Sparkles
+  Sparkles,
 } from "lucide-react";
 
 export default function CharacterEditPage() {
@@ -43,17 +67,26 @@ export default function CharacterEditPage() {
 
   // Extract notebookId from query parameters, fallback to active notebook
   const urlParams = new URLSearchParams(window.location.search);
-  const queryNotebookId = urlParams.get('notebookId');
+  const queryNotebookId = urlParams.get("notebookId");
   const notebookId = queryNotebookId || activeNotebookId;
 
   // Fetch character data - include notebookId in query parameters
-  const { data: character, isLoading, error } = useQuery({
-    queryKey: ['/api/characters', id, notebookId],
+  const {
+    data: character,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["/api/characters", id, notebookId],
     queryFn: async () => {
       if (!notebookId) {
-        throw new Error('No active notebook selected. Please create or select a notebook first.');
+        throw new Error(
+          "No active notebook selected. Please create or select a notebook first.",
+        );
       }
-      const response = await apiRequest('GET', `/api/characters/${id}?notebookId=${notebookId}`);
+      const response = await apiRequest(
+        "GET",
+        `/api/characters/${id}?notebookId=${notebookId}`,
+      );
       return response.json();
     },
     enabled: !!id && !!notebookId,
@@ -61,7 +94,7 @@ export default function CharacterEditPage() {
 
   // Create form-specific partial schema to handle tab-based fields
   const characterFormSchema = updateCharacterSchema.partial();
-  
+
   // Form setup with all fields, converting null values to empty strings
   const form = useForm<UpdateCharacter>({
     resolver: zodResolver(characterFormSchema),
@@ -71,15 +104,19 @@ export default function CharacterEditPage() {
 
   // Field generation state and mutation
   const [generatingField, setGeneratingField] = useState<string | null>(null);
-  
+
   const generateFieldMutation = useMutation({
     mutationFn: async ({ fieldName }: { fieldName: string }) => {
       // Get current form values to provide fresh context to AI
       const currentFormValues = form.getValues();
-      const response = await apiRequest("POST", `/api/characters/${id}/generate-field`, { 
-        fieldName,
-        currentFormData: currentFormValues 
-      });
+      const response = await apiRequest(
+        "POST",
+        `/api/characters/${id}/generate-field`,
+        {
+          fieldName,
+          currentFormData: currentFormValues,
+        },
+      );
       const data = await response.json();
       return data.content;
     },
@@ -108,7 +145,13 @@ export default function CharacterEditPage() {
   };
 
   // Generate button component
-  const GenerateButton = ({ fieldName, className = "" }: { fieldName: string; className?: string }) => (
+  const GenerateButton = ({
+    fieldName,
+    className = "",
+  }: {
+    fieldName: string;
+    className?: string;
+  }) => (
     <Button
       type="button"
       variant="outline"
@@ -130,12 +173,17 @@ export default function CharacterEditPage() {
         Object.entries(character).map(([key, value]) => {
           if (value === null || value === undefined) {
             // Handle arrays - these should be empty arrays when null
-            if (key === 'personality' || key === 'languages' || key === 'skills' || 
-                key === 'culturalElements' || key === 'notableFeatures') {
+            if (
+              key === "personality" ||
+              key === "languages" ||
+              key === "skills" ||
+              key === "culturalElements" ||
+              key === "notableFeatures"
+            ) {
               return [key, []];
             }
             // Handle numbers - these should be undefined when null
-            if (key === 'age' || key === 'weight') {
+            if (key === "age" || key === "weight") {
               return [key, undefined];
             }
             // Handle all other fields (strings/text) - convert null to empty string
@@ -147,7 +195,7 @@ export default function CharacterEditPage() {
             return [key, []];
           }
           return [key, value];
-        })
+        }),
       );
       form.reset(formData);
     }
@@ -157,9 +205,13 @@ export default function CharacterEditPage() {
   const updateMutation = useMutation({
     mutationFn: async (data: UpdateCharacter) => {
       if (!notebookId) {
-        throw new Error('No notebook ID available for update');
+        throw new Error("No notebook ID available for update");
       }
-      const response = await apiRequest('PATCH', `/api/characters/${id}?notebookId=${notebookId}`, data);
+      const response = await apiRequest(
+        "PATCH",
+        `/api/characters/${id}?notebookId=${notebookId}`,
+        data,
+      );
       return response.json();
     },
     onSuccess: () => {
@@ -167,16 +219,18 @@ export default function CharacterEditPage() {
         title: "Character Updated",
         description: "Your character has been successfully updated!",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/characters', id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/characters", id] });
       // Invalidate saved-items with proper query key structure to refresh notebook view
       if (user?.id && notebookId) {
-        queryClient.invalidateQueries({ queryKey: ['/api/saved-items', user.id, notebookId] });
+        queryClient.invalidateQueries({
+          queryKey: ["/api/saved-items", user.id, notebookId],
+        });
       }
       // Also invalidate general saved-items queries as fallback
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-items'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/saved-items"] });
     },
     onError: (error) => {
-      console.error('Error updating character:', error);
+      console.error("Error updating character:", error);
       toast({
         title: "Update Failed",
         description: "Failed to update character. Please try again.",
@@ -185,22 +239,21 @@ export default function CharacterEditPage() {
     },
   });
 
-
   const onSubmit = (data: UpdateCharacter) => {
     // Clean payload: remove empty/unchanged fields to avoid overwriting stored data
     const cleanedData = Object.fromEntries(
       Object.entries(data).filter(([_, value]) => {
         // Remove empty strings and undefined values
         if (value === "" || value === undefined) return false;
-        
+
         // Remove empty arrays to prevent overwriting stored arrays
         if (Array.isArray(value) && value.length === 0) return false;
-        
+
         // Keep all other valid values
         return true;
-      })
+      }),
     ) as UpdateCharacter;
-    
+
     updateMutation.mutate(cleanedData);
   };
 
@@ -210,9 +263,15 @@ export default function CharacterEditPage() {
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground mb-4">No active notebook selected. Please create or select a notebook first.</p>
+            <p className="text-center text-muted-foreground mb-4">
+              No active notebook selected. Please create or select a notebook
+              first.
+            </p>
             <div className="flex justify-center">
-              <Button onClick={() => setLocation('/notebook')} variant="outline">
+              <Button
+                onClick={() => setLocation("/notebook")}
+                variant="outline"
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Go to Notebooks
               </Button>
@@ -239,9 +298,16 @@ export default function CharacterEditPage() {
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground mb-4">{error instanceof Error ? error.message : 'Failed to load character.'}</p>
+            <p className="text-center text-muted-foreground mb-4">
+              {error instanceof Error
+                ? error.message
+                : "Failed to load character."}
+            </p>
             <div className="flex justify-center">
-              <Button onClick={() => setLocation('/notebook')} variant="outline">
+              <Button
+                onClick={() => setLocation("/notebook")}
+                variant="outline"
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Notebook
               </Button>
@@ -257,9 +323,14 @@ export default function CharacterEditPage() {
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground mb-4">Character not found.</p>
+            <p className="text-center text-muted-foreground mb-4">
+              Character not found.
+            </p>
             <div className="flex justify-center">
-              <Button onClick={() => setLocation('/notebook')} variant="outline">
+              <Button
+                onClick={() => setLocation("/notebook")}
+                variant="outline"
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Notebook
               </Button>
@@ -275,8 +346,8 @@ export default function CharacterEditPage() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Button 
-            onClick={() => setLocation('/')}
+          <Button
+            onClick={() => setLocation("/")}
             variant="outline"
             size="sm"
             data-testid="button-back-home"
@@ -286,7 +357,10 @@ export default function CharacterEditPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold">Edit Character</h1>
-            <p className="text-muted-foreground">Enhance and develop your character{character?.name ? `: ${character.name}` : ''}</p>
+            <p className="text-muted-foreground">
+              Enhance and develop your character
+              {character?.name ? `: ${character.name}` : ""}
+            </p>
           </div>
         </div>
 
@@ -294,47 +368,80 @@ export default function CharacterEditPage() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <Tabs defaultValue="basic" className="w-full">
               <TabsList className="grid w-full grid-cols-6 lg:grid-cols-11 gap-1">
-                <TabsTrigger value="basic" className="flex items-center gap-1 px-2 text-xs">
+                <TabsTrigger
+                  value="basic"
+                  className="flex items-center gap-1 px-2 text-xs"
+                >
                   <User className="h-3 w-3" />
                   Basic
                 </TabsTrigger>
-                <TabsTrigger value="identity" className="flex items-center gap-1 px-2 text-xs">
+                <TabsTrigger
+                  value="identity"
+                  className="flex items-center gap-1 px-2 text-xs"
+                >
                   <Heart className="h-3 w-3" />
                   Identity
                 </TabsTrigger>
-                <TabsTrigger value="physical" className="flex items-center gap-1 px-2 text-xs">
+                <TabsTrigger
+                  value="physical"
+                  className="flex items-center gap-1 px-2 text-xs"
+                >
                   <Eye className="h-3 w-3" />
                   Physical
                 </TabsTrigger>
-                <TabsTrigger value="abilities" className="flex items-center gap-1 px-2 text-xs">
+                <TabsTrigger
+                  value="abilities"
+                  className="flex items-center gap-1 px-2 text-xs"
+                >
                   <Zap className="h-3 w-3" />
                   Abilities
                 </TabsTrigger>
-                <TabsTrigger value="personality" className="flex items-center gap-1 px-2 text-xs">
+                <TabsTrigger
+                  value="personality"
+                  className="flex items-center gap-1 px-2 text-xs"
+                >
                   <Smile className="h-3 w-3" />
                   Personality
                 </TabsTrigger>
-                <TabsTrigger value="relationships" className="flex items-center gap-1 px-2 text-xs">
+                <TabsTrigger
+                  value="relationships"
+                  className="flex items-center gap-1 px-2 text-xs"
+                >
                   <Users className="h-3 w-3" />
                   Relations
                 </TabsTrigger>
-                <TabsTrigger value="background" className="flex items-center gap-1 px-2 text-xs">
+                <TabsTrigger
+                  value="background"
+                  className="flex items-center gap-1 px-2 text-xs"
+                >
                   <FileText className="h-3 w-3" />
                   Background
                 </TabsTrigger>
-                <TabsTrigger value="lifestyle" className="flex items-center gap-1 px-2 text-xs">
+                <TabsTrigger
+                  value="lifestyle"
+                  className="flex items-center gap-1 px-2 text-xs"
+                >
                   <Home className="h-3 w-3" />
                   Lifestyle
                 </TabsTrigger>
-                <TabsTrigger value="speech" className="flex items-center gap-1 px-2 text-xs">
+                <TabsTrigger
+                  value="speech"
+                  className="flex items-center gap-1 px-2 text-xs"
+                >
                   <MessageCircle className="h-3 w-3" />
                   Speech
                 </TabsTrigger>
-                <TabsTrigger value="spiritual" className="flex items-center gap-1 px-2 text-xs">
+                <TabsTrigger
+                  value="spiritual"
+                  className="flex items-center gap-1 px-2 text-xs"
+                >
                   <Star className="h-3 w-3" />
                   Spiritual
                 </TabsTrigger>
-                <TabsTrigger value="prompts" className="flex items-center gap-1 px-2 text-xs">
+                <TabsTrigger
+                  value="prompts"
+                  className="flex items-center gap-1 px-2 text-xs"
+                >
                   <Brain className="h-3 w-3" />
                   Prompts
                 </TabsTrigger>
@@ -361,11 +468,11 @@ export default function CharacterEditPage() {
                           <FormItem>
                             <FormLabel>Given Name</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 placeholder="First name"
                                 data-testid="input-character-given-name"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -380,11 +487,11 @@ export default function CharacterEditPage() {
                           <FormItem>
                             <FormLabel>Family Name</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 placeholder="Last name"
                                 data-testid="input-character-family-name"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -399,11 +506,11 @@ export default function CharacterEditPage() {
                           <FormItem>
                             <FormLabel>Middle Name</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 placeholder="Middle name(s)"
                                 data-testid="input-character-middle-name"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -418,11 +525,11 @@ export default function CharacterEditPage() {
                           <FormItem>
                             <FormLabel>Nickname</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 placeholder="What friends call them"
                                 data-testid="input-character-nickname"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -437,11 +544,11 @@ export default function CharacterEditPage() {
                           <FormItem>
                             <FormLabel>Honorific Title</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 placeholder="Sir, Lady, Dr., etc."
                                 data-testid="input-character-honorific-title"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -456,11 +563,11 @@ export default function CharacterEditPage() {
                           <FormItem>
                             <FormLabel>Prefix</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 placeholder="Mr., Ms., Lord, etc."
                                 data-testid="input-character-prefix"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -475,11 +582,11 @@ export default function CharacterEditPage() {
                           <FormItem>
                             <FormLabel>Suffix</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 placeholder="Jr., Sr., III, etc."
                                 data-testid="input-character-suffix"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -494,11 +601,11 @@ export default function CharacterEditPage() {
                           <FormItem>
                             <FormLabel>Maiden Name</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 placeholder="Name before marriage"
                                 data-testid="input-character-maiden-name"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -513,13 +620,15 @@ export default function CharacterEditPage() {
                           <FormItem>
                             <FormLabel>Age</FormLabel>
                             <FormControl>
-                              <Input 
-                                type="number" 
-                                placeholder="25" 
+                              <Input
+                                type="number"
+                                placeholder="25"
                                 data-testid="input-character-age"
                                 {...field}
                                 value={field.value || ""}
-                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                onChange={(e) =>
+                                  field.onChange(parseInt(e.target.value) || 0)
+                                }
                               />
                             </FormControl>
                             <FormMessage />
@@ -537,11 +646,11 @@ export default function CharacterEditPage() {
                               <GenerateButton fieldName="occupation" />
                             </FormLabel>
                             <FormControl>
-                              <Input 
-                                placeholder="Character's job or role" 
+                              <Input
+                                placeholder="Character's job or role"
                                 data-testid="input-character-occupation"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -555,7 +664,10 @@ export default function CharacterEditPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Genre</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value || ""}>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value || ""}
+                            >
                               <FormControl>
                                 <SelectTrigger data-testid="select-character-genre">
                                   <SelectValue placeholder="Select genre" />
@@ -563,13 +675,23 @@ export default function CharacterEditPage() {
                               </FormControl>
                               <SelectContent>
                                 <SelectItem value="fantasy">Fantasy</SelectItem>
-                                <SelectItem value="science-fiction">Science Fiction</SelectItem>
+                                <SelectItem value="science-fiction">
+                                  Science Fiction
+                                </SelectItem>
                                 <SelectItem value="mystery">Mystery</SelectItem>
                                 <SelectItem value="romance">Romance</SelectItem>
-                                <SelectItem value="thriller">Thriller</SelectItem>
-                                <SelectItem value="literary">Literary Fiction</SelectItem>
-                                <SelectItem value="historical">Historical Fiction</SelectItem>
-                                <SelectItem value="contemporary">Contemporary</SelectItem>
+                                <SelectItem value="thriller">
+                                  Thriller
+                                </SelectItem>
+                                <SelectItem value="literary">
+                                  Literary Fiction
+                                </SelectItem>
+                                <SelectItem value="historical">
+                                  Historical Fiction
+                                </SelectItem>
+                                <SelectItem value="contemporary">
+                                  Contemporary
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -588,12 +710,12 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="backstory" />
                           </FormLabel>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Character's background and history..."
                               className="min-h-[100px]"
                               data-testid="textarea-character-backstory"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -612,11 +734,11 @@ export default function CharacterEditPage() {
                               <GenerateButton fieldName="motivation" />
                             </FormLabel>
                             <FormControl>
-                              <Textarea 
+                              <Textarea
                                 placeholder="What drives this character?"
                                 data-testid="textarea-character-motivation"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -634,11 +756,11 @@ export default function CharacterEditPage() {
                               <GenerateButton fieldName="flaw" />
                             </FormLabel>
                             <FormControl>
-                              <Textarea 
+                              <Textarea
                                 placeholder="Character's main weakness or flaw"
                                 data-testid="textarea-character-flaw"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -657,11 +779,11 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="strength" />
                           </FormLabel>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Character's main strength or positive trait"
                               data-testid="textarea-character-strength"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -681,7 +803,8 @@ export default function CharacterEditPage() {
                       Identity & Gender
                     </CardTitle>
                     <CardDescription>
-                      Character's gender identity, sexuality, and personal presentation
+                      Character's gender identity, sexuality, and personal
+                      presentation
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -693,11 +816,11 @@ export default function CharacterEditPage() {
                           <FormItem>
                             <FormLabel>Sex</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 placeholder="Biological sex assigned at birth"
                                 data-testid="input-character-sex"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -712,11 +835,11 @@ export default function CharacterEditPage() {
                           <FormItem>
                             <FormLabel>Gender Identity</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 placeholder="How the character identifies"
                                 data-testid="input-character-gender-identity"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -731,11 +854,11 @@ export default function CharacterEditPage() {
                           <FormItem>
                             <FormLabel>Pronouns</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 placeholder="they/them, she/her, he/him, etc."
                                 data-testid="input-character-pronouns"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -750,11 +873,11 @@ export default function CharacterEditPage() {
                           <FormItem>
                             <FormLabel>Species</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 placeholder="Human, elf, alien, etc."
                                 data-testid="input-character-species"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -770,15 +893,16 @@ export default function CharacterEditPage() {
                         <FormItem>
                           <FormLabel>Gender Understanding</FormLabel>
                           <FormDescription>
-                            How does the character understand gender and what is their gender identity?
+                            How does the character understand gender and what is
+                            their gender identity?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Describe the character's relationship with gender..."
                               className="min-h-[100px]"
                               data-testid="textarea-character-gender-understanding"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -796,12 +920,12 @@ export default function CharacterEditPage() {
                             What is the character's sexual orientation?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Describe the character's sexuality and romantic attractions..."
                               className="min-h-[80px]"
                               data-testid="textarea-character-sexual-orientation"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -833,11 +957,11 @@ export default function CharacterEditPage() {
                           <FormItem>
                             <FormLabel>Height</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 placeholder="5'8&quot;, 172cm, tall, etc."
                                 data-testid="input-character-height-detail"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -852,11 +976,11 @@ export default function CharacterEditPage() {
                           <FormItem>
                             <FormLabel>Weight/Build</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 placeholder="Average, slender, muscular, etc."
                                 data-testid="input-character-weight"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -871,11 +995,11 @@ export default function CharacterEditPage() {
                           <FormItem>
                             <FormLabel>Skin Tone</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 placeholder="Pale, olive, dark, etc."
                                 data-testid="input-character-skin-tone"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -890,11 +1014,11 @@ export default function CharacterEditPage() {
                           <FormItem>
                             <FormLabel>Eye Color</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 placeholder="Brown, blue, green, hazel, etc."
                                 data-testid="input-character-eye-color"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -909,11 +1033,11 @@ export default function CharacterEditPage() {
                           <FormItem>
                             <FormLabel>Hair Color</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 placeholder="Black, blonde, red, etc."
                                 data-testid="input-character-hair-color"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -928,11 +1052,11 @@ export default function CharacterEditPage() {
                           <FormItem>
                             <FormLabel>Hair Texture</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 placeholder="Straight, wavy, curly, coily, etc."
                                 data-testid="input-character-hair-texture"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -951,15 +1075,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="strikingFeatures" />
                           </FormLabel>
                           <FormDescription>
-                            What are their most characteristic or striking features?
+                            What are their most characteristic or striking
+                            features?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Piercing gaze, infectious smile, etc."
                               className="min-h-[80px]"
                               data-testid="textarea-character-striking-features"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -977,15 +1102,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="marksPiercingsTattoos" />
                           </FormLabel>
                           <FormDescription>
-                            Birthmarks, piercings, tattoos, or other identifying features
+                            Birthmarks, piercings, tattoos, or other identifying
+                            features
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Dragon tattoo on left arm, scar above left eyebrow, etc."
                               className="min-h-[80px]"
                               data-testid="textarea-character-marks-piercings-tattoos"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1017,11 +1143,11 @@ export default function CharacterEditPage() {
                           <FormItem>
                             <FormLabel>Current Location</FormLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 placeholder="Where they currently live"
                                 data-testid="input-character-current-location"
-                                {...field} 
-                                value={field.value || ""} 
+                                {...field}
+                                value={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -1040,12 +1166,12 @@ export default function CharacterEditPage() {
                             Describe their family relationships and dynamics
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Parents, siblings, children, etc."
                               className="min-h-[100px]"
                               data-testid="textarea-character-family"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1060,11 +1186,11 @@ export default function CharacterEditPage() {
                         <FormItem>
                           <FormLabel>Religious Beliefs</FormLabel>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Character's spiritual or religious views"
                               data-testid="textarea-character-religious-belief"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1095,15 +1221,16 @@ export default function CharacterEditPage() {
                         <FormItem>
                           <FormLabel>Education</FormLabel>
                           <FormDescription>
-                            What is the character's education level and experience?
+                            What is the character's education level and
+                            experience?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Educational background, training, certifications..."
                               className="min-h-[80px]"
                               data-testid="textarea-character-education"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1121,12 +1248,12 @@ export default function CharacterEditPage() {
                             What is their work history and career progression?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Previous jobs, career changes, major projects..."
                               className="min-h-[80px]"
                               data-testid="textarea-character-work-history"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1141,15 +1268,16 @@ export default function CharacterEditPage() {
                         <FormItem>
                           <FormLabel>Major Accomplishments</FormLabel>
                           <FormDescription>
-                            What major accomplishments has this character achieved?
+                            What major accomplishments has this character
+                            achieved?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Awards, achievements, successful projects..."
                               className="min-h-[80px]"
                               data-testid="textarea-character-accomplishments"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1167,12 +1295,12 @@ export default function CharacterEditPage() {
                             What are the character's values, ethics, and morals?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Core beliefs, moral compass, ethical standards..."
                               className="min-h-[80px]"
                               data-testid="textarea-character-values-ethics-morals"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1206,15 +1334,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="upbringing" />
                           </FormLabel>
                           <FormDescription>
-                            What was their upbringing like? How did their childhood shape them?
+                            What was their upbringing like? How did their
+                            childhood shape them?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Describe their childhood, formative experiences, family dynamics..."
                               className="min-h-[100px]"
                               data-testid="textarea-character-upbringing"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1232,15 +1361,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="negativeEvents" />
                           </FormLabel>
                           <FormDescription>
-                            What negative events, failures, embarrassments, or traumas have impacted this character?
+                            What negative events, failures, embarrassments, or
+                            traumas have impacted this character?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Difficult experiences that shaped their personality and worldview..."
                               className="min-h-[100px]"
                               data-testid="textarea-character-negative-events"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1258,15 +1388,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="mentalHealth" />
                           </FormLabel>
                           <FormDescription>
-                            How would you describe the character's mental health and emotional wellbeing?
+                            How would you describe the character's mental health
+                            and emotional wellbeing?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Mental state, emotional patterns, coping mechanisms..."
                               className="min-h-[80px]"
                               data-testid="textarea-character-mental-health"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1284,15 +1415,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="intellectualTraits" />
                           </FormLabel>
                           <FormDescription>
-                            What are the character's intellectual traits and thinking patterns?
+                            What are the character's intellectual traits and
+                            thinking patterns?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Learning style, problem-solving approach, areas of expertise..."
                               className="min-h-[80px]"
                               data-testid="textarea-character-intellectual-traits"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1310,15 +1442,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="physicalCondition" />
                           </FormLabel>
                           <FormDescription>
-                            How would you describe their physical condition in terms of fitness, health, and any conditions?
+                            How would you describe their physical condition in
+                            terms of fitness, health, and any conditions?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Fitness level, health status, physical limitations or abilities..."
                               className="min-h-[80px]"
                               data-testid="textarea-character-physical-condition"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1352,15 +1485,17 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="supernaturalPowers" />
                           </FormLabel>
                           <FormDescription>
-                            Does the character have any supernatural or extraordinary powers, mutations, or special abilities?
+                            Does the character have any supernatural or
+                            extraordinary powers, mutations, or special
+                            abilities?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Describe any supernatural powers, magical abilities, mutations, or extraordinary capabilities..."
                               className="min-h-[100px]"
                               data-testid="textarea-supernatural-powers"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1378,15 +1513,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="mainSkills" />
                           </FormLabel>
                           <FormDescription>
-                            What are the character's main skills, strengths, positive character aspects, and proficiencies?
+                            What are the character's main skills, strengths,
+                            positive character aspects, and proficiencies?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="List key skills, talents, competencies, and areas of expertise..."
                               className="min-h-[100px]"
                               data-testid="textarea-main-skills"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1404,15 +1540,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="lackingSkills" />
                           </FormLabel>
                           <FormDescription>
-                            What skills or knowledge are they lacking? What areas do they struggle with?
+                            What skills or knowledge are they lacking? What
+                            areas do they struggle with?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Areas where they lack expertise, knowledge gaps, weak points..."
                               className="min-h-[80px]"
                               data-testid="textarea-lacking-skills"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1430,15 +1567,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="typicalAttire" />
                           </FormLabel>
                           <FormDescription>
-                            What is the character's typical attire and accessories?
+                            What is the character's typical attire and
+                            accessories?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Describe their usual clothing style, favorite outfits, accessories..."
                               className="min-h-[80px]"
                               data-testid="textarea-typical-attire"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1456,15 +1594,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="keyEquipment" />
                           </FormLabel>
                           <FormDescription>
-                            Is there key equipment or specialized items used by the character?
+                            Is there key equipment or specialized items used by
+                            the character?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Tools, weapons, specialized gear, important possessions..."
                               className="min-h-[80px]"
                               data-testid="textarea-key-equipment"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1484,7 +1623,8 @@ export default function CharacterEditPage() {
                       Personality & Character Traits
                     </CardTitle>
                     <CardDescription>
-                      Deep personality characteristics, flaws, and behavioral patterns
+                      Deep personality characteristics, flaws, and behavioral
+                      patterns
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -1498,15 +1638,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="characterFlaws" />
                           </FormLabel>
                           <FormDescription>
-                            What flaws do they have? Do they have any addictions, vices, defects, or secret beliefs?
+                            What flaws do they have? Do they have any
+                            addictions, vices, defects, or secret beliefs?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Character flaws, addictions, bad habits, secret beliefs, moral weaknesses..."
                               className="min-h-[100px]"
                               data-testid="textarea-character-flaws"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1527,12 +1668,12 @@ export default function CharacterEditPage() {
                             What are the character's likes and preferences?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Things they enjoy, preferences, favorite activities, foods, music..."
                               className="min-h-[80px]"
                               data-testid="textarea-likes"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1550,15 +1691,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="dislikes" />
                           </FormLabel>
                           <FormDescription>
-                            What are the character's dislikes and things that annoy them?
+                            What are the character's dislikes and things that
+                            annoy them?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Things they dislike, pet peeves, triggers, aversions..."
                               className="min-h-[80px]"
                               data-testid="textarea-dislikes"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1576,15 +1718,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="behavioralTraits" />
                           </FormLabel>
                           <FormDescription>
-                            Do they have any unique behavioral traits or particularities?
+                            Do they have any unique behavioral traits or
+                            particularities?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Unique habits, quirks, behavioral patterns, strange behaviors..."
                               className="min-h-[80px]"
                               data-testid="textarea-behavioral-traits"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1602,15 +1745,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="charisma" />
                           </FormLabel>
                           <FormDescription>
-                            How would you describe their charisma, confidence, ego, extroversion, etiquette and mannerisms?
+                            How would you describe their charisma, confidence,
+                            ego, extroversion, etiquette and mannerisms?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Social skills, confidence level, charisma, ego, social mannerisms..."
                               className="min-h-[80px]"
                               data-testid="textarea-charisma"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1628,15 +1772,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="habitualGestures" />
                           </FormLabel>
                           <FormDescription>
-                            What are the habitual gestures, mannerisms, ways of speaking or behaving of the character?
+                            What are the habitual gestures, mannerisms, ways of
+                            speaking or behaving of the character?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Recurring gestures, nervous habits, speaking patterns, behavioral tics..."
                               className="min-h-[80px]"
                               data-testid="textarea-habitual-gestures"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1656,7 +1801,8 @@ export default function CharacterEditPage() {
                       Relationships & Social Connections
                     </CardTitle>
                     <CardDescription>
-                      Key relationships, leadership roles, and social connections
+                      Key relationships, leadership roles, and social
+                      connections
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -1670,15 +1816,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="keyRelationships" />
                           </FormLabel>
                           <FormDescription>
-                            What are the character's key relationships, including allies, enemies, and familial ties?
+                            What are the character's key relationships,
+                            including allies, enemies, and familial ties?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Important relationships, family connections, close friends, romantic partners..."
                               className="min-h-[100px]"
                               data-testid="textarea-key-relationships"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1696,15 +1843,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="allies" />
                           </FormLabel>
                           <FormDescription>
-                            Who are their allies, friends, and trusted companions?
+                            Who are their allies, friends, and trusted
+                            companions?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Close allies, trusted friends, mentors, supporters..."
                               className="min-h-[80px]"
                               data-testid="textarea-allies"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1725,12 +1873,12 @@ export default function CharacterEditPage() {
                             Who are their enemies, rivals, or antagonists?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Enemies, rivals, people who oppose them, ongoing conflicts..."
                               className="min-h-[80px]"
                               data-testid="textarea-enemies"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1748,15 +1896,17 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="overseeingDomain" />
                           </FormLabel>
                           <FormDescription>
-                            Is this character overseeing or ruling over a domain or group of people? How long have they been in this position?
+                            Is this character overseeing or ruling over a domain
+                            or group of people? How long have they been in this
+                            position?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Leadership roles, domains ruled, groups managed, duration in position..."
                               className="min-h-[80px]"
                               data-testid="textarea-overseeing-domain"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1790,15 +1940,17 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="legacy" />
                           </FormLabel>
                           <FormDescription>
-                            If the character is deceased, what influence have they had on the world and what is their legacy—how are they remembered by others?
+                            If the character is deceased, what influence have
+                            they had on the world and what is their legacy—how
+                            are they remembered by others?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Lasting impact, how they're remembered, influence on others or events..."
                               className="min-h-[100px]"
                               data-testid="textarea-legacy"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1816,15 +1968,17 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="wealthClass" />
                           </FormLabel>
                           <FormDescription>
-                            How would you describe the wealth of this character in terms of class, dependencies, debts, funds, disposable income, assets and investments?
+                            How would you describe the wealth of this character
+                            in terms of class, dependencies, debts, funds,
+                            disposable income, assets and investments?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Economic class, income level, debts, assets, investments, financial situation..."
                               className="min-h-[100px]"
                               data-testid="textarea-wealth-class"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1858,15 +2012,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="hobbies" />
                           </FormLabel>
                           <FormDescription>
-                            What hobbies, interests, and activities does the character enjoy?
+                            What hobbies, interests, and activities does the
+                            character enjoy?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Hobbies, pastimes, recreational activities, interests, passions..."
                               className="min-h-[80px]"
                               data-testid="textarea-hobbies"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1881,14 +2036,15 @@ export default function CharacterEditPage() {
                         <FormItem>
                           <FormLabel>Pets & Animal Companions</FormLabel>
                           <FormDescription>
-                            Does the character have any pets or animal companions?
+                            Does the character have any pets or animal
+                            companions?
                           </FormDescription>
                           <FormControl>
-                            <Input 
+                            <Input
                               placeholder="Pet names and types, animal companions..."
                               data-testid="input-pets"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1906,15 +2062,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="hygieneValue" />
                           </FormLabel>
                           <FormDescription>
-                            How much does the character value hygiene and self-care?
+                            How much does the character value hygiene and
+                            self-care?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Approach to personal hygiene, grooming habits, self-care routines..."
                               className="min-h-[60px]"
                               data-testid="textarea-hygiene-value"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1934,7 +2091,8 @@ export default function CharacterEditPage() {
                       Speech & Communication
                     </CardTitle>
                     <CardDescription>
-                      Speech patterns, communication style, and verbal characteristics
+                      Speech patterns, communication style, and verbal
+                      characteristics
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -1948,15 +2106,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="famousQuotes" />
                           </FormLabel>
                           <FormDescription>
-                            Does the character have any famous quotes or catchphrases?
+                            Does the character have any famous quotes or
+                            catchphrases?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Memorable quotes, catchphrases, signature sayings..."
                               className="min-h-[80px]"
                               data-testid="textarea-famous-quotes"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1974,15 +2133,19 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="speechParticularities" />
                           </FormLabel>
                           <FormDescription>
-                            Are there any particularities in terms of the character's speech, tone of voice, pitch, accent, dialect, impediments, catch phrases, common phrases, compliments, insults, greetings, farewell, swearing or metaphors?
+                            Are there any particularities in terms of the
+                            character's speech, tone of voice, pitch, accent,
+                            dialect, impediments, catch phrases, common phrases,
+                            compliments, insults, greetings, farewell, swearing
+                            or metaphors?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Speech patterns, accent, dialect, voice characteristics, verbal habits..."
                               className="min-h-[120px]"
                               data-testid="textarea-speech-particularities"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -2002,7 +2165,8 @@ export default function CharacterEditPage() {
                       Spiritual & Religious Views
                     </CardTitle>
                     <CardDescription>
-                      Religious beliefs, spiritual practices, and philosophical views
+                      Religious beliefs, spiritual practices, and philosophical
+                      views
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -2016,15 +2180,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="religiousViews" />
                           </FormLabel>
                           <FormDescription>
-                            What are the character's religious views and spiritual practices?
+                            What are the character's religious views and
+                            spiritual practices?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Religious beliefs, faith, spiritual philosophy, relationship with divinity..."
                               className="min-h-[100px]"
                               data-testid="textarea-religious-views"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -2042,15 +2207,16 @@ export default function CharacterEditPage() {
                             <GenerateButton fieldName="spiritualPractices" />
                           </FormLabel>
                           <FormDescription>
-                            What spiritual practices, rituals, or ceremonies do they participate in?
+                            What spiritual practices, rituals, or ceremonies do
+                            they participate in?
                           </FormDescription>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Prayer habits, meditation, rituals, spiritual disciplines, religious observances..."
                               className="min-h-[80px]"
                               data-testid="textarea-spiritual-practices"
-                              {...field} 
-                              value={field.value || ""} 
+                              {...field}
+                              value={field.value || ""}
                             />
                           </FormControl>
                           <FormMessage />
@@ -2060,26 +2226,25 @@ export default function CharacterEditPage() {
                   </CardContent>
                 </Card>
               </TabsContent>
-
             </Tabs>
 
             {/* Submit Button */}
             <div className="flex justify-end gap-4 mt-8">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => setLocation('/')}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setLocation("/")}
                 data-testid="button-cancel-edit"
               >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={updateMutation.isPending}
                 data-testid="button-save-character"
               >
                 <Save className="h-4 w-4 mr-2" />
-                {updateMutation.isPending ? 'Saving...' : 'Save Character'}
+                {updateMutation.isPending ? "Saving..." : "Save Character"}
               </Button>
             </div>
           </form>

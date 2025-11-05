@@ -1,10 +1,24 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Separator } from "@/components/ui/separator";
-import { Target, AlertTriangle, Users, Copy, Heart, Loader2, Sparkles } from "lucide-react";
+import {
+  Target,
+  AlertTriangle,
+  Users,
+  Copy,
+  Heart,
+  Loader2,
+  Sparkles,
+} from "lucide-react";
 import type { Conflict } from "@shared/schema";
 import { useGenerator } from "@/hooks/useGenerator";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,49 +28,56 @@ import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { PolishButton } from "@/components/PolishButton";
 
 const CONFLICT_TYPE_CATEGORIES = {
-  "Conflict Types": ['any', 'internal', 'external', 'interpersonal', 'societal']
+  "Conflict Types": [
+    "any",
+    "internal",
+    "external",
+    "interpersonal",
+    "societal",
+  ],
 };
 
 const CONFLICT_TYPE_LABELS: Record<string, string> = {
-  'any': 'Any Type',
-  'internal': 'Internal Conflict',
-  'external': 'External Conflict',
-  'interpersonal': 'Interpersonal Conflict',
-  'societal': 'Societal Conflict'
+  any: "Any Type",
+  internal: "Internal Conflict",
+  external: "External Conflict",
+  interpersonal: "Interpersonal Conflict",
+  societal: "Societal Conflict",
 };
 
 const GENRE_CATEGORIES = {
-  "Genres": ['any', 'fantasy', 'romance', 'thriller', 'drama', 'sci-fi']
+  Genres: ["any", "fantasy", "romance", "thriller", "drama", "sci-fi"],
 };
 
 const GENRE_LABELS: Record<string, string> = {
-  'any': 'Any Genre',
-  'fantasy': 'Fantasy',
-  'romance': 'Romance',
-  'thriller': 'Thriller',
-  'drama': 'Drama',
-  'sci-fi': 'Science Fiction'
+  any: "Any Genre",
+  fantasy: "Fantasy",
+  romance: "Romance",
+  thriller: "Thriller",
+  drama: "Drama",
+  "sci-fi": "Science Fiction",
 };
 
 export default function ConflictGenerator() {
-  const [conflictType, setConflictType] = useState('any');
-  const [genre, setGenre] = useState('any');
+  const [conflictType, setConflictType] = useState("any");
+  const [genre, setGenre] = useState("any");
   const { user } = useAuth();
   const { notebookId, validateNotebook } = useRequireNotebook({
-    errorMessage: 'Please create or select a notebook before generating conflicts.'
+    errorMessage:
+      "Please create or select a notebook before generating conflicts.",
   });
 
   const generator = useGenerator<Conflict>({
-    generateEndpoint: '/api/conflicts/generate',
+    generateEndpoint: "/api/conflicts/generate",
     getGenerateParams: () => ({ conflictType, genre, notebookId }),
-    itemTypeName: 'conflict',
+    itemTypeName: "conflict",
     userId: user?.id ?? undefined,
     notebookId: notebookId ?? undefined,
     validateBeforeGenerate: validateNotebook,
     formatForClipboard: (conflict) => `Conflict: ${conflict.title}
 
 Type: ${conflict.type}
-Genre: ${conflict.genre || 'General'}
+Genre: ${conflict.genre || "General"}
 
 Description:
 ${conflict.description}
@@ -68,11 +89,11 @@ Emotional Impact:
 ${conflict.emotionalImpact}
 
 Obstacles:
-${conflict.obstacles.join('\n')}
+${conflict.obstacles.join("\n")}
 
 Potential Resolutions:
-${conflict.potentialResolutions.join('\n')}`,
-    invalidateOnSave: [['/api/saved-items']],
+${conflict.potentialResolutions.join("\n")}`,
+    invalidateOnSave: [["/api/saved-items"]],
   });
 
   const generatedConflict = generator.result;
@@ -80,9 +101,12 @@ ${conflict.potentialResolutions.join('\n')}`,
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-serif font-bold mb-4 text-foreground">Conflict Generator</h1>
+        <h1 className="text-4xl font-serif font-bold mb-4 text-foreground">
+          Conflict Generator
+        </h1>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Create engaging conflicts and obstacles for your story. Generate compelling tension that drives your narrative forward.
+          Create engaging conflicts and obstacles for your story. Generate
+          compelling tension that drives your narrative forward.
         </p>
       </div>
 
@@ -96,10 +120,12 @@ ${conflict.potentialResolutions.join('\n')}`,
         </CardHeader>
         <CardContent>
           <GeneratorNotebookControls />
-          
+
           <div className="grid md:grid-cols-2 gap-4 mt-6">
             <div>
-              <label className="block text-sm font-medium mb-2">Conflict Type</label>
+              <label className="block text-sm font-medium mb-2">
+                Conflict Type
+              </label>
               <SearchableSelect
                 value={conflictType}
                 onValueChange={setConflictType}
@@ -111,7 +137,7 @@ ${conflict.potentialResolutions.join('\n')}`,
                 formatLabel={(value) => CONFLICT_TYPE_LABELS[value] || value}
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium mb-2">Genre</label>
               <SearchableSelect
@@ -130,7 +156,7 @@ ${conflict.potentialResolutions.join('\n')}`,
       </Card>
 
       <div className="flex justify-center mb-8">
-        <Button 
+        <Button
           onClick={generator.generate}
           disabled={generator.isGenerating}
           size="lg"
@@ -156,7 +182,10 @@ ${conflict.potentialResolutions.join('\n')}`,
           <CardHeader>
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <CardTitle className="text-2xl flex items-center gap-2" data-testid="text-conflict-title">
+                <CardTitle
+                  className="text-2xl flex items-center gap-2"
+                  data-testid="text-conflict-title"
+                >
                   <Target className="h-6 w-6 text-primary" />
                   {generatedConflict.title}
                 </CardTitle>
@@ -164,7 +193,9 @@ ${conflict.potentialResolutions.join('\n')}`,
                   <div className="flex flex-wrap gap-2 mt-2">
                     <Badge variant="outline">{generatedConflict.type}</Badge>
                     {generatedConflict.genre && (
-                      <Badge variant="secondary">{generatedConflict.genre}</Badge>
+                      <Badge variant="secondary">
+                        {generatedConflict.genre}
+                      </Badge>
                     )}
                   </div>
                 </CardDescription>
@@ -176,21 +207,21 @@ ${conflict.potentialResolutions.join('\n')}`,
                   onPolished={(polished) => {
                     generator.setResult({
                       ...generatedConflict,
-                      description: polished
+                      description: polished,
                     });
                   }}
                 />
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={generator.copyToClipboard}
                   data-testid="button-copy-conflict"
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={generator.saveToCollection}
                   disabled={generator.isSaving || !generatedConflict?.id}
                   data-testid="button-save-conflict"
@@ -207,7 +238,10 @@ ${conflict.potentialResolutions.join('\n')}`,
           <CardContent className="space-y-6">
             <div>
               <h4 className="font-semibold mb-2 text-lg">Description</h4>
-              <p className="text-muted-foreground leading-relaxed" data-testid="text-conflict-description">
+              <p
+                className="text-muted-foreground leading-relaxed"
+                data-testid="text-conflict-description"
+              >
                 {generatedConflict.description}
               </p>
             </div>
@@ -243,7 +277,9 @@ ${conflict.potentialResolutions.join('\n')}`,
                 {generatedConflict.obstacles.map((obstacle, idx) => (
                   <li key={idx} className="flex items-start gap-2">
                     <span className="text-primary mt-1.5">•</span>
-                    <span className="text-muted-foreground flex-1">{obstacle}</span>
+                    <span className="text-muted-foreground flex-1">
+                      {obstacle}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -252,14 +288,20 @@ ${conflict.potentialResolutions.join('\n')}`,
             <Separator />
 
             <div>
-              <h4 className="font-semibold mb-3 text-lg">Potential Resolutions</h4>
+              <h4 className="font-semibold mb-3 text-lg">
+                Potential Resolutions
+              </h4>
               <ul className="space-y-2">
-                {generatedConflict.potentialResolutions.map((resolution, idx) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <span className="text-chart-4 mt-1.5">→</span>
-                    <span className="text-muted-foreground flex-1">{resolution}</span>
-                  </li>
-                ))}
+                {generatedConflict.potentialResolutions.map(
+                  (resolution, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <span className="text-chart-4 mt-1.5">→</span>
+                      <span className="text-muted-foreground flex-1">
+                        {resolution}
+                      </span>
+                    </li>
+                  ),
+                )}
               </ul>
             </div>
           </CardContent>

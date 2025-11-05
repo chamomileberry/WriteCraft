@@ -1,4 +1,23 @@
-import { Building, Users, Crown, Shield, Coins, Globe, Star, Flag, BookOpen, Handshake, Swords, MapPin, Mountain, Trees, Waves, Sun, AlertTriangle, Scroll } from "lucide-react";
+import {
+  Building,
+  Users,
+  Crown,
+  Shield,
+  Coins,
+  Globe,
+  Star,
+  Flag,
+  BookOpen,
+  Handshake,
+  Swords,
+  MapPin,
+  Mountain,
+  Trees,
+  Waves,
+  Sun,
+  AlertTriangle,
+  Scroll,
+} from "lucide-react";
 
 /**
  * Form options and constants for various content type forms
@@ -25,13 +44,26 @@ export const LOCATION_TYPES = [
   { value: "ruins", label: "Ruins", icon: Scroll },
   { value: "tavern", label: "Tavern", icon: Building },
   { value: "market", label: "Market", icon: Coins },
-  { value: "other", label: "Other", icon: MapPin }
+  { value: "other", label: "Other", icon: MapPin },
 ];
 
 // Climate Types
 export const CLIMATE_TYPES = [
-  "Tropical", "Subtropical", "Temperate", "Continental", "Polar", "Arid", "Mediterranean", 
-  "Oceanic", "Subarctic", "Alpine", "Monsoon", "Magical", "Harsh", "Mild", "Variable"
+  "Tropical",
+  "Subtropical",
+  "Temperate",
+  "Continental",
+  "Polar",
+  "Arid",
+  "Mediterranean",
+  "Oceanic",
+  "Subarctic",
+  "Alpine",
+  "Monsoon",
+  "Magical",
+  "Harsh",
+  "Mild",
+  "Variable",
 ];
 
 // Organization Types with Icons
@@ -53,18 +85,38 @@ export const ORGANIZATION_TYPES = [
   { value: "alliance", label: "Alliance", icon: Handshake },
   { value: "order", label: "Knightly Order", icon: Shield },
   { value: "syndicate", label: "Syndicate", icon: Coins },
-  { value: "other", label: "Other", icon: Building }
+  { value: "other", label: "Other", icon: Building },
 ];
 
 // Influence Levels
 export const INFLUENCE_LEVELS = [
-  "Local", "Regional", "National", "International", "Continental", "Global",
-  "Minor", "Moderate", "Major", "Dominant", "Legendary", "Mythical"
+  "Local",
+  "Regional",
+  "National",
+  "International",
+  "Continental",
+  "Global",
+  "Minor",
+  "Moderate",
+  "Major",
+  "Dominant",
+  "Legendary",
+  "Mythical",
 ];
 
 // Genre Options (shared across forms)
 export const FORM_GENRE_OPTIONS = [
-  "Fantasy", "Sci-Fi", "Historical", "Modern", "Post-Apocalyptic", "Steampunk", 
-  "Cyberpunk", "Medieval", "Victorian", "Ancient", "Futuristic", "Mythological", 
-  "Political"
+  "Fantasy",
+  "Sci-Fi",
+  "Historical",
+  "Modern",
+  "Post-Apocalyptic",
+  "Steampunk",
+  "Cyberpunk",
+  "Medieval",
+  "Victorian",
+  "Ancient",
+  "Futuristic",
+  "Mythological",
+  "Political",
 ];

@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus, Calendar, ArrowRight } from "lucide-react";
 import Header from "@/components/Header";
@@ -33,9 +39,10 @@ export default function TimelinesListPage() {
     setLocation(`/timelines/${id}`);
   };
 
-  const filteredTimelines = timelines.filter((timeline) =>
-    timeline.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    timeline.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTimelines = timelines.filter(
+    (timeline) =>
+      timeline.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      timeline.description?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -45,7 +52,7 @@ export default function TimelinesListPage() {
         searchQuery={searchQuery}
         onNavigate={handleNavigate}
       />
-      
+
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -58,7 +65,10 @@ export default function TimelinesListPage() {
                 Visualize and organize events in your stories chronologically
               </p>
             </div>
-            <Button onClick={handleCreateTimeline} data-testid="button-create-timeline">
+            <Button
+              onClick={handleCreateTimeline}
+              data-testid="button-create-timeline"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Create Timeline
             </Button>
@@ -75,9 +85,13 @@ export default function TimelinesListPage() {
               <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Timelines Yet</h3>
               <p className="text-muted-foreground mb-4">
-                Create your first timeline to track events, plot points, and story chronology
+                Create your first timeline to track events, plot points, and
+                story chronology
               </p>
-              <Button onClick={handleCreateTimeline} data-testid="button-create-first-timeline">
+              <Button
+                onClick={handleCreateTimeline}
+                data-testid="button-create-first-timeline"
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Create Your First Timeline
               </Button>
@@ -86,8 +100,8 @@ export default function TimelinesListPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredTimelines.map((timeline) => (
-              <Card 
-                key={timeline.id} 
+              <Card
+                key={timeline.id}
                 className="hover:shadow-lg transition-shadow cursor-pointer"
                 onClick={() => handleViewTimeline(timeline.id)}
               >
@@ -105,9 +119,9 @@ export default function TimelinesListPage() {
                     <span className="capitalize">{timeline.timelineType}</span>
                     <span className="capitalize">{timeline.timeScale}</span>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="mt-4 w-full"
                     onClick={(e) => {
                       e.stopPropagation();

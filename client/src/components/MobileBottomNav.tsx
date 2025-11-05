@@ -1,4 +1,10 @@
-import { BookOpen, FolderKanban, Plus, Sparkles, MoreHorizontal } from "lucide-react";
+import {
+  BookOpen,
+  FolderKanban,
+  Plus,
+  Sparkles,
+  MoreHorizontal,
+} from "lucide-react";
 import { useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 
@@ -8,10 +14,10 @@ interface MobileBottomNavProps {
   onOpenMore?: () => void;
 }
 
-export function MobileBottomNav({ 
-  onCreateNew, 
+export function MobileBottomNav({
+  onCreateNew,
   onOpenWritingAssistant,
-  onOpenMore 
+  onOpenMore,
 }: MobileBottomNavProps) {
   const [location, setLocation] = useLocation();
 
@@ -23,7 +29,7 @@ export function MobileBottomNav({
   };
 
   return (
-    <nav 
+    <nav
       className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50 md:hidden safe-area-bottom"
       data-testid="mobile-bottom-nav"
     >
@@ -34,13 +40,20 @@ export function MobileBottomNav({
           className={cn(
             "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors flex-1 min-w-0",
             isActive("/notebook")
-              ? "text-primary" 
-              : "text-muted-foreground hover-elevate"
+              ? "text-primary"
+              : "text-muted-foreground hover-elevate",
           )}
           data-testid="nav-notebook"
         >
-          <BookOpen className={cn("h-5 w-5 flex-shrink-0", isActive("/notebook") && "fill-primary/20")} />
-          <span className="text-xs font-medium truncate w-full text-center">Notebook</span>
+          <BookOpen
+            className={cn(
+              "h-5 w-5 flex-shrink-0",
+              isActive("/notebook") && "fill-primary/20",
+            )}
+          />
+          <span className="text-xs font-medium truncate w-full text-center">
+            Notebook
+          </span>
         </button>
 
         {/* Projects */}
@@ -49,13 +62,20 @@ export function MobileBottomNav({
           className={cn(
             "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors flex-1 min-w-0",
             isActive("/projects")
-              ? "text-primary" 
-              : "text-muted-foreground hover-elevate"
+              ? "text-primary"
+              : "text-muted-foreground hover-elevate",
           )}
           data-testid="nav-projects"
         >
-          <FolderKanban className={cn("h-5 w-5 flex-shrink-0", isActive("/projects") && "fill-primary/20")} />
-          <span className="text-xs font-medium truncate w-full text-center">Projects</span>
+          <FolderKanban
+            className={cn(
+              "h-5 w-5 flex-shrink-0",
+              isActive("/projects") && "fill-primary/20",
+            )}
+          />
+          <span className="text-xs font-medium truncate w-full text-center">
+            Projects
+          </span>
         </button>
 
         {/* Create Button - Centered, Purple */}
@@ -77,7 +97,9 @@ export function MobileBottomNav({
           data-testid="nav-ai-assistant"
         >
           <Sparkles className="h-5 w-5 flex-shrink-0" />
-          <span className="text-xs font-medium truncate w-full text-center">AI</span>
+          <span className="text-xs font-medium truncate w-full text-center">
+            AI
+          </span>
         </button>
 
         {/* More */}
@@ -87,7 +109,9 @@ export function MobileBottomNav({
           data-testid="nav-more"
         >
           <MoreHorizontal className="h-5 w-5 flex-shrink-0" />
-          <span className="text-xs font-medium truncate w-full text-center">More</span>
+          <span className="text-xs font-medium truncate w-full text-center">
+            More
+          </span>
         </button>
       </div>
     </nav>

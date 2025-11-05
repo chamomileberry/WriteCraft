@@ -59,23 +59,27 @@
 /* Force sticky positioning for docked sidebar */
 .docked-sidebar-sticky {
   position: sticky !important;
-  top: calc(4rem + 2px) !important; /* Start below header + border with gap (h-16 + border + gap = 66px) */
-  height: calc(100vh - 4rem - 2px) !important; /* Adjust height to account for header + border + gap */
+  top: calc(
+    4rem + 2px
+  ) !important; /* Start below header + border with gap (h-16 + border + gap = 66px) */
+  height: calc(
+    100vh - 4rem - 2px
+  ) !important; /* Adjust height to account for header + border + gap */
   max-height: calc(100vh - 4rem - 2px) !important;
   z-index: var(--z-sidebar) !important; /* Below header but above content */
 }
 
 /* LIGHT MODE */
 :root {
-  --button-outline: rgba(0,0,0, .10);
-  --badge-outline: rgba(0,0,0, .05);
+  --button-outline: rgba(0, 0, 0, 0.1);
+  --badge-outline: rgba(0, 0, 0, 0.05);
 
   /* Automatic computation of border around primary / danger buttons */
   --opaque-button-border-intensity: -8; /* In terms of percentages */
 
   /* Backgrounds applied on top of other backgrounds when hovered/active */
-  --elevate-1: rgba(0,0,0, .03);
-  --elevate-2: rgba(0,0,0, .08);
+  --elevate-1: rgba(0, 0, 0, 0.03);
+  --elevate-2: rgba(0, 0, 0, 0.08);
 
   --background: 0 0% 99%;
   --foreground: 210 25% 25%;
@@ -115,8 +119,8 @@
   --font-sans: Open Sans, sans-serif;
   --font-serif: Merriweather, serif;
   --font-mono: Menlo, monospace;
-  --radius: .5rem; /* 8px */
-  
+  --radius: 0.5rem; /* 8px */
+
   /* Z-index hierarchy for consistent layering across the app */
   --z-base: 0;
   --z-sidebar: 30;
@@ -125,13 +129,27 @@
   --z-modal: 60;
   --z-toast: 70;
   --shadow-2xs: 0px 1px 2px 0px hsl(210 15% 20% / 0.05);
-  --shadow-xs: 0px 1px 2px 0px hsl(210 15% 20% / 0.06), 0px 1px 3px 0px hsl(210 15% 20% / 0.04);
-  --shadow-sm: 0px 1px 2px 0px hsl(210 15% 20% / 0.08), 0px 2px 4px -1px hsl(210 15% 20% / 0.06);
-  --shadow: 0px 1px 3px 0px hsl(210 15% 20% / 0.10), 0px 4px 8px -2px hsl(210 15% 20% / 0.08);
-  --shadow-md: 0px 2px 4px -1px hsl(210 15% 20% / 0.10), 0px 6px 12px -2px hsl(210 15% 20% / 0.12);
-  --shadow-lg: 0px 4px 6px -2px hsl(210 15% 20% / 0.12), 0px 12px 20px -4px hsl(210 15% 20% / 0.15);
-  --shadow-xl: 0px 8px 12px -4px hsl(210 15% 20% / 0.15), 0px 20px 32px -8px hsl(210 15% 20% / 0.18);
-  --shadow-2xl: 0px 12px 24px -6px hsl(210 15% 20% / 0.18), 0px 32px 64px -12px hsl(210 15% 20% / 0.22);
+  --shadow-xs:
+    0px 1px 2px 0px hsl(210 15% 20% / 0.06),
+    0px 1px 3px 0px hsl(210 15% 20% / 0.04);
+  --shadow-sm:
+    0px 1px 2px 0px hsl(210 15% 20% / 0.08),
+    0px 2px 4px -1px hsl(210 15% 20% / 0.06);
+  --shadow:
+    0px 1px 3px 0px hsl(210 15% 20% / 0.1),
+    0px 4px 8px -2px hsl(210 15% 20% / 0.08);
+  --shadow-md:
+    0px 2px 4px -1px hsl(210 15% 20% / 0.1),
+    0px 6px 12px -2px hsl(210 15% 20% / 0.12);
+  --shadow-lg:
+    0px 4px 6px -2px hsl(210 15% 20% / 0.12),
+    0px 12px 20px -4px hsl(210 15% 20% / 0.15);
+  --shadow-xl:
+    0px 8px 12px -4px hsl(210 15% 20% / 0.15),
+    0px 20px 32px -8px hsl(210 15% 20% / 0.18);
+  --shadow-2xl:
+    0px 12px 24px -6px hsl(210 15% 20% / 0.18),
+    0px 32px 64px -12px hsl(210 15% 20% / 0.22);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
@@ -139,42 +157,63 @@
 
   /* Fallback for older browsers */
   --sidebar-primary-border: hsl(var(--sidebar-primary));
-  --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --sidebar-primary-border: hsl(
+    from hsl(var(--sidebar-primary)) h s
+      calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
 
   /* Fallback for older browsers */
   --sidebar-accent-border: hsl(var(--sidebar-accent));
-  --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --sidebar-accent-border: hsl(
+    from hsl(var(--sidebar-accent)) h s
+      calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
 
   /* Fallback for older browsers */
   --primary-border: hsl(var(--primary));
-  --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --primary-border: hsl(
+    from hsl(var(--primary)) h s
+      calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
 
   /* Fallback for older browsers */
   --secondary-border: hsl(var(--secondary));
-  --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --secondary-border: hsl(
+    from hsl(var(--secondary)) h s
+      calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
 
   /* Fallback for older browsers */
   --muted-border: hsl(var(--muted));
-  --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --muted-border: hsl(
+    from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) /
+      alpha
+  );
 
   /* Fallback for older browsers */
   --accent-border: hsl(var(--accent));
-  --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --accent-border: hsl(
+    from hsl(var(--accent)) h s
+      calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
 
   /* Fallback for older browsers */
   --destructive-border: hsl(var(--destructive));
-  --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --destructive-border: hsl(
+    from hsl(var(--destructive)) h s
+      calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
 }
 
 .dark {
-  --button-outline: rgba(255,255,255, .10);
-  --badge-outline: rgba(255,255,255, .05);
+  --button-outline: rgba(255, 255, 255, 0.1);
+  --badge-outline: rgba(255, 255, 255, 0.05);
 
-  --opaque-button-border-intensity: 9;  /* In terms of percentages */
+  --opaque-button-border-intensity: 9; /* In terms of percentages */
 
   /* Backgrounds applied on top of other backgrounds when hovered/active */
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
+  --elevate-1: rgba(255, 255, 255, 0.04);
+  --elevate-2: rgba(255, 255, 255, 0.09);
 
   --background: 220 25% 8%;
   --foreground: 0 0% 95%;
@@ -211,14 +250,28 @@
   --chart-4: 145 55% 55%;
   --chart-5: 260 45% 65%;
 
-  --shadow-2xs: 0px 1px 2px 0px hsl(220 20% 4% / 0.20);
-  --shadow-xs: 0px 1px 2px 0px hsl(220 20% 4% / 0.24), 0px 1px 3px 0px hsl(220 20% 4% / 0.18);
-  --shadow-sm: 0px 1px 2px 0px hsl(220 20% 4% / 0.28), 0px 2px 4px -1px hsl(220 20% 4% / 0.22);
-  --shadow: 0px 1px 3px 0px hsl(220 20% 4% / 0.32), 0px 4px 8px -2px hsl(220 20% 4% / 0.26);
-  --shadow-md: 0px 2px 4px -1px hsl(220 20% 4% / 0.36), 0px 6px 12px -2px hsl(220 20% 4% / 0.30);
-  --shadow-lg: 0px 4px 6px -2px hsl(220 20% 4% / 0.40), 0px 12px 20px -4px hsl(220 20% 4% / 0.34);
-  --shadow-xl: 0px 8px 12px -4px hsl(220 20% 4% / 0.44), 0px 20px 32px -8px hsl(220 20% 4% / 0.38);
-  --shadow-2xl: 0px 12px 24px -6px hsl(220 20% 4% / 0.48), 0px 32px 64px -12px hsl(220 20% 4% / 0.42);
+  --shadow-2xs: 0px 1px 2px 0px hsl(220 20% 4% / 0.2);
+  --shadow-xs:
+    0px 1px 2px 0px hsl(220 20% 4% / 0.24),
+    0px 1px 3px 0px hsl(220 20% 4% / 0.18);
+  --shadow-sm:
+    0px 1px 2px 0px hsl(220 20% 4% / 0.28),
+    0px 2px 4px -1px hsl(220 20% 4% / 0.22);
+  --shadow:
+    0px 1px 3px 0px hsl(220 20% 4% / 0.32),
+    0px 4px 8px -2px hsl(220 20% 4% / 0.26);
+  --shadow-md:
+    0px 2px 4px -1px hsl(220 20% 4% / 0.36),
+    0px 6px 12px -2px hsl(220 20% 4% / 0.3);
+  --shadow-lg:
+    0px 4px 6px -2px hsl(220 20% 4% / 0.4),
+    0px 12px 20px -4px hsl(220 20% 4% / 0.34);
+  --shadow-xl:
+    0px 8px 12px -4px hsl(220 20% 4% / 0.44),
+    0px 20px 32px -8px hsl(220 20% 4% / 0.38);
+  --shadow-2xl:
+    0px 12px 24px -6px hsl(220 20% 4% / 0.48),
+    0px 32px 64px -12px hsl(220 20% 4% / 0.42);
 }
 
 @layer base {
@@ -252,7 +305,6 @@
  * need to be distinguished from eachother visually.
  */
 @layer utilities {
-
   /* Hide ugly search cancel button in Chrome until we can style it properly */
   input[type="search"]::-webkit-search-cancel-button {
     @apply hidden;
@@ -268,10 +320,11 @@
   /* .no-default-hover-elevate/no-default-active-elevate is an escape hatch so consumers of
    * buttons/badges can remove the automatic brightness adjustment on interactions
    * and program their own. */
-  .no-default-hover-elevate {}
+  .no-default-hover-elevate {
+  }
 
-  .no-default-active-elevate {}
-
+  .no-default-active-elevate {
+  }
 
   /**
    * Toggleable backgrounds go behind the content. Hoverable/active goes on top.
@@ -457,8 +510,10 @@
     border-color: rgb(147, 51, 234);
   }
 
-  .quick-note-prose ul[data-type="taskList"] input[type="checkbox"]:checked::after {
-    content: '✓';
+  .quick-note-prose
+    ul[data-type="taskList"]
+    input[type="checkbox"]:checked::after {
+    content: "✓";
     position: absolute;
     top: 50%;
     left: 50%;
@@ -766,13 +821,15 @@
 .ProseMirror .image-resizer-selected img {
   outline: 3px solid hsl(var(--primary));
   outline-offset: 2px;
-  box-shadow: 0 0 0 1px hsl(var(--background)), 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 0 0 1px hsl(var(--background)),
+    0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Resize handle visual indicator */
 .ProseMirror img.ProseMirror-selectednode::after,
 .ProseMirror .image-resizer-selected img::after {
-  content: '';
+  content: "";
   position: absolute;
   right: -2px;
   top: 50%;

@@ -1,7 +1,7 @@
-import { ContentTypeFormConfig } from '../../components/forms/types';
+import { ContentTypeFormConfig } from "../../components/forms/types";
 
 // Static imports for frequently used content types (loaded immediately)
-import { characterConfig } from '../../components/forms/content-types/character';
+import { characterConfig } from "../../components/forms/content-types/character";
 
 // Static configurations for core content types
 const staticConfigs: Record<string, ContentTypeFormConfig> = {
@@ -11,7 +11,10 @@ const staticConfigs: Record<string, ContentTypeFormConfig> = {
 // Dynamic import factory for less frequently used content types
 // This reduces initial bundle size by only loading configs when needed
 // All content types are now schema-driven (except character which is static)
-const dynamicConfigLoaders: Record<string, () => Promise<ContentTypeFormConfig>> = {};
+const dynamicConfigLoaders: Record<
+  string,
+  () => Promise<ContentTypeFormConfig>
+> = {};
 
 // Cache for dynamically loaded configs to avoid re-loading
 const configCache = new Map<string, ContentTypeFormConfig>();
@@ -21,7 +24,9 @@ const configCache = new Map<string, ContentTypeFormConfig>();
  * @param contentType - The content type key
  * @returns Promise that resolves to the configuration
  */
-export async function getContentTypeConfig(contentType: string): Promise<ContentTypeFormConfig | null> {
+export async function getContentTypeConfig(
+  contentType: string,
+): Promise<ContentTypeFormConfig | null> {
   // Check static configs first (immediate availability)
   if (staticConfigs[contentType]) {
     return staticConfigs[contentType];
@@ -39,33 +44,44 @@ export async function getContentTypeConfig(contentType: string): Promise<Content
       configCache.set(contentType, config);
       return config;
     } catch (error) {
-      console.error(`Failed to load config for content type: ${contentType}`, error);
+      console.error(
+        `Failed to load config for content type: ${contentType}`,
+        error,
+      );
       return null;
     }
   }
 
   // Try schema-driven config (auto-generated from Drizzle schemas)
   try {
-    const { getSchemaDrivenConfig } = await import('../schema-driven-configs');
+    const { getSchemaDrivenConfig } = await import("../schema-driven-configs");
     const config = getSchemaDrivenConfig(contentType);
     if (config) {
       configCache.set(contentType, config);
       return config;
     }
   } catch (error) {
-    console.error(`Failed to load schema-driven config for content type: ${contentType}`, error);
+    console.error(
+      `Failed to load schema-driven config for content type: ${contentType}`,
+      error,
+    );
   }
 
   // Fallback: Try to load from original monolithic file (only loads when needed)
   try {
-    const { contentTypeFormConfigs } = await import('../../components/forms/ContentTypeFormConfig');
+    const { contentTypeFormConfigs } = await import(
+      "../../components/forms/ContentTypeFormConfig"
+    );
     const config = contentTypeFormConfigs[contentType];
     if (config) {
       configCache.set(contentType, config);
       return config;
     }
   } catch (error) {
-    console.error(`Failed to load fallback config for content type: ${contentType}`, error);
+    console.error(
+      `Failed to load fallback config for content type: ${contentType}`,
+      error,
+    );
   }
 
   // Content type not found
@@ -77,15 +93,60 @@ export async function getContentTypeConfig(contentType: string): Promise<Content
 // This provides immediate access without loading the large file
 const ALL_CONTENT_TYPES = [
   // Static configs (loaded immediately)
-  'character', 'weapon', 'location', 'organization', 'item', 'building', 'creature',
+  "character",
+  "weapon",
+  "location",
+  "organization",
+  "item",
+  "building",
+  "creature",
   // Dynamic/fallback configs (loaded on demand)
-  'plot', 'language', 'species', 'food', 'drink', 'armor', 'religion', 'technology', 
-  'spell', 'animal', 'resource', 'ethnicity', 'culture', 'document', 'accessory', 
-  'clothing', 'material', 'settlement', 'society', 'faction', 'militaryUnit', 
-  'transportation', 'naturalLaw', 'tradition', 'ritual', 'setting', 'name', 
-  'conflict', 'theme', 'mood', 'plant', 'description', 'myth', 'legend', 'event', 
-  'familyTree', 'timeline', 'map', 'ceremony', 'music', 'dance', 'law', 'policy', 
-  'potion', 'prompt', 'profession'
+  "plot",
+  "language",
+  "species",
+  "food",
+  "drink",
+  "armor",
+  "religion",
+  "technology",
+  "spell",
+  "animal",
+  "resource",
+  "ethnicity",
+  "culture",
+  "document",
+  "accessory",
+  "clothing",
+  "material",
+  "settlement",
+  "society",
+  "faction",
+  "militaryUnit",
+  "transportation",
+  "naturalLaw",
+  "tradition",
+  "ritual",
+  "setting",
+  "name",
+  "conflict",
+  "theme",
+  "mood",
+  "plant",
+  "description",
+  "myth",
+  "legend",
+  "event",
+  "familyTree",
+  "timeline",
+  "map",
+  "ceremony",
+  "music",
+  "dance",
+  "law",
+  "policy",
+  "potion",
+  "prompt",
+  "profession",
 ];
 
 /**
@@ -101,7 +162,9 @@ export function getAvailableContentTypes(): string[] {
  * @param contentType - The content type key
  * @returns Configuration or null if not available synchronously
  */
-export function getStaticContentTypeConfig(contentType: string): ContentTypeFormConfig | null {
+export function getStaticContentTypeConfig(
+  contentType: string,
+): ContentTypeFormConfig | null {
   return staticConfigs[contentType] || null;
 }
 
@@ -118,11 +181,13 @@ export function isContentTypeAvailable(contentType: string): boolean {
  * Preload content type configurations for better performance
  * @param contentTypes - Array of content type keys to preload
  */
-export async function preloadContentTypes(contentTypes: string[]): Promise<void> {
+export async function preloadContentTypes(
+  contentTypes: string[],
+): Promise<void> {
   const promises = contentTypes
-    .filter(type => dynamicConfigLoaders[type] && !configCache.has(type))
-    .map(type => getContentTypeConfig(type));
-  
+    .filter((type) => dynamicConfigLoaders[type] && !configCache.has(type))
+    .map((type) => getContentTypeConfig(type));
+
   await Promise.all(promises);
 }
 

@@ -14,7 +14,7 @@ interface State {
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
-    error: null
+    error: null,
   };
 
   public static getDerivedStateFromError(error: Error): State {
@@ -22,12 +22,12 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
   }
 
   private handleReset = () => {
     this.setState({ hasError: false, error: null });
-    window.location.href = '/';
+    window.location.href = "/";
   };
 
   public render() {
@@ -40,17 +40,18 @@ export class ErrorBoundary extends Component<Props, State> {
                 <AlertTriangle className="h-12 w-12 text-destructive" />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <h1 className="text-2xl font-bold text-foreground">
                 Something went wrong
               </h1>
               <p className="text-muted-foreground">
-                We encountered an unexpected error. This has been logged and our team will look into it.
+                We encountered an unexpected error. This has been logged and our
+                team will look into it.
               </p>
             </div>
 
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {process.env.NODE_ENV === "development" && this.state.error && (
               <div className="bg-muted p-4 rounded-md text-left">
                 <p className="text-xs font-mono text-destructive break-all">
                   {this.state.error.toString()}
@@ -62,8 +63,8 @@ export class ErrorBoundary extends Component<Props, State> {
               <Button onClick={this.handleReset} data-testid="button-reset-app">
                 Return to Home
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => window.location.reload()}
                 data-testid="button-reload-page"
               >

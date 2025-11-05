@@ -1,15 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
-import { formatDistanceToNow } from 'date-fns';
-import { Download, FileText, ExternalLink } from 'lucide-react';
+import { useQuery } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
+import { Download, FileText, ExternalLink } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface Invoice {
   id: string;
@@ -26,40 +26,63 @@ interface Invoice {
 
 export function InvoiceHistory() {
   const { data, isLoading, error } = useQuery<{ invoices: Invoice[] }>({
-    queryKey: ['/api/stripe/invoices'],
+    queryKey: ["/api/stripe/invoices"],
   });
 
   const formatAmount = (amount: number, currency: string) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
       currency: currency.toUpperCase(),
     }).format(amount / 100);
   };
 
   const getStatusBadge = (status: string | null) => {
     switch (status) {
-      case 'paid':
-        return <Badge variant="default" data-testid={`badge-status-paid`}>Paid</Badge>;
-      case 'open':
-        return <Badge variant="secondary" data-testid={`badge-status-open`}>Open</Badge>;
-      case 'void':
-        return <Badge variant="outline" data-testid={`badge-status-void`}>Void</Badge>;
-      case 'uncollectible':
-        return <Badge variant="destructive" data-testid={`badge-status-uncollectible`}>Uncollectible</Badge>;
+      case "paid":
+        return (
+          <Badge variant="default" data-testid={`badge-status-paid`}>
+            Paid
+          </Badge>
+        );
+      case "open":
+        return (
+          <Badge variant="secondary" data-testid={`badge-status-open`}>
+            Open
+          </Badge>
+        );
+      case "void":
+        return (
+          <Badge variant="outline" data-testid={`badge-status-void`}>
+            Void
+          </Badge>
+        );
+      case "uncollectible":
+        return (
+          <Badge
+            variant="destructive"
+            data-testid={`badge-status-uncollectible`}
+          >
+            Uncollectible
+          </Badge>
+        );
       default:
-        return <Badge variant="outline" data-testid={`badge-status-unknown`}>{status || 'Unknown'}</Badge>;
+        return (
+          <Badge variant="outline" data-testid={`badge-status-unknown`}>
+            {status || "Unknown"}
+          </Badge>
+        );
     }
   };
 
   const handleDownloadPDF = (invoice: Invoice) => {
     if (invoice.pdfUrl) {
-      window.open(invoice.pdfUrl, '_blank');
+      window.open(invoice.pdfUrl, "_blank");
     }
   };
 
   const handleViewInvoice = (invoice: Invoice) => {
     if (invoice.hostedUrl) {
-      window.open(invoice.hostedUrl, '_blank');
+      window.open(invoice.hostedUrl, "_blank");
     }
   };
 
@@ -68,9 +91,7 @@ export function InvoiceHistory() {
       <Card>
         <CardHeader>
           <CardTitle>Invoice History</CardTitle>
-          <CardDescription>
-            Loading invoices...
-          </CardDescription>
+          <CardDescription>Loading invoices...</CardDescription>
         </CardHeader>
       </Card>
     );
@@ -81,9 +102,7 @@ export function InvoiceHistory() {
       <Card data-testid="card-invoice-history">
         <CardHeader>
           <CardTitle>Invoice History</CardTitle>
-          <CardDescription>
-            Your past invoices and receipts
-          </CardDescription>
+          <CardDescription>Your past invoices and receipts</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
@@ -104,9 +123,7 @@ export function InvoiceHistory() {
       <Card data-testid="card-invoice-history">
         <CardHeader>
           <CardTitle>Invoice History</CardTitle>
-          <CardDescription>
-            Your past invoices and receipts
-          </CardDescription>
+          <CardDescription>Your past invoices and receipts</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
@@ -122,9 +139,7 @@ export function InvoiceHistory() {
     <Card data-testid="card-invoice-history">
       <CardHeader>
         <CardTitle>Invoice History</CardTitle>
-        <CardDescription>
-          View and download your past invoices
-        </CardDescription>
+        <CardDescription>View and download your past invoices</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -136,27 +151,44 @@ export function InvoiceHistory() {
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-2">
-                  <p className="font-medium" data-testid={`text-invoice-number-${invoice.id}`}>
+                  <p
+                    className="font-medium"
+                    data-testid={`text-invoice-number-${invoice.id}`}
+                  >
                     {invoice.number || `Invoice ${invoice.id.slice(-8)}`}
                   </p>
                   {getStatusBadge(invoice.status)}
                 </div>
-                <p className="text-sm text-muted-foreground" data-testid={`text-invoice-description-${invoice.id}`}>
+                <p
+                  className="text-sm text-muted-foreground"
+                  data-testid={`text-invoice-description-${invoice.id}`}
+                >
                   {invoice.description}
                 </p>
-                <p className="text-sm text-muted-foreground mt-1" data-testid={`text-invoice-date-${invoice.id}`}>
-                  {formatDistanceToNow(new Date(invoice.created), { addSuffix: true })}
+                <p
+                  className="text-sm text-muted-foreground mt-1"
+                  data-testid={`text-invoice-date-${invoice.id}`}
+                >
+                  {formatDistanceToNow(new Date(invoice.created), {
+                    addSuffix: true,
+                  })}
                 </p>
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <p className="font-semibold" data-testid={`text-invoice-amount-${invoice.id}`}>
-                    {formatAmount(invoice.status === 'paid' ? invoice.amountPaid : invoice.amountDue, invoice.currency)}
+                  <p
+                    className="font-semibold"
+                    data-testid={`text-invoice-amount-${invoice.id}`}
+                  >
+                    {formatAmount(
+                      invoice.status === "paid"
+                        ? invoice.amountPaid
+                        : invoice.amountDue,
+                      invoice.currency,
+                    )}
                   </p>
-                  {invoice.status === 'open' && invoice.amountDue > 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      Due
-                    </p>
+                  {invoice.status === "open" && invoice.amountDue > 0 && (
+                    <p className="text-xs text-muted-foreground">Due</p>
                   )}
                 </div>
                 <div className="flex gap-2">

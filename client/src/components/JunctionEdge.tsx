@@ -1,5 +1,5 @@
-import { memo } from 'react';
-import { EdgeProps, BaseEdge } from '@xyflow/react';
+import { memo } from "react";
+import { EdgeProps, BaseEdge } from "@xyflow/react";
 
 function JunctionEdgeComponent({
   id,
@@ -12,12 +12,12 @@ function JunctionEdgeComponent({
   style,
 }: EdgeProps) {
   // Create orthogonal path (right angles only)
-  let path = '';
-  
+  let path = "";
+
   // Determine if this is a horizontal (marriage) or vertical (parent-child) edge
-  const isHorizontal = sourcePosition === 'right' || sourcePosition === 'left';
-  const isVertical = sourcePosition === 'bottom' || sourcePosition === 'top';
-  
+  const isHorizontal = sourcePosition === "right" || sourcePosition === "left";
+  const isVertical = sourcePosition === "bottom" || sourcePosition === "top";
+
   if (isHorizontal) {
     // Marriage edge - pure horizontal line connecting source to target
     // All junction handles are now at the same Y (center), so use targetY
@@ -33,13 +33,7 @@ function JunctionEdgeComponent({
     path = `M ${sourceX},${sourceY} L ${targetX},${targetY}`;
   }
 
-  return (
-    <BaseEdge 
-      id={id} 
-      path={path} 
-      style={style}
-    />
-  );
+  return <BaseEdge id={id} path={path} style={style} />;
 }
 
 export const JunctionEdge = memo(JunctionEdgeComponent);

@@ -10,7 +10,7 @@ export function GeneratorNotebookControls() {
   return (
     <div className="flex flex-wrap items-center gap-3">
       <NotebookSwitcher />
-      
+
       {activeNotebook && (
         <Badge variant="secondary" className="flex items-center gap-1.5">
           <Book className="h-3 w-3" />

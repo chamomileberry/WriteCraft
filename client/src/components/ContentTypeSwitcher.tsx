@@ -27,7 +27,7 @@ export function ContentTypeSwitcher({
   savedItemId,
   currentType,
   notebookId,
-  onSuccess
+  onSuccess,
 }: ContentTypeSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
@@ -36,11 +36,13 @@ export function ContentTypeSwitcher({
   const updateTypeMutation = useMutation({
     mutationFn: async (newType: string) => {
       return await apiRequest("PATCH", `/api/saved-items/${savedItemId}/type`, {
-        newItemType: newType
+        newItemType: newType,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/saved-items", user?.id, notebookId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/saved-items", user?.id, notebookId],
+      });
       toast({
         title: "Type updated",
         description: "Content type has been changed successfully",
@@ -62,14 +64,18 @@ export function ContentTypeSwitcher({
     setIsOpen(false);
   };
 
-  const groupedTypes = CONTENT_TYPES.filter(type => type.id !== currentType)
-    .reduce((acc, type) => {
+  const groupedTypes = CONTENT_TYPES.filter(
+    (type) => type.id !== currentType,
+  ).reduce(
+    (acc, type) => {
       if (!acc[type.category]) {
         acc[type.category] = [];
       }
       acc[type.category].push(type);
       return acc;
-    }, {} as Record<string, typeof CONTENT_TYPES>);
+    },
+    {} as Record<string, typeof CONTENT_TYPES>,
+  );
 
   return (
     <Select

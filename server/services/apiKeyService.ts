@@ -1,18 +1,18 @@
-import { db } from '../db';
-import { apiKeys, apiKeyUsageLogs, userSubscriptions } from '@shared/schema';
-import { eq, and, sql, gte } from 'drizzle-orm';
-import { randomBytes } from 'crypto';
-import bcrypt from 'bcrypt';
-import type { ApiKey, InsertApiKey } from '@shared/schema';
+import { db } from "../db";
+import { apiKeys, apiKeyUsageLogs, userSubscriptions } from "@shared/schema";
+import { eq, and, sql, gte } from "drizzle-orm";
+import { randomBytes } from "crypto";
+import bcrypt from "bcrypt";
+import type { ApiKey, InsertApiKey } from "@shared/schema";
 
 const BCRYPT_ROUNDS = 10;
-const KEY_PREFIX = 'wc_live_';
+const KEY_PREFIX = "wc_live_";
 const KEY_LENGTH = 32; // 32 bytes = 256 bits
 
 export interface CreateApiKeyParams {
   userId: string;
   name: string;
-  scope?: 'read' | 'write' | 'admin';
+  scope?: "read" | "write" | "admin";
   monthlyRateLimit?: number;
   allowedEndpoints?: string[];
   ipWhitelist?: string[];
@@ -32,29 +32,31 @@ export class ApiKeyService {
    * Format: wc_live_<random_64_chars>
    */
   private generateKey(): { key: string; prefix: string } {
-    const randomPart = randomBytes(KEY_LENGTH).toString('hex');
+    const randomPart = randomBytes(KEY_LENGTH).toString("hex");
     const key = `${KEY_PREFIX}${randomPart}`;
     const prefix = key.substring(0, 16); // First 16 chars for display
-    
+
     return { key, prefix };
   }
 
   /**
    * Create a new API key for a user
    */
-  async createApiKey(params: CreateApiKeyParams): Promise<{ apiKey: ApiKey; key: string }> {
+  async createApiKey(
+    params: CreateApiKeyParams,
+  ): Promise<{ apiKey: ApiKey; key: string }> {
     // Generate the key
     const { key, prefix } = this.generateKey();
-    
+
     // Hash the key for storage (never store plaintext)
     const keyHash = await bcrypt.hash(key, BCRYPT_ROUNDS);
-    
+
     // Calculate usage reset date (first day of next month)
     const usageResetDate = new Date();
     usageResetDate.setMonth(usageResetDate.getMonth() + 1);
     usageResetDate.setDate(1);
     usageResetDate.setHours(0, 0, 0, 0);
-    
+
     // Create the API key record
     const [apiKey] = await db
       .insert(apiKeys)
@@ -63,7 +65,7 @@ export class ApiKeyService {
         name: params.name,
         keyHash,
         prefix,
-        scope: params.scope || 'read',
+        scope: params.scope || "read",
         monthlyRateLimit: params.monthlyRateLimit || 5000,
         allowedEndpoints: params.allowedEndpoints || null,
         ipWhitelist: params.ipWhitelist || null,
@@ -72,7 +74,7 @@ export class ApiKeyService {
         isActive: true,
       })
       .returning();
-    
+
     // Return both the API key record and the plaintext key (only time it's visible)
     return { apiKey, key };
   }
@@ -83,10 +85,10 @@ export class ApiKeyService {
   async validateApiKey(
     key: string,
     endpoint?: string,
-    ipAddress?: string
+    ipAddress?: string,
   ): Promise<ValidateApiKeyResult> {
     if (!key || !key.startsWith(KEY_PREFIX)) {
-      return { valid: false, error: 'Invalid API key format' };
+      return { valid: false, error: "Invalid API key format" };
     }
 
     // Extract prefix for faster lookup
@@ -96,15 +98,10 @@ export class ApiKeyService {
     const candidates = await db
       .select()
       .from(apiKeys)
-      .where(
-        and(
-          eq(apiKeys.prefix, prefix),
-          eq(apiKeys.isActive, true)
-        )
-      );
+      .where(and(eq(apiKeys.prefix, prefix), eq(apiKeys.isActive, true)));
 
     if (candidates.length === 0) {
-      return { valid: false, error: 'API key not found or inactive' };
+      return { valid: false, error: "API key not found or inactive" };
     }
 
     // Check each candidate (should only be one, but hash collisions are possible)
@@ -118,33 +115,41 @@ export class ApiKeyService {
     }
 
     if (!matchedKey) {
-      return { valid: false, error: 'Invalid API key' };
+      return { valid: false, error: "Invalid API key" };
     }
 
     // Check if key has expired
     if (matchedKey.expiresAt && new Date() > matchedKey.expiresAt) {
-      return { valid: false, error: 'API key has expired' };
+      return { valid: false, error: "API key has expired" };
     }
 
     // Check if key has been revoked
     if (matchedKey.revokedAt) {
-      return { valid: false, error: 'API key has been revoked' };
+      return { valid: false, error: "API key has been revoked" };
     }
 
     // Check IP whitelist if configured
-    if (matchedKey.ipWhitelist && matchedKey.ipWhitelist.length > 0 && ipAddress) {
+    if (
+      matchedKey.ipWhitelist &&
+      matchedKey.ipWhitelist.length > 0 &&
+      ipAddress
+    ) {
       if (!matchedKey.ipWhitelist.includes(ipAddress)) {
-        return { valid: false, error: 'IP address not whitelisted' };
+        return { valid: false, error: "IP address not whitelisted" };
       }
     }
 
     // Check endpoint restrictions if configured
-    if (matchedKey.allowedEndpoints && matchedKey.allowedEndpoints.length > 0 && endpoint) {
-      const isAllowed = matchedKey.allowedEndpoints.some(allowed => 
-        endpoint.startsWith(allowed)
+    if (
+      matchedKey.allowedEndpoints &&
+      matchedKey.allowedEndpoints.length > 0 &&
+      endpoint
+    ) {
+      const isAllowed = matchedKey.allowedEndpoints.some((allowed) =>
+        endpoint.startsWith(allowed),
       );
       if (!isAllowed) {
-        return { valid: false, error: 'Endpoint not allowed for this API key' };
+        return { valid: false, error: "Endpoint not allowed for this API key" };
       }
     }
 
@@ -171,7 +176,7 @@ export class ApiKeyService {
     if (matchedKey.currentMonthUsage >= matchedKey.monthlyRateLimit) {
       return {
         valid: false,
-        error: 'Monthly rate limit exceeded',
+        error: "Monthly rate limit exceeded",
         rateLimitExceeded: true,
         apiKey: matchedKey,
       };
@@ -224,20 +229,19 @@ export class ApiKeyService {
   /**
    * Revoke an API key
    */
-  async revokeApiKey(apiKeyId: string, userId: string, reason?: string): Promise<void> {
+  async revokeApiKey(
+    apiKeyId: string,
+    userId: string,
+    reason?: string,
+  ): Promise<void> {
     await db
       .update(apiKeys)
       .set({
         isActive: false,
         revokedAt: new Date(),
-        revokedReason: reason || 'Revoked by user',
+        revokedReason: reason || "Revoked by user",
       })
-      .where(
-        and(
-          eq(apiKeys.id, apiKeyId),
-          eq(apiKeys.userId, userId)
-        )
-      );
+      .where(and(eq(apiKeys.id, apiKeyId), eq(apiKeys.userId, userId)));
   }
 
   /**
@@ -245,18 +249,13 @@ export class ApiKeyService {
    */
   async rotateApiKey(
     oldApiKeyId: string,
-    userId: string
+    userId: string,
   ): Promise<{ apiKey: ApiKey; key: string } | null> {
     // Get the old key
     const [oldKey] = await db
       .select()
       .from(apiKeys)
-      .where(
-        and(
-          eq(apiKeys.id, oldApiKeyId),
-          eq(apiKeys.userId, userId)
-        )
-      );
+      .where(and(eq(apiKeys.id, oldApiKeyId), eq(apiKeys.userId, userId)));
 
     if (!oldKey) {
       return null;
@@ -266,7 +265,7 @@ export class ApiKeyService {
     const newKeyData = await this.createApiKey({
       userId,
       name: `${oldKey.name} (rotated)`,
-      scope: oldKey.scope as 'read' | 'write' | 'admin',
+      scope: oldKey.scope as "read" | "write" | "admin",
       monthlyRateLimit: oldKey.monthlyRateLimit,
       allowedEndpoints: oldKey.allowedEndpoints || undefined,
       ipWhitelist: oldKey.ipWhitelist || undefined,
@@ -282,7 +281,7 @@ export class ApiKeyService {
       .where(eq(apiKeys.id, newKeyData.apiKey.id));
 
     // Revoke old key
-    await this.revokeApiKey(oldApiKeyId, userId, 'Rotated to new key');
+    await this.revokeApiKey(oldApiKeyId, userId, "Rotated to new key");
 
     return newKeyData;
   }
@@ -295,12 +294,7 @@ export class ApiKeyService {
     const [apiKey] = await db
       .select()
       .from(apiKeys)
-      .where(
-        and(
-          eq(apiKeys.id, apiKeyId),
-          eq(apiKeys.userId, userId)
-        )
-      );
+      .where(and(eq(apiKeys.id, apiKeyId), eq(apiKeys.userId, userId)));
 
     if (!apiKey) {
       return null;
@@ -322,20 +316,23 @@ export class ApiKeyService {
       .where(
         and(
           eq(apiKeyUsageLogs.apiKeyId, apiKeyId),
-          gte(apiKeyUsageLogs.createdAt, startOfMonth)
-        )
+          gte(apiKeyUsageLogs.createdAt, startOfMonth),
+        ),
       )
       .groupBy(
         apiKeyUsageLogs.endpoint,
         apiKeyUsageLogs.method,
-        apiKeyUsageLogs.statusCode
+        apiKeyUsageLogs.statusCode,
       );
 
     return {
       apiKey,
       currentMonthUsage: apiKey.currentMonthUsage,
       monthlyLimit: apiKey.monthlyRateLimit,
-      remaining: Math.max(0, apiKey.monthlyRateLimit - apiKey.currentMonthUsage),
+      remaining: Math.max(
+        0,
+        apiKey.monthlyRateLimit - apiKey.currentMonthUsage,
+      ),
       usageResetDate: apiKey.usageResetDate,
       lastUsedAt: apiKey.lastUsedAt,
       breakdown: logs,
@@ -356,7 +353,7 @@ export class ApiKeyService {
     }
 
     // Only Professional and Team tiers have API access
-    return ['professional', 'team'].includes(subscription.tier);
+    return ["professional", "team"].includes(subscription.tier);
   }
 
   /**

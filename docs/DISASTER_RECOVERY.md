@@ -5,6 +5,7 @@
 **Owner:** WriteCraft Security Team
 
 ## Table of Contents
+
 1. [Overview](#overview)
 2. [Backup Strategy](#backup-strategy)
 3. [Recovery Procedures](#recovery-procedures)
@@ -16,11 +17,13 @@
 This document outlines the disaster recovery procedures for the WriteCraft platform, including backup strategies, recovery procedures, and emergency response protocols.
 
 ### Recovery Objectives
+
 - **Recovery Time Objective (RTO):** 4 hours
 - **Recovery Point Objective (RPO):** 24 hours
 - **Data Loss Tolerance:** Maximum 24 hours of data
 
 ### Disaster Scenarios Covered
+
 1. Database corruption or loss
 2. Application server failure
 3. Security breach or data compromise
@@ -33,13 +36,16 @@ This document outlines the disaster recovery procedures for the WriteCraft platf
 ### 1. Database Backups (Neon PostgreSQL)
 
 #### Automatic Backups
+
 **Provider:** Neon (PostgreSQL as a Service)
+
 - **Frequency:** Continuous WAL (Write-Ahead Logging)
 - **Retention:** 7 days of point-in-time recovery
 - **Storage Location:** Neon's secure infrastructure (geo-replicated)
 - **Recovery Granularity:** Any point in time within 7 days
 
 #### Manual Backup Procedure
+
 ```bash
 # Connect to Neon database
 psql $DATABASE_URL
@@ -55,12 +61,14 @@ gzip backup_*.sql
 ```
 
 **Schedule:** Weekly full backups + daily incremental
-**Storage:** 
+**Storage:**
+
 - Primary: Neon automatic backups (7 days)
 - Secondary: Manual exports to secure cloud storage (30 days)
 - Tertiary: Monthly archives (1 year retention)
 
 #### Critical Tables to Backup
+
 - `users` - User accounts and authentication
 - `user_subscriptions` - Subscription data
 - `projects` - User projects and content
@@ -72,6 +80,7 @@ gzip backup_*.sql
 ### 2. Application Code Backups
 
 **Repository:** Git (Replit + GitHub mirror recommended)
+
 - **Frequency:** Continuous (on every commit)
 - **Retention:** Unlimited (git history)
 - **Branches:**
@@ -80,6 +89,7 @@ gzip backup_*.sql
   - `development` - Active development
 
 **Recommended Setup:**
+
 ```bash
 # Add GitHub as secondary remote
 git remote add github https://github.com/your-org/writecraft.git
@@ -92,6 +102,7 @@ git push github main
 ### 3. Environment Variables & Secrets
 
 **Critical Secrets to Backup:**
+
 - `ANTHROPIC_API_KEY`
 - `MFA_ENCRYPTION_KEY` (64-char hex, 32 bytes)
 - `SESSION_SECRET`
@@ -99,6 +110,7 @@ git push github main
 - `REDIS_URL`
 
 **Backup Procedure:**
+
 1. Document all secrets in secure password manager (1Password, LastPass, etc.)
 2. Store encrypted backup in secure offline location
 3. Maintain access matrix (who can access what)
@@ -109,11 +121,13 @@ git push github main
 ### 4. User-Generated Content
 
 **Object Storage (if enabled):**
+
 - Images, documents, attachments
 - Backup strategy: Depends on storage provider (GCS, S3, etc.)
 - Recommended: Enable versioning and cross-region replication
 
 **Database-Stored Content:**
+
 - Character descriptions, plot outlines, writing notes
 - Covered by database backup strategy above
 
@@ -122,21 +136,26 @@ git push github main
 ### Scenario 1: Database Corruption or Loss
 
 #### Using Neon Point-in-Time Recovery
+
 1. **Access Neon Console:**
+
    ```
    https://console.neon.tech/
    ```
 
 2. **Select Database:**
+
    - Navigate to your project
    - Click "Restore" or "Branches"
 
 3. **Choose Recovery Point:**
+
    - Select timestamp before corruption occurred
    - Create new branch from that point
    - Test data integrity in new branch
 
 4. **Update Connection String:**
+
    ```bash
    # Update DATABASE_URL in Replit Secrets
    # Point to recovered database branch
@@ -149,6 +168,7 @@ git push github main
    ```
 
 #### Using Manual Backup
+
 ```bash
 # Restore from backup file
 psql $DATABASE_URL < backup_YYYYMMDD_HHMMSS.sql
@@ -167,12 +187,15 @@ psql $DATABASE_URL -c "SELECT COUNT(*) FROM projects;"
 ### Scenario 2: Application Server Failure
 
 #### Replit Platform Failure
+
 1. **Check Replit Status:**
+
    ```
    https://status.replit.com/
    ```
 
 2. **If Regional Outage:**
+
    - Wait for Replit to restore service
    - Monitor status page for updates
    - Communicate with users about downtime
@@ -183,6 +206,7 @@ psql $DATABASE_URL -c "SELECT COUNT(*) FROM projects;"
    - Redeploy application
 
 #### Code Deployment Failure
+
 ```bash
 # Rollback to previous working version
 git log --oneline  # Find last working commit
@@ -198,23 +222,27 @@ git push --force origin main
 ### Scenario 3: Security Breach or Data Compromise
 
 #### Immediate Actions (First 30 Minutes)
+
 1. **Isolate the System:**
+
    ```bash
    # Disable public access (if possible)
    # Block affected IP addresses via IDS
    ```
 
 2. **Rotate All Secrets:**
+
    ```bash
    # Generate new keys
    openssl rand -hex 32  # New MFA_ENCRYPTION_KEY
    openssl rand -base64 32  # New SESSION_SECRET
-   
+
    # Update Replit Secrets
    # Restart application
    ```
 
 3. **Assess Damage:**
+
    - Check security_alerts table
    - Review audit logs
    - Identify compromised data
@@ -225,11 +253,14 @@ git push --force origin main
    - Legal/compliance team (if applicable)
 
 #### Recovery Actions (Next 4 Hours)
+
 1. **Restore from Clean Backup:**
+
    - Use backup from before breach occurred
    - Verify integrity of restored data
 
 2. **Patch Vulnerability:**
+
    - Identify attack vector
    - Deploy security fix
    - Test thoroughly
@@ -244,20 +275,23 @@ git push --force origin main
 ### Scenario 4: Third-Party Service Outage
 
 #### Anthropic AI Service Down
+
 - **Impact:** AI generation features unavailable
 - **User Communication:** Display banner about temporary unavailability
 - **Fallback:** None (core feature)
 - **Action:** Monitor Anthropic status page, wait for restoration
 
 #### Neon Database Down
+
 - **Impact:** Complete application outage
-- **Recovery:** 
+- **Recovery:**
   1. Check Neon status page
   2. If extended outage, migrate to backup database
   3. Use manual backup to provision new database
 - **Action:** Implement database failover strategy
 
 #### Replit Platform Down
+
 - **Impact:** Application unavailable
 - **Recovery:**
   1. Monitor Replit status
@@ -270,16 +304,19 @@ git push --force origin main
 ### Scenario 5: Accidental Data Deletion
 
 #### User Deleted Their Own Data
+
 1. **Check Soft Deletes:**
+
    ```sql
    -- If soft delete implemented
    SELECT * FROM projects WHERE deleted_at IS NOT NULL AND user_id = '<user_id>';
-   
+
    -- Restore
    UPDATE projects SET deleted_at = NULL WHERE id = '<project_id>';
    ```
 
 2. **Restore from Backup:**
+
    ```sql
    -- Export specific user's data from backup
    pg_dump $BACKUP_DATABASE_URL \
@@ -287,14 +324,16 @@ git push --force origin main
      --table=notebooks \
      --where="user_id='<user_id>'" \
      > user_restore.sql
-   
+
    -- Import to production
    psql $DATABASE_URL < user_restore.sql
    ```
 
 #### Admin Accidentally Deleted Data
+
 1. **Stop All Operations Immediately**
 2. **Use Point-in-Time Recovery:**
+
    - Restore to timestamp just before deletion
    - Create temporary branch to verify data
    - Merge recovered data back to production
@@ -310,18 +349,21 @@ git push --force origin main
 ## Critical Systems
 
 ### System Dependencies
+
 1. **Replit Platform** - Application hosting
 2. **Neon PostgreSQL** - Primary database
 3. **Anthropic Claude** - AI generation
 4. **Redis** (if enabled) - Caching and session storage
 
 ### Monitoring & Alerting
+
 - **Uptime Monitoring:** Replit built-in
 - **Database Monitoring:** Neon console metrics
 - **Security Monitoring:** IDS dashboard (`/admin/security-dashboard`)
 - **Error Tracking:** Server logs and security alerts
 
 ### Health Check Endpoints
+
 ```bash
 # Application health
 curl https://your-app.replit.app/health
@@ -333,22 +375,27 @@ curl https://your-app.replit.app/api/health/db
 ## Emergency Contacts
 
 ### Internal Team
+
 - **Security Lead:** security@writecraft.com
 - **Infrastructure Lead:** infrastructure@writecraft.com
 - **On-Call Engineer:** oncall@writecraft.com
 
 ### External Services
+
 - **Replit Support:** support@replit.com
 - **Neon Support:** support@neon.tech
 - **Anthropic Support:** support@anthropic.com
 
 ### Escalation Path
+
 1. **L1 - On-Call Engineer** (0-30 min)
+
    - Initial assessment
    - Execute recovery procedures
    - Document incident
 
 2. **L2 - Security/Infrastructure Lead** (30 min - 2 hours)
+
    - Complex recovery scenarios
    - Security incidents
    - Third-party coordination
@@ -361,6 +408,7 @@ curl https://your-app.replit.app/api/health/db
 ## Testing & Maintenance
 
 ### Disaster Recovery Drills
+
 - **Frequency:** Quarterly
 - **Scenarios to Test:**
   1. Database restoration from backup
@@ -369,6 +417,7 @@ curl https://your-app.replit.app/api/health/db
   4. User data recovery from point-in-time backup
 
 ### Backup Verification
+
 - **Frequency:** Monthly
 - **Procedure:**
   1. Restore backup to staging environment
@@ -377,6 +426,7 @@ curl https://your-app.replit.app/api/health/db
   4. Document any issues
 
 ### Documentation Updates
+
 - **Frequency:** After every incident or major change
 - **Review Cycle:** Quarterly full review
 - **Owner:** Security Team
@@ -384,6 +434,7 @@ curl https://your-app.replit.app/api/health/db
 ## Appendix
 
 ### A. Backup Script Example
+
 ```bash
 #!/bin/bash
 # backup.sh - Automated database backup script
@@ -405,6 +456,7 @@ echo "Backup completed: backup_$DATE.sql.gz"
 ```
 
 ### B. Recovery Checklist
+
 - [ ] Identify disaster type and scope
 - [ ] Notify stakeholders
 - [ ] Assess data loss window (RPO)
@@ -417,6 +469,7 @@ echo "Backup completed: backup_$DATE.sql.gz"
 - [ ] Update disaster recovery procedures
 
 ### C. Secret Rotation Emergency Procedure
+
 ```bash
 # 1. Generate new secrets
 NEW_MFA_KEY=$(openssl rand -hex 32)
@@ -448,8 +501,8 @@ curl -X POST https://your-app.replit.app/api/auth/login \
 
 ## Document Version History
 
-| Version | Date | Changes | Author |
-|---------|------|---------|--------|
-| 1.0.0 | 2025-10-16 | Initial disaster recovery plan | Security Team |
+| Version | Date       | Changes                        | Author        |
+| ------- | ---------- | ------------------------------ | ------------- |
+| 1.0.0   | 2025-10-16 | Initial disaster recovery plan | Security Team |
 
 **Next Review Date:** January 16, 2026

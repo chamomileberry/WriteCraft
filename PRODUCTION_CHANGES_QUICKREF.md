@@ -3,39 +3,45 @@
 ## What Changed?
 
 ### 1. **Route Rename** 🔄
+
 - `server/routes/dalle.routes.ts` → `server/routes/ideogram.routes.ts`
 - API endpoint: `/api/dalle` → `/api/ideogram`
 - **Why:** Clarity - we use Ideogram V3, not DALL-E
 
 ### 2. **Logging** 📝
+
 - **New:** `server/utils/logger.ts` + `client/src/lib/logger.ts`
 - Development logs automatically hidden in production
 - Zero overhead in production builds
 - **Usage:**
   ```typescript
-  import { logger } from '@/lib/logger';  // or '@/utils/logger'
-  logger.debug('dev only');  // hidden in prod
-  logger.error('always shows');
+  import { logger } from "@/lib/logger"; // or '@/utils/logger'
+  logger.debug("dev only"); // hidden in prod
+  logger.error("always shows");
   ```
 
 ### 3. **Request Cancellation** 🛑
+
 - **Enhanced:** `client/src/hooks/useApiMutation.ts`
 - Requests auto-cancel when you navigate away
 - Prevents memory leaks
 - **No changes needed** - works automatically!
 
 ### 4. **Error Sanitization** 🔒
+
 - **New:** `server/utils/errorHandler.ts`
 - No sensitive data in error messages
 - Safe, user-friendly error responses
 - Still logs full details for developers
 
 ### 5. **Error Helpers** 🎯
+
 - **New:** `client/src/lib/mutationHelpers.ts`
 - Standardized mutation error/success handling
 - Consistent error messages across app
 
 ### 6. **Demo-User Cleanup** ✨
+
 - Removed hardcoded `userId = 'demo-user'` default
 - Explicit validation required
 - Better security, clearer code
@@ -45,6 +51,7 @@
 ## Files to Know About
 
 ### New Files (Safe to Add to Git)
+
 ```
 server/utils/logger.ts                      ← Server logging
 client/src/lib/logger.ts                    ← Client logging
@@ -54,6 +61,7 @@ server/routes/ideogram.routes.ts            ← Renamed from dalle
 ```
 
 ### Modified Files (Review Before Merge)
+
 ```
 server/routes.ts                            ← Updated imports
 client/src/lib/queryClient.ts               ← Added AbortSignal
@@ -78,36 +86,39 @@ client/src/components/ImageSelector.tsx     ← Updated endpoint
 ## How to Use New Features
 
 ### Logger
+
 ```typescript
 // Instead of: console.log(), console.error()
 // Use:
-logger.debug('only in dev');    // development only
-logger.info('important info');  // always
-logger.error('error occurred'); // always
-logger.warn('warning');         // always
+logger.debug("only in dev"); // development only
+logger.info("important info"); // always
+logger.error("error occurred"); // always
+logger.warn("warning"); // always
 ```
 
 ### Mutation Helpers
+
 ```typescript
-import { createMutationErrorHandler } from '@/lib/mutationHelpers';
+import { createMutationErrorHandler } from "@/lib/mutationHelpers";
 
 const mutation = useMutation({
   // ...
   onError: createMutationErrorHandler({
     toast,
-    message: 'Custom error message'
-  })
+    message: "Custom error message",
+  }),
 });
 ```
 
 ### Error Sanitization (Server)
+
 ```typescript
-import { sanitizeErrorResponse } from '@/utils/errorHandler';
+import { sanitizeErrorResponse } from "@/utils/errorHandler";
 
 try {
   // ... operation
 } catch (error) {
-  res.status(500).json(sanitizeErrorResponse(error, 'OperationName'));
+  res.status(500).json(sanitizeErrorResponse(error, "OperationName"));
 }
 ```
 

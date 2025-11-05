@@ -1,21 +1,21 @@
-import { Router } from 'express';
-import { z } from 'zod';
-import { imageSearchRateLimiter } from '../security/rateLimiters';
+import { Router } from "express";
+import { z } from "zod";
+import { imageSearchRateLimiter } from "../security/rateLimiters";
 
 const router = Router();
 
 // Pexels API search endpoint
-router.get('/search', imageSearchRateLimiter, async (req, res) => {
+router.get("/search", imageSearchRateLimiter, async (req, res) => {
   try {
     const apiKey = process.env.PEXELS_API_KEY;
-    
+
     if (!apiKey) {
-      return res.status(500).json({ 
-        error: 'Pexels API key not configured' 
+      return res.status(500).json({
+        error: "Pexels API key not configured",
       });
     }
 
-    const query = req.query.query as string || 'nature';
+    const query = (req.query.query as string) || "nature";
     const page = parseInt(req.query.page as string) || 1;
     const perPage = parseInt(req.query.per_page as string) || 15;
 
@@ -23,9 +23,9 @@ router.get('/search', imageSearchRateLimiter, async (req, res) => {
       `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&page=${page}&per_page=${perPage}`,
       {
         headers: {
-          'Authorization': apiKey
-        }
-      }
+          Authorization: apiKey,
+        },
+      },
     );
 
     if (!response.ok) {
@@ -33,7 +33,7 @@ router.get('/search', imageSearchRateLimiter, async (req, res) => {
     }
 
     const data = await response.json();
-    
+
     // Transform to simpler format for frontend
     const transformedData = {
       page: data.page,
@@ -54,29 +54,29 @@ router.get('/search', imageSearchRateLimiter, async (req, res) => {
           small: photo.src.small,
           portrait: photo.src.portrait,
           landscape: photo.src.landscape,
-          tiny: photo.src.tiny
+          tiny: photo.src.tiny,
         },
-        alt: photo.alt || query
-      }))
+        alt: photo.alt || query,
+      })),
     };
 
     res.json(transformedData);
   } catch (error) {
-    console.error('[Pexels] Search error:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Failed to search Pexels' 
+    console.error("[Pexels] Search error:", error);
+    res.status(500).json({
+      error: error instanceof Error ? error.message : "Failed to search Pexels",
     });
   }
 });
 
 // Get curated photos (for homepage/default view)
-router.get('/curated', imageSearchRateLimiter, async (req, res) => {
+router.get("/curated", imageSearchRateLimiter, async (req, res) => {
   try {
     const apiKey = process.env.PEXELS_API_KEY;
-    
+
     if (!apiKey) {
-      return res.status(500).json({ 
-        error: 'Pexels API key not configured' 
+      return res.status(500).json({
+        error: "Pexels API key not configured",
       });
     }
 
@@ -87,9 +87,9 @@ router.get('/curated', imageSearchRateLimiter, async (req, res) => {
       `https://api.pexels.com/v1/curated?page=${page}&per_page=${perPage}`,
       {
         headers: {
-          'Authorization': apiKey
-        }
-      }
+          Authorization: apiKey,
+        },
+      },
     );
 
     if (!response.ok) {
@@ -97,7 +97,7 @@ router.get('/curated', imageSearchRateLimiter, async (req, res) => {
     }
 
     const data = await response.json();
-    
+
     // Transform to simpler format for frontend
     const transformedData = {
       page: data.page,
@@ -118,17 +118,20 @@ router.get('/curated', imageSearchRateLimiter, async (req, res) => {
           small: photo.src.small,
           portrait: photo.src.portrait,
           landscape: photo.src.landscape,
-          tiny: photo.src.tiny
+          tiny: photo.src.tiny,
         },
-        alt: photo.alt || 'Curated photo'
-      }))
+        alt: photo.alt || "Curated photo",
+      })),
     };
 
     res.json(transformedData);
   } catch (error) {
-    console.error('[Pexels] Curated error:', error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Failed to fetch curated photos' 
+    console.error("[Pexels] Curated error:", error);
+    res.status(500).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch curated photos",
     });
   }
 });

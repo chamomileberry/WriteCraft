@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Separator } from "@/components/ui/separator";
@@ -40,19 +46,19 @@ const STORY_STRUCTURE_CATEGORIES = {
     "snowflake",
     "fichtean",
     "save-cat",
-    "seven-point"
-  ]
+    "seven-point",
+  ],
 };
 
 const STORY_STRUCTURE_LABELS: Record<string, string> = {
   "three-act": "Three-Act Structure",
-  "freytag": "Freytag's Pyramid",
+  freytag: "Freytag's Pyramid",
   "hero-journey": "The Hero's Journey",
   "story-circle": "The Story Circle",
-  "snowflake": "The Snowflake Method",
-  "fichtean": "Fichtean Curve",
+  snowflake: "The Snowflake Method",
+  fichtean: "Fichtean Curve",
   "save-cat": "Save the Cat Beat Sheet",
-  "seven-point": "Seven-Point Story Structure"
+  "seven-point": "Seven-Point Story Structure",
 };
 
 export default function PlotGenerator() {
@@ -62,18 +68,18 @@ export default function PlotGenerator() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { notebookId, validateNotebook } = useRequireNotebook({
-    errorMessage: 'Please create or select a notebook before generating plots.'
+    errorMessage: "Please create or select a notebook before generating plots.",
   });
 
   const generator = useGenerator<PlotStructure>({
-    generateEndpoint: '/api/plots/generate',
+    generateEndpoint: "/api/plots/generate",
     getGenerateParams: () => ({
       genre: genre || undefined,
       storyStructure: storyStructure || undefined,
       userId: null,
-      notebookId
+      notebookId,
     }),
-    itemTypeName: 'plot',
+    itemTypeName: "plot",
     userId: user?.id ?? undefined,
     notebookId: notebookId ?? undefined,
     validateBeforeGenerate: validateNotebook,
@@ -98,9 +104,9 @@ ${plot.setup}
 **Climax:** ${plot.climax}
 
 **Resolution:** ${plot.resolution}`,
-    invalidateOnSave: [['/api/saved-items']],
+    invalidateOnSave: [["/api/saved-items"]],
     onGenerateSuccess: (data) => {
-      console.log('Generated plot:', data);
+      console.log("Generated plot:", data);
     },
   });
 
@@ -114,7 +120,6 @@ ${plot.setup}
     });
   };
 
-
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <Card>
@@ -126,10 +131,11 @@ ${plot.setup}
                 Plot Generator
               </CardTitle>
               <CardDescription>
-                Generate compelling three-act plot structures with conflict and themes
+                Generate compelling three-act plot structures with conflict and
+                themes
               </CardDescription>
             </div>
-            <Button 
+            <Button
               variant="outline"
               onClick={() => setShowQuiz(true)}
               data-testid="button-structure-quiz"
@@ -142,7 +148,7 @@ ${plot.setup}
         </CardHeader>
         <CardContent className="space-y-4">
           <GeneratorNotebookControls />
-          
+
           <div className="flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row gap-4">
               <SearchableSelect
@@ -156,9 +162,11 @@ ${plot.setup}
                 testId="select-plot-genre"
                 allowEmpty={true}
                 emptyLabel="Any Genre"
-                formatLabel={(value) => value.charAt(0).toUpperCase() + value.slice(1)}
+                formatLabel={(value) =>
+                  value.charAt(0).toUpperCase() + value.slice(1)
+                }
               />
-              
+
               <SearchableSelect
                 value={storyStructure}
                 onValueChange={setStoryStructure}
@@ -173,8 +181,8 @@ ${plot.setup}
                 formatLabel={(value) => STORY_STRUCTURE_LABELS[value] || value}
               />
             </div>
-            
-            <Button 
+
+            <Button
               onClick={generator.generate}
               disabled={generator.isGenerating}
               data-testid="button-generate-plot"
@@ -185,7 +193,7 @@ ${plot.setup}
               ) : (
                 <Zap className="mr-2 h-4 w-4" />
               )}
-              {generator.isGenerating ? 'Generating...' : 'Generate Plot'}
+              {generator.isGenerating ? "Generating..." : "Generate Plot"}
             </Button>
           </div>
         </CardContent>
@@ -206,17 +214,22 @@ ${plot.setup}
                   onPolished={(polished) => {
                     generator.setResult({
                       ...plot,
-                      theme: polished
+                      theme: polished,
                     });
                   }}
                 />
-                <Button variant="outline" size="sm" onClick={generator.copyToClipboard} data-testid="button-copy-plot">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={generator.copyToClipboard}
+                  data-testid="button-copy-plot"
+                >
                   <Copy className="h-4 w-4" />
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={generator.saveToCollection} 
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={generator.saveToCollection}
                   disabled={generator.isSaving || !plot?.id}
                   data-testid="button-save-plot"
                 >
@@ -232,11 +245,15 @@ ${plot.setup}
           <CardContent className="space-y-6">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <h4 className="font-semibold mb-2 text-primary">Central Theme</h4>
+                <h4 className="font-semibold mb-2 text-primary">
+                  Central Theme
+                </h4>
                 <p className="text-muted-foreground">{plot.theme}</p>
               </div>
               <div>
-                <h4 className="font-semibold mb-2 text-chart-2">Core Conflict</h4>
+                <h4 className="font-semibold mb-2 text-chart-2">
+                  Core Conflict
+                </h4>
                 <p className="text-muted-foreground">{plot.conflict}</p>
               </div>
             </div>
@@ -245,7 +262,9 @@ ${plot.setup}
 
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-4 text-chart-3">Act I - Setup</h3>
+                <h3 className="text-lg font-semibold mb-4 text-chart-3">
+                  Act I - Setup
+                </h3>
                 <div className="space-y-4 pl-4 border-l-2 border-chart-3/20">
                   <div>
                     <h4 className="font-medium mb-2">Opening</h4>
@@ -253,17 +272,23 @@ ${plot.setup}
                   </div>
                   <div>
                     <h4 className="font-medium mb-2">Inciting Incident</h4>
-                    <p className="text-muted-foreground">{plot.incitingIncident}</p>
+                    <p className="text-muted-foreground">
+                      {plot.incitingIncident}
+                    </p>
                   </div>
                   <div>
                     <h4 className="font-medium mb-2">First Plot Point</h4>
-                    <p className="text-muted-foreground">{plot.firstPlotPoint}</p>
+                    <p className="text-muted-foreground">
+                      {plot.firstPlotPoint}
+                    </p>
                   </div>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold mb-4 text-primary">Act II - Confrontation</h3>
+                <h3 className="text-lg font-semibold mb-4 text-primary">
+                  Act II - Confrontation
+                </h3>
                 <div className="space-y-4 pl-4 border-l-2 border-primary/20">
                   <div>
                     <h4 className="font-medium mb-2">Midpoint</h4>
@@ -271,13 +296,17 @@ ${plot.setup}
                   </div>
                   <div>
                     <h4 className="font-medium mb-2">Second Plot Point</h4>
-                    <p className="text-muted-foreground">{plot.secondPlotPoint}</p>
+                    <p className="text-muted-foreground">
+                      {plot.secondPlotPoint}
+                    </p>
                   </div>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold mb-4 text-chart-4">Act III - Resolution</h3>
+                <h3 className="text-lg font-semibold mb-4 text-chart-4">
+                  Act III - Resolution
+                </h3>
                 <div className="space-y-4 pl-4 border-l-2 border-chart-4/20">
                   <div>
                     <h4 className="font-medium mb-2">Climax</h4>

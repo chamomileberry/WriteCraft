@@ -7,51 +7,51 @@ import { getMappingById } from "@shared/contentTypes";
 
 export default function GuidesPage() {
   const [, setLocation] = useLocation();
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [isContentModalOpen, setIsContentModalOpen] = useState<boolean>(false);
 
   const handleToolSelect = (toolId: string) => {
-    if (toolId === 'notebook') {
-      setLocation('/notebook');
-    } else if (toolId === 'projects') {
-      setLocation('/projects');
-    } else if (toolId === 'generators') {
-      setLocation('/generators');
+    if (toolId === "notebook") {
+      setLocation("/notebook");
+    } else if (toolId === "projects") {
+      setLocation("/projects");
+    } else if (toolId === "generators") {
+      setLocation("/generators");
     }
-    console.log('Navigating to tool:', toolId);
+    console.log("Navigating to tool:", toolId);
   };
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    console.log('Search query:', query);
+    console.log("Search query:", query);
   };
 
   const handleCreateNew = () => {
     setIsContentModalOpen(true);
-    console.log('Opening content type modal');
+    console.log("Opening content type modal");
   };
 
   const handleSelectContentType = (contentType: string) => {
-    console.log('Selected content type:', contentType);
+    console.log("Selected content type:", contentType);
     setIsContentModalOpen(false);
     const mapping = getMappingById(contentType);
     if (mapping) {
       setLocation(`/editor/${mapping.urlSegment}/new`);
     } else {
       console.log(`No mapping found for content type: ${contentType}`);
-      setLocation('/notebook');
+      setLocation("/notebook");
     }
   };
 
   return (
     <div className="min-h-screen bg-background">
-      <Header 
+      <Header
         onSearch={handleSearch}
         searchQuery={searchQuery}
         onNavigate={handleToolSelect}
         onCreateNew={handleCreateNew}
       />
-      
+
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
           <WritingGuides />
@@ -59,7 +59,7 @@ export default function GuidesPage() {
       </main>
 
       {/* Content Type Modal */}
-      <ContentTypeModal 
+      <ContentTypeModal
         isOpen={isContentModalOpen}
         onClose={() => setIsContentModalOpen(false)}
         onSelectType={handleSelectContentType}

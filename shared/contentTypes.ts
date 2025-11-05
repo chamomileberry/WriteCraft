@@ -23,44 +23,44 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "givenName",
       subtitle: "occupation",
       description: "description",
-      badges: ["gender", "genre"]
-    }
+      badges: ["gender", "genre"],
+    },
   },
   location: {
-    id: "location", 
+    id: "location",
     name: "Location",
     urlSegment: "locations",
     apiBase: "/api/locations",
     displayFields: {
       title: "name",
-      subtitle: "locationType", 
+      subtitle: "locationType",
       description: "description",
-      badges: ["climate", "genre"]
-    }
+      badges: ["climate", "genre"],
+    },
   },
   organization: {
     id: "organization",
-    name: "Organization", 
+    name: "Organization",
     urlSegment: "organizations",
     apiBase: "/api/organizations",
     displayFields: {
       title: "name",
       subtitle: "organizationType",
       description: "purpose",
-      badges: ["influence", "structure"]
-    }
+      badges: ["influence", "structure"],
+    },
   },
   species: {
     id: "species",
     name: "Species",
     urlSegment: "species",
-    apiBase: "/api/species", 
+    apiBase: "/api/species",
     displayFields: {
       title: "name",
       subtitle: "classification",
       description: "physicalDescription",
-      badges: ["habitat", "intelligence"]
-    }
+      badges: ["habitat", "intelligence"],
+    },
   },
   creature: {
     id: "creature",
@@ -69,22 +69,22 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
     apiBase: "/api/creatures",
     displayFields: {
       title: "name",
-      subtitle: "creatureType", 
+      subtitle: "creatureType",
       description: "physicalDescription",
-      badges: ["habitat", "genre"]
-    }
+      badges: ["habitat", "genre"],
+    },
   },
   setting: {
     id: "setting",
     name: "Setting",
-    urlSegment: "settings", 
+    urlSegment: "settings",
     apiBase: "/api/settings",
     displayFields: {
       title: "name",
       subtitle: "location",
-      description: "description", 
-      badges: ["climate", "genre"]
-    }
+      description: "description",
+      badges: ["climate", "genre"],
+    },
   },
   item: {
     id: "item",
@@ -95,20 +95,20 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "itemType",
       description: "description",
-      badges: ["rarity", "value"]
-    }
+      badges: ["rarity", "value"],
+    },
   },
   weapon: {
     id: "weapon",
     name: "Weapon",
     urlSegment: "weapons",
-    apiBase: "/api/weapons", 
+    apiBase: "/api/weapons",
     displayFields: {
       title: "name",
       subtitle: "weaponType",
       description: "description",
-      badges: ["rarity", "value"]
-    }
+      badges: ["rarity", "value"],
+    },
   },
   armor: {
     id: "armor",
@@ -119,32 +119,32 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "armorType",
       description: "description",
-      badges: ["protection", "rarity"]
-    }
+      badges: ["protection", "rarity"],
+    },
   },
   food: {
     id: "food",
-    name: "Food", 
+    name: "Food",
     urlSegment: "foods",
     apiBase: "/api/foods",
     displayFields: {
       title: "name",
       subtitle: "foodType",
       description: "description",
-      badges: ["origin", "rarity"]
-    }
+      badges: ["origin", "rarity"],
+    },
   },
   drink: {
     id: "drink",
     name: "Drink",
-    urlSegment: "drinks", 
+    urlSegment: "drinks",
     apiBase: "/api/drinks",
     displayFields: {
       title: "name",
       subtitle: "drinkType",
       description: "description",
-      badges: ["alcoholContent", "effects"]
-    }
+      badges: ["alcoholContent", "effects"],
+    },
   },
   religion: {
     id: "religion",
@@ -155,8 +155,8 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "hierarchy",
       description: "beliefs",
-      badges: ["influence", "genre"]
-    }
+      badges: ["influence", "genre"],
+    },
   },
   language: {
     id: "language",
@@ -164,11 +164,11 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
     urlSegment: "languages",
     apiBase: "/api/languages",
     displayFields: {
-      title: "name", 
+      title: "name",
       subtitle: "family",
       description: "culturalContext",
-      badges: ["speakers", "status"]
-    }
+      badges: ["speakers", "status"],
+    },
   },
   plot: {
     id: "plot",
@@ -179,11 +179,11 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "theme",
       subtitle: "genre",
       description: "setup",
-      badges: ["conflict"]
-    }
+      badges: ["conflict"],
+    },
   },
   prompt: {
-    id: "prompt", 
+    id: "prompt",
     name: "Prompt",
     urlSegment: "prompts",
     apiBase: "/api/prompts",
@@ -191,20 +191,20 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "text",
       subtitle: "type",
       description: "text",
-      badges: ["genre", "difficulty"]
-    }
+      badges: ["genre", "difficulty"],
+    },
   },
   theme: {
     id: "theme",
-    name: "Theme", 
+    name: "Theme",
     urlSegment: "themes",
     apiBase: "/api/themes",
     displayFields: {
       title: "title",
       subtitle: "genre",
       description: "description",
-      badges: ["genre"]
-    }
+      badges: ["genre"],
+    },
   },
   mood: {
     id: "mood",
@@ -213,10 +213,10 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
     apiBase: "/api/moods",
     displayFields: {
       title: "name",
-      subtitle: "emotionalTone", 
+      subtitle: "emotionalTone",
       description: "description",
-      badges: ["emotionalTone"]
-    }
+      badges: ["emotionalTone"],
+    },
   },
   plant: {
     id: "plant",
@@ -227,20 +227,20 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "type",
       description: "description",
-      badges: ["habitat", "genre"]
-    }
+      badges: ["habitat", "genre"],
+    },
   },
   animal: {
     id: "animal",
     name: "Animal",
-    urlSegment: "animals", 
+    urlSegment: "animals",
     apiBase: "/api/animals",
     displayFields: {
       title: "name",
       subtitle: "animalType",
       description: "description",
-      badges: ["habitat", "size"]
-    }
+      badges: ["habitat", "size"],
+    },
   },
   ethnicity: {
     id: "ethnicity",
@@ -251,20 +251,20 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "origin",
       description: "history",
-      badges: ["language", "religion"]
-    }
+      badges: ["language", "religion"],
+    },
   },
   culture: {
     id: "culture",
     name: "Culture",
     urlSegment: "cultures",
-    apiBase: "/api/cultures", 
+    apiBase: "/api/cultures",
     displayFields: {
       title: "name",
       subtitle: "cultureType",
       description: "description",
-      badges: ["region", "influence"]
-    }
+      badges: ["region", "influence"],
+    },
   },
   document: {
     id: "document",
@@ -275,8 +275,8 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "title",
       subtitle: "documentType",
       description: "content",
-      badges: ["author", "language"]
-    }
+      badges: ["author", "language"],
+    },
   },
   settlement: {
     id: "settlement",
@@ -286,9 +286,9 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
     displayFields: {
       title: "name",
       subtitle: "settlementType",
-      description: "description", 
-      badges: ["population", "government"]
-    }
+      description: "description",
+      badges: ["population", "government"],
+    },
   },
   society: {
     id: "society",
@@ -299,8 +299,8 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "societyType",
       description: "description",
-      badges: ["government", "influence"]
-    }
+      badges: ["government", "influence"],
+    },
   },
   faction: {
     id: "faction",
@@ -309,22 +309,22 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
     apiBase: "/api/factions",
     displayFields: {
       title: "name",
-      subtitle: "factionType", 
+      subtitle: "factionType",
       description: "goals",
-      badges: ["influence", "genre"]
-    }
+      badges: ["influence", "genre"],
+    },
   },
   militaryunit: {
     id: "militaryunit",
     name: "Military Unit",
-    urlSegment: "military-units", 
+    urlSegment: "military-units",
     apiBase: "/api/military-units",
     displayFields: {
       title: "name",
       subtitle: "unitType",
       description: "description",
-      badges: ["size", "currentStatus"]
-    }
+      badges: ["size", "currentStatus"],
+    },
   },
   accessory: {
     id: "accessory",
@@ -335,8 +335,8 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "accessoryType",
       description: "description",
-      badges: ["rarity", "value"]
-    }
+      badges: ["rarity", "value"],
+    },
   },
   clothing: {
     id: "clothing",
@@ -347,20 +347,20 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "clothingType",
       description: "description",
-      badges: ["style", "durability"]
-    }
+      badges: ["style", "durability"],
+    },
   },
   material: {
     id: "material",
     name: "Material",
-    urlSegment: "materials", 
+    urlSegment: "materials",
     apiBase: "/api/materials",
     displayFields: {
       title: "name",
       subtitle: "materialType",
       description: "description",
-      badges: ["rarity", "durability"]
-    }
+      badges: ["rarity", "durability"],
+    },
   },
   resource: {
     id: "resource",
@@ -371,8 +371,8 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "resourceType",
       description: "description",
-      badges: ["rarity", "origin"]
-    }
+      badges: ["rarity", "origin"],
+    },
   },
   myth: {
     id: "myth",
@@ -383,11 +383,11 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "title",
       subtitle: "mythType",
       description: "summary",
-      badges: ["origin", "significance"]
-    }
+      badges: ["origin", "significance"],
+    },
   },
   legend: {
-    id: "legend", 
+    id: "legend",
     name: "Legend",
     urlSegment: "legends",
     apiBase: "/api/legends",
@@ -395,8 +395,8 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "title",
       subtitle: "legendType",
       description: "summary",
-      badges: ["timeframe", "genre"]
-    }
+      badges: ["timeframe", "genre"],
+    },
   },
   tradition: {
     id: "tradition",
@@ -407,20 +407,20 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "traditionType",
       description: "description",
-      badges: ["culture", "significance"]
-    }
+      badges: ["culture", "significance"],
+    },
   },
   ritual: {
     id: "ritual",
     name: "Ritual",
-    urlSegment: "rituals", 
+    urlSegment: "rituals",
     apiBase: "/api/rituals",
     displayFields: {
       title: "name",
       subtitle: "ritualType",
       description: "description",
-      badges: ["purpose", "participants"]
-    }
+      badges: ["purpose", "participants"],
+    },
   },
   event: {
     id: "event",
@@ -431,8 +431,8 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "eventType",
       description: "description",
-      badges: ["date", "impact"]
-    }
+      badges: ["date", "impact"],
+    },
   },
   building: {
     id: "building",
@@ -442,9 +442,9 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
     displayFields: {
       title: "name",
       subtitle: "buildingType",
-      description: "description", 
-      badges: ["purpose", "currentCondition"]
-    }
+      description: "description",
+      badges: ["purpose", "currentCondition"],
+    },
   },
   transportation: {
     id: "transportation",
@@ -453,10 +453,10 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
     apiBase: "/api/transportation",
     displayFields: {
       title: "name",
-      subtitle: "transportType", 
+      subtitle: "transportType",
       description: "description",
-      badges: ["speed", "capacity"]
-    }
+      badges: ["speed", "capacity"],
+    },
   },
   naturallaw: {
     id: "naturallaw",
@@ -467,8 +467,8 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "lawType",
       description: "description",
-      badges: ["scope"]
-    }
+      badges: ["scope"],
+    },
   },
   technology: {
     id: "technology",
@@ -479,8 +479,8 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "technologyType",
       description: "description",
-      badges: ["era", "complexity"]
-    }
+      badges: ["era", "complexity"],
+    },
   },
   spell: {
     id: "spell",
@@ -489,10 +489,10 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
     apiBase: "/api/spells",
     displayFields: {
       title: "name",
-      subtitle: "spellType", 
+      subtitle: "spellType",
       description: "description",
-      badges: ["school", "level"]
-    }
+      badges: ["school", "level"],
+    },
   },
   description: {
     id: "description",
@@ -503,10 +503,10 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "title",
       subtitle: "descriptionType",
       description: "content",
-      badges: ["genre"]
-    }
+      badges: ["genre"],
+    },
   },
-  
+
   // New Content Types
   familyTree: {
     id: "familyTree",
@@ -517,8 +517,8 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "treeType",
       description: "description",
-      badges: ["generations", "genre"]
-    }
+      badges: ["generations", "genre"],
+    },
   },
   familytree: {
     id: "familytree",
@@ -529,8 +529,8 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "treeType",
       description: "description",
-      badges: ["generations", "genre"]
-    }
+      badges: ["generations", "genre"],
+    },
   },
   timeline: {
     id: "timeline",
@@ -541,8 +541,8 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "timelineType",
       description: "description",
-      badges: ["timeScale", "scope"]
-    }
+      badges: ["timeScale", "scope"],
+    },
   },
   map: {
     id: "map",
@@ -553,8 +553,8 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "mapType",
       description: "description",
-      badges: ["scale", "genre"]
-    }
+      badges: ["scale", "genre"],
+    },
   },
   ceremony: {
     id: "ceremony",
@@ -565,8 +565,8 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "ceremonyType",
       description: "description",
-      badges: ["purpose", "duration"]
-    }
+      badges: ["purpose", "duration"],
+    },
   },
   music: {
     id: "music",
@@ -577,8 +577,8 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "musicType",
       description: "description",
-      badges: ["tempo", "genre"]
-    }
+      badges: ["tempo", "genre"],
+    },
   },
   dance: {
     id: "dance",
@@ -589,8 +589,8 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "danceType",
       description: "description",
-      badges: ["difficulty", "genre"]
-    }
+      badges: ["difficulty", "genre"],
+    },
   },
   law: {
     id: "law",
@@ -601,8 +601,8 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "lawType",
       description: "description",
-      badges: ["jurisdiction", "enforcement"]
-    }
+      badges: ["jurisdiction", "enforcement"],
+    },
   },
   policy: {
     id: "policy",
@@ -613,8 +613,8 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "policyType",
       description: "description",
-      badges: ["scope", "authority"]
-    }
+      badges: ["scope", "authority"],
+    },
   },
   potion: {
     id: "potion",
@@ -625,8 +625,8 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "potionType",
       description: "description",
-      badges: ["rarity", "effect"]
-    }
+      badges: ["rarity", "effect"],
+    },
   },
   profession: {
     id: "profession",
@@ -637,8 +637,8 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "name",
       subtitle: "professionType",
       description: "description",
-      badges: ["socialStatus", "riskLevel"]
-    }
+      badges: ["socialStatus", "riskLevel"],
+    },
   },
   project: {
     id: "project",
@@ -649,17 +649,21 @@ export const CONTENT_TYPE_MAPPINGS: { [key: string]: ContentTypeMapping } = {
       title: "title",
       subtitle: "status",
       description: "excerpt",
-      badges: ["tags", "wordCount"]
-    }
-  }
+      badges: ["tags", "wordCount"],
+    },
+  },
 };
 
 // Helper function to get mapping by URL segment
-export function getMappingByUrlSegment(urlSegment: string): ContentTypeMapping | undefined {
-  return Object.values(CONTENT_TYPE_MAPPINGS).find(mapping => mapping.urlSegment === urlSegment);
+export function getMappingByUrlSegment(
+  urlSegment: string,
+): ContentTypeMapping | undefined {
+  return Object.values(CONTENT_TYPE_MAPPINGS).find(
+    (mapping) => mapping.urlSegment === urlSegment,
+  );
 }
 
-// Helper function to get mapping by ID  
+// Helper function to get mapping by ID
 export function getMappingById(id: string): ContentTypeMapping | undefined {
   return CONTENT_TYPE_MAPPINGS[id];
 }

@@ -12,7 +12,9 @@ const stockSearchSchema = z.object({
 
 // Pexels API access - fail fast on startup if not configured
 if (!process.env.PEXELS_API_KEY) {
-  throw new Error("[StockImages] PEXELS_API_KEY environment variable is not set - cannot initialize stock image service");
+  throw new Error(
+    "[StockImages] PEXELS_API_KEY environment variable is not set - cannot initialize stock image service",
+  );
 }
 
 const PEXELS_API_KEY = process.env.PEXELS_API_KEY;
@@ -24,19 +26,19 @@ router.post("/search", writeRateLimiter, async (req: any, res) => {
     console.log("[StockImages] Searching for:", validated.query);
 
     if (!PEXELS_API_KEY) {
-      return res.status(500).json({ 
-        error: "Pexels API key not configured" 
+      return res.status(500).json({
+        error: "Pexels API key not configured",
       });
     }
 
     // Use Pexels API for stock images
-    const response = await axios.get('https://api.pexels.com/v1/search', {
+    const response = await axios.get("https://api.pexels.com/v1/search", {
       params: {
         query: validated.query,
         per_page: validated.limit,
       },
       headers: {
-        'Authorization': PEXELS_API_KEY,
+        Authorization: PEXELS_API_KEY,
       },
     });
 
@@ -53,16 +55,16 @@ router.post("/search", writeRateLimiter, async (req: any, res) => {
     });
   } catch (error: any) {
     console.error("[StockImages] Search error:", error);
-    
+
     if (error.name === "ZodError") {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Invalid request parameters",
-        details: error.errors 
+        details: error.errors,
       });
     }
-    
-    res.status(500).json({ 
-      error: "Failed to search stock images" 
+
+    res.status(500).json({
+      error: "Failed to search stock images",
     });
   }
 });

@@ -66,52 +66,84 @@ interface FolderWithNotes {
   }[];
 }
 
-export default function DocumentSidebar({ type, currentDocumentId, userId }: DocumentSidebarProps) {
+export default function DocumentSidebar({
+  type,
+  currentDocumentId,
+  userId,
+}: DocumentSidebarProps) {
   const [, setLocation] = useLocation();
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
-  const [renameDialog, setRenameDialog] = useState<{ open: boolean; id: string; name: string; type: 'folder' | 'note' }>({ 
-    open: false, 
-    id: '', 
-    name: '', 
-    type: 'folder' 
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
+    new Set(),
+  );
+  const [renameDialog, setRenameDialog] = useState<{
+    open: boolean;
+    id: string;
+    name: string;
+    type: "folder" | "note";
+  }>({
+    open: false,
+    id: "",
+    name: "",
+    type: "folder",
   });
-  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; id: string; name: string; type: 'folder' | 'note' }>({ 
-    open: false, 
-    id: '', 
-    name: '', 
-    type: 'folder' 
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    id: string;
+    name: string;
+    type: "folder" | "note";
+  }>({
+    open: false,
+    id: "",
+    name: "",
+    type: "folder",
   });
-  const [draggedItem, setDraggedItem] = useState<{ id: string; type: 'folder' | 'note'; parentId?: string } | null>(null);
-  const [dragOverItem, setDragOverItem] = useState<{ id: string; type: 'folder' | 'note' } | null>(null);
+  const [draggedItem, setDraggedItem] = useState<{
+    id: string;
+    type: "folder" | "note";
+    parentId?: string;
+  } | null>(null);
+  const [dragOverItem, setDragOverItem] = useState<{
+    id: string;
+    type: "folder" | "note";
+  } | null>(null);
   const queryClient = useQueryClient();
 
   // Normalize type: 'project' is treated as 'manuscript'
-  const normalizedType = type === 'project' ? 'manuscript' : type;
+  const normalizedType = type === "project" ? "manuscript" : type;
 
   // Deterministic indentation mapping to avoid dynamic Tailwind class issues
   const getIndentationClass = (level: number): string => {
     const indentationMap: Record<number, string> = {
       0: "pl-0",
       1: "pl-4",
-      2: "pl-8", 
+      2: "pl-8",
       3: "pl-12",
       4: "pl-16",
-      5: "pl-20"
+      5: "pl-20",
     };
     return indentationMap[Math.min(level, 5)] || "pl-20";
   };
 
   // Fetch folders for the specific document
   const { data: folders = [], isLoading: foldersLoading } = useQuery({
-    queryKey: ['/api/folders', userId, type, currentDocumentId],
+    queryKey: ["/api/folders", userId, type, currentDocumentId],
     queryFn: () => {
       if (currentDocumentId) {
         // Use document-specific endpoint for project, manuscript, or guide folders
-        const param = type === 'project' ? 'projectId' : normalizedType === 'manuscript' ? 'manuscriptId' : 'guideId';
-        return fetch(`/api/folders?userId=${userId}&${param}=${currentDocumentId}`).then(res => res.json());
+        const param =
+          type === "project"
+            ? "projectId"
+            : normalizedType === "manuscript"
+              ? "manuscriptId"
+              : "guideId";
+        return fetch(
+          `/api/folders?userId=${userId}&${param}=${currentDocumentId}`,
+        ).then((res) => res.json());
       } else {
         // Fallback to type-based folders (for backwards compatibility)
-        return fetch(`/api/folders?userId=${userId}&type=${normalizedType}`).then(res => res.json());
+        return fetch(
+          `/api/folders?userId=${userId}&type=${normalizedType}`,
+        ).then((res) => res.json());
       }
     },
     enabled: !!userId,
@@ -119,31 +151,43 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
 
   // Fetch notes for the document type and specific document
   const { data: notes = [], isLoading: notesLoading } = useQuery({
-    queryKey: ['/api/notes', userId, `${normalizedType}_note`, currentDocumentId],
+    queryKey: [
+      "/api/notes",
+      userId,
+      `${normalizedType}_note`,
+      currentDocumentId,
+    ],
     queryFn: () => {
-      const docParam = type === 'project' ? 'projectId' : 'documentId';
-      return fetch(`/api/notes?userId=${userId}&type=${normalizedType}_note&${docParam}=${currentDocumentId}`).then(res => res.json());
+      const docParam = type === "project" ? "projectId" : "documentId";
+      return fetch(
+        `/api/notes?userId=${userId}&type=${normalizedType}_note&${docParam}=${currentDocumentId}`,
+      ).then((res) => res.json());
     },
     enabled: !!userId && !!currentDocumentId,
   });
 
   // Build hierarchical folder structure with notes
-  const buildFolderHierarchy = (folders: any[], notes: any[]): FolderWithNotes[] => {
+  const buildFolderHierarchy = (
+    folders: any[],
+    notes: any[],
+  ): FolderWithNotes[] => {
     const folderMap = new Map<string, FolderWithNotes>();
     const rootFolders: FolderWithNotes[] = [];
 
     // Create folder objects and map
-    folders.forEach(folder => {
+    folders.forEach((folder) => {
       const folderWithNotes: FolderWithNotes = {
         ...folder,
         children: [],
-        notes: notes.filter(note => note.folderId === folder.id).sort((a, b) => a.sortOrder - b.sortOrder)
+        notes: notes
+          .filter((note) => note.folderId === folder.id)
+          .sort((a, b) => a.sortOrder - b.sortOrder),
       };
       folderMap.set(folder.id, folderWithNotes);
     });
 
     // Build hierarchy
-    folders.forEach(folder => {
+    folders.forEach((folder) => {
       const folderWithNotes = folderMap.get(folder.id);
       if (!folderWithNotes) return;
 
@@ -158,7 +202,7 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
     // Sort by sortOrder
     const sortFolders = (folders: FolderWithNotes[]) => {
       folders.sort((a, b) => a.sortOrder - b.sortOrder);
-      folders.forEach(folder => {
+      folders.forEach((folder) => {
         if (folder.children) {
           sortFolders(folder.children);
         }
@@ -170,7 +214,7 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
   };
 
   const toggleFolder = (folderId: string) => {
-    setExpandedFolders(prev => {
+    setExpandedFolders((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(folderId)) {
         newSet.delete(folderId);
@@ -181,12 +225,15 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
     });
   };
 
-  const navigateToDocument = (docId: string, docType: 'manuscript' | 'guide' | 'note') => {
-    if (docType === 'manuscript') {
+  const navigateToDocument = (
+    docId: string,
+    docType: "manuscript" | "guide" | "note",
+  ) => {
+    if (docType === "manuscript") {
       setLocation(`/projects/${docId}/edit`);
-    } else if (docType === 'guide') {
+    } else if (docType === "guide") {
       setLocation(`/guides/${docId}/edit`);
-    } else if (docType === 'note') {
+    } else if (docType === "note") {
       setLocation(`/notes/${docId}/edit`);
     }
   };
@@ -194,113 +241,159 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
   const createNewFolder = async () => {
     try {
       const newFolder = {
-        name: normalizedType === 'manuscript' ? 'New Chapter' : 'New Category',
+        name: normalizedType === "manuscript" ? "New Chapter" : "New Category",
         type: normalizedType,
         userId: userId,
         sortOrder: folders.length,
         // Link the folder to the specific document
-        ...(type === 'project' && currentDocumentId ? { projectId: currentDocumentId } : {}),
-        ...(normalizedType === 'manuscript' && type !== 'project' && currentDocumentId ? { manuscriptId: currentDocumentId } : {}),
-        ...(normalizedType === 'guide' && currentDocumentId ? { guideId: currentDocumentId } : {}),
+        ...(type === "project" && currentDocumentId
+          ? { projectId: currentDocumentId }
+          : {}),
+        ...(normalizedType === "manuscript" &&
+        type !== "project" &&
+        currentDocumentId
+          ? { manuscriptId: currentDocumentId }
+          : {}),
+        ...(normalizedType === "guide" && currentDocumentId
+          ? { guideId: currentDocumentId }
+          : {}),
       };
-      
-      const response = await fetch('/api/folders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+
+      const response = await fetch("/api/folders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newFolder),
       });
-      
+
       if (response.ok) {
         // Invalidate queries to refresh folder list without hard reload
-        queryClient.invalidateQueries({ queryKey: ['/api/folders', userId, type, currentDocumentId] });
-        queryClient.invalidateQueries({ queryKey: ['/api/folders', userId] });
+        queryClient.invalidateQueries({
+          queryKey: ["/api/folders", userId, type, currentDocumentId],
+        });
+        queryClient.invalidateQueries({ queryKey: ["/api/folders", userId] });
       }
     } catch (error) {
-      console.error('Failed to create folder:', error);
+      console.error("Failed to create folder:", error);
     }
   };
 
   const createNewNote = async (folderId?: string) => {
     try {
       const newNote = {
-        title: normalizedType === 'manuscript' ? 'New Scene' : 'New Guide',
-        content: '',
+        title: normalizedType === "manuscript" ? "New Scene" : "New Guide",
+        content: "",
         type: `${normalizedType}_note`,
         folderId: folderId || null,
-        projectId: type === 'project' ? currentDocumentId : null,
-        manuscriptId: normalizedType === 'manuscript' && type !== 'project' ? currentDocumentId : null,
-        guideId: normalizedType === 'guide' ? currentDocumentId : null,
+        projectId: type === "project" ? currentDocumentId : null,
+        manuscriptId:
+          normalizedType === "manuscript" && type !== "project"
+            ? currentDocumentId
+            : null,
+        guideId: normalizedType === "guide" ? currentDocumentId : null,
         userId: userId,
-        sortOrder: notes.filter((n: { folderId?: string }) => n.folderId === folderId).length,
+        sortOrder: notes.filter(
+          (n: { folderId?: string }) => n.folderId === folderId,
+        ).length,
       };
-      
-      const response = await fetch('/api/notes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+
+      const response = await fetch("/api/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newNote),
       });
-      
+
       if (response.ok) {
         const createdNote = await response.json();
         // Invalidate queries to refresh notes list so new item appears immediately
-        queryClient.invalidateQueries({ queryKey: ['/api/notes', userId, `${normalizedType}_note`] });
+        queryClient.invalidateQueries({
+          queryKey: ["/api/notes", userId, `${normalizedType}_note`],
+        });
         // Navigate to the newly created note
-        navigateToDocument(createdNote.id, 'note');
+        navigateToDocument(createdNote.id, "note");
       }
     } catch (error) {
-      console.error('Failed to create note:', error);
+      console.error("Failed to create note:", error);
     }
   };
 
   const handleRename = async () => {
     try {
-      const endpoint = renameDialog.type === 'folder' ? '/api/folders' : '/api/notes';
+      const endpoint =
+        renameDialog.type === "folder" ? "/api/folders" : "/api/notes";
       const response = await fetch(`${endpoint}/${renameDialog.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          renameDialog.type === 'folder' 
+          renameDialog.type === "folder"
             ? { name: renameDialog.name }
-            : { title: renameDialog.name }
+            : { title: renameDialog.name },
         ),
       });
-      
+
       if (response.ok) {
-        queryClient.invalidateQueries({ queryKey: ['/api/folders', userId, type, currentDocumentId] });
-        queryClient.invalidateQueries({ queryKey: ['/api/notes', userId, `${normalizedType}_note`, currentDocumentId] });
-        setRenameDialog({ open: false, id: '', name: '', type: 'folder' });
+        queryClient.invalidateQueries({
+          queryKey: ["/api/folders", userId, type, currentDocumentId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: [
+            "/api/notes",
+            userId,
+            `${normalizedType}_note`,
+            currentDocumentId,
+          ],
+        });
+        setRenameDialog({ open: false, id: "", name: "", type: "folder" });
       }
     } catch (error) {
-      console.error('Failed to rename:', error);
+      console.error("Failed to rename:", error);
     }
   };
 
   const handleDelete = async () => {
     try {
-      const endpoint = deleteDialog.type === 'folder' ? '/api/folders' : '/api/notes';
+      const endpoint =
+        deleteDialog.type === "folder" ? "/api/folders" : "/api/notes";
       const response = await fetch(`${endpoint}/${deleteDialog.id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
-      
+
       if (response.ok) {
-        queryClient.invalidateQueries({ queryKey: ['/api/folders', userId, type, currentDocumentId] });
-        queryClient.invalidateQueries({ queryKey: ['/api/notes', userId, `${normalizedType}_note`, currentDocumentId] });
-        setDeleteDialog({ open: false, id: '', name: '', type: 'folder' });
+        queryClient.invalidateQueries({
+          queryKey: ["/api/folders", userId, type, currentDocumentId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: [
+            "/api/notes",
+            userId,
+            `${normalizedType}_note`,
+            currentDocumentId,
+          ],
+        });
+        setDeleteDialog({ open: false, id: "", name: "", type: "folder" });
       }
     } catch (error) {
-      console.error('Failed to delete:', error);
+      console.error("Failed to delete:", error);
     }
   };
 
-  const handleDragStart = (e: React.DragEvent, id: string, itemType: 'folder' | 'note', parentId?: string) => {
+  const handleDragStart = (
+    e: React.DragEvent,
+    id: string,
+    itemType: "folder" | "note",
+    parentId?: string,
+  ) => {
     setDraggedItem({ id, type: itemType, parentId });
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', id);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", id);
   };
 
-  const handleDragOver = (e: React.DragEvent, id: string, itemType: 'folder' | 'note') => {
+  const handleDragOver = (
+    e: React.DragEvent,
+    id: string,
+    itemType: "folder" | "note",
+  ) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+    e.dataTransfer.dropEffect = "move";
     setDragOverItem({ id, type: itemType });
   };
 
@@ -308,10 +401,15 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
     setDragOverItem(null);
   };
 
-  const handleDrop = async (e: React.DragEvent, targetId: string, targetType: 'folder' | 'note', targetParentId?: string) => {
+  const handleDrop = async (
+    e: React.DragEvent,
+    targetId: string,
+    targetType: "folder" | "note",
+    targetParentId?: string,
+  ) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!draggedItem || draggedItem.id === targetId) {
       setDraggedItem(null);
       setDragOverItem(null);
@@ -319,7 +417,10 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
     }
 
     // Can only reorder items of same type in same parent
-    if (draggedItem.type !== targetType || draggedItem.parentId !== targetParentId) {
+    if (
+      draggedItem.type !== targetType ||
+      draggedItem.parentId !== targetParentId
+    ) {
       setDraggedItem(null);
       setDragOverItem(null);
       return;
@@ -327,18 +428,25 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
 
     try {
       // Get the list of items sorted by current sortOrder
-      const items = draggedItem.type === 'folder' 
-        ? (Array.isArray(folders) ? folders : [])
-            .filter((f: any) => f.parentId === draggedItem.parentId)
-            .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
-        : (Array.isArray(notes) ? notes : [])
-            .filter((n: any) => n.folderId === draggedItem.parentId)
-            .sort((a: any, b: any) => a.sortOrder - b.sortOrder);
+      const items =
+        draggedItem.type === "folder"
+          ? (Array.isArray(folders) ? folders : [])
+              .filter((f: any) => f.parentId === draggedItem.parentId)
+              .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
+          : (Array.isArray(notes) ? notes : [])
+              .filter((n: any) => n.folderId === draggedItem.parentId)
+              .sort((a: any, b: any) => a.sortOrder - b.sortOrder);
 
-      const draggedIndex = items.findIndex((item: any) => item.id === draggedItem.id);
+      const draggedIndex = items.findIndex(
+        (item: any) => item.id === draggedItem.id,
+      );
       const targetIndex = items.findIndex((item: any) => item.id === targetId);
 
-      if (draggedIndex === -1 || targetIndex === -1 || draggedIndex === targetIndex) {
+      if (
+        draggedIndex === -1 ||
+        targetIndex === -1 ||
+        draggedIndex === targetIndex
+      ) {
         setDraggedItem(null);
         setDragOverItem(null);
         return;
@@ -347,30 +455,41 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
       // Create new order array by removing dragged item and inserting at target position
       const reorderedItems = [...items];
       const [draggedItemData] = reorderedItems.splice(draggedIndex, 1);
-      
+
       // Adjust insert index when moving down (array shrinks after removal)
-      const insertIndex = draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
+      const insertIndex =
+        draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
       reorderedItems.splice(insertIndex, 0, draggedItemData);
 
       // Update all items with new sequential sort orders
-      const endpoint = draggedItem.type === 'folder' ? '/api/folders' : '/api/notes';
-      
+      const endpoint =
+        draggedItem.type === "folder" ? "/api/folders" : "/api/notes";
+
       // Update each item's sortOrder
       await Promise.all(
         reorderedItems.map((item: any, index: number) =>
           fetch(`${endpoint}/${item.id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ sortOrder: index }),
-          })
-        )
+          }),
+        ),
       );
 
       // Invalidate queries to refresh the list
-      queryClient.invalidateQueries({ queryKey: ['/api/folders', userId, type, currentDocumentId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/notes', userId, `${normalizedType}_note`, currentDocumentId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/folders", userId, type, currentDocumentId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "/api/notes",
+          userId,
+          `${normalizedType}_note`,
+          currentDocumentId,
+        ],
+      });
     } catch (error) {
-      console.error('Failed to reorder:', error);
+      console.error("Failed to reorder:", error);
     } finally {
       setDraggedItem(null);
       setDragOverItem(null);
@@ -386,30 +505,37 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
       <div key={folder.id}>
         <SidebarMenuItem
           draggable
-          onDragStart={(e) => handleDragStart(e, folder.id, 'folder', folder.parentId)}
-          onDragOver={(e) => handleDragOver(e, folder.id, 'folder')}
+          onDragStart={(e) =>
+            handleDragStart(e, folder.id, "folder", folder.parentId)
+          }
+          onDragOver={(e) => handleDragOver(e, folder.id, "folder")}
           onDragLeave={handleDragLeave}
-          onDrop={(e) => handleDrop(e, folder.id, 'folder', folder.parentId)}
+          onDrop={(e) => handleDrop(e, folder.id, "folder", folder.parentId)}
           className={cn(
             "cursor-move",
-            dragOverItem?.id === folder.id && dragOverItem?.type === 'folder' && "border-t-2 border-primary"
+            dragOverItem?.id === folder.id &&
+              dragOverItem?.type === "folder" &&
+              "border-t-2 border-primary",
           )}
         >
           <div className="flex items-center group">
             <SidebarMenuButton
               onClick={() => toggleFolder(folder.id)}
-              className={cn(
-                "flex-1 justify-start",
-                getIndentationClass(level)
-              )}
+              className={cn("flex-1 justify-start", getIndentationClass(level))}
               data-testid={`folder-${folder.id}`}
             >
               <div className="flex items-center gap-2 flex-1">
-                {(hasChildren || hasNotes) && (
-                  isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />
-                )}
-                <Folder 
-                  className={cn("h-4 w-4", folder.color && `text-${folder.color}`)} 
+                {(hasChildren || hasNotes) &&
+                  (isExpanded ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  ))}
+                <Folder
+                  className={cn(
+                    "h-4 w-4",
+                    folder.color && `text-${folder.color}`,
+                  )}
                   style={{ color: folder.color }}
                 />
                 <span className="truncate">{folder.name}</span>
@@ -422,9 +548,9 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
             </SidebarMenuButton>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="h-8 w-8 opacity-0 group-hover:opacity-100"
                   onClick={(e) => e.stopPropagation()}
                   data-testid={`folder-menu-${folder.id}`}
@@ -436,7 +562,12 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
-                    setRenameDialog({ open: true, id: folder.id, name: folder.name, type: 'folder' });
+                    setRenameDialog({
+                      open: true,
+                      id: folder.id,
+                      name: folder.name,
+                      type: "folder",
+                    });
                   }}
                   data-testid={`rename-folder-${folder.id}`}
                 >
@@ -446,7 +577,12 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
-                    setDeleteDialog({ open: true, id: folder.id, name: folder.name, type: 'folder' });
+                    setDeleteDialog({
+                      open: true,
+                      id: folder.id,
+                      name: folder.name,
+                      type: "folder",
+                    });
                   }}
                   className="text-destructive"
                   data-testid={`delete-folder-${folder.id}`}
@@ -462,29 +598,34 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
         {isExpanded && (
           <>
             {/* Render child folders */}
-            {folder.children?.map(child => renderFolder(child, level + 1))}
-            
+            {folder.children?.map((child) => renderFolder(child, level + 1))}
+
             {/* Render notes in this folder */}
-            {folder.notes?.map(note => (
-              <SidebarMenuItem 
+            {folder.notes?.map((note) => (
+              <SidebarMenuItem
                 key={note.id}
                 draggable
-                onDragStart={(e) => handleDragStart(e, note.id, 'note', folder.id)}
-                onDragOver={(e) => handleDragOver(e, note.id, 'note')}
+                onDragStart={(e) =>
+                  handleDragStart(e, note.id, "note", folder.id)
+                }
+                onDragOver={(e) => handleDragOver(e, note.id, "note")}
                 onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, note.id, 'note', folder.id)}
+                onDrop={(e) => handleDrop(e, note.id, "note", folder.id)}
                 className={cn(
                   "cursor-move",
-                  dragOverItem?.id === note.id && dragOverItem?.type === 'note' && "border-t-2 border-primary"
+                  dragOverItem?.id === note.id &&
+                    dragOverItem?.type === "note" &&
+                    "border-t-2 border-primary",
                 )}
               >
                 <div className="flex items-center group">
                   <SidebarMenuButton
-                    onClick={() => navigateToDocument(note.id, 'note')}
+                    onClick={() => navigateToDocument(note.id, "note")}
                     className={cn(
                       "flex-1 justify-start",
                       getIndentationClass(level + 1),
-                      currentDocumentId === note.id && "bg-sidebar-accent text-sidebar-accent-foreground"
+                      currentDocumentId === note.id &&
+                        "bg-sidebar-accent text-sidebar-accent-foreground",
                     )}
                     data-testid={`note-${note.id}`}
                   >
@@ -493,9 +634,9 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
                   </SidebarMenuButton>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         className="h-8 w-8 opacity-0 group-hover:opacity-100"
                         onClick={(e) => e.stopPropagation()}
                         data-testid={`note-menu-${note.id}`}
@@ -507,7 +648,12 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
-                          setRenameDialog({ open: true, id: note.id, name: note.title, type: 'note' });
+                          setRenameDialog({
+                            open: true,
+                            id: note.id,
+                            name: note.title,
+                            type: "note",
+                          });
                         }}
                         data-testid={`rename-note-${note.id}`}
                       >
@@ -517,7 +663,12 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
-                          setDeleteDialog({ open: true, id: note.id, name: note.title, type: 'note' });
+                          setDeleteDialog({
+                            open: true,
+                            id: note.id,
+                            name: note.title,
+                            type: "note",
+                          });
                         }}
                         className="text-destructive"
                         data-testid={`delete-note-${note.id}`}
@@ -537,12 +688,14 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
                 onClick={() => createNewNote(folder.id)}
                 className={cn(
                   "w-full justify-start text-muted-foreground hover:text-foreground",
-                  getIndentationClass(level + 1)
+                  getIndentationClass(level + 1),
                 )}
                 data-testid={`add-note-${folder.id}`}
               >
                 <FileText className="h-4 w-4" />
-                <span>Add {normalizedType === 'manuscript' ? 'Scene' : 'Guide'}</span>
+                <span>
+                  Add {normalizedType === "manuscript" ? "Scene" : "Guide"}
+                </span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </>
@@ -552,15 +705,22 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
   };
 
   // Get orphaned notes (notes without folders) - memoized for performance
-  const orphanedNotes = useMemo(() => 
-    (Array.isArray(notes) ? notes : []).filter((note: { folderId?: string }) => !note.folderId),
-    [notes]
+  const orphanedNotes = useMemo(
+    () =>
+      (Array.isArray(notes) ? notes : []).filter(
+        (note: { folderId?: string }) => !note.folderId,
+      ),
+    [notes],
   );
 
   // Build hierarchical folder structure - memoized for performance
-  const hierarchicalFolders = useMemo(() => 
-    buildFolderHierarchy(Array.isArray(folders) ? folders : [], Array.isArray(notes) ? notes : []),
-    [folders, notes]
+  const hierarchicalFolders = useMemo(
+    () =>
+      buildFolderHierarchy(
+        Array.isArray(folders) ? folders : [],
+        Array.isArray(notes) ? notes : [],
+      ),
+    [folders, notes],
   );
 
   return (
@@ -568,10 +728,18 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
       <SidebarContent className="pt-16">
         <SidebarGroup>
           <SidebarGroupLabel className="flex items-center gap-2">
-            {normalizedType === 'manuscript' ? <BookOpen className="h-4 w-4" /> : <Library className="h-4 w-4" />}
-            {type === 'project' ? 'Project Outline' : normalizedType === 'manuscript' ? 'Manuscript Structure' : 'Guide Categories'}
+            {normalizedType === "manuscript" ? (
+              <BookOpen className="h-4 w-4" />
+            ) : (
+              <Library className="h-4 w-4" />
+            )}
+            {type === "project"
+              ? "Project Outline"
+              : normalizedType === "manuscript"
+                ? "Manuscript Structure"
+                : "Guide Categories"}
           </SidebarGroupLabel>
-          
+
           {/* Action buttons - visible and accessible */}
           <div className="flex items-center gap-2 px-3 py-2 border-b">
             <Button
@@ -582,7 +750,7 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
               data-testid="add-folder"
             >
               <Folder className="h-4 w-4 mr-2" />
-              {normalizedType === 'manuscript' ? 'Chapter' : 'Category'}
+              {normalizedType === "manuscript" ? "Chapter" : "Category"}
             </Button>
             <Button
               variant="outline"
@@ -592,10 +760,10 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
               data-testid="add-note"
             >
               <FileText className="h-4 w-4 mr-2" />
-              {normalizedType === 'manuscript' ? 'Scene' : 'Guide'}
+              {normalizedType === "manuscript" ? "Scene" : "Guide"}
             </Button>
           </div>
-          
+
           <SidebarGroupContent>
             <ScrollArea className="h-[calc(100vh-200px)]">
               <SidebarMenu>
@@ -603,37 +771,51 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
                   <div className="p-4 text-center text-muted-foreground">
                     Loading document structure...
                   </div>
-                ) : hierarchicalFolders.length === 0 && orphanedNotes.length === 0 ? (
+                ) : hierarchicalFolders.length === 0 &&
+                  orphanedNotes.length === 0 ? (
                   <div className="p-4 text-center text-muted-foreground text-sm">
-                    No {normalizedType === 'manuscript' ? 'chapters or scenes' : 'categories or guides'} yet.
+                    No{" "}
+                    {normalizedType === "manuscript"
+                      ? "chapters or scenes"
+                      : "categories or guides"}{" "}
+                    yet.
                     <br />
                     Click the icons above to get started.
                   </div>
                 ) : (
                   <>
                     {/* Render hierarchical folders */}
-                    {hierarchicalFolders.map(folder => renderFolder(folder, 0))}
+                    {hierarchicalFolders.map((folder) =>
+                      renderFolder(folder, 0),
+                    )}
 
                     {/* Render orphaned notes */}
                     {orphanedNotes.map((note: any) => (
-                      <SidebarMenuItem 
+                      <SidebarMenuItem
                         key={note.id}
                         draggable
-                        onDragStart={(e) => handleDragStart(e, note.id, 'note', undefined)}
-                        onDragOver={(e) => handleDragOver(e, note.id, 'note')}
+                        onDragStart={(e) =>
+                          handleDragStart(e, note.id, "note", undefined)
+                        }
+                        onDragOver={(e) => handleDragOver(e, note.id, "note")}
                         onDragLeave={handleDragLeave}
-                        onDrop={(e) => handleDrop(e, note.id, 'note', undefined)}
+                        onDrop={(e) =>
+                          handleDrop(e, note.id, "note", undefined)
+                        }
                         className={cn(
                           "cursor-move",
-                          dragOverItem?.id === note.id && dragOverItem?.type === 'note' && "border-t-2 border-primary"
+                          dragOverItem?.id === note.id &&
+                            dragOverItem?.type === "note" &&
+                            "border-t-2 border-primary",
                         )}
                       >
                         <div className="flex items-center group">
                           <SidebarMenuButton
-                            onClick={() => navigateToDocument(note.id, 'note')}
+                            onClick={() => navigateToDocument(note.id, "note")}
                             className={cn(
                               "flex-1 justify-start",
-                              currentDocumentId === note.id && "bg-sidebar-accent text-sidebar-accent-foreground"
+                              currentDocumentId === note.id &&
+                                "bg-sidebar-accent text-sidebar-accent-foreground",
                             )}
                             data-testid={`orphan-note-${note.id}`}
                           >
@@ -642,9 +824,9 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
                           </SidebarMenuButton>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 className="h-8 w-8 opacity-0 group-hover:opacity-100"
                                 onClick={(e) => e.stopPropagation()}
                                 data-testid={`orphan-note-menu-${note.id}`}
@@ -656,7 +838,12 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
                               <DropdownMenuItem
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setRenameDialog({ open: true, id: note.id, name: note.title, type: 'note' });
+                                  setRenameDialog({
+                                    open: true,
+                                    id: note.id,
+                                    name: note.title,
+                                    type: "note",
+                                  });
                                 }}
                                 data-testid={`rename-orphan-note-${note.id}`}
                               >
@@ -666,7 +853,12 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
                               <DropdownMenuItem
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setDeleteDialog({ open: true, id: note.id, name: note.title, type: 'note' });
+                                  setDeleteDialog({
+                                    open: true,
+                                    id: note.id,
+                                    name: note.title,
+                                    type: "note",
+                                  });
                                 }}
                                 className="text-destructive"
                                 data-testid={`delete-orphan-note-${note.id}`}
@@ -688,12 +880,35 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
       </SidebarContent>
 
       {/* Rename Dialog */}
-      <Dialog open={renameDialog.open} onOpenChange={(open) => !open && setRenameDialog({ open: false, id: '', name: '', type: 'folder' })}>
+      <Dialog
+        open={renameDialog.open}
+        onOpenChange={(open) =>
+          !open &&
+          setRenameDialog({ open: false, id: "", name: "", type: "folder" })
+        }
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rename {renameDialog.type === 'folder' ? (normalizedType === 'manuscript' ? 'Chapter' : 'Category') : (normalizedType === 'manuscript' ? 'Scene' : 'Guide')}</DialogTitle>
+            <DialogTitle>
+              Rename{" "}
+              {renameDialog.type === "folder"
+                ? normalizedType === "manuscript"
+                  ? "Chapter"
+                  : "Category"
+                : normalizedType === "manuscript"
+                  ? "Scene"
+                  : "Guide"}
+            </DialogTitle>
             <DialogDescription>
-              Enter a new name for this {renameDialog.type === 'folder' ? (normalizedType === 'manuscript' ? 'chapter' : 'category') : (normalizedType === 'manuscript' ? 'scene' : 'guide')}.
+              Enter a new name for this{" "}
+              {renameDialog.type === "folder"
+                ? normalizedType === "manuscript"
+                  ? "chapter"
+                  : "category"
+                : normalizedType === "manuscript"
+                  ? "scene"
+                  : "guide"}
+              .
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
@@ -701,23 +916,29 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
             <Input
               id="rename-input"
               value={renameDialog.name}
-              onChange={(e) => setRenameDialog({ ...renameDialog, name: e.target.value })}
-              onKeyDown={(e) => e.key === 'Enter' && handleRename()}
+              onChange={(e) =>
+                setRenameDialog({ ...renameDialog, name: e.target.value })
+              }
+              onKeyDown={(e) => e.key === "Enter" && handleRename()}
               data-testid="input-rename"
             />
           </div>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setRenameDialog({ open: false, id: '', name: '', type: 'folder' })}
+              onClick={() =>
+                setRenameDialog({
+                  open: false,
+                  id: "",
+                  name: "",
+                  type: "folder",
+                })
+              }
               data-testid="button-cancel-rename"
             >
               Cancel
             </Button>
-            <Button
-              onClick={handleRename}
-              data-testid="button-confirm-rename"
-            >
+            <Button onClick={handleRename} data-testid="button-confirm-rename">
               Rename
             </Button>
           </DialogFooter>
@@ -725,18 +946,41 @@ export default function DocumentSidebar({ type, currentDocumentId, userId }: Doc
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, id: '', name: '', type: 'folder' })}>
+      <Dialog
+        open={deleteDialog.open}
+        onOpenChange={(open) =>
+          !open &&
+          setDeleteDialog({ open: false, id: "", name: "", type: "folder" })
+        }
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete {deleteDialog.type === 'folder' ? (normalizedType === 'manuscript' ? 'Chapter' : 'Category') : (normalizedType === 'manuscript' ? 'Scene' : 'Guide')}</DialogTitle>
+            <DialogTitle>
+              Delete{" "}
+              {deleteDialog.type === "folder"
+                ? normalizedType === "manuscript"
+                  ? "Chapter"
+                  : "Category"
+                : normalizedType === "manuscript"
+                  ? "Scene"
+                  : "Guide"}
+            </DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{deleteDialog.name}"? This action cannot be undone.
+              Are you sure you want to delete "{deleteDialog.name}"? This action
+              cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setDeleteDialog({ open: false, id: '', name: '', type: 'folder' })}
+              onClick={() =>
+                setDeleteDialog({
+                  open: false,
+                  id: "",
+                  name: "",
+                  type: "folder",
+                })
+              }
               data-testid="button-cancel-delete"
             >
               Cancel

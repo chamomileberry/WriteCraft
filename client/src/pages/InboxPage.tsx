@@ -1,7 +1,12 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -32,14 +37,14 @@ export default function InboxPage() {
   };
 
   const handleNavigate = (view: string) => {
-    if (view === 'notebook') {
-      setLocation('/notebook');
-    } else if (view === 'projects') {
-      setLocation('/projects');
-    } else if (view === 'generators') {
-      setLocation('/generators');
-    } else if (view === 'guides') {
-      setLocation('/guides');
+    if (view === "notebook") {
+      setLocation("/notebook");
+    } else if (view === "projects") {
+      setLocation("/projects");
+    } else if (view === "generators") {
+      setLocation("/generators");
+    } else if (view === "guides") {
+      setLocation("/guides");
     }
   };
 
@@ -77,7 +82,11 @@ export default function InboxPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onSearch={handleSearch} searchQuery={searchQuery} onNavigate={handleNavigate} />
+      <Header
+        onSearch={handleSearch}
+        searchQuery={searchQuery}
+        onNavigate={handleNavigate}
+      />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="mb-12">
@@ -95,7 +104,8 @@ export default function InboxPage() {
           <Alert>
             <MessageSquare className="h-4 w-4" />
             <AlertDescription>
-              No messages yet. Submit feedback to start a conversation with the team!
+              No messages yet. Submit feedback to start a conversation with the
+              team!
             </AlertDescription>
           </Alert>
         ) : (
@@ -117,11 +127,17 @@ export default function InboxPage() {
                         ) : (
                           <MailOpen className="h-5 w-5 text-muted-foreground" />
                         )}
-                        <CardTitle className="text-lg">{message.title}</CardTitle>
+                        <CardTitle className="text-lg">
+                          {message.title}
+                        </CardTitle>
                       </div>
                       <CardDescription>
-                        {new Date(message.createdAt).toLocaleDateString()} • Status:{" "}
-                        <Badge className={statusColors[message.status]} variant="outline">
+                        {new Date(message.createdAt).toLocaleDateString()} •
+                        Status:{" "}
+                        <Badge
+                          className={statusColors[message.status]}
+                          variant="outline"
+                        >
                           {message.status}
                         </Badge>
                       </CardDescription>
@@ -130,7 +146,9 @@ export default function InboxPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <p className="text-sm font-semibold text-muted-foreground mb-1">Your message:</p>
+                    <p className="text-sm font-semibold text-muted-foreground mb-1">
+                      Your message:
+                    </p>
                     <p className="text-sm">{message.description}</p>
                   </div>
 
@@ -140,11 +158,15 @@ export default function InboxPage() {
                         <p className="text-sm font-semibold">Team Response:</p>
                         <p className="text-xs text-muted-foreground">
                           {message.adminRepliedAt
-                            ? new Date(message.adminRepliedAt).toLocaleDateString()
+                            ? new Date(
+                                message.adminRepliedAt,
+                              ).toLocaleDateString()
                             : ""}
                         </p>
                       </div>
-                      <p className="text-sm whitespace-pre-wrap">{message.adminReply}</p>
+                      <p className="text-sm whitespace-pre-wrap">
+                        {message.adminReply}
+                      </p>
                     </div>
                   )}
                 </CardContent>
@@ -154,7 +176,10 @@ export default function InboxPage() {
         )}
 
         <div className="mt-8">
-          <Button onClick={() => setLocation("/feedback")} className="w-full sm:w-auto">
+          <Button
+            onClick={() => setLocation("/feedback")}
+            className="w-full sm:w-auto"
+          >
             <MessageSquare className="mr-2 h-4 w-4" />
             Send New Message
           </Button>

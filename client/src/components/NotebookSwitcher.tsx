@@ -2,7 +2,11 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { BookOpen, Settings, Plus, ChevronDown } from "lucide-react";
 import { useNotebookStore, type Notebook } from "@/stores/notebookStore";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -17,20 +21,29 @@ interface NotebookSwitcherProps {
   onPopoverOpenChange?: (open: boolean) => void;
 }
 
-export default function NotebookSwitcher({ className, showActiveInfo = true, showHeader = false, isPopoverOpen: externalPopoverOpen, onPopoverOpenChange }: NotebookSwitcherProps) {
+export default function NotebookSwitcher({
+  className,
+  showActiveInfo = true,
+  showHeader = false,
+  isPopoverOpen: externalPopoverOpen,
+  onPopoverOpenChange,
+}: NotebookSwitcherProps) {
   const [isManagerOpen, setIsManagerOpen] = useState(false);
   const [internalPopoverOpen, setInternalPopoverOpen] = useState(false);
   const { toast } = useToast();
-  
+
   // Use external control if provided, otherwise use internal state
-  const isPopoverOpen = externalPopoverOpen !== undefined ? externalPopoverOpen : internalPopoverOpen;
+  const isPopoverOpen =
+    externalPopoverOpen !== undefined
+      ? externalPopoverOpen
+      : internalPopoverOpen;
   const setIsPopoverOpen = onPopoverOpenChange || setInternalPopoverOpen;
-  const { 
-    activeNotebookId, 
-    notebooks, 
-    setActiveNotebook, 
+  const {
+    activeNotebookId,
+    notebooks,
+    setActiveNotebook,
     setNotebooks,
-    getActiveNotebook 
+    getActiveNotebook,
   } = useNotebookStore();
 
   // Close popover when manager opens
@@ -46,10 +59,10 @@ export default function NotebookSwitcher({ className, showActiveInfo = true, sho
 
   // Fetch notebooks when component mounts
   const { isLoading } = useQuery({
-    queryKey: ['/api/notebooks'],
+    queryKey: ["/api/notebooks"],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/notebooks',);
-      const fetchedNotebooks = await response.json() as Notebook[];
+      const response = await apiRequest("GET", "/api/notebooks");
+      const fetchedNotebooks = (await response.json()) as Notebook[];
       setNotebooks(fetchedNotebooks);
 
       // If no active notebook is set but we have notebooks, set the first one as active
@@ -58,7 +71,7 @@ export default function NotebookSwitcher({ className, showActiveInfo = true, sho
       }
 
       return fetchedNotebooks;
-    }
+    },
   });
 
   const activeNotebook = getActiveNotebook();
@@ -69,20 +82,20 @@ export default function NotebookSwitcher({ className, showActiveInfo = true, sho
   };
 
   // Manager mode state and handlers (must be before any conditional returns)
-  const [managerMode, setManagerMode] = useState<'manage' | 'create'>('manage');
+  const [managerMode, setManagerMode] = useState<"manage" | "create">("manage");
 
   const handleOpenManager = () => {
-    setManagerMode('manage');
+    setManagerMode("manage");
     setIsManagerOpen(true);
   };
 
   const handleOpenCreate = () => {
-    setManagerMode('create');
+    setManagerMode("create");
     setIsManagerOpen(true);
   };
 
   // Get other notebooks (excluding the active one)
-  const otherNotebooks = notebooks.filter(n => n.id !== activeNotebookId);
+  const otherNotebooks = notebooks.filter((n) => n.id !== activeNotebookId);
 
   if (isLoading) {
     return (
@@ -102,11 +115,16 @@ export default function NotebookSwitcher({ className, showActiveInfo = true, sho
         {/* Header Section */}
         <div className="flex items-center justify-between gap-2">
           {showHeader && (
-            <h2 className="text-lg font-semibold" data-testid="text-active-notebook-header">
+            <h2
+              className="text-lg font-semibold"
+              data-testid="text-active-notebook-header"
+            >
               Active Notebook
             </h2>
           )}
-          <div className={`flex items-center gap-2 ${!showHeader ? 'ml-auto' : ''}`}>
+          <div
+            className={`flex items-center gap-2 ${!showHeader ? "ml-auto" : ""}`}
+          >
             <Button
               onClick={handleOpenManagerWithClose}
               variant="outline"
@@ -151,7 +169,11 @@ export default function NotebookSwitcher({ className, showActiveInfo = true, sho
           </Card>
         ) : showActiveInfo && activeNotebook ? (
           otherNotebooks.length > 0 ? (
-            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen} modal={true}>
+            <Popover
+              open={isPopoverOpen}
+              onOpenChange={setIsPopoverOpen}
+              modal={true}
+            >
               <PopoverTrigger asChild>
                 <button
                   className="w-full text-left"
@@ -163,25 +185,34 @@ export default function NotebookSwitcher({ className, showActiveInfo = true, sho
                       <div className="flex items-start gap-3">
                         <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-muted flex items-center justify-center">
                           {activeNotebook.imageUrl ? (
-                            <img 
-                              src={activeNotebook.imageUrl} 
+                            <img
+                              src={activeNotebook.imageUrl}
                               alt={activeNotebook.name}
                               className="w-full h-full object-cover"
                               data-testid="img-active-notebook-thumbnail"
                             />
                           ) : (
-                            <BookOpen className="h-8 w-8 text-muted-foreground" data-testid="icon-active-notebook-fallback" />
+                            <BookOpen
+                              className="h-8 w-8 text-muted-foreground"
+                              data-testid="icon-active-notebook-fallback"
+                            />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-base truncate" data-testid="text-active-notebook-name">
+                            <h3
+                              className="font-semibold text-base truncate"
+                              data-testid="text-active-notebook-name"
+                            >
                               {activeNotebook.name}
                             </h3>
                             <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                           </div>
                           {activeNotebook.description && (
-                            <p className="text-sm text-muted-foreground line-clamp-2" data-testid="text-active-notebook-description">
+                            <p
+                              className="text-sm text-muted-foreground line-clamp-2"
+                              data-testid="text-active-notebook-description"
+                            >
                               {activeNotebook.description}
                             </p>
                           )}
@@ -205,8 +236,8 @@ export default function NotebookSwitcher({ className, showActiveInfo = true, sho
                     >
                       <div className="flex-shrink-0 w-10 h-10 rounded overflow-hidden bg-muted flex items-center justify-center">
                         {notebook.imageUrl ? (
-                          <img 
-                            src={notebook.imageUrl} 
+                          <img
+                            src={notebook.imageUrl}
                             alt={notebook.name}
                             className="w-full h-full object-cover"
                           />
@@ -215,7 +246,9 @@ export default function NotebookSwitcher({ className, showActiveInfo = true, sho
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">{notebook.name}</div>
+                        <div className="font-medium truncate">
+                          {notebook.name}
+                        </div>
                         {notebook.description && (
                           <div className="text-xs text-muted-foreground truncate">
                             {notebook.description}
@@ -233,22 +266,31 @@ export default function NotebookSwitcher({ className, showActiveInfo = true, sho
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-muted flex items-center justify-center">
                     {activeNotebook.imageUrl ? (
-                      <img 
-                        src={activeNotebook.imageUrl} 
+                      <img
+                        src={activeNotebook.imageUrl}
                         alt={activeNotebook.name}
                         className="w-full h-full object-cover"
                         data-testid="img-active-notebook-thumbnail"
                       />
                     ) : (
-                      <BookOpen className="h-8 w-8 text-muted-foreground" data-testid="icon-active-notebook-fallback" />
+                      <BookOpen
+                        className="h-8 w-8 text-muted-foreground"
+                        data-testid="icon-active-notebook-fallback"
+                      />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-base mb-1 truncate" data-testid="text-active-notebook-name">
+                    <h3
+                      className="font-semibold text-base mb-1 truncate"
+                      data-testid="text-active-notebook-name"
+                    >
                       {activeNotebook.name}
                     </h3>
                     {activeNotebook.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2" data-testid="text-active-notebook-description">
+                      <p
+                        className="text-sm text-muted-foreground line-clamp-2"
+                        data-testid="text-active-notebook-description"
+                      >
                         {activeNotebook.description}
                       </p>
                     )}
@@ -260,10 +302,10 @@ export default function NotebookSwitcher({ className, showActiveInfo = true, sho
         ) : null}
       </div>
 
-      <NotebookManager 
-        isOpen={isManagerOpen} 
+      <NotebookManager
+        isOpen={isManagerOpen}
         onClose={() => setIsManagerOpen(false)}
-        openInCreateMode={managerMode === 'create'}
+        openInCreateMode={managerMode === "create"}
       />
     </>
   );

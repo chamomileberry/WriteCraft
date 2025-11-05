@@ -3,14 +3,42 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { insertOrganizationSchema, type InsertOrganization, type Organization } from "@shared/schema";
-import { ORGANIZATION_TYPES, INFLUENCE_LEVELS, FORM_GENRE_OPTIONS } from "@/config/form-options";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  insertOrganizationSchema,
+  type InsertOrganization,
+  type Organization,
+} from "@shared/schema";
+import {
+  ORGANIZATION_TYPES,
+  INFLUENCE_LEVELS,
+  FORM_GENRE_OPTIONS,
+} from "@/config/form-options";
 import { useState } from "react";
 import { z } from "zod";
 import { Building, Star, Flag, Users, Globe, Handshake } from "lucide-react";
@@ -33,13 +61,15 @@ const organizationFormSchema = insertOrganizationSchema.extend({
 // Helper function to generate default values from schema and initial data
 const getOrganizationFormDefaults = (initialData?: Partial<Organization>) => {
   const defaults: Partial<InsertOrganization> = {};
-  
+
   // Get all keys from the schema shape
-  const schemaKeys = Object.keys(organizationFormSchema.shape) as (keyof InsertOrganization)[];
-  
-  schemaKeys.forEach(key => {
+  const schemaKeys = Object.keys(
+    organizationFormSchema.shape,
+  ) as (keyof InsertOrganization)[];
+
+  schemaKeys.forEach((key) => {
     const initialValue = initialData?.[key as keyof Organization];
-    
+
     // Set appropriate defaults based on field type
     switch (key) {
       case "allies":
@@ -47,16 +77,24 @@ const getOrganizationFormDefaults = (initialData?: Partial<Organization>) => {
         defaults[key] = Array.isArray(initialValue) ? initialValue : [];
         break;
       default:
-        defaults[key] = (typeof initialValue === "string" || typeof initialValue === "number") ? initialValue : "";
+        defaults[key] =
+          typeof initialValue === "string" || typeof initialValue === "number"
+            ? initialValue
+            : "";
     }
   });
-  
+
   return defaults;
 };
 
-export default function OrganizationForm({ initialData, onSubmit, onGenerate, isLoading }: OrganizationFormProps) {
+export default function OrganizationForm({
+  initialData,
+  onSubmit,
+  onGenerate,
+  isLoading,
+}: OrganizationFormProps) {
   const [activeTab, setActiveTab] = useState("basic");
-  
+
   const form = useForm<InsertOrganization>({
     resolver: zodResolver(organizationFormSchema),
     defaultValues: getOrganizationFormDefaults(initialData),
@@ -81,11 +119,11 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
             </p>
           </div>
         </div>
-        
+
         {onGenerate && (
-          <Button 
-            onClick={onGenerate} 
-            variant="outline" 
+          <Button
+            onClick={onGenerate}
+            variant="outline"
             disabled={isLoading}
             data-testid="button-generate-organization"
           >
@@ -125,9 +163,9 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                         <FormItem>
                           <FormLabel>Organization Name *</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="Enter organization name..." 
-                              {...field} 
+                            <Input
+                              placeholder="Enter organization name..."
+                              {...field}
                               value={field.value ?? ""}
                               data-testid="input-organization-name"
                             />
@@ -143,7 +181,10 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Organization Type *</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value ?? ""}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value ?? ""}
+                          >
                             <FormControl>
                               <SelectTrigger data-testid="select-organization-type">
                                 <SelectValue placeholder="Select organization type" />
@@ -153,7 +194,10 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                               {ORGANIZATION_TYPES.map((type) => {
                                 const IconComponent = type.icon;
                                 return (
-                                  <SelectItem key={type.value} value={type.value}>
+                                  <SelectItem
+                                    key={type.value}
+                                    value={type.value}
+                                  >
                                     <div className="flex items-center gap-2">
                                       <IconComponent className="w-4 h-4" />
                                       {type.label}
@@ -176,7 +220,7 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                       <FormItem>
                         <FormLabel>Purpose *</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Describe the organization's primary purpose and mission..."
                             className="min-h-20"
                             {...field}
@@ -199,7 +243,7 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                       <FormItem>
                         <FormLabel>Description *</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Provide a detailed description of the organization..."
                             className="min-h-24"
                             {...field}
@@ -221,7 +265,10 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Genre</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value ?? ""}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value ?? ""}
+                        >
                           <FormControl>
                             <SelectTrigger data-testid="select-organization-genre">
                               <SelectValue placeholder="Select genre" />
@@ -259,7 +306,7 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                       <FormItem>
                         <FormLabel>Organizational Structure</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Describe the hierarchy, departments, ranks, and internal organization..."
                             {...field}
                             value={field.value ?? ""}
@@ -278,7 +325,7 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                       <FormItem>
                         <FormLabel>Leadership</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Describe the leaders, their roles, and decision-making processes..."
                             {...field}
                             value={field.value ?? ""}
@@ -297,7 +344,7 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                       <FormItem>
                         <FormLabel>Members</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Describe the membership, recruitment, size, and composition..."
                             {...field}
                             value={field.value ?? ""}
@@ -316,7 +363,7 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                       <FormItem>
                         <FormLabel>Headquarters</FormLabel>
                         <FormControl>
-                          <Input 
+                          <Input
                             placeholder="Location of the main headquarters or base of operations..."
                             {...field}
                             value={field.value ?? ""}
@@ -346,7 +393,10 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Influence Level</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value ?? ""}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value ?? ""}
+                        >
                           <FormControl>
                             <SelectTrigger data-testid="select-organization-influence">
                               <SelectValue placeholder="Select influence level" />
@@ -372,7 +422,7 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                       <FormItem>
                         <FormLabel>Resources</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Describe financial resources, assets, territories, and capabilities..."
                             {...field}
                             value={field.value ?? ""}
@@ -391,7 +441,7 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                       <FormItem>
                         <FormLabel>Goals & Objectives</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Describe the organization's current goals, ambitions, and long-term objectives..."
                             {...field}
                             value={field.value ?? ""}
@@ -410,7 +460,7 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                       <FormItem>
                         <FormLabel>History</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Describe the organization's founding, major events, and historical development..."
                             {...field}
                             value={field.value ?? ""}
@@ -444,12 +494,19 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                       <FormItem>
                         <FormLabel>Allies & Partners</FormLabel>
                         <FormControl>
-                          <Input 
+                          <Input
                             placeholder="Enter allied organizations separated by commas (e.g., Royal Guard, Merchant Guild, Temple of Light)"
                             value={field.value ? field.value.join(", ") : ""}
-                            onChange={(e) => field.onChange(
-                              e.target.value ? e.target.value.split(",").map(s => s.trim()).filter(Boolean) : []
-                            )}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value
+                                  ? e.target.value
+                                      .split(",")
+                                      .map((s) => s.trim())
+                                      .filter(Boolean)
+                                  : [],
+                              )
+                            }
                             data-testid="input-organization-allies"
                           />
                         </FormControl>
@@ -468,12 +525,19 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
                       <FormItem>
                         <FormLabel>Enemies & Rivals</FormLabel>
                         <FormControl>
-                          <Input 
+                          <Input
                             placeholder="Enter enemy organizations separated by commas (e.g., Shadow Cult, Bandit Clans, Corrupt Officials)"
                             value={field.value ? field.value.join(", ") : ""}
-                            onChange={(e) => field.onChange(
-                              e.target.value ? e.target.value.split(",").map(s => s.trim()).filter(Boolean) : []
-                            )}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value
+                                  ? e.target.value
+                                      .split(",")
+                                      .map((s) => s.trim())
+                                      .filter(Boolean)
+                                  : [],
+                              )
+                            }
                             data-testid="input-organization-enemies"
                           />
                         </FormControl>
@@ -492,7 +556,11 @@ export default function OrganizationForm({ initialData, onSubmit, onGenerate, is
           <Separator />
 
           <div className="flex justify-end gap-3">
-            <Button type="submit" disabled={isLoading} data-testid="button-save-organization">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              data-testid="button-save-organization"
+            >
               {isLoading ? "Saving..." : "Save Organization"}
             </Button>
           </div>

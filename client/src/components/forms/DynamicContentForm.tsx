@@ -7,16 +7,42 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  Sparkles, User, Eye, Heart, MapPin, Sword, Zap, Wrench, Building, 
-  Hammer, Scroll, BookOpen, Save, Loader2 
+import {
+  Sparkles,
+  User,
+  Eye,
+  Heart,
+  MapPin,
+  Sword,
+  Zap,
+  Wrench,
+  Building,
+  Hammer,
+  Scroll,
+  BookOpen,
+  Save,
+  Loader2,
 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { z } from "zod";
-import { FormField as FormFieldConfig, ContentTypeFormConfig } from './types';
+import { FormField as FormFieldConfig, ContentTypeFormConfig } from "./types";
 import { AutocompleteField } from "@/components/ui/autocomplete-field";
 import { TagsInput } from "@/components/ui/tags-input";
 import { ImageSelector } from "@/components/ImageSelector";
@@ -35,7 +61,18 @@ interface DynamicContentFormProps {
 
 // Icon mapping
 const iconMap = {
-  User, Eye, Heart, MapPin, Sword, Zap, Wrench, Building, Hammer, Scroll, BookOpen, Sparkles
+  User,
+  Eye,
+  Heart,
+  MapPin,
+  Sword,
+  Zap,
+  Wrench,
+  Building,
+  Hammer,
+  Scroll,
+  BookOpen,
+  Sparkles,
 };
 
 // Helper to get icon component
@@ -46,11 +83,11 @@ const getIcon = (iconName: string) => {
 // Generate Zod schema from form config
 const generateSchema = (config: ContentTypeFormConfig) => {
   const schemaObject: Record<string, z.ZodTypeAny> = {};
-  
-  (config.tabs || []).forEach(tab => {
-    tab.fields.forEach(field => {
+
+  (config.tabs || []).forEach((tab) => {
+    tab.fields.forEach((field) => {
       let fieldSchema: z.ZodTypeAny;
-      
+
       switch (field.type) {
         case "number":
           fieldSchema = z.number().nullable();
@@ -68,50 +105,64 @@ const generateSchema = (config: ContentTypeFormConfig) => {
           // Handle autocomplete types based on their multiple property
           if (field.type.startsWith("autocomplete-")) {
             // Schema depends on multiple property: true = array, false/undefined = string
-            fieldSchema = field.multiple === true 
-              ? z.array(z.string()).nullable()
-              : z.string().nullable();
+            fieldSchema =
+              field.multiple === true
+                ? z.array(z.string()).nullable()
+                : z.string().nullable();
           } else {
             // Regular text fields
             fieldSchema = z.string().nullable();
           }
       }
-      
+
       if (field.required) {
-        if (field.type === "tags" || 
-            (field.type.startsWith("autocomplete-") && field.multiple === true)) {
-          fieldSchema = z.array(z.string()).min(1, `${field.label} is required`);
+        if (
+          field.type === "tags" ||
+          (field.type.startsWith("autocomplete-") && field.multiple === true)
+        ) {
+          fieldSchema = z
+            .array(z.string())
+            .min(1, `${field.label} is required`);
         } else if (field.type === "number") {
-          fieldSchema = z.number({ required_error: `${field.label} is required` });
+          fieldSchema = z.number({
+            required_error: `${field.label} is required`,
+          });
         } else if (field.type === "checkbox") {
-          fieldSchema = z.boolean().refine(val => val === true, {
-            message: `${field.label} is required`
+          fieldSchema = z.boolean().refine((val) => val === true, {
+            message: `${field.label} is required`,
           });
         } else {
           fieldSchema = z.string().min(1, `${field.label} is required`);
         }
       }
-      
+
       schemaObject[field.name] = fieldSchema;
-      
+
       // Add caption field schema for image fields if present
-      if (field.type === "image" && field.showCaption && field.captionFieldName) {
+      if (
+        field.type === "image" &&
+        field.showCaption &&
+        field.captionFieldName
+      ) {
         schemaObject[field.captionFieldName] = z.string().nullable();
       }
     });
   });
-  
+
   return z.object(schemaObject);
 };
 
 // Get default values from config
-const getDefaultValues = (config: ContentTypeFormConfig, initialData?: Record<string, any>) => {
+const getDefaultValues = (
+  config: ContentTypeFormConfig,
+  initialData?: Record<string, any>,
+) => {
   const defaults: Record<string, any> = {};
-  
-  (config.tabs || []).forEach(tab => {
-    tab.fields.forEach(field => {
+
+  (config.tabs || []).forEach((tab) => {
+    tab.fields.forEach((field) => {
       const initialValue = initialData?.[field.name];
-      
+
       switch (field.type) {
         case "number":
           defaults[field.name] = initialValue ?? null;
@@ -119,7 +170,12 @@ const getDefaultValues = (config: ContentTypeFormConfig, initialData?: Record<st
         case "tags":
           // Convert comma-separated string to array or use array directly
           if (typeof initialValue === "string") {
-            defaults[field.name] = initialValue ? initialValue.split(",").map(s => s.trim()).filter(Boolean) : [];
+            defaults[field.name] = initialValue
+              ? initialValue
+                  .split(",")
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+              : [];
           } else if (Array.isArray(initialValue)) {
             defaults[field.name] = initialValue;
           } else {
@@ -133,7 +189,8 @@ const getDefaultValues = (config: ContentTypeFormConfig, initialData?: Record<st
           defaults[field.name] = initialValue ?? "";
           // Handle caption field if present
           if (field.showCaption && field.captionFieldName) {
-            defaults[field.captionFieldName] = initialData?.[field.captionFieldName] ?? "";
+            defaults[field.captionFieldName] =
+              initialData?.[field.captionFieldName] ?? "";
           }
           break;
         default:
@@ -142,7 +199,12 @@ const getDefaultValues = (config: ContentTypeFormConfig, initialData?: Record<st
             if (field.multiple === true) {
               // Multi-value autocomplete fields should be arrays
               if (typeof initialValue === "string") {
-                defaults[field.name] = initialValue ? initialValue.split(",").map(s => s.trim()).filter(Boolean) : [];
+                defaults[field.name] = initialValue
+                  ? initialValue
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter(Boolean)
+                  : [];
               } else if (Array.isArray(initialValue)) {
                 defaults[field.name] = initialValue;
               } else {
@@ -159,27 +221,31 @@ const getDefaultValues = (config: ContentTypeFormConfig, initialData?: Record<st
       }
     });
   });
-  
+
   return defaults;
 };
 
-export default function DynamicContentForm({ 
-  config, 
-  initialData, 
-  onSubmit, 
-  onGenerate, 
+export default function DynamicContentForm({
+  config,
+  initialData,
+  onSubmit,
+  onGenerate,
   isLoading,
-  isCreating
+  isCreating,
 }: DynamicContentFormProps) {
-  const [activeTab, setActiveTab] = useState((config.tabs || [])[0]?.id || "basic");
+  const [activeTab, setActiveTab] = useState(
+    (config.tabs || [])[0]?.id || "basic",
+  );
   const { toast } = useToast();
-  
+
   // Generate form validation schema from config
   // This ensures validation matches the actual form fields, not the full database schema
   const schema = useMemo(() => generateSchema(config), [config]);
-  const defaultValues = useMemo(() => getDefaultValues(config, initialData), [config, initialData]);
-  
-  
+  const defaultValues = useMemo(
+    () => getDefaultValues(config, initialData),
+    [config, initialData],
+  );
+
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues,
@@ -191,17 +257,18 @@ export default function DynamicContentForm({
 
   const handleImageUpload = async (file: File): Promise<string> => {
     try {
-      const url = await uploadImageFile(file, { visibility: 'private' });
+      const url = await uploadImageFile(file, { visibility: "private" });
       toast({
-        title: 'Upload successful',
-        description: 'Your image has been uploaded',
+        title: "Upload successful",
+        description: "Your image has been uploaded",
       });
       return url;
     } catch (error) {
       toast({
-        title: 'Upload failed',
-        description: error instanceof Error ? error.message : 'Failed to upload image',
-        variant: 'destructive',
+        title: "Upload failed",
+        description:
+          error instanceof Error ? error.message : "Failed to upload image",
+        variant: "destructive",
       });
       throw error;
     }
@@ -218,9 +285,11 @@ export default function DynamicContentForm({
             name={field.name}
             render={({ field: formField }) => (
               <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                <FormLabel>
+                  {field.label} {field.required && "*"}
+                </FormLabel>
                 <FormControl>
-                  <Textarea 
+                  <Textarea
                     placeholder={field.placeholder}
                     className="min-h-24"
                     {...formField}
@@ -246,14 +315,20 @@ export default function DynamicContentForm({
             name={field.name}
             render={({ field: formField }) => (
               <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                <FormLabel>
+                  {field.label} {field.required && "*"}
+                </FormLabel>
                 <FormControl>
-                  <Input 
+                  <Input
                     type="number"
                     placeholder={field.placeholder}
                     {...formField}
                     value={formField.value ?? ""}
-                    onChange={(e) => formField.onChange(e.target.value ? Number(e.target.value) : null)}
+                    onChange={(e) =>
+                      formField.onChange(
+                        e.target.value ? Number(e.target.value) : null,
+                      )
+                    }
                     data-testid={`input-${field.name}`}
                   />
                 </FormControl>
@@ -274,11 +349,21 @@ export default function DynamicContentForm({
             name={field.name}
             render={({ field: formField }) => (
               <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
-                <Select onValueChange={formField.onChange} defaultValue={formField.value ?? ""}>
+                <FormLabel>
+                  {field.label} {field.required && "*"}
+                </FormLabel>
+                <Select
+                  onValueChange={formField.onChange}
+                  defaultValue={formField.value ?? ""}
+                >
                   <FormControl>
                     <SelectTrigger data-testid={`select-${field.name}`}>
-                      <SelectValue placeholder={field.placeholder || `Select ${field.label.toLowerCase()}`} />
+                      <SelectValue
+                        placeholder={
+                          field.placeholder ||
+                          `Select ${field.label.toLowerCase()}`
+                        }
+                      />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -306,13 +391,19 @@ export default function DynamicContentForm({
             name={field.name}
             render={({ field: formField }) => (
               <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                <FormLabel>
+                  {field.label} {field.required && "*"}
+                </FormLabel>
                 <FormControl>
-                  <TagsInput 
-                    value={Array.isArray(formField.value) ? formField.value : []}
+                  <TagsInput
+                    value={
+                      Array.isArray(formField.value) ? formField.value : []
+                    }
                     onChange={(value) => formField.onChange(value || [])}
                     onBlur={formField.onBlur}
-                    placeholder={field.placeholder || `Add ${field.label.toLowerCase()}...`}
+                    placeholder={
+                      field.placeholder || `Add ${field.label.toLowerCase()}...`
+                    }
                     maxTags={field.maxTags}
                     data-testid={`tags-input-${field.name}`}
                   />
@@ -384,7 +475,7 @@ export default function DynamicContentForm({
         if (field.type.startsWith("autocomplete-")) {
           const contentType = field.type.replace("autocomplete-", "");
           const isMultiple = field.multiple ?? true;
-          
+
           return (
             <FormField
               key={field.name}
@@ -392,7 +483,9 @@ export default function DynamicContentForm({
               name={field.name}
               render={({ field: formField }) => (
                 <FormItem>
-                  <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                  <FormLabel>
+                    {field.label} {field.required && "*"}
+                  </FormLabel>
                   <FormControl>
                     <AutocompleteField
                       value={formField.value || (isMultiple ? [] : "")}
@@ -420,9 +513,11 @@ export default function DynamicContentForm({
             name={field.name}
             render={({ field: formField }) => (
               <FormItem>
-                <FormLabel>{field.label} {field.required && "*"}</FormLabel>
+                <FormLabel>
+                  {field.label} {field.required && "*"}
+                </FormLabel>
                 <FormControl>
-                  <Input 
+                  <Input
                     placeholder={field.placeholder}
                     {...formField}
                     value={formField.value ?? ""}
@@ -453,15 +548,17 @@ export default function DynamicContentForm({
           <div>
             <h1 className="text-2xl font-bold">{config.title}</h1>
             <p className="text-muted-foreground">
-              {isCreating ? `Create a new ${config.description.toLowerCase()}` : config.description}
+              {isCreating
+                ? `Create a new ${config.description.toLowerCase()}`
+                : config.description}
             </p>
           </div>
         </div>
-        
+
         {onGenerate && (
-          <Button 
-            onClick={onGenerate} 
-            variant="outline" 
+          <Button
+            onClick={onGenerate}
+            variant="outline"
             disabled={isLoading}
             data-testid="button-generate-content"
           >
@@ -478,7 +575,11 @@ export default function DynamicContentForm({
               {(config.tabs || []).map((tab) => {
                 const TabIcon = getIcon(tab.icon);
                 return (
-                  <TabsTrigger key={tab.id} value={tab.id} className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 text-xs sm:text-sm whitespace-nowrap">
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 text-xs sm:text-sm whitespace-nowrap"
+                  >
                     <TabIcon className="w-4 h-4" />
                     {tab.label}
                   </TabsTrigger>
@@ -489,12 +590,17 @@ export default function DynamicContentForm({
             {(config.tabs || []).map((tab, index) => {
               const TabIcon = getIcon(tab.icon);
               const isFirstTab = index === 0;
-              const imageUrl = form.watch('imageUrl');
-              const imageCaption = form.watch('imageCaption');
-              
+              const imageUrl = form.watch("imageUrl");
+              const imageCaption = form.watch("imageCaption");
+
               return (
                 <TabsContent key={tab.id} value={tab.id} className="space-y-6">
-                  {isFirstTab && <ContentHero imageUrl={imageUrl} imageCaption={imageCaption} />}
+                  {isFirstTab && (
+                    <ContentHero
+                      imageUrl={imageUrl}
+                      imageCaption={imageCaption}
+                    />
+                  )}
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -504,10 +610,16 @@ export default function DynamicContentForm({
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="grid gap-4 md:grid-cols-2">
-                        {tab.fields.map(field => (
-                          <div key={field.name} className={
-                            field.type === "textarea" || field.type === "image" ? "md:col-span-2" : ""
-                          }>
+                        {tab.fields.map((field) => (
+                          <div
+                            key={field.name}
+                            className={
+                              field.type === "textarea" ||
+                              field.type === "image"
+                                ? "md:col-span-2"
+                                : ""
+                            }
+                          >
                             {renderField(field)}
                           </div>
                         ))}
@@ -522,7 +634,11 @@ export default function DynamicContentForm({
           <Separator />
 
           <div className="flex justify-end gap-3">
-            <Button type="submit" disabled={isLoading} data-testid="button-save-content">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              data-testid="button-save-content"
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />

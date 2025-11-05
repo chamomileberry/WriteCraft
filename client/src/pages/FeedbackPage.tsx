@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -13,7 +19,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CheckCircle2, AlertTriangle, Loader2, MessageSquare } from "lucide-react";
+import {
+  CheckCircle2,
+  AlertTriangle,
+  Loader2,
+  MessageSquare,
+} from "lucide-react";
 import { logger } from "@/lib/logger";
 import { useLocation } from "wouter";
 import Header from "@/components/Header";
@@ -24,7 +35,8 @@ type SubmissionStatus = "idle" | "submitting" | "success" | "error";
 export default function FeedbackPage() {
   const { user } = useAuth();
   const [location, setLocation] = useLocation();
-  const [feedbackType, setFeedbackType] = useState<FeedbackType>("general-feedback");
+  const [feedbackType, setFeedbackType] =
+    useState<FeedbackType>("general-feedback");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<SubmissionStatus>("idle");
@@ -35,24 +47,30 @@ export default function FeedbackPage() {
   // Check for pre-filled feedback from help chat
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const shouldOpenFeedback = params.get('openFeedback') === 'true';
+    const shouldOpenFeedback = params.get("openFeedback") === "true";
 
     if (shouldOpenFeedback) {
-      const transcript = sessionStorage.getItem('helpChatTranscript');
-      const originalQuestion = sessionStorage.getItem('helpChatOriginalQuestion');
+      const transcript = sessionStorage.getItem("helpChatTranscript");
+      const originalQuestion = sessionStorage.getItem(
+        "helpChatOriginalQuestion",
+      );
 
       if (transcript && originalQuestion) {
-        setTitle(`Help needed: ${originalQuestion.substring(0, 50)}${originalQuestion.length > 50 ? '...' : ''}`);
-        setDescription(`**Original Question:**\n${originalQuestion}\n\n**Full Conversation:**\n${transcript}`);
-        setFeedbackType('general-feedback');
+        setTitle(
+          `Help needed: ${originalQuestion.substring(0, 50)}${originalQuestion.length > 50 ? "..." : ""}`,
+        );
+        setDescription(
+          `**Original Question:**\n${originalQuestion}\n\n**Full Conversation:**\n${transcript}`,
+        );
+        setFeedbackType("general-feedback");
         setIsPreFilled(true);
 
         // Clear session storage after pre-filling
-        sessionStorage.removeItem('helpChatTranscript');
-        sessionStorage.removeItem('helpChatOriginalQuestion');
+        sessionStorage.removeItem("helpChatTranscript");
+        sessionStorage.removeItem("helpChatOriginalQuestion");
 
         // Remove the query parameter from URL
-        window.history.replaceState({}, '', '/feedback');
+        window.history.replaceState({}, "", "/feedback");
       }
     }
   }, []);
@@ -79,8 +97,8 @@ export default function FeedbackPage() {
 
     try {
       // Fetch CSRF token first
-      const csrfResponse = await fetch('/api/auth/csrf-token', {
-        credentials: 'include',
+      const csrfResponse = await fetch("/api/auth/csrf-token", {
+        credentials: "include",
       });
       const { csrfToken } = await csrfResponse.json();
 
@@ -116,7 +134,9 @@ export default function FeedbackPage() {
     } catch (err) {
       logger.error("Failed to submit feedback:", err);
       setStatus("error");
-      setError(err instanceof Error ? err.message : "Failed to submit feedback");
+      setError(
+        err instanceof Error ? err.message : "Failed to submit feedback",
+      );
     }
   };
 
@@ -136,20 +156,24 @@ export default function FeedbackPage() {
 
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-4">Help Us Improve WriteCraft</h1>
+          <h1 className="text-4xl font-bold mb-4">
+            Help Us Improve WriteCraft
+          </h1>
           <p className="text-xl text-muted-foreground">
-            Your feedback helps us build a better writing experience. Whether you found a bug, have a feature idea,
-            or just want to share your thoughts, we'd love to hear from you!
+            Your feedback helps us build a better writing experience. Whether
+            you found a bug, have a feature idea, or just want to share your
+            thoughts, we'd love to hear from you!
           </p>
         </div>
 
         {/* Pre-filled from help chat indicator */}
-        {isPreFilled && status === 'idle' && (
+        {isPreFilled && status === "idle" && (
           <Alert className="mb-6 border-primary">
             <MessageSquare className="h-4 w-4" />
             <AlertTitle>Help Chat Context Included</AlertTitle>
             <AlertDescription>
-              Your conversation with the help assistant has been included below. Feel free to edit before submitting.
+              Your conversation with the help assistant has been included below.
+              Feel free to edit before submitting.
             </AlertDescription>
           </Alert>
         )}
@@ -158,16 +182,21 @@ export default function FeedbackPage() {
           <CardHeader>
             <CardTitle>Submit Feedback</CardTitle>
             <CardDescription>
-              {user ? `Signed in as ${user.email}` : "Please log in to submit feedback"}
+              {user
+                ? `Signed in as ${user.email}`
+                : "Please log in to submit feedback"}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {status === "success" && (
               <Alert className="mb-6 border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
                 <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <AlertTitle className="text-green-900 dark:text-green-100">Success!</AlertTitle>
+                <AlertTitle className="text-green-900 dark:text-green-100">
+                  Success!
+                </AlertTitle>
                 <AlertDescription className="text-green-800 dark:text-green-200">
-                  Thank you for your feedback! We'll review it and use it to improve WriteCraft.
+                  Thank you for your feedback! We'll review it and use it to
+                  improve WriteCraft.
                 </AlertDescription>
               </Alert>
             )}
@@ -176,7 +205,9 @@ export default function FeedbackPage() {
               <Alert variant="destructive" className="mb-6">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{error || "Failed to submit feedback. Please try again."}</AlertDescription>
+                <AlertDescription>
+                  {error || "Failed to submit feedback. Please try again."}
+                </AlertDescription>
               </Alert>
             )}
 
@@ -184,14 +215,25 @@ export default function FeedbackPage() {
               {/* Feedback Type */}
               <div className="space-y-2">
                 <Label htmlFor="type">Feedback Type</Label>
-                <Select value={feedbackType} onValueChange={(value) => setFeedbackType(value as FeedbackType)}>
+                <Select
+                  value={feedbackType}
+                  onValueChange={(value) =>
+                    setFeedbackType(value as FeedbackType)
+                  }
+                >
                   <SelectTrigger id="type" data-testid="select-feedback-type">
                     <SelectValue placeholder="Select feedback type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="bug">🐛 Bug Report - Something isn't working</SelectItem>
-                    <SelectItem value="feature-request">💡 Feature Request - I have an idea</SelectItem>
-                    <SelectItem value="general-feedback">💬 General Feedback - Just want to share</SelectItem>
+                    <SelectItem value="bug">
+                      🐛 Bug Report - Something isn't working
+                    </SelectItem>
+                    <SelectItem value="feature-request">
+                      💡 Feature Request - I have an idea
+                    </SelectItem>
+                    <SelectItem value="general-feedback">
+                      💬 General Feedback - Just want to share
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -214,7 +256,9 @@ export default function FeedbackPage() {
                   data-testid="input-feedback-title"
                   maxLength={200}
                 />
-                <p className="text-xs text-muted-foreground">{title.length}/200 characters</p>
+                <p className="text-xs text-muted-foreground">
+                  {title.length}/200 characters
+                </p>
               </div>
 
               {/* Description */}
@@ -237,12 +281,16 @@ export default function FeedbackPage() {
                   maxLength={2000}
                   className="resize-none"
                 />
-                <p className="text-xs text-muted-foreground">{description.length}/2000 characters</p>
+                <p className="text-xs text-muted-foreground">
+                  {description.length}/2000 characters
+                </p>
               </div>
 
               {/* Info Box */}
               <div className="bg-muted p-4 rounded-md space-y-2">
-                <p className="text-sm font-semibold">We automatically include:</p>
+                <p className="text-sm font-semibold">
+                  We automatically include:
+                </p>
                 <ul className="text-xs text-muted-foreground space-y-1">
                   <li>• Your email address</li>
                   <li>• Browser and operating system information</li>
@@ -274,7 +322,8 @@ export default function FeedbackPage() {
                   <AlertTriangle className="h-4 w-4" />
                   <AlertTitle>Sign in required</AlertTitle>
                   <AlertDescription>
-                    Please sign in to your WriteCraft account to submit feedback.
+                    Please sign in to your WriteCraft account to submit
+                    feedback.
                   </AlertDescription>
                 </Alert>
               )}
@@ -284,42 +333,56 @@ export default function FeedbackPage() {
 
         {/* FAQ */}
         <div className="mt-16">
-          <h2 className="text-2xl font-bold mb-8">Frequently Asked Questions</h2>
+          <h2 className="text-2xl font-bold mb-8">
+            Frequently Asked Questions
+          </h2>
           <div className="grid gap-6">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">What kind of feedback do you accept?</CardTitle>
+                <CardTitle className="text-lg">
+                  What kind of feedback do you accept?
+                </CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground pt-0">
-                We welcome bug reports, feature requests, and general feedback. Anything that helps us improve WriteCraft is valuable!
+                We welcome bug reports, feature requests, and general feedback.
+                Anything that helps us improve WriteCraft is valuable!
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Will I get a response?</CardTitle>
+                <CardTitle className="text-lg">
+                  Will I get a response?
+                </CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground pt-0">
-                We read and review all feedback. While we may not respond individually to every submission, we use your input to
-                guide development priorities.
+                We read and review all feedback. While we may not respond
+                individually to every submission, we use your input to guide
+                development priorities.
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">How do I report a security issue?</CardTitle>
+                <CardTitle className="text-lg">
+                  How do I report a security issue?
+                </CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground pt-0">
-                For security-sensitive issues, please email support@writecraft.app directly instead of using this form.
+                For security-sensitive issues, please email
+                support@writecraft.app directly instead of using this form.
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Can I track the status of my feedback?</CardTitle>
+                <CardTitle className="text-lg">
+                  Can I track the status of my feedback?
+                </CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground pt-0">
-                Your feedback is tracked internally. For status updates, please reach out to support@writecraft.app.
+                Your feedback is tracked internally. For status updates, please
+                reach out to support@writecraft.app.
               </CardContent>
             </Card>
           </div>

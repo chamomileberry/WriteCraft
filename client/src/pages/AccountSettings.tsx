@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,7 +37,9 @@ export default function AccountSettings() {
   const [isEditing, setIsEditing] = useState(false);
   const [firstName, setFirstName] = useState(user?.firstName || "");
   const [lastName, setLastName] = useState(user?.lastName || "");
-  const [profileImageUrl, setProfileImageUrl] = useState(user?.profileImageUrl || "");
+  const [profileImageUrl, setProfileImageUrl] = useState(
+    user?.profileImageUrl || "",
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -55,28 +63,32 @@ export default function AccountSettings() {
   }, [user, isLoading, setLocation]);
 
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: { firstName: string; lastName: string; profileImageUrl?: string }) => {
+    mutationFn: async (data: {
+      firstName: string;
+      lastName: string;
+      profileImageUrl?: string;
+    }) => {
       // Fetch CSRF token first
-      const csrfResponse = await fetch('/api/auth/csrf-token', {
-        credentials: 'include',
+      const csrfResponse = await fetch("/api/auth/csrf-token", {
+        credentials: "include",
       });
       const { csrfToken } = await csrfResponse.json();
-      
+
       // Make the update request with CSRF token
       const res = await fetch(`/api/users/${user?.id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
-          'x-csrf-token': csrfToken,
+          "Content-Type": "application/json",
+          "x-csrf-token": csrfToken,
         },
         body: JSON.stringify(data),
-        credentials: 'include',
+        credentials: "include",
       });
-      
+
       if (!res.ok) {
-        throw new Error('Failed to update profile');
+        throw new Error("Failed to update profile");
       }
-      
+
       return res;
     },
     onSuccess: () => {
@@ -110,32 +122,33 @@ export default function AccountSettings() {
   const handleLogout = async () => {
     // Use POST endpoint for secure logout with CSRF protection
     try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
       });
-      window.location.href = '/';
+      window.location.href = "/";
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
       // Fallback to GET endpoint if POST fails
-      window.location.href = '/api/logout';
+      window.location.href = "/api/logout";
     }
   };
 
   const handleRestartOnboarding = async () => {
     try {
-      await apiRequest('PATCH', '/api/user/preferences', {
+      await apiRequest("PATCH", "/api/user/preferences", {
         onboardingCompleted: false,
-        onboardingStep: 0
+        onboardingStep: 0,
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/user/preferences'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/preferences"] });
       setShowOnboarding(true);
       toast({
         title: "Onboarding restarted",
-        description: "The onboarding wizard will guide you through the platform features.",
+        description:
+          "The onboarding wizard will guide you through the platform features.",
       });
     } catch (error) {
-      console.error('Failed to restart onboarding:', error);
+      console.error("Failed to restart onboarding:", error);
       toast({
         title: "Error",
         description: "Failed to restart onboarding. Please try again.",
@@ -147,25 +160,25 @@ export default function AccountSettings() {
   const handleExportData = async () => {
     try {
       setIsExporting(true);
-      const response = await fetch('/api/export/user-data', {
-        credentials: 'include',
+      const response = await fetch("/api/export/user-data", {
+        credentials: "include",
       });
 
       if (!response.ok) {
-        throw new Error('Failed to export data');
+        throw new Error("Failed to export data");
       }
 
       // Get the blob from the response
       const blob = await response.blob();
-      
+
       // Create a download link
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `writecraft-export-${Date.now()}.json`;
       document.body.appendChild(a);
       a.click();
-      
+
       // Cleanup
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
@@ -175,7 +188,7 @@ export default function AccountSettings() {
         description: "Your data has been downloaded to your device.",
       });
     } catch (error) {
-      console.error('Failed to export data:', error);
+      console.error("Failed to export data:", error);
       toast({
         title: "Export failed",
         description: "Failed to export your data. Please try again.",
@@ -189,33 +202,34 @@ export default function AccountSettings() {
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
     try {
-      await apiRequest('DELETE', `/api/users/${user?.id}`, {});
-      
+      await apiRequest("DELETE", `/api/users/${user?.id}`, {});
+
       toast({
-        title: 'Account deleted',
-        description: 'Your account has been permanently deleted. You will be logged out.',
+        title: "Account deleted",
+        description:
+          "Your account has been permanently deleted. You will be logged out.",
       });
 
       // Log out after a short delay
       setTimeout(async () => {
         // Use POST endpoint for secure logout with CSRF protection
         try {
-          await fetch('/api/auth/logout', {
-            method: 'POST',
-            credentials: 'include',
+          await fetch("/api/auth/logout", {
+            method: "POST",
+            credentials: "include",
           });
-          window.location.href = '/';
+          window.location.href = "/";
         } catch (error) {
-          console.error('Logout failed:', error);
+          console.error("Logout failed:", error);
           // Fallback to GET endpoint if POST fails
-          window.location.href = '/api/logout';
+          window.location.href = "/api/logout";
         }
       }, 1500);
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete account',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to delete account",
+        variant: "destructive",
       });
       setIsDeleting(false);
       setShowAccountDeletion(false);
@@ -228,14 +242,14 @@ export default function AccountSettings() {
   };
 
   const handleNavigate = (view: string) => {
-    if (view === 'notebook') {
-      setLocation('/notebook');
-    } else if (view === 'projects') {
-      setLocation('/projects');
-    } else if (view === 'generators') {
-      setLocation('/generators');
-    } else if (view === 'guides') {
-      setLocation('/guides');
+    if (view === "notebook") {
+      setLocation("/notebook");
+    } else if (view === "projects") {
+      setLocation("/projects");
+    } else if (view === "generators") {
+      setLocation("/generators");
+    } else if (view === "guides") {
+      setLocation("/guides");
     }
   };
 
@@ -251,7 +265,10 @@ export default function AccountSettings() {
     return null;
   }
 
-  const initials = `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase() || user.email?.[0]?.toUpperCase() || "U";
+  const initials =
+    `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase() ||
+    user.email?.[0]?.toUpperCase() ||
+    "U";
 
   return (
     <div className="min-h-screen bg-background">
@@ -261,7 +278,6 @@ export default function AccountSettings() {
         onNavigate={handleNavigate}
       />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
         <div className="space-y-6">
           {/* Two-Factor Authentication */}
           <MFASettings />
@@ -282,9 +298,14 @@ export default function AccountSettings() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">
-                Want a refresher on how to use WriteCraft? Restart the onboarding wizard to learn about our tools, generators, and organizational features.
+                Want a refresher on how to use WriteCraft? Restart the
+                onboarding wizard to learn about our tools, generators, and
+                organizational features.
               </p>
-              <Button onClick={handleRestartOnboarding} data-testid="button-restart-onboarding">
+              <Button
+                onClick={handleRestartOnboarding}
+                data-testid="button-restart-onboarding"
+              >
                 <BookOpen className="w-4 h-4 mr-2" />
                 Restart Onboarding Tour
               </Button>
@@ -301,10 +322,12 @@ export default function AccountSettings() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">
-                Export all your characters, plots, projects, notebooks, guides, timelines, and other content as a JSON file. This includes all data across all your notebooks.
+                Export all your characters, plots, projects, notebooks, guides,
+                timelines, and other content as a JSON file. This includes all
+                data across all your notebooks.
               </p>
-              <Button 
-                onClick={handleExportData} 
+              <Button
+                onClick={handleExportData}
                 disabled={isExporting}
                 data-testid="button-export-data"
               >
@@ -346,8 +369,12 @@ export default function AccountSettings() {
             <CardContent className="space-y-6">
               <div className="flex items-center gap-4">
                 <Avatar className="h-20 w-20">
-                  <AvatarImage src={profileImageUrl || user.profileImageUrl || undefined} />
-                  <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
+                  <AvatarImage
+                    src={profileImageUrl || user.profileImageUrl || undefined}
+                  />
+                  <AvatarFallback className="text-2xl">
+                    {initials}
+                  </AvatarFallback>
                 </Avatar>
                 <div>
                   <h3 className="text-lg font-semibold">
@@ -408,14 +435,18 @@ export default function AccountSettings() {
                     data-testid="input-email"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Email cannot be changed as it's linked to your authentication provider
+                    Email cannot be changed as it's linked to your
+                    authentication provider
                   </p>
                 </div>
               </div>
 
               <div className="flex gap-2">
                 {!isEditing ? (
-                  <Button onClick={() => setIsEditing(true)} data-testid="button-edit-profile">
+                  <Button
+                    onClick={() => setIsEditing(true)}
+                    data-testid="button-edit-profile"
+                  >
                     <User className="w-4 h-4 mr-2" />
                     Edit Profile
                   </Button>
@@ -449,9 +480,7 @@ export default function AccountSettings() {
           <Card>
             <CardHeader>
               <CardTitle>Account Actions</CardTitle>
-              <CardDescription>
-                Manage your account and session
-              </CardDescription>
+              <CardDescription>Manage your account and session</CardDescription>
             </CardHeader>
             <CardContent>
               <Button
@@ -478,7 +507,8 @@ export default function AccountSettings() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Once you delete your account, there is no going back. This will permanently delete:
+                Once you delete your account, there is no going back. This will
+                permanently delete:
               </p>
               <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 pl-2">
                 <li>All characters, locations, and plot points</li>

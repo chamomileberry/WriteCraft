@@ -1,5 +1,5 @@
-import ELK, { ElkNode } from 'elkjs/lib/elk.bundled.js';
-import { Node, Edge } from '@xyflow/react';
+import ELK, { ElkNode } from "elkjs/lib/elk.bundled.js";
+import { Node, Edge } from "@xyflow/react";
 
 const elk = new ELK();
 
@@ -7,18 +7,14 @@ export async function getLayoutedElements(
   nodes: Node[],
   edges: Edge[],
   options: {
-    direction?: 'DOWN' | 'RIGHT';
+    direction?: "DOWN" | "RIGHT";
     nodeSpacing?: number;
     layerSpacing?: number;
-  } = {}
+  } = {},
 ) {
-  const {
-    direction = 'DOWN',
-    nodeSpacing = 50,
-    layerSpacing = 100,
-  } = options;
+  const { direction = "DOWN", nodeSpacing = 50, layerSpacing = 100 } = options;
 
-  const elkNodes: ElkNode['children'] = nodes.map((node) => ({
+  const elkNodes: ElkNode["children"] = nodes.map((node) => ({
     id: node.id,
     width: 200,
     height: 100,
@@ -31,13 +27,13 @@ export async function getLayoutedElements(
   }));
 
   const graph: ElkNode = {
-    id: 'root',
+    id: "root",
     layoutOptions: {
-      'elk.algorithm': 'layered',
-      'elk.direction': direction,
-      'elk.spacing.nodeNode': String(nodeSpacing),
-      'elk.layered.spacing.nodeNodeBetweenLayers': String(layerSpacing),
-      'elk.edgeRouting': 'ORTHOGONAL',
+      "elk.algorithm": "layered",
+      "elk.direction": direction,
+      "elk.spacing.nodeNode": String(nodeSpacing),
+      "elk.layered.spacing.nodeNodeBetweenLayers": String(layerSpacing),
+      "elk.edgeRouting": "ORTHOGONAL",
     },
     children: elkNodes,
     edges: elkEdges,

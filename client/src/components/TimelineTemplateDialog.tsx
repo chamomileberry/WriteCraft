@@ -1,15 +1,29 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { BookOpen, Swords, User, BookMarked, Layers, List, BarChart3 } from 'lucide-react';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  BookOpen,
+  Swords,
+  User,
+  BookMarked,
+  Layers,
+  List,
+  BarChart3,
+} from "lucide-react";
 
 interface TimelineTemplate {
   id: string;
@@ -17,7 +31,7 @@ interface TimelineTemplate {
   description: string;
   timelineType: string;
   timeScale: string;
-  defaultView: 'list' | 'canvas' | 'gantt';
+  defaultView: "list" | "canvas" | "gantt";
   icon: React.ComponentType<{ className?: string }>;
   suggested: string;
   exampleUse: string;
@@ -25,49 +39,50 @@ interface TimelineTemplate {
 
 const timelineTemplates: TimelineTemplate[] = [
   {
-    id: 'world-history',
-    name: 'World History',
-    description: 'Track civilizations and major events across ages',
-    timelineType: 'World',
-    timeScale: 'Centuries',
-    defaultView: 'list',
+    id: "world-history",
+    name: "World History",
+    description: "Track civilizations and major events across ages",
+    timelineType: "World",
+    timeScale: "Centuries",
+    defaultView: "list",
     icon: BookOpen,
-    suggested: 'Best for tracking civilizations over millennia',
-    exampleUse: 'Rise and fall of empires, technological eras, major world events'
+    suggested: "Best for tracking civilizations over millennia",
+    exampleUse:
+      "Rise and fall of empires, technological eras, major world events",
   },
   {
-    id: 'campaign-sessions',
-    name: 'Campaign Sessions',
-    description: 'Plan and track RPG campaign events',
-    timelineType: 'Campaign',
-    timeScale: 'Days',
-    defaultView: 'gantt',
+    id: "campaign-sessions",
+    name: "Campaign Sessions",
+    description: "Plan and track RPG campaign events",
+    timelineType: "Campaign",
+    timeScale: "Days",
+    defaultView: "gantt",
     icon: Swords,
-    suggested: 'Best for RPG session tracking (5-15 sessions)',
-    exampleUse: 'Session planning, quest progression, in-game calendar'
+    suggested: "Best for RPG session tracking (5-15 sessions)",
+    exampleUse: "Session planning, quest progression, in-game calendar",
   },
   {
-    id: 'character-biography',
-    name: 'Character Biography',
-    description: 'Chronicle a character\'s life journey',
-    timelineType: 'Character',
-    timeScale: 'Years',
-    defaultView: 'list',
+    id: "character-biography",
+    name: "Character Biography",
+    description: "Chronicle a character's life journey",
+    timelineType: "Character",
+    timeScale: "Years",
+    defaultView: "list",
     icon: User,
-    suggested: 'Best for individual character lifespans',
-    exampleUse: 'Life milestones, character development, personal history'
+    suggested: "Best for individual character lifespans",
+    exampleUse: "Life milestones, character development, personal history",
   },
   {
-    id: 'plot-structure',
-    name: 'Plot Structure',
-    description: 'Map out story arcs and parallel plotlines',
-    timelineType: 'Plot',
-    timeScale: 'Chapters',
-    defaultView: 'gantt',
+    id: "plot-structure",
+    name: "Plot Structure",
+    description: "Map out story arcs and parallel plotlines",
+    timelineType: "Plot",
+    timeScale: "Chapters",
+    defaultView: "gantt",
     icon: BookMarked,
-    suggested: 'Best for comparing multiple story arcs',
-    exampleUse: 'Story beats, character arc intersections, subplot timing'
-  }
+    suggested: "Best for comparing multiple story arcs",
+    exampleUse: "Story beats, character arc intersections, subplot timing",
+  },
 ];
 
 interface TimelineTemplateDialogProps {
@@ -77,8 +92,14 @@ interface TimelineTemplateDialogProps {
   onCancel?: () => void;
 }
 
-export function TimelineTemplateDialog({ open, onClose, onSelectTemplate, onCancel }: TimelineTemplateDialogProps) {
-  const [selectedTemplate, setSelectedTemplate] = useState<TimelineTemplate | null>(null);
+export function TimelineTemplateDialog({
+  open,
+  onClose,
+  onSelectTemplate,
+  onCancel,
+}: TimelineTemplateDialogProps) {
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<TimelineTemplate | null>(null);
 
   const handleClose = () => {
     setSelectedTemplate(null);
@@ -91,19 +112,27 @@ export function TimelineTemplateDialog({ open, onClose, onSelectTemplate, onCanc
 
   const getViewIcon = (view: string) => {
     switch (view) {
-      case 'list': return List;
-      case 'canvas': return Layers;
-      case 'gantt': return BarChart3;
-      default: return List;
+      case "list":
+        return List;
+      case "canvas":
+        return Layers;
+      case "gantt":
+        return BarChart3;
+      default:
+        return List;
     }
   };
 
   const getViewLabel = (view: string) => {
     switch (view) {
-      case 'list': return 'List View';
-      case 'canvas': return 'Canvas View';
-      case 'gantt': return 'Gantt View';
-      default: return view;
+      case "list":
+        return "List View";
+      case "canvas":
+        return "Canvas View";
+      case "gantt":
+        return "Gantt View";
+      default:
+        return view;
     }
   };
 
@@ -113,7 +142,8 @@ export function TimelineTemplateDialog({ open, onClose, onSelectTemplate, onCanc
         <DialogHeader>
           <DialogTitle>Choose Timeline Type</DialogTitle>
           <DialogDescription>
-            Select a template optimized for your specific use case. Each template uses the best view and time scale for its purpose.
+            Select a template optimized for your specific use case. Each
+            template uses the best view and time scale for its purpose.
           </DialogDescription>
         </DialogHeader>
 
@@ -127,7 +157,7 @@ export function TimelineTemplateDialog({ open, onClose, onSelectTemplate, onCanc
               <Card
                 key={template.id}
                 className={`cursor-pointer transition-all hover-elevate active-elevate-2 ${
-                  isSelected ? 'border-primary ring-2 ring-primary/20' : ''
+                  isSelected ? "border-primary ring-2 ring-primary/20" : ""
                 }`}
                 onClick={() => setSelectedTemplate(template)}
                 data-testid={`template-${template.id}`}
@@ -151,9 +181,7 @@ export function TimelineTemplateDialog({ open, onClose, onSelectTemplate, onCanc
                       <ViewIcon className="w-3 h-3" />
                       {getViewLabel(template.defaultView)}
                     </Badge>
-                    <Badge variant="outline">
-                      {template.timeScale}
-                    </Badge>
+                    <Badge variant="outline">{template.timeScale}</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     <strong>Best for:</strong> {template.suggested}
@@ -168,11 +196,17 @@ export function TimelineTemplateDialog({ open, onClose, onSelectTemplate, onCanc
         </div>
 
         <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
-          <Button variant="outline" onClick={handleClose} data-testid="button-cancel-template">
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            data-testid="button-cancel-template"
+          >
             Cancel
           </Button>
           <Button
-            onClick={() => selectedTemplate && onSelectTemplate(selectedTemplate)}
+            onClick={() =>
+              selectedTemplate && onSelectTemplate(selectedTemplate)
+            }
             disabled={!selectedTemplate}
             data-testid="button-create-timeline"
           >

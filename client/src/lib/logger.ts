@@ -11,12 +11,12 @@ const isProd = import.meta.env.PROD;
  * Using Material Design colors for consistency
  */
 const LOG_COLORS = {
-  DEBUG: '#888',        // Gray
-  INFO: '#2196F3',      // Blue
-  WARN: '#FF9800',      // Orange
-  ERROR: '#F44336',     // Red
-  DEV: '#4CAF50',       // Green
-  PROD: '#9C27B0',      // Purple
+  DEBUG: "#888", // Gray
+  INFO: "#2196F3", // Blue
+  WARN: "#FF9800", // Orange
+  ERROR: "#F44336", // Red
+  DEV: "#4CAF50", // Green
+  PROD: "#9C27B0", // Purple
 } as const;
 
 export const logger = {
@@ -60,7 +60,11 @@ export const logger = {
    */
   dev: (...args: unknown[]) => {
     if (isDev) {
-      console.log(`%c[DEV]`, `color: ${LOG_COLORS.DEV}; font-weight: bold`, ...args);
+      console.log(
+        `%c[DEV]`,
+        `color: ${LOG_COLORS.DEV}; font-weight: bold`,
+        ...args,
+      );
     }
   },
 
@@ -82,7 +86,7 @@ export const logger = {
     if (isDev) {
       console.log(...args);
     }
-  }
+  },
 };
 
 export default logger;

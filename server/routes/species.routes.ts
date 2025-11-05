@@ -11,27 +11,34 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
     // Extract userId from header for security (override client payload)
     const userId = req.user.claims.sub;
     const notebookId = req.body.notebookId;
-    
+
     // Validate notebook ownership before allowing write
     if (notebookId) {
-      const ownsNotebook = await storage.validateNotebookOwnership(notebookId, userId);
+      const ownsNotebook = await storage.validateNotebookOwnership(
+        notebookId,
+        userId,
+      );
       if (!ownsNotebook) {
-        console.warn(`[Security] Unauthorized notebook access attempt - userId: ${userId}, notebookId: ${notebookId}`);
-        return res.status(404).json({ error: 'Notebook not found' });
+        console.warn(
+          `[Security] Unauthorized notebook access attempt - userId: ${userId}, notebookId: ${notebookId}`,
+        );
+        return res.status(404).json({ error: "Notebook not found" });
       }
     }
-    
+
     const speciesData = { ...req.body, userId };
-    
+
     const validatedSpecies = insertSpeciesSchema.parse(speciesData);
     const savedSpecies = await storage.createSpecies(validatedSpecies);
     res.json(savedSpecies);
   } catch (error) {
-    console.error('Error saving species:', error);
+    console.error("Error saving species:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    res.status(500).json({ error: 'Failed to save species' });
+    res.status(500).json({ error: "Failed to save species" });
   }
 });
 
@@ -40,25 +47,27 @@ router.get("/", readRateLimiter, async (req: any, res) => {
     const search = req.query.search as string;
     const notebookId = req.query.notebookId as string;
     const userId = req.user.claims.sub;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     const species = await storage.getUserSpecies(userId, notebookId);
-    
+
     // Filter by search text if provided
     let filtered = species;
     if (search) {
-      filtered = filtered.filter(item =>
-        item.name?.toLowerCase().includes(search.toLowerCase())
+      filtered = filtered.filter((item) =>
+        item.name?.toLowerCase().includes(search.toLowerCase()),
       );
     }
-    
+
     res.json(filtered);
   } catch (error) {
-    console.error('Error fetching species:', error);
-    res.status(500).json({ error: 'Failed to fetch species' });
+    console.error("Error fetching species:", error);
+    res.status(500).json({ error: "Failed to fetch species" });
   }
 });
 
@@ -66,16 +75,18 @@ router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     const species = await storage.getUserSpecies(userId, notebookId);
     res.json(species);
   } catch (error) {
-    console.error('Error fetching species:', error);
-    res.status(500).json({ error: 'Failed to fetch species' });
+    console.error("Error fetching species:", error);
+    res.status(500).json({ error: "Failed to fetch species" });
   }
 });
 
@@ -83,19 +94,21 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const notebookId = req.query.notebookId as string;
-    
+
     if (!notebookId) {
-      return res.status(400).json({ error: 'notebookId query parameter is required' });
+      return res
+        .status(400)
+        .json({ error: "notebookId query parameter is required" });
     }
-    
+
     const species = await storage.getSpecies(req.params.id, userId, notebookId);
     if (!species) {
-      return res.status(404).json({ error: 'Species not found' });
+      return res.status(404).json({ error: "Species not found" });
     }
     res.json(species);
   } catch (error) {
-    console.error('Error fetching species:', error);
-    res.status(500).json({ error: 'Failed to fetch species' });
+    console.error("Error fetching species:", error);
+    res.status(500).json({ error: "Failed to fetch species" });
   }
 });
 
@@ -103,20 +116,29 @@ router.patch("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const updates = insertSpeciesSchema.partial().parse(req.body);
-    const updatedSpecies = await storage.updateSpecies(req.params.id, userId, updates);
+    const updatedSpecies = await storage.updateSpecies(
+      req.params.id,
+      userId,
+      updates,
+    );
     res.json(updatedSpecies);
   } catch (error) {
-    console.error('Error updating species:', error);
+    console.error("Error updating species:", error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid request data", details: error.errors });
     }
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
-      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
-      return res.status(404).json({ error: 'Not found' });
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const notebookId =
+        req.query.notebookId || req.body.notebookId || "unknown";
+      console.warn(
+        `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to update species' });
+    res.status(500).json({ error: "Failed to update species" });
   }
 });
 
@@ -126,14 +148,17 @@ router.delete("/:id", writeRateLimiter, async (req: any, res) => {
     await storage.deleteSpecies(req.params.id, userId);
     res.status(204).send();
   } catch (error) {
-    console.error('Error deleting species:', error);
-    if (error instanceof Error && error.message.includes('Unauthorized')) {
-      const userId = req.user?.claims?.sub || 'unknown';
-      const notebookId = req.query.notebookId || req.body.notebookId || 'unknown';
-      console.warn(`[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`);
-      return res.status(404).json({ error: 'Not found' });
+    console.error("Error deleting species:", error);
+    if (error instanceof Error && error.message.includes("Unauthorized")) {
+      const userId = req.user?.claims?.sub || "unknown";
+      const notebookId =
+        req.query.notebookId || req.body.notebookId || "unknown";
+      console.warn(
+        `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
+      );
+      return res.status(404).json({ error: "Not found" });
     }
-    res.status(500).json({ error: 'Failed to delete species' });
+    res.status(500).json({ error: "Failed to delete species" });
   }
 });
 

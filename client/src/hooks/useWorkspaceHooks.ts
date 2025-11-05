@@ -1,9 +1,14 @@
-import { useWorkspaceStore, PanelDescriptor, WorkspaceLayout, EditorActions } from '@/stores/workspaceStore';
-import { shallow } from 'zustand/shallow';
+import {
+  useWorkspaceStore,
+  PanelDescriptor,
+  WorkspaceLayout,
+  EditorActions,
+} from "@/stores/workspaceStore";
+import { shallow } from "zustand/shallow";
 
 /**
  * Custom hooks for Workspace Store
- * 
+ *
  * These hooks provide a clean, organized interface for accessing workspace state.
  * Benefits:
  * - Cleaner component code
@@ -47,7 +52,7 @@ export function useSplitMode(): boolean {
 /**
  * Get panels in a specific region
  */
-export function useTabsInRegion(regionId: 'main' | 'split'): PanelDescriptor[] {
+export function useTabsInRegion(regionId: "main" | "split"): PanelDescriptor[] {
   return useWorkspaceStore((state) => state.getTabsInRegion(regionId));
 }
 
@@ -68,7 +73,9 @@ export function useDockedPanels(slot: string): PanelDescriptor[] {
 /**
  * Get the active tab in a region
  */
-export function useActiveTab(regionId?: 'main' | 'split'): PanelDescriptor | undefined {
+export function useActiveTab(
+  regionId?: "main" | "split",
+): PanelDescriptor | undefined {
   return useWorkspaceStore((state) => state.getActiveTab(regionId));
 }
 
@@ -82,7 +89,10 @@ export function useIsPanelOpen(type: string, entityId?: string): boolean {
 /**
  * Find a specific panel
  */
-export function useFindPanel(type: string, entityId?: string): PanelDescriptor | undefined {
+export function useFindPanel(
+  type: string,
+  entityId?: string,
+): PanelDescriptor | undefined {
   return useWorkspaceStore((state) => state.findPanel(type, entityId));
 }
 
@@ -138,14 +148,17 @@ export function useIsQuickNoteOpen(): boolean {
  * Use this when you need multiple actions in a component
  */
 export function usePanelActions() {
-  return useWorkspaceStore((state) => ({
-    addPanel: state.addPanel,
-    removePanel: state.removePanel,
-    updatePanel: state.updatePanel,
-    focusPanel: state.focusPanel,
-    minimizePanel: state.minimizePanel,
-    restorePanel: state.restorePanel,
-  }), shallow);
+  return useWorkspaceStore(
+    (state) => ({
+      addPanel: state.addPanel,
+      removePanel: state.removePanel,
+      updatePanel: state.updatePanel,
+      focusPanel: state.focusPanel,
+      minimizePanel: state.minimizePanel,
+      restorePanel: state.restorePanel,
+    }),
+    shallow,
+  );
 }
 
 /**
@@ -198,14 +211,17 @@ export function useRestorePanel() {
  * Get all tab system actions
  */
 export function useTabActions() {
-  return useWorkspaceStore((state) => ({
-    attachToTabBar: state.attachToTabBar,
-    detachToFloating: state.detachToFloating,
-    assignToSplit: state.assignToSplit,
-    setActiveTab: state.setActiveTab,
-    toggleSplitMode: state.toggleSplitMode,
-    reorderTabs: state.reorderTabs,
-  }), shallow);
+  return useWorkspaceStore(
+    (state) => ({
+      attachToTabBar: state.attachToTabBar,
+      detachToFloating: state.detachToFloating,
+      assignToSplit: state.assignToSplit,
+      setActiveTab: state.setActiveTab,
+      toggleSplitMode: state.toggleSplitMode,
+      reorderTabs: state.reorderTabs,
+    }),
+    shallow,
+  );
 }
 
 /**
@@ -258,10 +274,13 @@ export function useReorderTabs() {
  * Get docking actions
  */
 export function useDockingActions() {
-  return useWorkspaceStore((state) => ({
-    dockPanel: state.dockPanel,
-    undockPanel: state.undockPanel,
-  }), shallow);
+  return useWorkspaceStore(
+    (state) => ({
+      dockPanel: state.dockPanel,
+      undockPanel: state.undockPanel,
+    }),
+    shallow,
+  );
 }
 
 /**
@@ -286,11 +305,14 @@ export function useUndockPanel() {
  * Get quick note actions
  */
 export function useQuickNoteActions() {
-  return useWorkspaceStore((state) => ({
-    toggleQuickNote: state.toggleQuickNote,
-    openQuickNote: state.openQuickNote,
-    closeQuickNote: state.closeQuickNote,
-  }), shallow);
+  return useWorkspaceStore(
+    (state) => ({
+      toggleQuickNote: state.toggleQuickNote,
+      openQuickNote: state.openQuickNote,
+      closeQuickNote: state.closeQuickNote,
+    }),
+    shallow,
+  );
 }
 
 /**
@@ -322,12 +344,15 @@ export function useCloseQuickNote() {
  * Get editor context actions
  */
 export function useEditorContextActions() {
-  return useWorkspaceStore((state) => ({
-    updateEditorContext: state.updateEditorContext,
-    clearEditorContext: state.clearEditorContext,
-    registerEditorActions: state.registerEditorActions,
-    executeEditorAction: state.executeEditorAction,
-  }), shallow);
+  return useWorkspaceStore(
+    (state) => ({
+      updateEditorContext: state.updateEditorContext,
+      clearEditorContext: state.clearEditorContext,
+      registerEditorActions: state.registerEditorActions,
+      executeEditorAction: state.executeEditorAction,
+    }),
+    shallow,
+  );
 }
 
 /**
@@ -366,11 +391,14 @@ export function useExecuteEditorAction() {
  * Get mobile drawer actions
  */
 export function useMobileDrawerActions() {
-  return useWorkspaceStore((state) => ({
-    toggleMobileDrawer: state.toggleMobileDrawer,
-    openMobileDrawer: state.openMobileDrawer,
-    closeMobileDrawer: state.closeMobileDrawer,
-  }), shallow);
+  return useWorkspaceStore(
+    (state) => ({
+      toggleMobileDrawer: state.toggleMobileDrawer,
+      openMobileDrawer: state.openMobileDrawer,
+      closeMobileDrawer: state.closeMobileDrawer,
+    }),
+    shallow,
+  );
 }
 
 /**
@@ -402,10 +430,13 @@ export function useCloseMobileDrawer() {
  * Get layout management actions
  */
 export function useLayoutActions() {
-  return useWorkspaceStore((state) => ({
-    saveLayout: state.saveLayout,
-    resetLayout: state.resetLayout,
-  }), shallow);
+  return useWorkspaceStore(
+    (state) => ({
+      saveLayout: state.saveLayout,
+      resetLayout: state.resetLayout,
+    }),
+    shallow,
+  );
 }
 
 /**

@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
-import { queryClient } from '@/lib/queryClient';
+import { useState, useRef, useCallback, useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient } from "@/lib/queryClient";
 
 export interface UseDebouncedSaveOptions<TData, TResult = any> {
   /** Function that returns the data to be saved */
@@ -28,7 +28,7 @@ export interface UseDebouncedSaveOptions<TData, TResult = any> {
 
 export interface UseDebouncedSaveReturn {
   /** Current save status */
-  saveStatus: 'saved' | 'saving' | 'unsaved';
+  saveStatus: "saved" | "saving" | "unsaved";
   /** Timestamp of last successful save */
   lastSaveTime: Date | null;
   /** Whether a save operation is currently in progress */
@@ -48,12 +48,14 @@ export function useDebouncedSave<TData, TResult = any>({
   onError,
   debounceMs = 2000,
   saveCondition = () => true,
-  successMessage = 'Saved successfully',
-  errorMessage = 'Failed to save. Please try again.',
+  successMessage = "Saved successfully",
+  errorMessage = "Failed to save. Please try again.",
   invalidateQueries = [],
   showToasts = true,
 }: UseDebouncedSaveOptions<TData, TResult>): UseDebouncedSaveReturn {
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
+  const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">(
+    "saved",
+  );
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   const [isManualSave, setIsManualSave] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -63,49 +65,49 @@ export function useDebouncedSave<TData, TResult = any>({
   const saveMutation = useMutation({
     mutationFn: saveFn,
     onSuccess: (result) => {
-      setSaveStatus('saved');
+      setSaveStatus("saved");
       setLastSaveTime(new Date());
-      
+
       // Invalidate specified queries
       if (invalidateQueries.length > 0) {
-        invalidateQueries.forEach(queryKey => {
+        invalidateQueries.forEach((queryKey) => {
           queryClient.invalidateQueries({ queryKey });
         });
       }
-      
+
       // Only show toast for manual saves if enabled
       if (isManualSave && showToasts) {
         toast({
-          title: 'Saved',
+          title: "Saved",
           description: successMessage,
         });
       }
-      
+
       // Always reset manual save flag
       if (isManualSave) {
         setIsManualSave(false);
       }
-      
+
       // Call custom success handler
       onSuccess?.(result);
     },
     onError: (error: any) => {
-      console.error('Error saving:', error);
-      setSaveStatus('unsaved');
-      
+      console.error("Error saving:", error);
+      setSaveStatus("unsaved");
+
       // Show error toast if enabled
       if (showToasts) {
         toast({
-          title: 'Save failed',
+          title: "Save failed",
           description: errorMessage,
-          variant: 'destructive',
+          variant: "destructive",
         });
       }
-      
+
       if (isManualSave) {
         setIsManualSave(false);
       }
-      
+
       // Call custom error handler
       onError?.(error);
     },
@@ -114,60 +116,60 @@ export function useDebouncedSave<TData, TResult = any>({
   // Manual save function
   const saveNow = useCallback(async () => {
     setIsManualSave(true);
-    setSaveStatus('saving');
-    
+    setSaveStatus("saving");
+
     const data = getData();
-    
+
     // Check if getData returned null (validation failed or no data)
     if (data === null) {
-      setSaveStatus('unsaved');
+      setSaveStatus("unsaved");
       setIsManualSave(false);
       return;
     }
-    
+
     await saveMutation.mutateAsync(data);
   }, [getData, saveMutation]);
 
   // Auto save function
   const performAutoSave = useCallback(async () => {
-    if (saveStatus === 'saving') return;
-    
+    if (saveStatus === "saving") return;
+
     // Check if save condition allows saving
     if (!saveCondition()) {
-      setSaveStatus('unsaved');
+      setSaveStatus("unsaved");
       return;
     }
-    
+
     const data = getData();
-    
+
     // Check if getData returned null (validation failed or no data)
     if (data === null) {
-      setSaveStatus('unsaved');
+      setSaveStatus("unsaved");
       return;
     }
-    
-    setSaveStatus('saving');
+
+    setSaveStatus("saving");
     await saveMutation.mutateAsync(data);
   }, [getData, saveMutation, saveStatus, saveCondition]);
 
   // Trigger save with debouncing
   const triggerSave = useCallback(() => {
-    setSaveStatus('unsaved');
-    
+    setSaveStatus("unsaved");
+
     // Clear existing timeout
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
-    
+
     // Set new timeout
     saveTimeoutRef.current = setTimeout(() => {
       if (saveCondition()) {
         // Catch any errors to prevent unhandled promise rejections
         void performAutoSave().catch((error) => {
-          console.error('Auto-save error:', error);
+          console.error("Auto-save error:", error);
         });
       } else {
-        setSaveStatus('unsaved');
+        setSaveStatus("unsaved");
       }
     }, debounceMs);
   }, [saveCondition, performAutoSave, debounceMs]);

@@ -1,5 +1,18 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, jsonb, boolean, real, index, uniqueIndex, unique, customType } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  varchar,
+  timestamp,
+  integer,
+  jsonb,
+  boolean,
+  real,
+  index,
+  uniqueIndex,
+  unique,
+  customType,
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -7,7 +20,7 @@ import { z } from "zod";
 // Custom tsvector type for PostgreSQL full-text search
 export const tsvector = customType<{ data: string }>({
   dataType() {
-    return 'tsvector';
+    return "tsvector";
   },
 });
 
@@ -26,14 +39,16 @@ export const sessions = pgTable(
 // Users table for authentication and user data (Replit Auth compatible)
 // (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   isAdmin: boolean("is_admin").default(false),
   // Subscription fields
-  subscriptionTier: varchar("subscription_tier").default('free'),
+  subscriptionTier: varchar("subscription_tier").default("free"),
   grandfatheredTier: varchar("grandfathered_tier"),
   onboardingCompleted: boolean("onboarding_completed").default(false),
   trialUsed: boolean("trial_used").default(false),
@@ -46,42 +61,72 @@ export const users = pgTable("users", {
 });
 
 // Shares - Collaborative access to notebooks, projects, and guides
-export const shares = pgTable("shares", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  resourceType: text("resource_type").notNull(), // 'notebook', 'project', 'guide'
-  resourceId: varchar("resource_id").notNull(),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  ownerId: varchar("owner_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  permission: text("permission").notNull(), // 'view', 'comment', 'edit'
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  uniqueShare: uniqueIndex("shares_unique_idx").on(table.resourceType, table.resourceId, table.userId)
-}));
+export const shares = pgTable(
+  "shares",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    resourceType: text("resource_type").notNull(), // 'notebook', 'project', 'guide'
+    resourceId: varchar("resource_id").notNull(),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    ownerId: varchar("owner_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    permission: text("permission").notNull(), // 'view', 'comment', 'edit'
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    uniqueShare: uniqueIndex("shares_unique_idx").on(
+      table.resourceType,
+      table.resourceId,
+      table.userId,
+    ),
+  }),
+);
 
 // Notebooks - Separate world bibles/collections for organizing worldbuilding content
-export const notebooks = pgTable("notebooks", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  description: text("description"),
-  color: text("color"), // Optional color for visual organization
-  icon: text("icon"), // Optional icon identifier
-  imageUrl: text("image_url"), // Optional thumbnail image for visual distinction
-  isDefault: boolean("is_default").default(false), // One notebook can be marked as default per user
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  // Ensure only one default notebook per user
-  uniqueDefaultPerUser: uniqueIndex("notebooks_user_default_idx").on(table.userId).where(sql`${table.isDefault} = true`)
-}));
+export const notebooks = pgTable(
+  "notebooks",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    name: text("name").notNull(),
+    description: text("description"),
+    color: text("color"), // Optional color for visual organization
+    icon: text("icon"), // Optional icon identifier
+    imageUrl: text("image_url"), // Optional thumbnail image for visual distinction
+    isDefault: boolean("is_default").default(false), // One notebook can be marked as default per user
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    // Ensure only one default notebook per user
+    uniqueDefaultPerUser: uniqueIndex("notebooks_user_default_idx")
+      .on(table.userId)
+      .where(sql`${table.isDefault} = true`),
+  }),
+);
 
 // Import Jobs - Track World Anvil and other imports
 export const importJobs = pgTable("import_jobs", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  notebookId: varchar("notebook_id")
+    .notNull()
+    .references(() => notebooks.id, { onDelete: "cascade" }),
   source: text("source").notNull(), // 'world_anvil', 'custom', etc.
-  status: text("status").notNull().default('pending'), // 'pending', 'processing', 'completed', 'failed'
+  status: text("status").notNull().default("pending"), // 'pending', 'processing', 'completed', 'failed'
   progress: integer("progress").default(0), // Percentage 0-100
   totalItems: integer("total_items").default(0),
   processedItems: integer("processed_items").default(0),
@@ -93,7 +138,9 @@ export const importJobs = pgTable("import_jobs", {
 
 // Generated characters
 export const characters = pgTable("characters", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   age: integer("age"),
   occupation: text("occupation"),
   personality: text("personality").array(),
@@ -261,14 +308,20 @@ export const characters = pgTable("characters", {
   // Import metadata for tracking imported characters
   importSource: varchar("import_source"), // e.g., "world_anvil", "custom"
   importExternalId: varchar("import_external_id"), // Original ID from external source
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Generated plots
 export const plots = pgTable("plots", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   setup: text("setup").notNull(),
   incitingIncident: text("inciting_incident").notNull(),
   firstPlotPoint: text("first_plot_point").notNull(),
@@ -280,28 +333,40 @@ export const plots = pgTable("plots", {
   conflict: text("conflict").notNull(),
   genre: text("genre"),
   storyStructure: text("story_structure"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Writing prompts
 export const prompts = pgTable("prompts", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   text: text("text").notNull(),
   genre: text("genre").notNull(),
   difficulty: text("difficulty").notNull(),
   type: text("type").notNull(),
   wordCount: text("word_count").notNull(),
   tags: text("tags").array().notNull(),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Writing guides
 export const guides = pgTable("guides", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   description: text("description").notNull(),
   content: text("content").notNull(),
@@ -322,27 +387,37 @@ export const guides = pgTable("guides", {
 
 // Guide categories (hierarchical organization)
 export const guideCategories = pgTable("guide_categories", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   parentId: varchar("parent_id"), // FK constraint handled via relations
   order: integer("order").notNull().default(0),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Guide references (for @mentions between guides)
 export const guideReferences = pgTable("guide_references", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   sourceGuideId: varchar("source_guide_id").notNull(), // FK constraint handled via relations
   targetGuideId: varchar("target_guide_id").notNull(), // FK constraint handled via relations
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Generated settings
 export const settings = pgTable("settings", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   location: text("location").notNull(),
   timePeriod: text("time_period").notNull(),
@@ -359,27 +434,39 @@ export const settings = pgTable("settings", {
   // Image fields
   imageUrl: text("image_url"),
   imageCaption: text("image_caption"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Generated names
 export const names = pgTable("names", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   meaning: text("meaning"),
   origin: text("origin"),
   nameType: text("name_type").notNull(), // 'character', 'place', 'fantasy', etc.
   culture: text("culture").notNull(),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Generated conflicts
 export const conflicts = pgTable("conflicts", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   type: text("type").notNull(), // 'internal', 'external', 'interpersonal', etc.
   description: text("description").notNull(),
@@ -393,14 +480,20 @@ export const conflicts = pgTable("conflicts", {
   // Image fields
   imageUrl: text("image_url"),
   imageCaption: text("image_caption"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Generated themes
 export const themes = pgTable("themes", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   description: text("description").notNull(),
   coreMessage: text("core_message").notNull(),
@@ -414,14 +507,20 @@ export const themes = pgTable("themes", {
   // Image fields
   imageUrl: text("image_url"),
   imageCaption: text("image_caption"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Generated moods
 export const moods = pgTable("moods", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   description: text("description").notNull(),
   emotionalTone: text("emotional_tone").notNull(),
@@ -430,14 +529,20 @@ export const moods = pgTable("moods", {
   weatherElements: text("weather_elements").array().notNull(),
   lightingEffects: text("lighting_effects").array().notNull(),
   soundscape: text("soundscape").array().notNull(),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Generated creatures
 export const creatures = pgTable("creatures", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   creatureType: text("creature_type").notNull(),
   habitat: text("habitat").notNull(),
@@ -451,14 +556,20 @@ export const creatures = pgTable("creatures", {
   // Image fields
   imageUrl: text("image_url"),
   imageCaption: text("image_caption"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Generated plants
 export const plants = pgTable("plants", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   scientificName: text("scientific_name").notNull(),
   type: text("type").notNull(),
@@ -474,27 +585,39 @@ export const plants = pgTable("plants", {
   // Image fields
   imageUrl: text("image_url"),
   imageCaption: text("image_caption"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Generated descriptions
 export const descriptions = pgTable("descriptions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   content: text("content").notNull(),
   descriptionType: text("description_type").notNull(), // 'armour', 'weapon', 'clothing', etc.
   genre: text("genre"),
   tags: text("tags").array().notNull(),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Locations
 export const locations = pgTable("locations", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   locationType: text("location_type").notNull(), // city, forest, dungeon, etc.
   description: text("description").notNull(),
@@ -515,14 +638,20 @@ export const locations = pgTable("locations", {
   // Image fields
   imageUrl: text("image_url"),
   imageCaption: text("image_caption"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Items
 export const items = pgTable("items", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   itemType: text("item_type").notNull(), // weapon, armor, tool, magic, etc.
   description: text("description").notNull(),
@@ -541,14 +670,20 @@ export const items = pgTable("items", {
   // Image fields
   imageUrl: text("image_url"),
   imageCaption: text("image_caption"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Organizations
 export const organizations = pgTable("organizations", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   organizationType: text("organization_type").notNull(), // guild, faction, government, etc.
   purpose: text("purpose").notNull(),
@@ -569,14 +704,20 @@ export const organizations = pgTable("organizations", {
   // Image fields
   imageUrl: text("image_url"),
   imageCaption: text("image_caption"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Species
 export const species = pgTable("species", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   classification: text("classification"),
   physicalDescription: text("physical_description").notNull(),
@@ -596,14 +737,20 @@ export const species = pgTable("species", {
   // Image fields
   imageUrl: text("image_url"),
   imageCaption: text("image_caption"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Ethnicities
 export const ethnicities = pgTable("ethnicities", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   origin: text("origin"),
   physicalTraits: text("physical_traits"),
@@ -622,14 +769,20 @@ export const ethnicities = pgTable("ethnicities", {
   // Image fields
   imageUrl: text("image_url"),
   imageCaption: text("image_caption"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Cultures
 export const cultures = pgTable("cultures", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   description: text("description").notNull(),
   values: text("values").array(),
@@ -650,14 +803,20 @@ export const cultures = pgTable("cultures", {
   // Image fields
   imageUrl: text("image_url"),
   imageCaption: text("image_caption"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Documents
 export const documents = pgTable("documents", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   documentType: text("document_type").notNull(), // book, scroll, letter, map, etc.
   content: text("content").notNull(),
@@ -676,14 +835,20 @@ export const documents = pgTable("documents", {
   // Image fields
   imageUrl: text("image_url"),
   imageCaption: text("image_caption"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Food
 export const foods = pgTable("foods", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   foodType: text("food_type").notNull(), // meal, snack, dessert, etc.
   description: text("description").notNull(),
@@ -703,14 +868,20 @@ export const foods = pgTable("foods", {
   // Image fields
   imageUrl: text("image_url"),
   imageCaption: text("image_caption"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Drinks
 export const drinks = pgTable("drinks", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   drinkType: text("drink_type").notNull(), // alcoholic, non-alcoholic, magical, etc.
   description: text("description").notNull(),
@@ -730,14 +901,20 @@ export const drinks = pgTable("drinks", {
   // Image fields
   imageUrl: text("image_url"),
   imageCaption: text("image_caption"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Weapons
 export const weapons = pgTable("weapons", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   weaponType: text("weapon_type").notNull(), // sword, bow, staff, etc.
   description: text("description").notNull(),
@@ -758,14 +935,20 @@ export const weapons = pgTable("weapons", {
   // Image fields
   imageUrl: text("image_url"),
   imageCaption: text("image_caption"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Armor
 export const armor = pgTable("armor", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   armorType: text("armor_type").notNull(), // light, medium, heavy, shield, etc.
   description: text("description").notNull(),
@@ -781,14 +964,20 @@ export const armor = pgTable("armor", {
   value: text("value"),
   maintenance: text("maintenance"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Religions
 export const religions = pgTable("religions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   description: text("description").notNull(),
   beliefs: text("beliefs").array(),
@@ -804,14 +993,20 @@ export const religions = pgTable("religions", {
   afterlife: text("afterlife"),
   influence: text("influence"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Languages
 export const languages = pgTable("languages", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   family: text("family"),
   speakers: text("speakers"),
@@ -827,14 +1022,20 @@ export const languages = pgTable("languages", {
   difficulty: text("difficulty"),
   status: text("status"), // living, dead, constructed, etc.
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Accessories
 export const accessories = pgTable("accessories", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   accessoryType: text("accessory_type").notNull(), // jewelry, belt, cloak, etc.
   description: text("description").notNull(),
@@ -847,14 +1048,20 @@ export const accessories = pgTable("accessories", {
   appearance: text("appearance"),
   functionality: text("functionality"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Clothing
 export const clothing = pgTable("clothing", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   clothingType: text("clothing_type").notNull(), // shirt, pants, dress, robe, etc.
   description: text("description").notNull(),
@@ -868,14 +1075,20 @@ export const clothing = pgTable("clothing", {
   cost: text("cost"),
   durability: text("durability"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Materials
 export const materials = pgTable("materials", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   materialType: text("material_type").notNull(), // metal, wood, fabric, stone, etc.
   description: text("description").notNull(),
@@ -889,14 +1102,20 @@ export const materials = pgTable("materials", {
   appearance: text("appearance"),
   weight: text("weight"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Settlements
 export const settlements = pgTable("settlements", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   settlementType: text("settlement_type").notNull(), // city, town, village, outpost, etc.
   description: text("description").notNull(),
@@ -913,14 +1132,20 @@ export const settlements = pgTable("settlements", {
   landmarks: text("landmarks").array(),
   districts: text("districts").array(),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Societies
 export const societies = pgTable("societies", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   societyType: text("society_type").notNull(), // tribal, feudal, democratic, etc.
   description: text("description").notNull(),
@@ -937,14 +1162,20 @@ export const societies = pgTable("societies", {
   arts: text("arts"),
   history: text("history"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Factions
 export const factions = pgTable("factions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   factionType: text("faction_type").notNull(), // political, military, religious, criminal, etc.
   description: text("description").notNull(),
@@ -961,14 +1192,20 @@ export const factions = pgTable("factions", {
   history: text("history"),
   secrets: text("secrets"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Military Units
 export const militaryUnits = pgTable("military_units", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   unitType: text("unit_type").notNull(), // infantry, cavalry, navy, special forces, etc.
   description: text("description").notNull(),
@@ -984,14 +1221,20 @@ export const militaryUnits = pgTable("military_units", {
   battleRecord: text("battle_record"),
   currentStatus: text("current_status"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Myths
 export const myths = pgTable("myths", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   mythType: text("myth_type").notNull(), // creation, hero, origin, cautionary, etc.
   summary: text("summary").notNull(),
@@ -1005,14 +1248,20 @@ export const myths = pgTable("myths", {
   modernRelevance: text("modern_relevance"),
   relatedMyths: text("related_myths").array(),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Legends
 export const legends = pgTable("legends", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   legendType: text("legend_type").notNull(), // historical, supernatural, heroic, etc.
   summary: text("summary").notNull(),
@@ -1026,14 +1275,20 @@ export const legends = pgTable("legends", {
   culturalImpact: text("cultural_impact"),
   modernAdaptations: text("modern_adaptations").array(),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Events
 export const events = pgTable("events", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   eventType: text("event_type").notNull(), // battle, festival, disaster, discovery, etc.
   description: text("description").notNull(),
@@ -1049,14 +1304,20 @@ export const events = pgTable("events", {
   conflictingAccounts: text("conflicting_accounts"),
   legacy: text("legacy"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Technologies
 export const technologies = pgTable("technologies", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   technologyType: text("technology_type").notNull(), // magical, mechanical, biological, etc.
   description: text("description").notNull(),
@@ -1071,14 +1332,20 @@ export const technologies = pgTable("technologies", {
   risks: text("risks"),
   evolution: text("evolution"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Spells
 export const spells = pgTable("spells", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   school: text("school"), // evocation, divination, etc.
   level: text("level"),
@@ -1094,8 +1361,12 @@ export const spells = pgTable("spells", {
   variations: text("variations").array(),
   risks: text("risks"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -1103,7 +1374,9 @@ export const spells = pgTable("spells", {
 
 // Resources
 export const resources = pgTable("resources", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   resourceType: text("resource_type").notNull(), // natural, manufactured, magical, etc.
   description: text("description").notNull(),
@@ -1118,14 +1391,20 @@ export const resources = pgTable("resources", {
   controlledBy: text("controlled_by"),
   conflicts: text("conflicts"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Buildings
 export const buildings = pgTable("buildings", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   buildingType: text("building_type").notNull(), // temple, castle, shop, house, etc.
   description: text("description").notNull(),
@@ -1141,14 +1420,20 @@ export const buildings = pgTable("buildings", {
   significance: text("significance"),
   secrets: text("secrets"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Animals
 export const animals = pgTable("animals", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   animalType: text("animal_type").notNull(), // mammal, bird, reptile, etc.
   description: text("description").notNull(),
@@ -1164,14 +1449,20 @@ export const animals = pgTable("animals", {
   culturalRole: text("cultural_role"),
   threats: text("threats"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Transportation
 export const transportation = pgTable("transportation", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   transportType: text("transport_type").notNull(), // land, sea, air, magical, etc.
   description: text("description").notNull(),
@@ -1187,14 +1478,20 @@ export const transportation = pgTable("transportation", {
   disadvantages: text("disadvantages").array(),
   culturalSignificance: text("cultural_significance"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Natural Laws
 export const naturalLaws = pgTable("natural_laws", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   lawType: text("law_type").notNull(), // physical, magical, divine, etc.
   description: text("description").notNull(),
@@ -1209,14 +1506,20 @@ export const naturalLaws = pgTable("natural_laws", {
   controversies: text("controversies"),
   evidence: text("evidence"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Traditions
 export const traditions = pgTable("traditions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   traditionType: text("tradition_type").notNull(), // ceremony, festival, custom, etc.
   description: text("description").notNull(),
@@ -1232,14 +1535,20 @@ export const traditions = pgTable("traditions", {
   variations: text("variations").array(),
   relatedTraditions: text("related_traditions").array(),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Rituals
 export const rituals = pgTable("rituals", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   ritualType: text("ritual_type").notNull(), // religious, magical, social, etc.
   description: text("description").notNull(),
@@ -1255,31 +1564,47 @@ export const rituals = pgTable("rituals", {
   risks: text("risks"),
   variations: text("variations").array(),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Visual Family Trees - Graph-based genealogical relationships
 export const familyTrees = pgTable("family_trees", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   description: text("description"),
-  layoutMode: text("layout_mode").notNull().default('manual'), // 'auto' or 'manual'
+  layoutMode: text("layout_mode").notNull().default("manual"), // 'auto' or 'manual'
   zoom: real("zoom").default(1),
   panX: real("pan_x").default(0),
   panY: real("pan_y").default(0),
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id")
+    .notNull()
+    .references(() => notebooks.id, { onDelete: "cascade" }),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Family Tree Members - People/nodes in the family tree
 export const familyTreeMembers = pgTable("family_tree_members", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  treeId: varchar("tree_id").notNull().references(() => familyTrees.id, { onDelete: 'cascade' }),
-  characterId: varchar("character_id").references(() => characters.id, { onDelete: 'set null' }), // null = inline node
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  treeId: varchar("tree_id")
+    .notNull()
+    .references(() => familyTrees.id, { onDelete: "cascade" }),
+  characterId: varchar("character_id").references(() => characters.id, {
+    onDelete: "set null",
+  }), // null = inline node
   // Inline node fields (used when characterId is null)
   inlineName: text("inline_name"),
   inlineDateOfBirth: text("inline_date_of_birth"),
@@ -1293,10 +1618,18 @@ export const familyTreeMembers = pgTable("family_tree_members", {
 
 // Family Tree Relationships - Edges/connections between members
 export const familyTreeRelationships = pgTable("family_tree_relationships", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  treeId: varchar("tree_id").notNull().references(() => familyTrees.id, { onDelete: 'cascade' }),
-  fromMemberId: varchar("from_member_id").notNull().references(() => familyTreeMembers.id, { onDelete: 'cascade' }),
-  toMemberId: varchar("to_member_id").notNull().references(() => familyTreeMembers.id, { onDelete: 'cascade' }),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  treeId: varchar("tree_id")
+    .notNull()
+    .references(() => familyTrees.id, { onDelete: "cascade" }),
+  fromMemberId: varchar("from_member_id")
+    .notNull()
+    .references(() => familyTreeMembers.id, { onDelete: "cascade" }),
+  toMemberId: varchar("to_member_id")
+    .notNull()
+    .references(() => familyTreeMembers.id, { onDelete: "cascade" }),
   relationshipType: text("relationship_type").notNull(), // parent, child, sibling, marriage, adoption, stepParent, grandparent, cousin, custom
   customLabel: text("custom_label"), // for custom relationship types
   metadata: jsonb("metadata"), // flexible storage for attributes like adoption flag, marriage dates, etc.
@@ -1305,7 +1638,9 @@ export const familyTreeRelationships = pgTable("family_tree_relationships", {
 
 // Timelines for chronological events
 export const timelines = pgTable("timelines", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   description: text("description").notNull(),
   timelineType: text("timeline_type").notNull(), // historical, character, world, campaign, etc.
@@ -1313,8 +1648,8 @@ export const timelines = pgTable("timelines", {
   startDate: text("start_date"),
   endDate: text("end_date"),
   // View/Display settings
-  viewMode: text("view_mode").default('list'), // 'list', 'visual', or 'gantt'
-  listViewMode: text("list_view_mode").default('compact'), // 'compact' or 'timescale'
+  viewMode: text("view_mode").default("list"), // 'list', 'visual', or 'gantt'
+  listViewMode: text("list_view_mode").default("compact"), // 'compact' or 'timescale'
   zoom: real("zoom").default(1),
   panX: real("pan_x").default(0),
   panY: real("pan_y").default(0),
@@ -1322,21 +1657,29 @@ export const timelines = pgTable("timelines", {
   scope: text("scope"), // global, regional, local, personal, etc.
   genre: text("genre"),
   // Relationships
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id")
+    .notNull()
+    .references(() => notebooks.id, { onDelete: "cascade" }),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Timeline Events - Individual events on a timeline
 export const timelineEvents = pgTable("timeline_events", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  timelineId: varchar("timeline_id").notNull().references(() => timelines.id, { onDelete: 'cascade' }),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  timelineId: varchar("timeline_id")
+    .notNull()
+    .references(() => timelines.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   description: text("description"),
   eventType: text("event_type"), // battle, discovery, birth, death, meeting, etc.
   startDate: text("start_date").notNull(),
   endDate: text("end_date"), // null for point events, has value for range events
-  importance: text("importance").default('moderate'), // major, moderate, minor
+  importance: text("importance").default("moderate"), // major, moderate, minor
   category: text("category"), // user-defined categories like "Plot", "Character Arc", "World Events"
   color: text("color"), // hex color for visual timeline
   icon: text("icon"), // lucide icon name
@@ -1352,10 +1695,18 @@ export const timelineEvents = pgTable("timeline_events", {
 
 // Timeline Relationships - Connections between events
 export const timelineRelationships = pgTable("timeline_relationships", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  timelineId: varchar("timeline_id").notNull().references(() => timelines.id, { onDelete: 'cascade' }),
-  fromEventId: varchar("from_event_id").notNull().references(() => timelineEvents.id, { onDelete: 'cascade' }),
-  toEventId: varchar("to_event_id").notNull().references(() => timelineEvents.id, { onDelete: 'cascade' }),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  timelineId: varchar("timeline_id")
+    .notNull()
+    .references(() => timelines.id, { onDelete: "cascade" }),
+  fromEventId: varchar("from_event_id")
+    .notNull()
+    .references(() => timelineEvents.id, { onDelete: "cascade" }),
+  toEventId: varchar("to_event_id")
+    .notNull()
+    .references(() => timelineEvents.id, { onDelete: "cascade" }),
   relationshipType: text("relationship_type").notNull(), // 'causes', 'precedes', 'concurrent', 'related'
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -1363,7 +1714,9 @@ export const timelineRelationships = pgTable("timeline_relationships", {
 
 // Ceremonies for formal events and rituals
 export const ceremonies = pgTable("ceremonies", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   ceremonyType: text("ceremony_type").notNull(), // wedding, funeral, coronation, graduation, etc.
   description: text("description").notNull(),
@@ -1385,14 +1738,20 @@ export const ceremonies = pgTable("ceremonies", {
   restrictions: text("restrictions").array(),
   variations: text("variations"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Maps for geographical visualization
 export const maps = pgTable("maps", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   mapType: text("map_type").notNull(), // world, regional, city, dungeon, political, etc.
   description: text("description").notNull(),
@@ -1411,14 +1770,20 @@ export const maps = pgTable("maps", {
   accuracy: text("accuracy"), // precise, rough, outdated, etc.
   legends: text("legends").array(),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Music for cultural and artistic elements
 export const music = pgTable("music", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   musicType: text("music_type").notNull(), // song, symphony, folk tune, chant, etc.
   description: text("description").notNull(),
@@ -1438,14 +1803,20 @@ export const music = pgTable("music", {
   length: text("length"),
   difficulty: text("difficulty"),
   variations: text("variations").array(),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Dance for cultural and artistic elements
 export const dances = pgTable("dances", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   danceType: text("dance_type").notNull(), // ritual, social, performance, combat, etc.
   description: text("description").notNull(),
@@ -1465,14 +1836,20 @@ export const dances = pgTable("dances", {
   variations: text("variations").array(),
   teachingMethods: text("teaching_methods"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Laws for legal and governance systems
 export const laws = pgTable("laws", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   lawType: text("law_type").notNull(), // criminal, civil, religious, military, etc.
   description: text("description").notNull(),
@@ -1491,14 +1868,20 @@ export const laws = pgTable("laws", {
   historicalContext: text("historical_context"),
   effectiveness: text("effectiveness"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Policies for organizational and governmental directives
 export const policies = pgTable("policies", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   policyType: text("policy_type").notNull(), // governmental, organizational, diplomatic, etc.
   description: text("description").notNull(),
@@ -1518,14 +1901,20 @@ export const policies = pgTable("policies", {
   relatedPolicies: text("related_policies").array(),
   effectiveness: text("effectiveness"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Potions separate from drinks - magical/alchemical concoctions
 export const potions = pgTable("potions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   potionType: text("potion_type").notNull(), // healing, poison, enhancement, transformation, etc.
   description: text("description").notNull(),
@@ -1550,14 +1939,20 @@ export const potions = pgTable("potions", {
   creator: text("creator"),
   legality: text("legality"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Professions for character occupations and career paths
 export const professions = pgTable("professions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   professionType: text("profession_type"), // warrior, mage, merchant, craftsman, noble, etc.
   description: text("description").notNull(),
@@ -1579,14 +1974,20 @@ export const professions = pgTable("professions", {
   historicalContext: text("historical_context"),
   culturalSignificance: text("cultural_significance"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Ranks for hierarchical positions and titles
 export const ranks = pgTable("ranks", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   rankType: text("rank_type"), // military, nobility, clergy, guild, etc.
   description: text("description").notNull(),
@@ -1602,14 +2003,20 @@ export const ranks = pgTable("ranks", {
   titleOfAddress: text("title_of_address"), // How to address someone with this rank
   historicalOrigin: text("historical_origin"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Conditions for diseases, curses, afflictions, and states
 export const conditions = pgTable("conditions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   conditionType: text("condition_type").notNull(), // disease, curse, affliction, blessing, mutation, etc.
   description: text("description").notNull(),
@@ -1629,343 +2036,541 @@ export const conditions = pgTable("conditions", {
   culturalImpact: text("cultural_impact"),
   historicalOutbreaks: text("historical_outbreaks"),
   genre: text("genre"),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  notebookId: varchar("notebook_id").references(() => notebooks.id, {
+    onDelete: "cascade",
+  }),
+  userId: varchar("user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // User saved items (favorites)
-export const savedItems = pgTable("saved_items", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  itemType: text("item_type").notNull(), // 'character', 'location', 'item', 'organization', etc.
-  itemId: varchar("item_id").notNull(),
-  itemData: jsonb("item_data"), // Stores the actual item content (character names, profession details, etc.)
-  notebookId: varchar("notebook_id").notNull().references(() => notebooks.id, { onDelete: 'cascade' }),
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  // Prevent duplicate saved items: same content can't be saved twice to the same notebook
-  uniqueUserNotebookItem: uniqueIndex("saved_items_unique_user_notebook_item_idx")
-    .on(table.userId, table.notebookId, table.itemType, table.itemId)
-}));
+export const savedItems = pgTable(
+  "saved_items",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    itemType: text("item_type").notNull(), // 'character', 'location', 'item', 'organization', etc.
+    itemId: varchar("item_id").notNull(),
+    itemData: jsonb("item_data"), // Stores the actual item content (character names, profession details, etc.)
+    notebookId: varchar("notebook_id")
+      .notNull()
+      .references(() => notebooks.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    // Prevent duplicate saved items: same content can't be saved twice to the same notebook
+    uniqueUserNotebookItem: uniqueIndex(
+      "saved_items_unique_user_notebook_item_idx",
+    ).on(table.userId, table.notebookId, table.itemType, table.itemId),
+  }),
+);
 
 // Folders - Organizational structure for projects and guides
-export const folders = pgTable("folders", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  description: text("description"),
-  color: text("color"), // Optional color for visual organization
-  type: text("type").notNull(), // 'project' or 'guide'
-  parentId: varchar("parent_id"), // Self-reference handled via relations to avoid circular dependency
-  projectId: varchar("project_id"), // Link to parent project
-  guideId: varchar("guide_id").references(() => guides.id, { onDelete: 'cascade' }), // Link to parent guide
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  sortOrder: integer("sort_order").default(0), // For custom ordering
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  // Ensure folder has proper parent relationship when type is specified
-  parentCheck: sql`CHECK (
+export const folders = pgTable(
+  "folders",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    name: text("name").notNull(),
+    description: text("description"),
+    color: text("color"), // Optional color for visual organization
+    type: text("type").notNull(), // 'project' or 'guide'
+    parentId: varchar("parent_id"), // Self-reference handled via relations to avoid circular dependency
+    projectId: varchar("project_id"), // Link to parent project
+    guideId: varchar("guide_id").references(() => guides.id, {
+      onDelete: "cascade",
+    }), // Link to parent guide
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    sortOrder: integer("sort_order").default(0), // For custom ordering
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    // Ensure folder has proper parent relationship when type is specified
+    parentCheck: sql`CHECK (
     (${table.type} = 'project' AND ${table.projectId} IS NOT NULL AND ${table.guideId} IS NULL) OR
     (${table.type} = 'guide' AND ${table.guideId} IS NOT NULL AND ${table.projectId} IS NULL)
-  )`
-}));
+  )`,
+  }),
+);
 
 // Notes - Sub-documents within folders (scenes for projects, individual guides for guide folders)
-export const notes = pgTable("notes", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  title: text("title").notNull(),
-  content: text("content").notNull().default(''), // Rich text content
-  excerpt: text("excerpt"), // Auto-generated excerpt for previews
-  type: text("type").notNull(), // 'project_note', 'guide_note', or 'quick_note'
-  folderId: varchar("folder_id").references(() => folders.id, { onDelete: 'cascade' }),
-  projectId: varchar("project_id"), // Link to parent project
-  guideId: varchar("guide_id").references(() => guides.id, { onDelete: 'cascade' }), // Link to parent guide
-  sortOrder: integer("sort_order").default(0), // For custom ordering within folder
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  // Ensure note has proper parent relationship - project/guide notes need parent, quick notes don't
-  parentCheck: sql`CHECK (
+export const notes = pgTable(
+  "notes",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    title: text("title").notNull(),
+    content: text("content").notNull().default(""), // Rich text content
+    excerpt: text("excerpt"), // Auto-generated excerpt for previews
+    type: text("type").notNull(), // 'project_note', 'guide_note', or 'quick_note'
+    folderId: varchar("folder_id").references(() => folders.id, {
+      onDelete: "cascade",
+    }),
+    projectId: varchar("project_id"), // Link to parent project
+    guideId: varchar("guide_id").references(() => guides.id, {
+      onDelete: "cascade",
+    }), // Link to parent guide
+    sortOrder: integer("sort_order").default(0), // For custom ordering within folder
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    // Ensure note has proper parent relationship - project/guide notes need parent, quick notes don't
+    parentCheck: sql`CHECK (
     (${table.type} = 'quick_note' AND ${table.projectId} IS NULL AND ${table.guideId} IS NULL) OR
     (${table.type} != 'quick_note' AND (
       (${table.projectId} IS NOT NULL AND ${table.guideId} IS NULL) OR
       (${table.projectId} IS NULL AND ${table.guideId} IS NOT NULL)
     ))
-  )`
-}));
+  )`,
+  }),
+);
 
 // Projects - Rich text documents for writing (updated with folder support and AI context metadata)
-export const projects = pgTable("projects", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  title: text("title").notNull(),
-  content: text("content").notNull().default(''), // Rich text content
-  excerpt: text("excerpt"), // Auto-generated excerpt for previews
-  wordCount: integer("word_count").default(0),
-  tags: text("tags").array(), // User-defined tags
-  status: text("status").notNull().default('draft'), // 'draft', 'published', 'archived'
-  searchVector: tsvector("search_vector"),
-  folderId: varchar("folder_id"), // Optional folder organization
-  // AI Context Metadata for better assistance
-  genre: text("genre"), // Primary genre of the project
-  targetWordCount: integer("target_word_count"), // Writing goal for this project
-  currentStage: text("current_stage"), // e.g., 'outlining', 'first draft', 'revision', 'editing'
-  knownChallenges: text("known_challenges").array().default(sql`ARRAY[]::text[]`), // Writer's identified struggles
-  recentMilestones: text("recent_milestones").array().default(sql`ARRAY[]::text[]`), // Recent achievements
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  searchIdx: index("project_search_idx").using("gin", table.searchVector),
-}));
+export const projects = pgTable(
+  "projects",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    title: text("title").notNull(),
+    content: text("content").notNull().default(""), // Rich text content
+    excerpt: text("excerpt"), // Auto-generated excerpt for previews
+    wordCount: integer("word_count").default(0),
+    tags: text("tags").array(), // User-defined tags
+    status: text("status").notNull().default("draft"), // 'draft', 'published', 'archived'
+    searchVector: tsvector("search_vector"),
+    folderId: varchar("folder_id"), // Optional folder organization
+    // AI Context Metadata for better assistance
+    genre: text("genre"), // Primary genre of the project
+    targetWordCount: integer("target_word_count"), // Writing goal for this project
+    currentStage: text("current_stage"), // e.g., 'outlining', 'first draft', 'revision', 'editing'
+    knownChallenges: text("known_challenges")
+      .array()
+      .default(sql`ARRAY[]::text[]`), // Writer's identified struggles
+    recentMilestones: text("recent_milestones")
+      .array()
+      .default(sql`ARRAY[]::text[]`), // Recent achievements
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    searchIdx: index("project_search_idx").using("gin", table.searchVector),
+  }),
+);
 
 // Project Sections - Hierarchical structure for projects (folders and pages)
-export const projectSections = pgTable("project_sections", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: 'cascade' }),
-  parentId: varchar("parent_id"), // Self-reference handled at database level
-  title: text("title").notNull(),
-  content: text("content"), // HTML content for pages
-  type: text("type").notNull(), // 'folder' or 'page'
-  position: integer("position").notNull(), // For ordering within parent
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  projectIdx: index("idx_project_sections_project").on(table.projectId),
-  parentIdx: index("idx_project_sections_parent").on(table.parentId),
-}));
+export const projectSections = pgTable(
+  "project_sections",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    projectId: varchar("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    parentId: varchar("parent_id"), // Self-reference handled at database level
+    title: text("title").notNull(),
+    content: text("content"), // HTML content for pages
+    type: text("type").notNull(), // 'folder' or 'page'
+    position: integer("position").notNull(), // For ordering within parent
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    projectIdx: index("idx_project_sections_project").on(table.projectId),
+    parentIdx: index("idx_project_sections_parent").on(table.parentId),
+  }),
+);
 
 // Project Links - Bidirectional links between projects and content
 export const projectLinks = pgTable("project_links", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  sourceId: varchar("source_id").notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  sourceId: varchar("source_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
   targetType: text("target_type").notNull(), // 'character', 'location', 'organization', 'project', etc.
   targetId: varchar("target_id").notNull(),
   contextText: text("context_text"), // Surrounding text where link appears
   linkText: text("link_text"), // The actual text of the link
   position: integer("position"), // Position in the source document
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Project Versions - Snapshots for version control and restore points
-export const projectVersions = pgTable("project_versions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: 'cascade' }),
-  versionNumber: integer("version_number").notNull(), // Incremental version number
-  title: text("title").notNull(),
-  content: text("content").notNull(), // Full snapshot of content
-  wordCount: integer("word_count").default(0),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }), // Who created this version
-  versionType: text("version_type").notNull().default('auto'), // 'auto', 'manual', 'restore'
-  versionLabel: text("version_label"), // Optional label like "Before major revision"
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  projectIdx: index("project_versions_project_idx").on(table.projectId),
-  createdAtIdx: index("project_versions_created_at_idx").on(table.createdAt),
-}));
+export const projectVersions = pgTable(
+  "project_versions",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    projectId: varchar("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    versionNumber: integer("version_number").notNull(), // Incremental version number
+    title: text("title").notNull(),
+    content: text("content").notNull(), // Full snapshot of content
+    wordCount: integer("word_count").default(0),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }), // Who created this version
+    versionType: text("version_type").notNull().default("auto"), // 'auto', 'manual', 'restore'
+    versionLabel: text("version_label"), // Optional label like "Before major revision"
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    projectIdx: index("project_versions_project_idx").on(table.projectId),
+    createdAtIdx: index("project_versions_created_at_idx").on(table.createdAt),
+  }),
+);
 
 // Project Activity - Edit log for tracking who changed what
-export const projectActivity = pgTable("project_activity", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  userName: text("user_name").notNull(), // Cached for display
-  userAvatar: text("user_avatar"), // User profile image
-  activityType: text("activity_type").notNull(), // 'edit', 'comment', 'version_created', 'shared', 'permission_changed'
-  description: text("description").notNull(), // Human-readable description
-  metadata: jsonb("metadata"), // Additional data like character count change, sections edited, etc.
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  projectIdx: index("project_activity_project_idx").on(table.projectId),
-  userIdx: index("project_activity_user_idx").on(table.userId),
-  createdAtIdx: index("project_activity_created_at_idx").on(table.createdAt),
-  activityTypeIdx: index("project_activity_type_idx").on(table.activityType),
-}));
+export const projectActivity = pgTable(
+  "project_activity",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    projectId: varchar("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    userName: text("user_name").notNull(), // Cached for display
+    userAvatar: text("user_avatar"), // User profile image
+    activityType: text("activity_type").notNull(), // 'edit', 'comment', 'version_created', 'shared', 'permission_changed'
+    description: text("description").notNull(), // Human-readable description
+    metadata: jsonb("metadata"), // Additional data like character count change, sections edited, etc.
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    projectIdx: index("project_activity_project_idx").on(table.projectId),
+    userIdx: index("project_activity_user_idx").on(table.userId),
+    createdAtIdx: index("project_activity_created_at_idx").on(table.createdAt),
+    activityTypeIdx: index("project_activity_type_idx").on(table.activityType),
+  }),
+);
 
 // Pending Changes - Approval workflow for suggested edits from comment-only users
-export const pendingChanges = pgTable("pending_changes", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }), // Suggester
-  userName: text("user_name").notNull(),
-  userAvatar: text("user_avatar"),
-  changeType: text("change_type").notNull(), // 'insert', 'delete', 'format', 'replace'
-  position: integer("position").notNull(), // Position in document
-  originalContent: text("original_content"), // Original text (for delete/replace)
-  proposedContent: text("proposed_content"), // Suggested text (for insert/replace)
-  description: text("description"), // Optional description from suggester
-  status: text("status").notNull().default('pending'), // 'pending', 'approved', 'rejected'
-  reviewedBy: varchar("reviewed_by").references(() => users.id, { onDelete: 'set null' }),
-  reviewedAt: timestamp("reviewed_at"),
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  projectIdx: index("pending_changes_project_idx").on(table.projectId),
-  statusIdx: index("pending_changes_status_idx").on(table.status),
-  userIdx: index("pending_changes_user_idx").on(table.userId),
-  createdAtIdx: index("pending_changes_created_at_idx").on(table.createdAt),
-}));
+export const pendingChanges = pgTable(
+  "pending_changes",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    projectId: varchar("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }), // Suggester
+    userName: text("user_name").notNull(),
+    userAvatar: text("user_avatar"),
+    changeType: text("change_type").notNull(), // 'insert', 'delete', 'format', 'replace'
+    position: integer("position").notNull(), // Position in document
+    originalContent: text("original_content"), // Original text (for delete/replace)
+    proposedContent: text("proposed_content"), // Suggested text (for insert/replace)
+    description: text("description"), // Optional description from suggester
+    status: text("status").notNull().default("pending"), // 'pending', 'approved', 'rejected'
+    reviewedBy: varchar("reviewed_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    reviewedAt: timestamp("reviewed_at"),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    projectIdx: index("pending_changes_project_idx").on(table.projectId),
+    statusIdx: index("pending_changes_status_idx").on(table.status),
+    userIdx: index("pending_changes_user_idx").on(table.userId),
+    createdAtIdx: index("pending_changes_created_at_idx").on(table.createdAt),
+  }),
+);
 
 // Pinned Content - User's pinned items for quick access
-export const pinnedContent = pgTable("pinned_content", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'cascade' }),
-  targetType: text("target_type").notNull(), // 'character', 'location', 'project', etc.
-  targetId: varchar("target_id").notNull(),
-  pinOrder: integer("pin_order").default(0), // For custom ordering
-  category: text("category"), // Optional grouping: 'characters', 'locations', 'research', etc.
-  notes: text("notes"), // User notes about why this is pinned
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  uniqueUserPin: sql`UNIQUE(${table.userId}, ${table.targetType}, ${table.targetId})`
-}));
+export const pinnedContent = pgTable(
+  "pinned_content",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    notebookId: varchar("notebook_id").references(() => notebooks.id, {
+      onDelete: "cascade",
+    }),
+    targetType: text("target_type").notNull(), // 'character', 'location', 'project', etc.
+    targetId: varchar("target_id").notNull(),
+    pinOrder: integer("pin_order").default(0), // For custom ordering
+    category: text("category"), // Optional grouping: 'characters', 'locations', 'research', etc.
+    notes: text("notes"), // User notes about why this is pinned
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    uniqueUserPin: sql`UNIQUE(${table.userId}, ${table.targetType}, ${table.targetId})`,
+  }),
+);
 
 // Canvases - Visual whiteboard/moodboard using Excalidraw for story planning, character relationships, world maps, etc.
-export const canvases = pgTable("canvases", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  description: text("description"), // Optional description of what this canvas is for
-  data: text("data").notNull().default('{"elements":[],"appState":{},"files":{}}'), // Excalidraw JSON data
-  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'cascade' }), // Optional project linking
-  tags: text("tags").array(), // User-defined tags for organization
-  isTemplate: boolean("is_template").default(false), // Mark as template for reuse
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  userIdx: index("canvas_user_idx").on(table.userId),
-  projectIdx: index("canvas_project_idx").on(table.projectId),
-  templateIdx: index("canvas_template_idx").on(table.isTemplate),
-}));
+export const canvases = pgTable(
+  "canvases",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    name: text("name").notNull(),
+    description: text("description"), // Optional description of what this canvas is for
+    data: text("data")
+      .notNull()
+      .default('{"elements":[],"appState":{},"files":{}}'), // Excalidraw JSON data
+    projectId: varchar("project_id").references(() => projects.id, {
+      onDelete: "cascade",
+    }), // Optional project linking
+    tags: text("tags").array(), // User-defined tags for organization
+    isTemplate: boolean("is_template").default(false), // Mark as template for reuse
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    userIdx: index("canvas_user_idx").on(table.userId),
+    projectIdx: index("canvas_project_idx").on(table.projectId),
+    templateIdx: index("canvas_template_idx").on(table.isTemplate),
+  }),
+);
 
 // Conversation Threads - Organize and manage chat conversations with topics and branching
-export const conversationThreads = pgTable("conversation_threads", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'cascade' }), // Optional - links to specific project
-  guideId: varchar("guide_id").references(() => guides.id, { onDelete: 'cascade' }), // Optional - links to specific guide
-  title: text("title").notNull(), // Auto-generated or user-defined title
-  summary: text("summary"), // Brief summary of conversation for search
-  tags: text("tags").array(), // Auto-generated topic tags (e.g., ['character development', 'Marcus', 'plot structure'])
-  parentThreadId: varchar("parent_thread_id").references((): any => conversationThreads.id, { onDelete: 'set null' }), // For branching conversations
-  isActive: boolean("is_active").default(true), // Active thread or archived
-  messageCount: integer("message_count").default(0), // Cached count of messages
-  lastActivityAt: timestamp("last_activity_at").defaultNow(), // For sorting by recency
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  userIdIdx: index("conversation_threads_user_id_idx").on(table.userId),
-  projectIdIdx: index("conversation_threads_project_id_idx").on(table.projectId),
-  guideIdIdx: index("conversation_threads_guide_id_idx").on(table.guideId),
-  parentThreadIdx: index("conversation_threads_parent_id_idx").on(table.parentThreadId),
-  activeIdx: index("conversation_threads_active_idx").on(table.isActive),
-  lastActivityIdx: index("conversation_threads_last_activity_idx").on(table.lastActivityAt),
-  tagsIdx: index("conversation_threads_tags_idx").on(table.tags), // For tag-based search
-}));
+export const conversationThreads = pgTable(
+  "conversation_threads",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    projectId: varchar("project_id").references(() => projects.id, {
+      onDelete: "cascade",
+    }), // Optional - links to specific project
+    guideId: varchar("guide_id").references(() => guides.id, {
+      onDelete: "cascade",
+    }), // Optional - links to specific guide
+    title: text("title").notNull(), // Auto-generated or user-defined title
+    summary: text("summary"), // Brief summary of conversation for search
+    tags: text("tags").array(), // Auto-generated topic tags (e.g., ['character development', 'Marcus', 'plot structure'])
+    parentThreadId: varchar("parent_thread_id").references(
+      (): any => conversationThreads.id,
+      { onDelete: "set null" },
+    ), // For branching conversations
+    isActive: boolean("is_active").default(true), // Active thread or archived
+    messageCount: integer("message_count").default(0), // Cached count of messages
+    lastActivityAt: timestamp("last_activity_at").defaultNow(), // For sorting by recency
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("conversation_threads_user_id_idx").on(table.userId),
+    projectIdIdx: index("conversation_threads_project_id_idx").on(
+      table.projectId,
+    ),
+    guideIdIdx: index("conversation_threads_guide_id_idx").on(table.guideId),
+    parentThreadIdx: index("conversation_threads_parent_id_idx").on(
+      table.parentThreadId,
+    ),
+    activeIdx: index("conversation_threads_active_idx").on(table.isActive),
+    lastActivityIdx: index("conversation_threads_last_activity_idx").on(
+      table.lastActivityAt,
+    ),
+    tagsIdx: index("conversation_threads_tags_idx").on(table.tags), // For tag-based search
+  }),
+);
 
 // Chat Messages - Persistent chat history for Writing Assistant
-export const chatMessages = pgTable("chat_messages", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  threadId: varchar("thread_id").references(() => conversationThreads.id, { onDelete: 'cascade' }), // Links message to conversation thread
-  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'cascade' }), // Optional - links to specific project
-  guideId: varchar("guide_id").references(() => guides.id, { onDelete: 'cascade' }), // Optional - links to specific guide
-  type: text("type").notNull(), // 'user' or 'assistant'
-  content: text("content").notNull(), // Message content
-  metadata: jsonb("metadata"), // Optional metadata like analysis results, suggestions, etc.
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  userIdIdx: index("chat_messages_user_id_idx").on(table.userId),
-  threadIdIdx: index("chat_messages_thread_id_idx").on(table.threadId),
-  projectIdIdx: index("chat_messages_project_id_idx").on(table.projectId),
-  guideIdIdx: index("chat_messages_guide_id_idx").on(table.guideId),
-  createdAtIdx: index("chat_messages_created_at_idx").on(table.createdAt),
-}));
+export const chatMessages = pgTable(
+  "chat_messages",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    threadId: varchar("thread_id").references(() => conversationThreads.id, {
+      onDelete: "cascade",
+    }), // Links message to conversation thread
+    projectId: varchar("project_id").references(() => projects.id, {
+      onDelete: "cascade",
+    }), // Optional - links to specific project
+    guideId: varchar("guide_id").references(() => guides.id, {
+      onDelete: "cascade",
+    }), // Optional - links to specific guide
+    type: text("type").notNull(), // 'user' or 'assistant'
+    content: text("content").notNull(), // Message content
+    metadata: jsonb("metadata"), // Optional metadata like analysis results, suggestions, etc.
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("chat_messages_user_id_idx").on(table.userId),
+    threadIdIdx: index("chat_messages_thread_id_idx").on(table.threadId),
+    projectIdIdx: index("chat_messages_project_id_idx").on(table.projectId),
+    guideIdIdx: index("chat_messages_guide_id_idx").on(table.guideId),
+    createdAtIdx: index("chat_messages_created_at_idx").on(table.createdAt),
+  }),
+);
 
 // User Preferences - Writing preferences and AI interaction settings
-export const userPreferences = pgTable("user_preferences", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
-  experienceLevel: text("experience_level"), // 'beginner', 'intermediate', 'advanced', 'new_to_worldbuilding', 'experienced_worldbuilder'
-  preferredGenres: text("preferred_genres").array(), // Array of genres the user writes
-  writingGoals: text("writing_goals").array(), // e.g., ['finish novel', 'improve dialogue', 'publish']
-  feedbackStyle: text("feedback_style"), // 'direct', 'gentle', 'technical', 'conceptual'
-  targetWordCount: integer("target_word_count"), // General writing goal
-  writingSchedule: text("writing_schedule"), // 'daily', 'weekly', 'whenever'
-  preferredTone: text("preferred_tone"), // AI assistant tone preference
-  
-  // Response format preferences for personalized AI interactions
-  responseFormat: text("response_format"), // 'bullets', 'paragraphs', 'mixed', 'adaptive'
-  detailLevel: text("detail_level"), // 'brief', 'moderate', 'comprehensive'
-  examplesPreference: text("examples_preference"), // 'frequent', 'occasional', 'minimal'
-  
-  // Onboarding tracking
-  onboardingCompleted: boolean("onboarding_completed").default(false),
-  onboardingStep: integer("onboarding_step").default(0), // Current step in onboarding process
-  
-  // Beta launch preferences
-  betaBannerDismissed: boolean("beta_banner_dismissed").default(false),
-  
-  // UI preferences
-  theme: text("theme"), // 'light', 'dark', or null (follow system)
-  
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  userIdIdx: index("user_preferences_user_id_idx").on(table.userId),
-}));
+export const userPreferences = pgTable(
+  "user_preferences",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" })
+      .unique(),
+    experienceLevel: text("experience_level"), // 'beginner', 'intermediate', 'advanced', 'new_to_worldbuilding', 'experienced_worldbuilder'
+    preferredGenres: text("preferred_genres").array(), // Array of genres the user writes
+    writingGoals: text("writing_goals").array(), // e.g., ['finish novel', 'improve dialogue', 'publish']
+    feedbackStyle: text("feedback_style"), // 'direct', 'gentle', 'technical', 'conceptual'
+    targetWordCount: integer("target_word_count"), // General writing goal
+    writingSchedule: text("writing_schedule"), // 'daily', 'weekly', 'whenever'
+    preferredTone: text("preferred_tone"), // AI assistant tone preference
+
+    // Response format preferences for personalized AI interactions
+    responseFormat: text("response_format"), // 'bullets', 'paragraphs', 'mixed', 'adaptive'
+    detailLevel: text("detail_level"), // 'brief', 'moderate', 'comprehensive'
+    examplesPreference: text("examples_preference"), // 'frequent', 'occasional', 'minimal'
+
+    // Onboarding tracking
+    onboardingCompleted: boolean("onboarding_completed").default(false),
+    onboardingStep: integer("onboarding_step").default(0), // Current step in onboarding process
+
+    // Beta launch preferences
+    betaBannerDismissed: boolean("beta_banner_dismissed").default(false),
+
+    // UI preferences
+    theme: text("theme"), // 'light', 'dark', or null (follow system)
+
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("user_preferences_user_id_idx").on(table.userId),
+  }),
+);
 
 // Feedback - User bug reports, feature requests, and general feedback
-export const feedback = pgTable("feedback", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  type: text("type").notNull(), // 'bug', 'feature-request', 'general-feedback'
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  status: text("status").notNull().default('new'), // 'new', 'reviewed', 'in-progress', 'resolved', 'closed'
-  userEmail: text("user_email").notNull(),
-  userBrowser: text("user_browser"),
-  userOS: text("user_os"),
-  currentPage: text("current_page"),
-  adminReply: text("admin_reply"),
-  adminRepliedAt: timestamp("admin_replied_at"),
-  adminRepliedBy: varchar("admin_replied_by"),
-  hasUnreadReply: boolean("has_unread_reply").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  userIdIdx: index("feedback_user_id_idx").on(table.userId),
-  statusIdx: index("feedback_status_idx").on(table.status),
-  typeIdx: index("feedback_type_idx").on(table.type),
-  createdAtIdx: index("feedback_created_at_idx").on(table.createdAt),
-  hasUnreadReplyIdx: index("feedback_has_unread_reply_idx").on(table.hasUnreadReply),
-}));
+export const feedback = pgTable(
+  "feedback",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: text("type").notNull(), // 'bug', 'feature-request', 'general-feedback'
+    title: text("title").notNull(),
+    description: text("description").notNull(),
+    status: text("status").notNull().default("new"), // 'new', 'reviewed', 'in-progress', 'resolved', 'closed'
+    userEmail: text("user_email").notNull(),
+    userBrowser: text("user_browser"),
+    userOS: text("user_os"),
+    currentPage: text("current_page"),
+    adminReply: text("admin_reply"),
+    adminRepliedAt: timestamp("admin_replied_at"),
+    adminRepliedBy: varchar("admin_replied_by"),
+    hasUnreadReply: boolean("has_unread_reply").default(false),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("feedback_user_id_idx").on(table.userId),
+    statusIdx: index("feedback_status_idx").on(table.status),
+    typeIdx: index("feedback_type_idx").on(table.type),
+    createdAtIdx: index("feedback_created_at_idx").on(table.createdAt),
+    hasUnreadReplyIdx: index("feedback_has_unread_reply_idx").on(
+      table.hasUnreadReply,
+    ),
+  }),
+);
 
 // Conversation Summaries - Persistent memory of key insights from conversations
-export const conversationSummaries = pgTable("conversation_summaries", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'cascade' }), // Optional - project-specific
-  guideId: varchar("guide_id").references(() => guides.id, { onDelete: 'cascade' }), // Optional - guide-specific
-  keyChallenges: text("key_challenges").array().default(sql`ARRAY[]::text[]`), // Ongoing struggles
-  breakthroughs: text("breakthroughs").array().default(sql`ARRAY[]::text[]`), // Important discoveries
-  recurringQuestions: text("recurring_questions").array().default(sql`ARRAY[]::text[]`), // Patterns in questions
-  lastDiscussedTopics: text("last_discussed_topics").array().default(sql`ARRAY[]::text[]`), // Recent conversation themes
-  writerProgress: text("writer_progress"), // Summary of overall progress
-  lastDiscussed: timestamp("last_discussed").defaultNow(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  userIdIdx: index("conversation_summaries_user_id_idx").on(table.userId),
-  projectIdIdx: index("conversation_summaries_project_id_idx").on(table.projectId),
-  guideIdIdx: index("conversation_summaries_guide_id_idx").on(table.guideId),
-  lastDiscussedIdx: index("conversation_summaries_last_discussed_idx").on(table.lastDiscussed),
-  // Unique constraint using coalesce to handle NULLs properly (NULLs become empty strings)
-  uniqueScopeIdx: uniqueIndex("conversation_summaries_unique_scope")
-    .on(table.userId, sql`coalesce(${table.projectId}, '')`, sql`coalesce(${table.guideId}, '')`),
-}));
+export const conversationSummaries = pgTable(
+  "conversation_summaries",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    projectId: varchar("project_id").references(() => projects.id, {
+      onDelete: "cascade",
+    }), // Optional - project-specific
+    guideId: varchar("guide_id").references(() => guides.id, {
+      onDelete: "cascade",
+    }), // Optional - guide-specific
+    keyChallenges: text("key_challenges")
+      .array()
+      .default(sql`ARRAY[]::text[]`), // Ongoing struggles
+    breakthroughs: text("breakthroughs")
+      .array()
+      .default(sql`ARRAY[]::text[]`), // Important discoveries
+    recurringQuestions: text("recurring_questions")
+      .array()
+      .default(sql`ARRAY[]::text[]`), // Patterns in questions
+    lastDiscussedTopics: text("last_discussed_topics")
+      .array()
+      .default(sql`ARRAY[]::text[]`), // Recent conversation themes
+    writerProgress: text("writer_progress"), // Summary of overall progress
+    lastDiscussed: timestamp("last_discussed").defaultNow(),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("conversation_summaries_user_id_idx").on(table.userId),
+    projectIdIdx: index("conversation_summaries_project_id_idx").on(
+      table.projectId,
+    ),
+    guideIdIdx: index("conversation_summaries_guide_id_idx").on(table.guideId),
+    lastDiscussedIdx: index("conversation_summaries_last_discussed_idx").on(
+      table.lastDiscussed,
+    ),
+    // Unique constraint using coalesce to handle NULLs properly (NULLs become empty strings)
+    uniqueScopeIdx: uniqueIndex("conversation_summaries_unique_scope").on(
+      table.userId,
+      sql`coalesce(${table.projectId}, '')`,
+      sql`coalesce(${table.guideId}, '')`,
+    ),
+  }),
+);
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
@@ -2544,31 +3149,37 @@ export const familyTreesRelations = relations(familyTrees, ({ one, many }) => ({
   relationships: many(familyTreeRelationships),
 }));
 
-export const familyTreeMembersRelations = relations(familyTreeMembers, ({ one }) => ({
-  tree: one(familyTrees, {
-    fields: [familyTreeMembers.treeId],
-    references: [familyTrees.id],
+export const familyTreeMembersRelations = relations(
+  familyTreeMembers,
+  ({ one }) => ({
+    tree: one(familyTrees, {
+      fields: [familyTreeMembers.treeId],
+      references: [familyTrees.id],
+    }),
+    character: one(characters, {
+      fields: [familyTreeMembers.characterId],
+      references: [characters.id],
+    }),
   }),
-  character: one(characters, {
-    fields: [familyTreeMembers.characterId],
-    references: [characters.id],
-  }),
-}));
+);
 
-export const familyTreeRelationshipsRelations = relations(familyTreeRelationships, ({ one }) => ({
-  tree: one(familyTrees, {
-    fields: [familyTreeRelationships.treeId],
-    references: [familyTrees.id],
+export const familyTreeRelationshipsRelations = relations(
+  familyTreeRelationships,
+  ({ one }) => ({
+    tree: one(familyTrees, {
+      fields: [familyTreeRelationships.treeId],
+      references: [familyTrees.id],
+    }),
+    fromMember: one(familyTreeMembers, {
+      fields: [familyTreeRelationships.fromMemberId],
+      references: [familyTreeMembers.id],
+    }),
+    toMember: one(familyTreeMembers, {
+      fields: [familyTreeRelationships.toMemberId],
+      references: [familyTreeMembers.id],
+    }),
   }),
-  fromMember: one(familyTreeMembers, {
-    fields: [familyTreeRelationships.fromMemberId],
-    references: [familyTreeMembers.id],
-  }),
-  toMember: one(familyTreeMembers, {
-    fields: [familyTreeRelationships.toMemberId],
-    references: [familyTreeMembers.id],
-  }),
-}));
+);
 
 export const timelinesRelations = relations(timelines, ({ one }) => ({
   user: one(users, {
@@ -2731,45 +3342,51 @@ export const guidesRelations = relations(guides, ({ one, many }) => ({
   }),
   notes: many(notes),
   sourceReferences: many(guideReferences, {
-    relationName: 'sourceGuide',
+    relationName: "sourceGuide",
   }),
   targetReferences: many(guideReferences, {
-    relationName: 'targetGuide',
+    relationName: "targetGuide",
   }),
 }));
 
-export const guideCategoriesRelations = relations(guideCategories, ({ one, many }) => ({
-  user: one(users, {
-    fields: [guideCategories.userId],
-    references: [users.id],
+export const guideCategoriesRelations = relations(
+  guideCategories,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [guideCategories.userId],
+      references: [users.id],
+    }),
+    parent: one(guideCategories, {
+      fields: [guideCategories.parentId],
+      references: [guideCategories.id],
+      relationName: "children",
+    }),
+    children: many(guideCategories, {
+      relationName: "children",
+    }),
+    guides: many(guides),
   }),
-  parent: one(guideCategories, {
-    fields: [guideCategories.parentId],
-    references: [guideCategories.id],
-    relationName: 'children',
-  }),
-  children: many(guideCategories, {
-    relationName: 'children',
-  }),
-  guides: many(guides),
-}));
+);
 
-export const guideReferencesRelations = relations(guideReferences, ({ one }) => ({
-  user: one(users, {
-    fields: [guideReferences.userId],
-    references: [users.id],
+export const guideReferencesRelations = relations(
+  guideReferences,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [guideReferences.userId],
+      references: [users.id],
+    }),
+    sourceGuide: one(guides, {
+      fields: [guideReferences.sourceGuideId],
+      references: [guides.id],
+      relationName: "sourceGuide",
+    }),
+    targetGuide: one(guides, {
+      fields: [guideReferences.targetGuideId],
+      references: [guides.id],
+      relationName: "targetGuide",
+    }),
   }),
-  sourceGuide: one(guides, {
-    fields: [guideReferences.sourceGuideId],
-    references: [guides.id],
-    relationName: 'sourceGuide',
-  }),
-  targetGuide: one(guides, {
-    fields: [guideReferences.targetGuideId],
-    references: [guides.id],
-    relationName: 'targetGuide',
-  }),
-}));
+);
 
 export const projectLinksRelations = relations(projectLinks, ({ one }) => ({
   user: one(users, {
@@ -2789,25 +3406,28 @@ export const pinnedContentRelations = relations(pinnedContent, ({ one }) => ({
   }),
 }));
 
-export const conversationThreadsRelations = relations(conversationThreads, ({ one, many }) => ({
-  user: one(users, {
-    fields: [conversationThreads.userId],
-    references: [users.id],
+export const conversationThreadsRelations = relations(
+  conversationThreads,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [conversationThreads.userId],
+      references: [users.id],
+    }),
+    project: one(projects, {
+      fields: [conversationThreads.projectId],
+      references: [projects.id],
+    }),
+    guide: one(guides, {
+      fields: [conversationThreads.guideId],
+      references: [guides.id],
+    }),
+    parentThread: one(conversationThreads, {
+      fields: [conversationThreads.parentThreadId],
+      references: [conversationThreads.id],
+    }),
+    messages: many(chatMessages),
   }),
-  project: one(projects, {
-    fields: [conversationThreads.projectId],
-    references: [projects.id],
-  }),
-  guide: one(guides, {
-    fields: [conversationThreads.guideId],
-    references: [guides.id],
-  }),
-  parentThread: one(conversationThreads, {
-    fields: [conversationThreads.parentThreadId],
-    references: [conversationThreads.id],
-  }),
-  messages: many(chatMessages),
-}));
+);
 
 export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
   user: one(users, {
@@ -2874,13 +3494,17 @@ export const insertGuideSchema = createInsertSchema(guides).omit({
   updatedAt: true,
 });
 
-export const insertGuideCategorySchema = createInsertSchema(guideCategories).omit({
+export const insertGuideCategorySchema = createInsertSchema(
+  guideCategories,
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const insertGuideReferenceSchema = createInsertSchema(guideReferences).omit({
+export const insertGuideReferenceSchema = createInsertSchema(
+  guideReferences,
+).omit({
   id: true,
   createdAt: true,
 });
@@ -3075,7 +3699,9 @@ export const insertAnimalSchema = createInsertSchema(animals).omit({
   createdAt: true,
 });
 
-export const insertTransportationSchema = createInsertSchema(transportation).omit({
+export const insertTransportationSchema = createInsertSchema(
+  transportation,
+).omit({
   id: true,
   createdAt: true,
 });
@@ -3101,12 +3727,16 @@ export const insertFamilyTreeSchema = createInsertSchema(familyTrees).omit({
   updatedAt: true,
 });
 
-export const insertFamilyTreeMemberSchema = createInsertSchema(familyTreeMembers).omit({
+export const insertFamilyTreeMemberSchema = createInsertSchema(
+  familyTreeMembers,
+).omit({
   id: true,
   createdAt: true,
 });
 
-export const insertFamilyTreeRelationshipSchema = createInsertSchema(familyTreeRelationships).omit({
+export const insertFamilyTreeRelationshipSchema = createInsertSchema(
+  familyTreeRelationships,
+).omit({
   id: true,
   createdAt: true,
 });
@@ -3116,13 +3746,17 @@ export const insertTimelineSchema = createInsertSchema(timelines).omit({
   createdAt: true,
 });
 
-export const insertTimelineEventSchema = createInsertSchema(timelineEvents).omit({
+export const insertTimelineEventSchema = createInsertSchema(
+  timelineEvents,
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const insertTimelineRelationshipSchema = createInsertSchema(timelineRelationships).omit({
+export const insertTimelineRelationshipSchema = createInsertSchema(
+  timelineRelationships,
+).omit({
   id: true,
   createdAt: true,
 });
@@ -3183,7 +3817,9 @@ export const insertProjectSchema = createInsertSchema(projects).omit({
   updatedAt: true,
 });
 
-export const insertProjectSectionSchema = createInsertSchema(projectSections).omit({
+export const insertProjectSectionSchema = createInsertSchema(
+  projectSections,
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -3206,26 +3842,34 @@ export const insertProjectLinkSchema = createInsertSchema(projectLinks).omit({
   createdAt: true,
 });
 
-export const insertProjectVersionSchema = createInsertSchema(projectVersions).omit({
+export const insertProjectVersionSchema = createInsertSchema(
+  projectVersions,
+).omit({
   id: true,
   createdAt: true,
 });
 
-export const insertProjectActivitySchema = createInsertSchema(projectActivity).omit({
+export const insertProjectActivitySchema = createInsertSchema(
+  projectActivity,
+).omit({
   id: true,
   createdAt: true,
 });
 
-export const insertPendingChangeSchema = createInsertSchema(pendingChanges).omit({
+export const insertPendingChangeSchema = createInsertSchema(
+  pendingChanges,
+).omit({
   id: true,
   createdAt: true,
   reviewedAt: true,
 });
 
-export const insertPinnedContentSchema = createInsertSchema(pinnedContent).omit({
-  id: true,
-  createdAt: true,
-});
+export const insertPinnedContentSchema = createInsertSchema(pinnedContent).omit(
+  {
+    id: true,
+    createdAt: true,
+  },
+);
 
 export const insertCanvasSchema = createInsertSchema(canvases).omit({
   id: true,
@@ -3233,7 +3877,9 @@ export const insertCanvasSchema = createInsertSchema(canvases).omit({
   updatedAt: true,
 });
 
-export const insertConversationThreadSchema = createInsertSchema(conversationThreads).omit({
+export const insertConversationThreadSchema = createInsertSchema(
+  conversationThreads,
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -3335,7 +3981,9 @@ export type InsertPinnedContent = z.infer<typeof insertPinnedContentSchema>;
 export type PinnedContent = typeof pinnedContent.$inferSelect;
 export type InsertCanvas = z.infer<typeof insertCanvasSchema>;
 export type Canvas = typeof canvases.$inferSelect;
-export type InsertConversationThread = z.infer<typeof insertConversationThreadSchema>;
+export type InsertConversationThread = z.infer<
+  typeof insertConversationThreadSchema
+>;
 export type ConversationThread = typeof conversationThreads.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type ChatMessage = typeof chatMessages.$inferSelect;
@@ -3407,15 +4055,22 @@ export type InsertRitual = z.infer<typeof insertRitualSchema>;
 export type Ritual = typeof rituals.$inferSelect;
 export type InsertFamilyTree = z.infer<typeof insertFamilyTreeSchema>;
 export type FamilyTree = typeof familyTrees.$inferSelect;
-export type InsertFamilyTreeMember = z.infer<typeof insertFamilyTreeMemberSchema>;
+export type InsertFamilyTreeMember = z.infer<
+  typeof insertFamilyTreeMemberSchema
+>;
 export type FamilyTreeMember = typeof familyTreeMembers.$inferSelect;
-export type InsertFamilyTreeRelationship = z.infer<typeof insertFamilyTreeRelationshipSchema>;
-export type FamilyTreeRelationship = typeof familyTreeRelationships.$inferSelect;
+export type InsertFamilyTreeRelationship = z.infer<
+  typeof insertFamilyTreeRelationshipSchema
+>;
+export type FamilyTreeRelationship =
+  typeof familyTreeRelationships.$inferSelect;
 export type InsertTimeline = z.infer<typeof insertTimelineSchema>;
 export type Timeline = typeof timelines.$inferSelect;
 export type InsertTimelineEvent = z.infer<typeof insertTimelineEventSchema>;
 export type TimelineEvent = typeof timelineEvents.$inferSelect;
-export type InsertTimelineRelationship = z.infer<typeof insertTimelineRelationshipSchema>;
+export type InsertTimelineRelationship = z.infer<
+  typeof insertTimelineRelationshipSchema
+>;
 export type TimelineRelationship = typeof timelineRelationships.$inferSelect;
 export type InsertCeremony = z.infer<typeof insertCeremonySchema>;
 export type Ceremony = typeof ceremonies.$inferSelect;
@@ -3442,7 +4097,9 @@ export type Condition = typeof conditions.$inferSelect;
 
 // Banned Phrases - AI writing style guidelines
 export const bannedPhrases = pgTable("banned_phrases", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   phrase: text("phrase").notNull(),
   category: text("category").notNull(), // 'forbidden_phrase', 'banned_transition', 'word_replacement', 'robotic_pattern'
   replacement: text("replacement"), // For word_replacement category, suggested alternatives
@@ -3469,7 +4126,7 @@ export const insertImportJobSchema = createInsertSchema(importJobs).omit({
 });
 
 export const updateImportJobSchema = z.object({
-  status: z.enum(['pending', 'processing', 'completed', 'failed']).optional(),
+  status: z.enum(["pending", "processing", "completed", "failed"]).optional(),
   progress: z.number().min(0).max(100).optional(),
   totalItems: z.number().optional(),
   processedItems: z.number().optional(),
@@ -3483,7 +4140,9 @@ export type UpdateImportJob = z.infer<typeof updateImportJobSchema>;
 export type ImportJob = typeof importJobs.$inferSelect;
 
 // User Preferences schemas and types
-export const insertUserPreferencesSchema = createInsertSchema(userPreferences).omit({
+export const insertUserPreferencesSchema = createInsertSchema(
+  userPreferences,
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -3503,556 +4162,810 @@ export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
 export type Feedback = typeof feedback.$inferSelect;
 
 // Conversation Summaries schemas and types
-export const insertConversationSummarySchema = createInsertSchema(conversationSummaries).omit({
+export const insertConversationSummarySchema = createInsertSchema(
+  conversationSummaries,
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export type InsertConversationSummary = z.infer<typeof insertConversationSummarySchema>;
+export type InsertConversationSummary = z.infer<
+  typeof insertConversationSummarySchema
+>;
 export type ConversationSummary = typeof conversationSummaries.$inferSelect;
 
 // User Subscriptions
-export const userSubscriptions = pgTable("user_subscriptions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().unique().references(() => users.id, { onDelete: 'cascade' }),
-  tier: varchar("tier").notNull(), // 'free', 'author', 'professional', 'team'
-  status: varchar("status").notNull(), // 'active', 'past_due', 'canceled', 'trialing'
-  
-  // Stripe Integration
-  stripeCustomerId: varchar("stripe_customer_id"),
-  stripeSubscriptionId: varchar("stripe_subscription_id"),
-  stripePriceId: varchar("stripe_price_id"),
-  
-  // Billing Cycle
-  currentPeriodStart: timestamp("current_period_start"),
-  currentPeriodEnd: timestamp("current_period_end"),
-  cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),
-  
-  // Trial Management
-  trialStart: timestamp("trial_start"),
-  trialEnd: timestamp("trial_end"),
-  
-  // Pause Management
-  pausedAt: timestamp("paused_at"),
-  resumesAt: timestamp("resumes_at"),
-  pauseReason: text("pause_reason"),
-  
-  // Grace Period Management (7-day warning before strict enforcement)
-  gracePeriodStart: timestamp("grace_period_start"),
-  gracePeriodEnd: timestamp("grace_period_end"),
-  
-  // Team-specific fields
-  teamName: varchar("team_name"),
-  
-  // Timestamps
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  uniqueStripeCustomer: uniqueIndex("user_subscriptions_stripe_customer_idx").on(table.stripeCustomerId),
-  uniqueStripeSubscription: uniqueIndex("user_subscriptions_stripe_subscription_idx").on(table.stripeSubscriptionId),
-}));
+export const userSubscriptions = pgTable(
+  "user_subscriptions",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .unique()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tier: varchar("tier").notNull(), // 'free', 'author', 'professional', 'team'
+    status: varchar("status").notNull(), // 'active', 'past_due', 'canceled', 'trialing'
+
+    // Stripe Integration
+    stripeCustomerId: varchar("stripe_customer_id"),
+    stripeSubscriptionId: varchar("stripe_subscription_id"),
+    stripePriceId: varchar("stripe_price_id"),
+
+    // Billing Cycle
+    currentPeriodStart: timestamp("current_period_start"),
+    currentPeriodEnd: timestamp("current_period_end"),
+    cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),
+
+    // Trial Management
+    trialStart: timestamp("trial_start"),
+    trialEnd: timestamp("trial_end"),
+
+    // Pause Management
+    pausedAt: timestamp("paused_at"),
+    resumesAt: timestamp("resumes_at"),
+    pauseReason: text("pause_reason"),
+
+    // Grace Period Management (7-day warning before strict enforcement)
+    gracePeriodStart: timestamp("grace_period_start"),
+    gracePeriodEnd: timestamp("grace_period_end"),
+
+    // Team-specific fields
+    teamName: varchar("team_name"),
+
+    // Timestamps
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    uniqueStripeCustomer: uniqueIndex(
+      "user_subscriptions_stripe_customer_idx",
+    ).on(table.stripeCustomerId),
+    uniqueStripeSubscription: uniqueIndex(
+      "user_subscriptions_stripe_subscription_idx",
+    ).on(table.stripeSubscriptionId),
+  }),
+);
 
 // AI Usage Logs
-export const aiUsageLogs = pgTable("ai_usage_logs", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  
-  // Usage Details
-  operationType: varchar("operation_type").notNull(), // 'character_gen', 'chat', 'edit', 'proofread', etc.
-  model: varchar("model").notNull(), // 'claude-sonnet-4', 'claude-haiku-3-5'
-  inputTokens: integer("input_tokens").notNull(),
-  outputTokens: integer("output_tokens").notNull(),
-  cachedTokens: integer("cached_tokens").default(0),
-  
-  // Cost Calculation (in cents)
-  estimatedCostCents: integer("estimated_cost_cents").notNull(),
-  
-  // Context
-  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'set null' }),
-  notebookId: varchar("notebook_id").references(() => notebooks.id, { onDelete: 'set null' }),
-  
-  // Metadata
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  userDateIdx: index("ai_usage_logs_user_date_idx").on(table.userId, table.createdAt),
-  userOperationIdx: index("ai_usage_logs_user_operation_idx").on(table.userId, table.operationType),
-}));
+export const aiUsageLogs = pgTable(
+  "ai_usage_logs",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+
+    // Usage Details
+    operationType: varchar("operation_type").notNull(), // 'character_gen', 'chat', 'edit', 'proofread', etc.
+    model: varchar("model").notNull(), // 'claude-sonnet-4', 'claude-haiku-3-5'
+    inputTokens: integer("input_tokens").notNull(),
+    outputTokens: integer("output_tokens").notNull(),
+    cachedTokens: integer("cached_tokens").default(0),
+
+    // Cost Calculation (in cents)
+    estimatedCostCents: integer("estimated_cost_cents").notNull(),
+
+    // Context
+    projectId: varchar("project_id").references(() => projects.id, {
+      onDelete: "set null",
+    }),
+    notebookId: varchar("notebook_id").references(() => notebooks.id, {
+      onDelete: "set null",
+    }),
+
+    // Metadata
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    userDateIdx: index("ai_usage_logs_user_date_idx").on(
+      table.userId,
+      table.createdAt,
+    ),
+    userOperationIdx: index("ai_usage_logs_user_operation_idx").on(
+      table.userId,
+      table.operationType,
+    ),
+  }),
+);
 
 // Daily Usage Summaries (for performance)
-export const aiUsageDailySummary = pgTable("ai_usage_daily_summary", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  date: text("date").notNull(), // Store as 'YYYY-MM-DD' text for easier querying
-  
-  // Aggregated Counts
-  totalOperations: integer("total_operations").default(0),
-  totalInputTokens: integer("total_input_tokens").default(0),
-  totalOutputTokens: integer("total_output_tokens").default(0),
-  totalCostCents: integer("total_cost_cents").default(0),
-  
-  // By Operation Type (JSONB for flexibility)
-  operationsBreakdown: jsonb("operations_breakdown").default({}),
-  
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  uniqueUserDate: uniqueIndex("ai_usage_daily_summary_user_date_idx").on(table.userId, table.date),
-}));
+export const aiUsageDailySummary = pgTable(
+  "ai_usage_daily_summary",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    date: text("date").notNull(), // Store as 'YYYY-MM-DD' text for easier querying
+
+    // Aggregated Counts
+    totalOperations: integer("total_operations").default(0),
+    totalInputTokens: integer("total_input_tokens").default(0),
+    totalOutputTokens: integer("total_output_tokens").default(0),
+    totalCostCents: integer("total_cost_cents").default(0),
+
+    // By Operation Type (JSONB for flexibility)
+    operationsBreakdown: jsonb("operations_breakdown").default({}),
+
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    uniqueUserDate: uniqueIndex("ai_usage_daily_summary_user_date_idx").on(
+      table.userId,
+      table.date,
+    ),
+  }),
+);
 
 // Team Memberships
-export const teamMemberships = pgTable("team_memberships", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  teamSubscriptionId: varchar("team_subscription_id").notNull().references(() => userSubscriptions.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  role: varchar("role").notNull(), // 'owner', 'admin', 'editor', 'viewer'
-  
-  // Permissions (overrides based on role if needed)
-  canEdit: boolean("can_edit").default(true),
-  canComment: boolean("can_comment").default(true),
-  canInvite: boolean("can_invite").default(false),
-  
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  uniqueTeamUser: uniqueIndex("team_memberships_team_user_idx").on(table.teamSubscriptionId, table.userId),
-}));
+export const teamMemberships = pgTable(
+  "team_memberships",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    teamSubscriptionId: varchar("team_subscription_id")
+      .notNull()
+      .references(() => userSubscriptions.id, { onDelete: "cascade" }),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: varchar("role").notNull(), // 'owner', 'admin', 'editor', 'viewer'
+
+    // Permissions (overrides based on role if needed)
+    canEdit: boolean("can_edit").default(true),
+    canComment: boolean("can_comment").default(true),
+    canInvite: boolean("can_invite").default(false),
+
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    uniqueTeamUser: uniqueIndex("team_memberships_team_user_idx").on(
+      table.teamSubscriptionId,
+      table.userId,
+    ),
+  }),
+);
 
 // Team Invitations - Pending invites to join teams
-export const teamInvitations = pgTable("team_invitations", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  teamSubscriptionId: varchar("team_subscription_id").notNull().references(() => userSubscriptions.id, { onDelete: 'cascade' }),
-  email: varchar("email").notNull(),
-  role: varchar("role").notNull(), // 'admin', 'member'
-  
-  // Permissions
-  canEdit: boolean("can_edit").default(true),
-  canComment: boolean("can_comment").default(true),
-  canInvite: boolean("can_invite").default(false),
-  
-  // Invitation Details
-  invitedBy: varchar("invited_by").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  token: varchar("token").notNull().unique(), // Unique token for accepting invitation
-  expiresAt: timestamp("expires_at").notNull(), // Invitations expire after 7 days
-  
-  // Status
-  status: varchar("status").notNull().default('pending'), // 'pending', 'accepted', 'expired', 'revoked'
-  
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  teamEmailIdx: uniqueIndex("team_invitations_team_email_idx").on(table.teamSubscriptionId, table.email).where(sql`${table.status} = 'pending'`),
-  tokenIdx: index("team_invitations_token_idx").on(table.token),
-}));
+export const teamInvitations = pgTable(
+  "team_invitations",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    teamSubscriptionId: varchar("team_subscription_id")
+      .notNull()
+      .references(() => userSubscriptions.id, { onDelete: "cascade" }),
+    email: varchar("email").notNull(),
+    role: varchar("role").notNull(), // 'admin', 'member'
+
+    // Permissions
+    canEdit: boolean("can_edit").default(true),
+    canComment: boolean("can_comment").default(true),
+    canInvite: boolean("can_invite").default(false),
+
+    // Invitation Details
+    invitedBy: varchar("invited_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    token: varchar("token").notNull().unique(), // Unique token for accepting invitation
+    expiresAt: timestamp("expires_at").notNull(), // Invitations expire after 7 days
+
+    // Status
+    status: varchar("status").notNull().default("pending"), // 'pending', 'accepted', 'expired', 'revoked'
+
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    teamEmailIdx: uniqueIndex("team_invitations_team_email_idx")
+      .on(table.teamSubscriptionId, table.email)
+      .where(sql`${table.status} = 'pending'`),
+    tokenIdx: index("team_invitations_token_idx").on(table.token),
+  }),
+);
 
 // Team Activity Feed - Track team member actions
-export const teamActivity = pgTable("team_activity", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  teamSubscriptionId: varchar("team_subscription_id").notNull().references(() => userSubscriptions.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  
-  // Activity Details
-  activityType: varchar("activity_type").notNull(), // 'member_joined', 'member_removed', 'role_changed', 'content_created', 'content_edited', 'content_deleted'
-  resourceType: varchar("resource_type"), // 'notebook', 'project', 'character', etc.
-  resourceId: varchar("resource_id"),
-  resourceName: text("resource_name"),
-  
-  // Additional Context
-  metadata: jsonb("metadata").default({}), // Flexible field for activity-specific data
-  
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  teamCreatedIdx: index("team_activity_team_created_idx").on(table.teamSubscriptionId, table.createdAt),
-  userCreatedIdx: index("team_activity_user_created_idx").on(table.userId, table.createdAt),
-}));
+export const teamActivity = pgTable(
+  "team_activity",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    teamSubscriptionId: varchar("team_subscription_id")
+      .notNull()
+      .references(() => userSubscriptions.id, { onDelete: "cascade" }),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+
+    // Activity Details
+    activityType: varchar("activity_type").notNull(), // 'member_joined', 'member_removed', 'role_changed', 'content_created', 'content_edited', 'content_deleted'
+    resourceType: varchar("resource_type"), // 'notebook', 'project', 'character', etc.
+    resourceId: varchar("resource_id"),
+    resourceName: text("resource_name"),
+
+    // Additional Context
+    metadata: jsonb("metadata").default({}), // Flexible field for activity-specific data
+
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    teamCreatedIdx: index("team_activity_team_created_idx").on(
+      table.teamSubscriptionId,
+      table.createdAt,
+    ),
+    userCreatedIdx: index("team_activity_user_created_idx").on(
+      table.userId,
+      table.createdAt,
+    ),
+  }),
+);
 
 // Audit Logs - Team tier exclusive feature for tracking all changes
-export const auditLogs = pgTable("audit_logs", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  teamSubscriptionId: varchar("team_subscription_id").notNull().references(() => userSubscriptions.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'set null' }), // User who made the change (nullable if user deleted)
-  
-  // Action Details
-  action: varchar("action").notNull(), // 'create', 'update', 'delete', 'share', 'invite', 'role_change'
-  resourceType: varchar("resource_type").notNull(), // 'project', 'notebook', 'character', 'setting', 'team_member', etc.
-  resourceId: varchar("resource_id"), // ID of the affected resource
-  resourceName: text("resource_name"), // Name of the resource for easier reading
-  
-  // Change Tracking
-  changesBefore: jsonb("changes_before"), // State before change (for updates/deletes)
-  changesAfter: jsonb("changes_after"), // State after change (for creates/updates)
-  
-  // Metadata
-  ipAddress: varchar("ip_address"),
-  userAgent: text("user_agent"),
-  
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  teamCreatedIdx: index("audit_logs_team_created_idx").on(table.teamSubscriptionId, table.createdAt),
-  userIdx: index("audit_logs_user_idx").on(table.userId),
-  resourceIdx: index("audit_logs_resource_idx").on(table.resourceType, table.resourceId),
-  actionIdx: index("audit_logs_action_idx").on(table.action),
-}));
+export const auditLogs = pgTable(
+  "audit_logs",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    teamSubscriptionId: varchar("team_subscription_id")
+      .notNull()
+      .references(() => userSubscriptions.id, { onDelete: "cascade" }),
+    userId: varchar("user_id").references(() => users.id, {
+      onDelete: "set null",
+    }), // User who made the change (nullable if user deleted)
+
+    // Action Details
+    action: varchar("action").notNull(), // 'create', 'update', 'delete', 'share', 'invite', 'role_change'
+    resourceType: varchar("resource_type").notNull(), // 'project', 'notebook', 'character', 'setting', 'team_member', etc.
+    resourceId: varchar("resource_id"), // ID of the affected resource
+    resourceName: text("resource_name"), // Name of the resource for easier reading
+
+    // Change Tracking
+    changesBefore: jsonb("changes_before"), // State before change (for updates/deletes)
+    changesAfter: jsonb("changes_after"), // State after change (for creates/updates)
+
+    // Metadata
+    ipAddress: varchar("ip_address"),
+    userAgent: text("user_agent"),
+
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    teamCreatedIdx: index("audit_logs_team_created_idx").on(
+      table.teamSubscriptionId,
+      table.createdAt,
+    ),
+    userIdx: index("audit_logs_user_idx").on(table.userId),
+    resourceIdx: index("audit_logs_resource_idx").on(
+      table.resourceType,
+      table.resourceId,
+    ),
+    actionIdx: index("audit_logs_action_idx").on(table.action),
+  }),
+);
 
 // Lifetime Deal Tracking
-export const lifetimeSubscriptions = pgTable("lifetime_subscriptions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  
-  // Purchase Details
-  purchaseDate: timestamp("purchase_date").defaultNow(),
-  purchasePriceCents: integer("purchase_price_cents").notNull(),
-  tierEquivalent: varchar("tier_equivalent").notNull(), // 'professional'
-  
-  // Usage Limits (for lifetime users)
-  dailyGenerationLimit: integer("daily_generation_limit").default(50),
-  
-  // Status
-  isActive: boolean("is_active").default(true),
-}, (table) => ({
-  uniqueUser: uniqueIndex("lifetime_subscriptions_user_idx").on(table.userId),
-}));
+export const lifetimeSubscriptions = pgTable(
+  "lifetime_subscriptions",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+
+    // Purchase Details
+    purchaseDate: timestamp("purchase_date").defaultNow(),
+    purchasePriceCents: integer("purchase_price_cents").notNull(),
+    tierEquivalent: varchar("tier_equivalent").notNull(), // 'professional'
+
+    // Usage Limits (for lifetime users)
+    dailyGenerationLimit: integer("daily_generation_limit").default(50),
+
+    // Status
+    isActive: boolean("is_active").default(true),
+  },
+  (table) => ({
+    uniqueUser: uniqueIndex("lifetime_subscriptions_user_idx").on(table.userId),
+  }),
+);
 
 // Billing Alerts - Payment failures and trial warnings
-export const billingAlerts = pgTable("billing_alerts", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  
-  // Alert Details
-  type: varchar("type").notNull(), // 'payment_failed', 'trial_expiring', 'trial_expired', 'subscription_canceled', 'invoice_due'
-  severity: varchar("severity").notNull().default('medium'), // 'low', 'medium', 'high', 'critical'
-  title: text("title").notNull(),
-  message: text("message").notNull(),
-  
-  // Related Resources
-  stripeInvoiceId: varchar("stripe_invoice_id"),
-  stripeSubscriptionId: varchar("stripe_subscription_id"),
-  
-  // Status
-  status: varchar("status").notNull().default('unread'), // 'unread', 'read', 'resolved', 'dismissed'
-  dismissedAt: timestamp("dismissed_at"),
-  resolvedAt: timestamp("resolved_at"),
-  
-  // Metadata
-  metadata: jsonb("metadata").default({}), // Additional context (retry count, due amount, etc.)
-  
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  userStatusIdx: index("billing_alerts_user_status_idx").on(table.userId, table.status),
-  typeIdx: index("billing_alerts_type_idx").on(table.type),
-  createdAtIdx: index("billing_alerts_created_at_idx").on(table.createdAt),
-}));
+export const billingAlerts = pgTable(
+  "billing_alerts",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+
+    // Alert Details
+    type: varchar("type").notNull(), // 'payment_failed', 'trial_expiring', 'trial_expired', 'subscription_canceled', 'invoice_due'
+    severity: varchar("severity").notNull().default("medium"), // 'low', 'medium', 'high', 'critical'
+    title: text("title").notNull(),
+    message: text("message").notNull(),
+
+    // Related Resources
+    stripeInvoiceId: varchar("stripe_invoice_id"),
+    stripeSubscriptionId: varchar("stripe_subscription_id"),
+
+    // Status
+    status: varchar("status").notNull().default("unread"), // 'unread', 'read', 'resolved', 'dismissed'
+    dismissedAt: timestamp("dismissed_at"),
+    resolvedAt: timestamp("resolved_at"),
+
+    // Metadata
+    metadata: jsonb("metadata").default({}), // Additional context (retry count, due amount, etc.)
+
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    userStatusIdx: index("billing_alerts_user_status_idx").on(
+      table.userId,
+      table.status,
+    ),
+    typeIdx: index("billing_alerts_type_idx").on(table.type),
+    createdAtIdx: index("billing_alerts_created_at_idx").on(table.createdAt),
+  }),
+);
 
 // Discount Codes - Promotional codes for subscription discounts
-export const discountCodes = pgTable("discount_codes", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  
-  // Code Details
-  code: varchar("code").notNull().unique(), // The actual code users enter
-  name: text("name").notNull(), // Admin-friendly name/description
-  
-  // Discount Type and Value
-  type: varchar("type").notNull(), // 'percentage' or 'fixed'
-  value: integer("value").notNull(), // Percentage (1-100) or cents for fixed
-  
-  // Applicable Tiers
-  applicableTiers: text("applicable_tiers").array().notNull(), // ['professional', 'team'] - which tiers this code works for
-  
-  // Usage Limits
-  maxUses: integer("max_uses"), // Null = unlimited
-  currentUses: integer("current_uses").default(0).notNull(),
-  maxUsesPerUser: integer("max_uses_per_user").default(1).notNull(), // How many times a single user can use this code
-  
-  // Duration (for percentage discounts with Stripe coupons)
-  duration: varchar("duration").default('once'), // 'once', 'repeating', 'forever'
-  durationInMonths: integer("duration_in_months"), // Required if duration is 'repeating'
-  
-  // Validity Period
-  startsAt: timestamp("starts_at").defaultNow(),
-  expiresAt: timestamp("expires_at"), // Null = no expiration
-  
-  // Status
-  active: boolean("active").default(true).notNull(),
-  
-  // Stripe Integration
-  stripeCouponId: varchar("stripe_coupon_id"), // Linked Stripe coupon for percentage discounts
-  
-  // Metadata
-  createdBy: varchar("created_by").references(() => users.id, { onDelete: 'set null' }), // Admin who created this
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  codeIdx: index("discount_codes_code_idx").on(table.code),
-  activeIdx: index("discount_codes_active_idx").on(table.active),
-  expiresAtIdx: index("discount_codes_expires_at_idx").on(table.expiresAt),
-}));
+export const discountCodes = pgTable(
+  "discount_codes",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+
+    // Code Details
+    code: varchar("code").notNull().unique(), // The actual code users enter
+    name: text("name").notNull(), // Admin-friendly name/description
+
+    // Discount Type and Value
+    type: varchar("type").notNull(), // 'percentage' or 'fixed'
+    value: integer("value").notNull(), // Percentage (1-100) or cents for fixed
+
+    // Applicable Tiers
+    applicableTiers: text("applicable_tiers").array().notNull(), // ['professional', 'team'] - which tiers this code works for
+
+    // Usage Limits
+    maxUses: integer("max_uses"), // Null = unlimited
+    currentUses: integer("current_uses").default(0).notNull(),
+    maxUsesPerUser: integer("max_uses_per_user").default(1).notNull(), // How many times a single user can use this code
+
+    // Duration (for percentage discounts with Stripe coupons)
+    duration: varchar("duration").default("once"), // 'once', 'repeating', 'forever'
+    durationInMonths: integer("duration_in_months"), // Required if duration is 'repeating'
+
+    // Validity Period
+    startsAt: timestamp("starts_at").defaultNow(),
+    expiresAt: timestamp("expires_at"), // Null = no expiration
+
+    // Status
+    active: boolean("active").default(true).notNull(),
+
+    // Stripe Integration
+    stripeCouponId: varchar("stripe_coupon_id"), // Linked Stripe coupon for percentage discounts
+
+    // Metadata
+    createdBy: varchar("created_by").references(() => users.id, {
+      onDelete: "set null",
+    }), // Admin who created this
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    codeIdx: index("discount_codes_code_idx").on(table.code),
+    activeIdx: index("discount_codes_active_idx").on(table.active),
+    expiresAtIdx: index("discount_codes_expires_at_idx").on(table.expiresAt),
+  }),
+);
 
 // Discount Code Usage - Track who used which codes
-export const discountCodeUsage = pgTable("discount_code_usage", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  
-  discountCodeId: varchar("discount_code_id").notNull().references(() => discountCodes.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  subscriptionId: varchar("subscription_id").references(() => userSubscriptions.id, { onDelete: 'set null' }),
-  
-  // Discount Applied
-  discountAmount: integer("discount_amount").notNull(), // Amount saved in cents
-  
-  usedAt: timestamp("used_at").defaultNow(),
-}, (table) => ({
-  userCodeIdx: index("discount_code_usage_user_code_idx").on(table.userId, table.discountCodeId),
-  discountCodeIdx: index("discount_code_usage_code_idx").on(table.discountCodeId),
-}));
+export const discountCodeUsage = pgTable(
+  "discount_code_usage",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+
+    discountCodeId: varchar("discount_code_id")
+      .notNull()
+      .references(() => discountCodes.id, { onDelete: "cascade" }),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    subscriptionId: varchar("subscription_id").references(
+      () => userSubscriptions.id,
+      { onDelete: "set null" },
+    ),
+
+    // Discount Applied
+    discountAmount: integer("discount_amount").notNull(), // Amount saved in cents
+
+    usedAt: timestamp("used_at").defaultNow(),
+  },
+  (table) => ({
+    userCodeIdx: index("discount_code_usage_user_code_idx").on(
+      table.userId,
+      table.discountCodeId,
+    ),
+    discountCodeIdx: index("discount_code_usage_code_idx").on(
+      table.discountCodeId,
+    ),
+  }),
+);
 
 // API Keys - Programmatic access for Professional+ users
-export const apiKeys = pgTable("api_keys", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  
-  // Key Details
-  name: text("name").notNull(), // User-friendly name for the key
-  keyHash: text("key_hash").notNull(), // Bcrypt hash of the actual key (never store plaintext)
-  prefix: varchar("prefix", { length: 16 }).notNull(), // First 16 chars for display (e.g., "wc_live_abc12345...")
-  
-  // Permissions & Scoping
-  scope: varchar("scope").notNull().default('read'), // 'read', 'write', 'admin'
-  allowedEndpoints: text("allowed_endpoints").array(), // Null = all endpoints, or specific endpoints like ['/api/v1/projects', '/api/v1/characters']
-  
-  // Rate Limiting (Professional: 5,000/month, Team: 25,000/month)
-  monthlyRateLimit: integer("monthly_rate_limit").notNull().default(5000),
-  currentMonthUsage: integer("current_month_usage").default(0).notNull(),
-  lastUsedAt: timestamp("last_used_at"),
-  usageResetDate: timestamp("usage_reset_date").notNull(), // Reset on this date each month
-  
-  // Status
-  isActive: boolean("is_active").default(true).notNull(),
-  expiresAt: timestamp("expires_at"), // Null = no expiration
-  revokedAt: timestamp("revoked_at"),
-  revokedReason: text("revoked_reason"),
-  
-  // Security
-  lastRotatedAt: timestamp("last_rotated_at"),
-  ipWhitelist: text("ip_whitelist").array(), // Null = any IP, or specific IPs
-  
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  userActiveIdx: index("api_keys_user_active_idx").on(table.userId, table.isActive),
-  prefixIdx: index("api_keys_prefix_idx").on(table.prefix),
-  keyHashIdx: index("api_keys_key_hash_idx").on(table.keyHash),
-}));
+export const apiKeys = pgTable(
+  "api_keys",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+
+    // Key Details
+    name: text("name").notNull(), // User-friendly name for the key
+    keyHash: text("key_hash").notNull(), // Bcrypt hash of the actual key (never store plaintext)
+    prefix: varchar("prefix", { length: 16 }).notNull(), // First 16 chars for display (e.g., "wc_live_abc12345...")
+
+    // Permissions & Scoping
+    scope: varchar("scope").notNull().default("read"), // 'read', 'write', 'admin'
+    allowedEndpoints: text("allowed_endpoints").array(), // Null = all endpoints, or specific endpoints like ['/api/v1/projects', '/api/v1/characters']
+
+    // Rate Limiting (Professional: 5,000/month, Team: 25,000/month)
+    monthlyRateLimit: integer("monthly_rate_limit").notNull().default(5000),
+    currentMonthUsage: integer("current_month_usage").default(0).notNull(),
+    lastUsedAt: timestamp("last_used_at"),
+    usageResetDate: timestamp("usage_reset_date").notNull(), // Reset on this date each month
+
+    // Status
+    isActive: boolean("is_active").default(true).notNull(),
+    expiresAt: timestamp("expires_at"), // Null = no expiration
+    revokedAt: timestamp("revoked_at"),
+    revokedReason: text("revoked_reason"),
+
+    // Security
+    lastRotatedAt: timestamp("last_rotated_at"),
+    ipWhitelist: text("ip_whitelist").array(), // Null = any IP, or specific IPs
+
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    userActiveIdx: index("api_keys_user_active_idx").on(
+      table.userId,
+      table.isActive,
+    ),
+    prefixIdx: index("api_keys_prefix_idx").on(table.prefix),
+    keyHashIdx: index("api_keys_key_hash_idx").on(table.keyHash),
+  }),
+);
 
 // API Key Usage Logs - Detailed request tracking
-export const apiKeyUsageLogs = pgTable("api_key_usage_logs", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  apiKeyId: varchar("api_key_id").notNull().references(() => apiKeys.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  
-  // Request Details
-  endpoint: text("endpoint").notNull(), // e.g., '/api/v1/projects'
-  method: varchar("method", { length: 10 }).notNull(), // GET, POST, PUT, DELETE
-  statusCode: integer("status_code").notNull(),
-  responseTime: integer("response_time"), // In milliseconds
-  
-  // Context
-  ipAddress: varchar("ip_address"),
-  userAgent: text("user_agent"),
-  
-  // Error tracking
-  errorMessage: text("error_message"),
-  
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  keyDateIdx: index("api_key_usage_logs_key_date_idx").on(table.apiKeyId, table.createdAt),
-  userDateIdx: index("api_key_usage_logs_user_date_idx").on(table.userId, table.createdAt),
-  endpointIdx: index("api_key_usage_logs_endpoint_idx").on(table.endpoint),
-}));
+export const apiKeyUsageLogs = pgTable(
+  "api_key_usage_logs",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    apiKeyId: varchar("api_key_id")
+      .notNull()
+      .references(() => apiKeys.id, { onDelete: "cascade" }),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+
+    // Request Details
+    endpoint: text("endpoint").notNull(), // e.g., '/api/v1/projects'
+    method: varchar("method", { length: 10 }).notNull(), // GET, POST, PUT, DELETE
+    statusCode: integer("status_code").notNull(),
+    responseTime: integer("response_time"), // In milliseconds
+
+    // Context
+    ipAddress: varchar("ip_address"),
+    userAgent: text("user_agent"),
+
+    // Error tracking
+    errorMessage: text("error_message"),
+
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    keyDateIdx: index("api_key_usage_logs_key_date_idx").on(
+      table.apiKeyId,
+      table.createdAt,
+    ),
+    userDateIdx: index("api_key_usage_logs_user_date_idx").on(
+      table.userId,
+      table.createdAt,
+    ),
+    endpointIdx: index("api_key_usage_logs_endpoint_idx").on(table.endpoint),
+  }),
+);
 
 // Intrusion Detection System (IDS) Tables
 
 // Track intrusion attempts and suspicious activity
-export const intrusionAttempts = pgTable("intrusion_attempts", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  
-  // Identity
-  userId: varchar("user_id").references(() => users.id, { onDelete: 'set null' }), // Nullable - attacker might not be authenticated
-  ipAddress: varchar("ip_address").notNull(),
-  userAgent: text("user_agent"),
-  
-  // Attack Details
-  attackType: varchar("attack_type").notNull(), // 'BRUTE_FORCE', 'SQL_INJECTION', 'XSS', 'UNAUTHORIZED_ACCESS', 'RATE_LIMIT_EXCEEDED'
-  endpoint: text("endpoint"), // Which endpoint was targeted
-  payload: text("payload"), // Sanitized/logged attack payload for analysis
-  severity: varchar("severity").notNull(), // 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'
-  
-  // Response
-  blocked: boolean("blocked").default(false), // Whether request was blocked
-  
-  // Metadata
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  ipAddressIdx: index("intrusion_attempts_ip_idx").on(table.ipAddress),
-  attackTypeIdx: index("intrusion_attempts_type_idx").on(table.attackType),
-  severityIdx: index("intrusion_attempts_severity_idx").on(table.severity),
-  createdAtIdx: index("intrusion_attempts_created_at_idx").on(table.createdAt),
-}));
+export const intrusionAttempts = pgTable(
+  "intrusion_attempts",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+
+    // Identity
+    userId: varchar("user_id").references(() => users.id, {
+      onDelete: "set null",
+    }), // Nullable - attacker might not be authenticated
+    ipAddress: varchar("ip_address").notNull(),
+    userAgent: text("user_agent"),
+
+    // Attack Details
+    attackType: varchar("attack_type").notNull(), // 'BRUTE_FORCE', 'SQL_INJECTION', 'XSS', 'UNAUTHORIZED_ACCESS', 'RATE_LIMIT_EXCEEDED'
+    endpoint: text("endpoint"), // Which endpoint was targeted
+    payload: text("payload"), // Sanitized/logged attack payload for analysis
+    severity: varchar("severity").notNull(), // 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'
+
+    // Response
+    blocked: boolean("blocked").default(false), // Whether request was blocked
+
+    // Metadata
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    ipAddressIdx: index("intrusion_attempts_ip_idx").on(table.ipAddress),
+    attackTypeIdx: index("intrusion_attempts_type_idx").on(table.attackType),
+    severityIdx: index("intrusion_attempts_severity_idx").on(table.severity),
+    createdAtIdx: index("intrusion_attempts_created_at_idx").on(
+      table.createdAt,
+    ),
+  }),
+);
 
 // Track blocked IPs
-export const ipBlocks = pgTable("ip_blocks", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  ipAddress: varchar("ip_address").notNull(),
-  reason: text("reason").notNull(), // Why this IP was blocked
-  severity: varchar("severity").notNull(), // 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'
-  
-  // Blocking Details
-  blockedAt: timestamp("blocked_at").defaultNow(),
-  expiresAt: timestamp("expires_at"), // Null means permanent block
-  isActive: boolean("is_active").default(true),
-  
-  // Reference to intrusion attempts
-  intrusionAttemptId: varchar("intrusion_attempt_id").references(() => intrusionAttempts.id, { onDelete: 'set null' }),
-  
-  // Manual vs Automatic
-  autoBlocked: boolean("auto_blocked").default(true), // True if blocked by IDS, false if manual admin block
-  blockedBy: varchar("blocked_by").references(() => users.id, { onDelete: 'set null' }), // Admin who manually blocked (if applicable)
-}, (table) => ({
-  uniqueActiveIp: uniqueIndex("ip_blocks_unique_active_ip_idx").on(table.ipAddress).where(sql`${table.isActive} = true`),
-  ipAddressIdx: index("ip_blocks_ip_idx").on(table.ipAddress),
-  expiresAtIdx: index("ip_blocks_expires_at_idx").on(table.expiresAt),
-}));
+export const ipBlocks = pgTable(
+  "ip_blocks",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    ipAddress: varchar("ip_address").notNull(),
+    reason: text("reason").notNull(), // Why this IP was blocked
+    severity: varchar("severity").notNull(), // 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'
+
+    // Blocking Details
+    blockedAt: timestamp("blocked_at").defaultNow(),
+    expiresAt: timestamp("expires_at"), // Null means permanent block
+    isActive: boolean("is_active").default(true),
+
+    // Reference to intrusion attempts
+    intrusionAttemptId: varchar("intrusion_attempt_id").references(
+      () => intrusionAttempts.id,
+      { onDelete: "set null" },
+    ),
+
+    // Manual vs Automatic
+    autoBlocked: boolean("auto_blocked").default(true), // True if blocked by IDS, false if manual admin block
+    blockedBy: varchar("blocked_by").references(() => users.id, {
+      onDelete: "set null",
+    }), // Admin who manually blocked (if applicable)
+  },
+  (table) => ({
+    uniqueActiveIp: uniqueIndex("ip_blocks_unique_active_ip_idx")
+      .on(table.ipAddress)
+      .where(sql`${table.isActive} = true`),
+    ipAddressIdx: index("ip_blocks_ip_idx").on(table.ipAddress),
+    expiresAtIdx: index("ip_blocks_expires_at_idx").on(table.expiresAt),
+  }),
+);
 
 // IP Whitelist for bypassing IDS checks
-export const ipWhitelist = pgTable("ip_whitelist", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  
-  // IP or CIDR range
-  ipAddress: varchar("ip_address").notNull().unique(), // Can be single IP (1.2.3.4) or CIDR (1.2.3.0/24)
-  description: text("description"), // Why this IP is whitelisted
-  
-  // Who added it
-  addedBy: varchar("added_by").references(() => users.id, { onDelete: 'set null' }),
-  addedAt: timestamp("added_at").defaultNow(),
-  
-  // Optional expiration
-  expiresAt: timestamp("expires_at"), // Null means permanent
-  isActive: boolean("is_active").default(true),
-}, (table) => ({
-  ipAddressIdx: index("ip_whitelist_ip_idx").on(table.ipAddress),
-  isActiveIdx: index("ip_whitelist_is_active_idx").on(table.isActive),
-}));
+export const ipWhitelist = pgTable(
+  "ip_whitelist",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+
+    // IP or CIDR range
+    ipAddress: varchar("ip_address").notNull().unique(), // Can be single IP (1.2.3.4) or CIDR (1.2.3.0/24)
+    description: text("description"), // Why this IP is whitelisted
+
+    // Who added it
+    addedBy: varchar("added_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    addedAt: timestamp("added_at").defaultNow(),
+
+    // Optional expiration
+    expiresAt: timestamp("expires_at"), // Null means permanent
+    isActive: boolean("is_active").default(true),
+  },
+  (table) => ({
+    ipAddressIdx: index("ip_whitelist_ip_idx").on(table.ipAddress),
+    isActiveIdx: index("ip_whitelist_is_active_idx").on(table.isActive),
+  }),
+);
 
 // Security Alerts for Admin Dashboard
-export const securityAlerts = pgTable("security_alerts", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  
-  // Alert Details
-  alertType: varchar("alert_type").notNull(), // 'MULTIPLE_FAILED_LOGINS', 'SUSPICIOUS_PATTERN', 'IP_BLOCKED', 'PRIVILEGE_ESCALATION'
-  severity: varchar("severity").notNull(), // 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'
-  message: text("message").notNull(),
-  details: jsonb("details"), // Additional context (IP, user, patterns detected, etc.)
-  
-  // Status
-  acknowledged: boolean("acknowledged").default(false),
-  acknowledgedBy: varchar("acknowledged_by").references(() => users.id, { onDelete: 'set null' }),
-  acknowledgedAt: timestamp("acknowledged_at"),
-  
-  // Metadata
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  severityIdx: index("security_alerts_severity_idx").on(table.severity),
-  acknowledgedIdx: index("security_alerts_acknowledged_idx").on(table.acknowledged),
-  createdAtIdx: index("security_alerts_created_at_idx").on(table.createdAt),
-}));
+export const securityAlerts = pgTable(
+  "security_alerts",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+
+    // Alert Details
+    alertType: varchar("alert_type").notNull(), // 'MULTIPLE_FAILED_LOGINS', 'SUSPICIOUS_PATTERN', 'IP_BLOCKED', 'PRIVILEGE_ESCALATION'
+    severity: varchar("severity").notNull(), // 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'
+    message: text("message").notNull(),
+    details: jsonb("details"), // Additional context (IP, user, patterns detected, etc.)
+
+    // Status
+    acknowledged: boolean("acknowledged").default(false),
+    acknowledgedBy: varchar("acknowledged_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    acknowledgedAt: timestamp("acknowledged_at"),
+
+    // Metadata
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    severityIdx: index("security_alerts_severity_idx").on(table.severity),
+    acknowledgedIdx: index("security_alerts_acknowledged_idx").on(
+      table.acknowledged,
+    ),
+    createdAtIdx: index("security_alerts_created_at_idx").on(table.createdAt),
+  }),
+);
 
 // API Key Rotation Tracking
-export const apiKeyRotations = pgTable("api_key_rotations", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  
-  // Key Identification
-  keyName: varchar("key_name").notNull().unique(), // e.g., 'ANTHROPIC_API_KEY', 'MFA_ENCRYPTION_KEY', 'OPENAI_API_KEY'
-  keyType: varchar("key_type").notNull(), // 'external_api', 'encryption', 'signing', 'database'
-  description: text("description"), // Human-readable description of the key's purpose
-  
-  // Rotation Schedule
-  rotationIntervalDays: integer("rotation_interval_days").notNull().default(90), // Default 90 days
-  lastRotatedAt: timestamp("last_rotated_at").defaultNow(),
-  nextRotationDue: timestamp("next_rotation_due").notNull(),
-  
-  // Status and Notifications
-  rotationStatus: varchar("rotation_status").notNull().default('current'), // 'current', 'due', 'overdue', 'rotated'
-  notificationSent: boolean("notification_sent").default(false),
-  lastNotificationSentAt: timestamp("last_notification_sent_at"),
-  
-  // Rotation History
-  rotationCount: integer("rotation_count").default(0),
-  lastRotatedBy: varchar("last_rotated_by").references(() => users.id, { onDelete: 'set null' }),
-  
-  // Metadata
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => ({
-  nextRotationIdx: index("api_key_rotations_next_rotation_idx").on(table.nextRotationDue),
-  statusIdx: index("api_key_rotations_status_idx").on(table.rotationStatus),
-}));
+export const apiKeyRotations = pgTable(
+  "api_key_rotations",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+
+    // Key Identification
+    keyName: varchar("key_name").notNull().unique(), // e.g., 'ANTHROPIC_API_KEY', 'MFA_ENCRYPTION_KEY', 'OPENAI_API_KEY'
+    keyType: varchar("key_type").notNull(), // 'external_api', 'encryption', 'signing', 'database'
+    description: text("description"), // Human-readable description of the key's purpose
+
+    // Rotation Schedule
+    rotationIntervalDays: integer("rotation_interval_days")
+      .notNull()
+      .default(90), // Default 90 days
+    lastRotatedAt: timestamp("last_rotated_at").defaultNow(),
+    nextRotationDue: timestamp("next_rotation_due").notNull(),
+
+    // Status and Notifications
+    rotationStatus: varchar("rotation_status").notNull().default("current"), // 'current', 'due', 'overdue', 'rotated'
+    notificationSent: boolean("notification_sent").default(false),
+    lastNotificationSentAt: timestamp("last_notification_sent_at"),
+
+    // Rotation History
+    rotationCount: integer("rotation_count").default(0),
+    lastRotatedBy: varchar("last_rotated_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+
+    // Metadata
+    isActive: boolean("is_active").default(true),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => ({
+    nextRotationIdx: index("api_key_rotations_next_rotation_idx").on(
+      table.nextRotationDue,
+    ),
+    statusIdx: index("api_key_rotations_status_idx").on(table.rotationStatus),
+  }),
+);
 
 // API Key Rotation Audit Log
-export const apiKeyRotationAudit = pgTable("api_key_rotation_audit", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  
-  // Reference
-  keyRotationId: varchar("key_rotation_id").notNull().references(() => apiKeyRotations.id, { onDelete: 'cascade' }),
-  
-  // Rotation Details
-  action: varchar("action").notNull(), // 'created', 'rotated', 'notification_sent', 'skipped', 'failed'
-  performedBy: varchar("performed_by").references(() => users.id, { onDelete: 'set null' }), // Admin who performed action
-  notes: text("notes"),
-  
-  // Metadata
-  timestamp: timestamp("timestamp").defaultNow(),
-}, (table) => ({
-  keyRotationIdx: index("api_key_rotation_audit_key_idx").on(table.keyRotationId),
-  timestampIdx: index("api_key_rotation_audit_timestamp_idx").on(table.timestamp),
-}));
+export const apiKeyRotationAudit = pgTable(
+  "api_key_rotation_audit",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+
+    // Reference
+    keyRotationId: varchar("key_rotation_id")
+      .notNull()
+      .references(() => apiKeyRotations.id, { onDelete: "cascade" }),
+
+    // Rotation Details
+    action: varchar("action").notNull(), // 'created', 'rotated', 'notification_sent', 'skipped', 'failed'
+    performedBy: varchar("performed_by").references(() => users.id, {
+      onDelete: "set null",
+    }), // Admin who performed action
+    notes: text("notes"),
+
+    // Metadata
+    timestamp: timestamp("timestamp").defaultNow(),
+  },
+  (table) => ({
+    keyRotationIdx: index("api_key_rotation_audit_key_idx").on(
+      table.keyRotationId,
+    ),
+    timestampIdx: index("api_key_rotation_audit_timestamp_idx").on(
+      table.timestamp,
+    ),
+  }),
+);
 
 // Relations for subscription and team tables
-export const userPreferencesRelations = relations(userPreferences, ({ one }) => ({
-  user: one(users, {
-    fields: [userPreferences.userId],
-    references: [users.id],
+export const userPreferencesRelations = relations(
+  userPreferences,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [userPreferences.userId],
+      references: [users.id],
+    }),
   }),
-}));
+);
 
-export const userSubscriptionsRelations = relations(userSubscriptions, ({ one, many }) => ({
-  user: one(users, {
-    fields: [userSubscriptions.userId],
-    references: [users.id],
+export const userSubscriptionsRelations = relations(
+  userSubscriptions,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [userSubscriptions.userId],
+      references: [users.id],
+    }),
+    teamMemberships: many(teamMemberships),
+    teamInvitations: many(teamInvitations),
+    teamActivity: many(teamActivity),
   }),
-  teamMemberships: many(teamMemberships),
-  teamInvitations: many(teamInvitations),
-  teamActivity: many(teamActivity),
-}));
+);
 
-export const teamMembershipsRelations = relations(teamMemberships, ({ one }) => ({
-  teamSubscription: one(userSubscriptions, {
-    fields: [teamMemberships.teamSubscriptionId],
-    references: [userSubscriptions.id],
+export const teamMembershipsRelations = relations(
+  teamMemberships,
+  ({ one }) => ({
+    teamSubscription: one(userSubscriptions, {
+      fields: [teamMemberships.teamSubscriptionId],
+      references: [userSubscriptions.id],
+    }),
+    user: one(users, {
+      fields: [teamMemberships.userId],
+      references: [users.id],
+    }),
   }),
-  user: one(users, {
-    fields: [teamMemberships.userId],
-    references: [users.id],
-  }),
-}));
+);
 
-export const teamInvitationsRelations = relations(teamInvitations, ({ one }) => ({
-  teamSubscription: one(userSubscriptions, {
-    fields: [teamInvitations.teamSubscriptionId],
-    references: [userSubscriptions.id],
+export const teamInvitationsRelations = relations(
+  teamInvitations,
+  ({ one }) => ({
+    teamSubscription: one(userSubscriptions, {
+      fields: [teamInvitations.teamSubscriptionId],
+      references: [userSubscriptions.id],
+    }),
+    inviter: one(users, {
+      fields: [teamInvitations.invitedBy],
+      references: [users.id],
+    }),
   }),
-  inviter: one(users, {
-    fields: [teamInvitations.invitedBy],
-    references: [users.id],
-  }),
-}));
+);
 
 export const teamActivityRelations = relations(teamActivity, ({ one }) => ({
   teamSubscription: one(userSubscriptions, {
@@ -4077,7 +4990,9 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
 }));
 
 // Insert schemas and types for subscription tables
-export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptions).omit({
+export const insertUserSubscriptionSchema = createInsertSchema(
+  userSubscriptions,
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -4088,23 +5003,31 @@ export const insertAiUsageLogSchema = createInsertSchema(aiUsageLogs).omit({
   createdAt: true,
 });
 
-export const insertAiUsageDailySummarySchema = createInsertSchema(aiUsageDailySummary).omit({
+export const insertAiUsageDailySummarySchema = createInsertSchema(
+  aiUsageDailySummary,
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const insertTeamMembershipSchema = createInsertSchema(teamMemberships).omit({
+export const insertTeamMembershipSchema = createInsertSchema(
+  teamMemberships,
+).omit({
   id: true,
   createdAt: true,
 });
 
-export const insertLifetimeSubscriptionSchema = createInsertSchema(lifetimeSubscriptions).omit({
+export const insertLifetimeSubscriptionSchema = createInsertSchema(
+  lifetimeSubscriptions,
+).omit({
   id: true,
   purchaseDate: true,
 });
 
-export const insertTeamInvitationSchema = createInsertSchema(teamInvitations).omit({
+export const insertTeamInvitationSchema = createInsertSchema(
+  teamInvitations,
+).omit({
   id: true,
   createdAt: true,
 });
@@ -4125,50 +5048,64 @@ export const insertBillingAlertSchema = createInsertSchema(billingAlerts).omit({
   updatedAt: true,
 });
 
-export const insertDiscountCodeSchema = createInsertSchema(discountCodes).omit({
-  id: true,
-  currentUses: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  code: z.string().min(3).max(50).toUpperCase(),
-  value: z.number().min(1),
-  applicableTiers: z.array(z.enum(['professional', 'team'])).min(1),
-});
+export const insertDiscountCodeSchema = createInsertSchema(discountCodes)
+  .omit({
+    id: true,
+    currentUses: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    code: z.string().min(3).max(50).toUpperCase(),
+    value: z.number().min(1),
+    applicableTiers: z.array(z.enum(["professional", "team"])).min(1),
+  });
 
-export const insertDiscountCodeUsageSchema = createInsertSchema(discountCodeUsage).omit({
+export const insertDiscountCodeUsageSchema = createInsertSchema(
+  discountCodeUsage,
+).omit({
   id: true,
   usedAt: true,
 });
 
-export const insertApiKeySchema = createInsertSchema(apiKeys).omit({
+export const insertApiKeySchema = createInsertSchema(apiKeys)
+  .omit({
+    id: true,
+    keyHash: true, // Never set hash directly, use service to generate
+    prefix: true, // Generated by service
+    currentMonthUsage: true,
+    lastUsedAt: true,
+    usageResetDate: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    name: z.string().min(1).max(100),
+    scope: z.enum(["read", "write", "admin"]).default("read"),
+  });
+
+export const insertApiKeyUsageLogSchema = createInsertSchema(
+  apiKeyUsageLogs,
+).omit({
   id: true,
-  keyHash: true, // Never set hash directly, use service to generate
-  prefix: true, // Generated by service
-  currentMonthUsage: true,
-  lastUsedAt: true,
-  usageResetDate: true,
   createdAt: true,
-  updatedAt: true,
-}).extend({
-  name: z.string().min(1).max(100),
-  scope: z.enum(['read', 'write', 'admin']).default('read'),
 });
 
-export const insertApiKeyUsageLogSchema = createInsertSchema(apiKeyUsageLogs).omit({
-  id: true,
-  createdAt: true,
-});
-
-export type InsertUserSubscription = z.infer<typeof insertUserSubscriptionSchema>;
+export type InsertUserSubscription = z.infer<
+  typeof insertUserSubscriptionSchema
+>;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
 export type InsertAiUsageLog = z.infer<typeof insertAiUsageLogSchema>;
 export type AiUsageLog = typeof aiUsageLogs.$inferSelect;
-export type InsertAiUsageDailySummary = z.infer<typeof insertAiUsageDailySummarySchema>;
+export type InsertAiUsageDailySummary = z.infer<
+  typeof insertAiUsageDailySummarySchema
+>;
 export type AiUsageDailySummary = typeof aiUsageDailySummary.$inferSelect;
 export type InsertTeamMembership = z.infer<typeof insertTeamMembershipSchema>;
 export type TeamMembership = typeof teamMemberships.$inferSelect;
-export type InsertLifetimeSubscription = z.infer<typeof insertLifetimeSubscriptionSchema>;
+export type InsertLifetimeSubscription = z.infer<
+  typeof insertLifetimeSubscriptionSchema
+>;
 export type LifetimeSubscription = typeof lifetimeSubscriptions.$inferSelect;
 export type InsertTeamInvitation = z.infer<typeof insertTeamInvitationSchema>;
 export type TeamInvitation = typeof teamInvitations.$inferSelect;
@@ -4180,7 +5117,9 @@ export type InsertBillingAlert = z.infer<typeof insertBillingAlertSchema>;
 export type BillingAlert = typeof billingAlerts.$inferSelect;
 export type InsertDiscountCode = z.infer<typeof insertDiscountCodeSchema>;
 export type DiscountCode = typeof discountCodes.$inferSelect;
-export type InsertDiscountCodeUsage = z.infer<typeof insertDiscountCodeUsageSchema>;
+export type InsertDiscountCodeUsage = z.infer<
+  typeof insertDiscountCodeUsageSchema
+>;
 export type DiscountCodeUsage = typeof discountCodeUsage.$inferSelect;
 export type InsertApiKey = z.infer<typeof insertApiKeySchema>;
 export type ApiKey = typeof apiKeys.$inferSelect;
@@ -4188,7 +5127,9 @@ export type InsertApiKeyUsageLog = z.infer<typeof insertApiKeyUsageLogSchema>;
 export type ApiKeyUsageLog = typeof apiKeyUsageLogs.$inferSelect;
 
 // IDS schemas and types
-export const insertIntrusionAttemptSchema = createInsertSchema(intrusionAttempts).omit({
+export const insertIntrusionAttemptSchema = createInsertSchema(
+  intrusionAttempts,
+).omit({
   id: true,
   createdAt: true,
 });
@@ -4198,7 +5139,9 @@ export const insertIpBlockSchema = createInsertSchema(ipBlocks).omit({
   blockedAt: true,
 });
 
-export const insertSecurityAlertSchema = createInsertSchema(securityAlerts).omit({
+export const insertSecurityAlertSchema = createInsertSchema(
+  securityAlerts,
+).omit({
   id: true,
   createdAt: true,
 });
@@ -4208,7 +5151,9 @@ export const insertIpWhitelistSchema = createInsertSchema(ipWhitelist).omit({
   addedAt: true,
 });
 
-export type InsertIntrusionAttempt = z.infer<typeof insertIntrusionAttemptSchema>;
+export type InsertIntrusionAttempt = z.infer<
+  typeof insertIntrusionAttemptSchema
+>;
 export type IntrusionAttempt = typeof intrusionAttempts.$inferSelect;
 export type InsertIpBlock = z.infer<typeof insertIpBlockSchema>;
 export type IpBlock = typeof ipBlocks.$inferSelect;
@@ -4218,19 +5163,25 @@ export type InsertIpWhitelist = z.infer<typeof insertIpWhitelistSchema>;
 export type IpWhitelist = typeof ipWhitelist.$inferSelect;
 
 // API Key Rotation schemas and types
-export const insertApiKeyRotationSchema = createInsertSchema(apiKeyRotations).omit({
+export const insertApiKeyRotationSchema = createInsertSchema(
+  apiKeyRotations,
+).omit({
   id: true,
   lastRotatedAt: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const insertApiKeyRotationAuditSchema = createInsertSchema(apiKeyRotationAudit).omit({
+export const insertApiKeyRotationAuditSchema = createInsertSchema(
+  apiKeyRotationAudit,
+).omit({
   id: true,
   timestamp: true,
 });
 
 export type InsertApiKeyRotation = z.infer<typeof insertApiKeyRotationSchema>;
 export type ApiKeyRotation = typeof apiKeyRotations.$inferSelect;
-export type InsertApiKeyRotationAudit = z.infer<typeof insertApiKeyRotationAuditSchema>;
+export type InsertApiKeyRotationAudit = z.infer<
+  typeof insertApiKeyRotationAuditSchema
+>;
 export type ApiKeyRotationAudit = typeof apiKeyRotationAudit.$inferSelect;

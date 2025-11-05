@@ -58,43 +58,51 @@ interface UserSearchResult {
   profileImageUrl: string | null;
 }
 
-export function ShareDialog({ 
-  resourceType, 
-  resourceId, 
+export function ShareDialog({
+  resourceType,
+  resourceId,
   resourceName,
-  ownerId, 
+  ownerId,
   trigger,
   open: controlledOpen,
-  onOpenChange: controlledOnOpenChange
+  onOpenChange: controlledOnOpenChange,
 }: ShareDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false);
-  
+
   // Use controlled state if provided, otherwise use internal state
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = controlledOnOpenChange || setInternalOpen;
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUserId, setSelectedUserId] = useState("");
-  const [selectedPermission, setSelectedPermission] = useState<"view" | "comment" | "edit">("view");
+  const [selectedPermission, setSelectedPermission] = useState<
+    "view" | "comment" | "edit"
+  >("view");
   const { toast } = useToast();
 
-  const { data: shares = [], isLoading: sharesLoading } = useQuery<ShareData[]>({
-    queryKey: ["/api/shares", resourceType, resourceId],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        resourceType,
-        resourceId,
-      });
-      return await fetch(`/api/shares?${params}`).then(r => r.json());
+  const { data: shares = [], isLoading: sharesLoading } = useQuery<ShareData[]>(
+    {
+      queryKey: ["/api/shares", resourceType, resourceId],
+      queryFn: async () => {
+        const params = new URLSearchParams({
+          resourceType,
+          resourceId,
+        });
+        return await fetch(`/api/shares?${params}`).then((r) => r.json());
+      },
+      enabled: open,
     },
-    enabled: open,
-  });
+  );
 
-  const { data: users = [], isLoading: usersLoading } = useQuery<UserSearchResult[]>({
+  const { data: users = [], isLoading: usersLoading } = useQuery<
+    UserSearchResult[]
+  >({
     queryKey: ["/api/auth/users/search", searchQuery],
     queryFn: async () => {
       if (!searchQuery.trim()) return [];
       const params = new URLSearchParams({ q: searchQuery });
-      return await fetch(`/api/auth/users/search?${params}`).then(r => r.json());
+      return await fetch(`/api/auth/users/search?${params}`).then((r) =>
+        r.json(),
+      );
     },
     enabled: open && searchQuery.length >= 2,
   });
@@ -110,7 +118,9 @@ export function ShareDialog({
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/shares", resourceType, resourceId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/shares", resourceType, resourceId],
+      });
       setSearchQuery("");
       setSelectedUserId("");
       setSelectedPermission("view");
@@ -133,7 +143,9 @@ export function ShareDialog({
       return await apiRequest("DELETE", `/api/shares/${shareId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/shares", resourceType, resourceId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/shares", resourceType, resourceId],
+      });
       toast({
         title: "Success",
         description: "Access removed successfully",
@@ -150,12 +162,18 @@ export function ShareDialog({
 
   const updatePermissionMutation = useMutation({
     mutationFn: async (data: { shareId: string; permission: string }) => {
-      return await apiRequest("PATCH", `/api/shares/${data.shareId}/permission`, {
-        permission: data.permission,
-      });
+      return await apiRequest(
+        "PATCH",
+        `/api/shares/${data.shareId}/permission`,
+        {
+          permission: data.permission,
+        },
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/shares", resourceType, resourceId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/shares", resourceType, resourceId],
+      });
       toast({
         title: "Success",
         description: "Permission updated successfully",
@@ -172,7 +190,7 @@ export function ShareDialog({
 
   const handleShare = (userId?: string) => {
     const userIdToShare = userId || selectedUserId;
-    
+
     if (!userIdToShare || !selectedPermission) {
       toast({
         title: "Error",
@@ -188,14 +206,22 @@ export function ShareDialog({
     });
   };
 
-  const getUserInitials = (user: { firstName: string | null; lastName: string | null; email: string }) => {
+  const getUserInitials = (user: {
+    firstName: string | null;
+    lastName: string | null;
+    email: string;
+  }) => {
     if (user.firstName && user.lastName) {
       return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
     }
     return user.email[0].toUpperCase();
   };
 
-  const getUserName = (user: { firstName: string | null; lastName: string | null; email: string }) => {
+  const getUserName = (user: {
+    firstName: string | null;
+    lastName: string | null;
+    email: string;
+  }) => {
     if (user.firstName && user.lastName) {
       return `${user.firstName} ${user.lastName}`;
     }
@@ -234,7 +260,10 @@ export function ShareDialog({
                   data-testid="input-user-search"
                 />
               </div>
-              <Select value={selectedPermission} onValueChange={(v) => setSelectedPermission(v as any)}>
+              <Select
+                value={selectedPermission}
+                onValueChange={(v) => setSelectedPermission(v as any)}
+              >
                 <SelectTrigger className="w-32" data-testid="select-permission">
                   <SelectValue />
                 </SelectTrigger>
@@ -249,12 +278,20 @@ export function ShareDialog({
             {searchQuery.length >= 2 && (
               <div className="border rounded-md max-h-40 overflow-y-auto">
                 {usersLoading ? (
-                  <div className="p-3 text-sm text-muted-foreground">Searching...</div>
+                  <div className="p-3 text-sm text-muted-foreground">
+                    Searching...
+                  </div>
                 ) : users.length === 0 ? (
-                  <div className="p-3 text-sm text-muted-foreground">No users found</div>
+                  <div className="p-3 text-sm text-muted-foreground">
+                    No users found
+                  </div>
                 ) : (
                   users
-                    .filter(u => u.id !== ownerId && !shares.some(s => s.userId === u.id))
+                    .filter(
+                      (u) =>
+                        u.id !== ownerId &&
+                        !shares.some((s) => s.userId === u.id),
+                    )
                     .map((user) => (
                       <button
                         key={user.id}
@@ -263,12 +300,20 @@ export function ShareDialog({
                         data-testid={`user-option-${user.id}`}
                       >
                         <Avatar className="w-8 h-8">
-                          <AvatarImage src={user.profileImageUrl || undefined} />
-                          <AvatarFallback>{getUserInitials(user)}</AvatarFallback>
+                          <AvatarImage
+                            src={user.profileImageUrl || undefined}
+                          />
+                          <AvatarFallback>
+                            {getUserInitials(user)}
+                          </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 text-left">
-                          <div className="text-sm font-medium">{getUserName(user)}</div>
-                          <div className="text-xs text-muted-foreground">{user.email}</div>
+                          <div className="text-sm font-medium">
+                            {getUserName(user)}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {user.email}
+                          </div>
                         </div>
                       </button>
                     ))
@@ -282,11 +327,13 @@ export function ShareDialog({
               <Users className="w-4 h-4" />
               <span>People with access</span>
             </div>
-            
+
             {sharesLoading ? (
               <div className="text-sm text-muted-foreground">Loading...</div>
             ) : shares.length === 0 ? (
-              <div className="text-sm text-muted-foreground">No collaborators yet</div>
+              <div className="text-sm text-muted-foreground">
+                No collaborators yet
+              </div>
             ) : (
               <div className="space-y-2">
                 {shares.map((share) => (
@@ -296,18 +343,34 @@ export function ShareDialog({
                     data-testid={`share-${share.id}`}
                   >
                     <Avatar className="w-8 h-8">
-                      <AvatarImage src={share.user.profileImageUrl || undefined} />
-                      <AvatarFallback>{getUserInitials(share.user)}</AvatarFallback>
+                      <AvatarImage
+                        src={share.user.profileImageUrl || undefined}
+                      />
+                      <AvatarFallback>
+                        {getUserInitials(share.user)}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <div className="text-sm font-medium">{getUserName(share.user)}</div>
-                      <div className="text-xs text-muted-foreground">{share.user.email}</div>
+                      <div className="text-sm font-medium">
+                        {getUserName(share.user)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {share.user.email}
+                      </div>
                     </div>
                     <Select
                       value={share.permission}
-                      onValueChange={(v) => updatePermissionMutation.mutate({ shareId: share.id, permission: v })}
+                      onValueChange={(v) =>
+                        updatePermissionMutation.mutate({
+                          shareId: share.id,
+                          permission: v,
+                        })
+                      }
                     >
-                      <SelectTrigger className="w-28" data-testid={`select-permission-${share.id}`}>
+                      <SelectTrigger
+                        className="w-28"
+                        data-testid={`select-permission-${share.id}`}
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="z-[100]">

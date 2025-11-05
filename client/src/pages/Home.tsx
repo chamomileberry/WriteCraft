@@ -27,56 +27,64 @@ import { useTheme } from "@/hooks/use-theme";
 export default function Home() {
   const { isDark } = useTheme();
   const [location, setLocation] = useLocation();
-  const [activeView, setActiveView] = useState<string>('home');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [activeView, setActiveView] = useState<string>("home");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [isContentModalOpen, setIsContentModalOpen] = useState<boolean>(false);
 
   const handleToolSelect = (toolId: string) => {
-    if (toolId === 'notebook') {
-      setLocation('/notebook');
-    } else if (toolId === 'projects') {
-      setLocation('/projects');
+    if (toolId === "notebook") {
+      setLocation("/notebook");
+    } else if (toolId === "projects") {
+      setLocation("/projects");
     } else {
       setActiveView(toolId);
     }
-    console.log('Navigating to tool:', toolId);
+    console.log("Navigating to tool:", toolId);
   };
 
   const handleBackToHome = () => {
-    setLocation('/');
-    setActiveView('home');
-    console.log('Navigating back to home');
+    setLocation("/");
+    setActiveView("home");
+    console.log("Navigating back to home");
   };
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    console.log('Search query:', query);
+    console.log("Search query:", query);
   };
 
   const handleCreateNew = () => {
     setIsContentModalOpen(true);
-    console.log('Opening content type modal');
+    console.log("Opening content type modal");
   };
 
-  const handleSelectContentType = (contentType: string, notebookId?: string) => {
+  const handleSelectContentType = (
+    contentType: string,
+    notebookId?: string,
+  ) => {
     // Navigate to the appropriate editor based on content type
-    console.log('Selected content type:', contentType, 'for notebook:', notebookId);
-    
+    console.log(
+      "Selected content type:",
+      contentType,
+      "for notebook:",
+      notebookId,
+    );
+
     // Close the modal first
     setIsContentModalOpen(false);
-    
+
     // Get the mapping for this content type
     const mapping = getMappingById(contentType);
     if (mapping) {
       // Navigate to the editor page using URL routing, include notebookId if provided
-      const url = notebookId 
+      const url = notebookId
         ? `/editor/${mapping.urlSegment}/new?notebookId=${notebookId}`
         : `/editor/${mapping.urlSegment}/new`;
       setLocation(url);
     } else {
       // Fallback to notebook if content type not found
       console.log(`No mapping found for content type: ${contentType}`);
-      setLocation('/notebook');
+      setLocation("/notebook");
     }
   };
 
@@ -88,10 +96,10 @@ export default function Home() {
       return (
         <div className="min-h-screen bg-background">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <ContentEditor 
+            <ContentEditor
               contentType={contentType}
               contentId={contentId}
-              onBack={() => setLocation('/notebook')}
+              onBack={() => setLocation("/notebook")}
             />
           </div>
         </div>
@@ -99,12 +107,12 @@ export default function Home() {
     }
 
     // Handle notebook URL route
-    if (location === '/notebook') {
+    if (location === "/notebook") {
       return (
         <div className="min-h-screen bg-background">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               onClick={handleBackToHome}
               className="mb-6"
               data-testid="button-back-to-home"
@@ -119,12 +127,12 @@ export default function Home() {
     }
 
     switch (activeView) {
-      case 'character-generator':
+      case "character-generator":
         return (
           <div className="min-h-screen bg-background">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={handleBackToHome}
                 className="mb-6"
                 data-testid="button-back-to-home"
@@ -137,13 +145,13 @@ export default function Home() {
           </div>
         );
 
-      case 'notebook':
-      case 'saved-items': // Backward compatibility
+      case "notebook":
+      case "saved-items": // Backward compatibility
         return (
           <div className="min-h-screen bg-background">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={handleBackToHome}
                 className="mb-6"
                 data-testid="button-back-to-home"
@@ -155,13 +163,13 @@ export default function Home() {
             </div>
           </div>
         );
-      
-      case 'plot-generator':
+
+      case "plot-generator":
         return (
           <div className="min-h-screen bg-background">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={handleBackToHome}
                 className="mb-6"
                 data-testid="button-back-to-home"
@@ -173,13 +181,13 @@ export default function Home() {
             </div>
           </div>
         );
-      
-      case 'writing-prompts':
+
+      case "writing-prompts":
         return (
           <div className="min-h-screen bg-background">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={handleBackToHome}
                 className="mb-6"
                 data-testid="button-back-to-home"
@@ -192,12 +200,12 @@ export default function Home() {
           </div>
         );
 
-      case 'setting-generator':
+      case "setting-generator":
         return (
           <div className="min-h-screen bg-background">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={handleBackToHome}
                 className="mb-6"
                 data-testid="button-back-to-home"
@@ -210,12 +218,12 @@ export default function Home() {
           </div>
         );
 
-      case 'creature-generator':
+      case "creature-generator":
         return (
           <div className="min-h-screen bg-background">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={handleBackToHome}
                 className="mb-6"
                 data-testid="button-back-to-home"
@@ -228,12 +236,12 @@ export default function Home() {
           </div>
         );
 
-      case 'name-generator':
+      case "name-generator":
         return (
           <div className="min-h-screen bg-background">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={handleBackToHome}
                 className="mb-6"
                 data-testid="button-back-to-home"
@@ -246,12 +254,12 @@ export default function Home() {
           </div>
         );
 
-      case 'conflict-generator':
+      case "conflict-generator":
         return (
           <div className="min-h-screen bg-background">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={handleBackToHome}
                 className="mb-6"
                 data-testid="button-back-to-home"
@@ -264,12 +272,12 @@ export default function Home() {
           </div>
         );
 
-      case 'theme-explorer':
+      case "theme-explorer":
         return (
           <div className="min-h-screen bg-background">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={handleBackToHome}
                 className="mb-6"
                 data-testid="button-back-to-home"
@@ -282,12 +290,12 @@ export default function Home() {
           </div>
         );
 
-      case 'mood-palette':
+      case "mood-palette":
         return (
           <div className="min-h-screen bg-background">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={handleBackToHome}
                 className="mb-6"
                 data-testid="button-back-to-home"
@@ -300,12 +308,12 @@ export default function Home() {
           </div>
         );
 
-      case 'plant-generator':
+      case "plant-generator":
         return (
           <div className="min-h-screen bg-background">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={handleBackToHome}
                 className="mb-6"
                 data-testid="button-back-to-home"
@@ -318,12 +326,12 @@ export default function Home() {
           </div>
         );
 
-      case 'description-generator':
+      case "description-generator":
         return (
           <div className="min-h-screen bg-background">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={handleBackToHome}
                 className="mb-6"
                 data-testid="button-back-to-home"
@@ -335,7 +343,7 @@ export default function Home() {
             </div>
           </div>
         );
-        
+
       default:
         return (
           <>
@@ -346,25 +354,28 @@ export default function Home() {
                 <WritingGuides />
               </div>
             </section>
-            
+
             {/* Community Section */}
             <section className="py-16 bg-muted/30">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-12">
                   <MessageSquare className="w-12 h-12 text-primary mx-auto mb-4" />
-                  <h2 className="text-3xl md:text-4xl font-bold mb-4">Join Our Community</h2>
+                  <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                    Join Our Community
+                  </h2>
                   <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                    Connect with fellow writers, share your work, get feedback, and stay updated on new features.
+                    Connect with fellow writers, share your work, get feedback,
+                    and stay updated on new features.
                   </p>
                 </div>
-                
+
                 <div className="flex justify-center">
                   <div className="w-full max-w-md">
-                    <iframe 
-                      src={`https://discord.com/widget?id=1432757366717284414&theme=${isDark ? 'dark' : 'light'}`}
-                      width="350" 
-                      height="500" 
-                      frameBorder="0" 
+                    <iframe
+                      src={`https://discord.com/widget?id=1432757366717284414&theme=${isDark ? "dark" : "light"}`}
+                      width="350"
+                      height="500"
+                      frameBorder="0"
                       sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
                       className="w-full rounded-lg shadow-lg"
                       title="Discord Community Widget"
@@ -380,17 +391,15 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header 
-        onSearch={handleSearch} 
-        searchQuery={searchQuery} 
+      <Header
+        onSearch={handleSearch}
+        searchQuery={searchQuery}
         onNavigate={handleToolSelect}
         onCreateNew={handleCreateNew}
       />
-      <main>
-        {renderContent()}
-      </main>
+      <main>{renderContent()}</main>
       <Footer />
-      
+
       <ContentTypeModal
         isOpen={isContentModalOpen}
         onClose={() => setIsContentModalOpen(false)}
