@@ -401,8 +401,8 @@ export default function MapStudio() {
 
     const hasLocal = !!localContentOverrides[icon.linkedContentId];
     const hasQueryData = icon.linkedContentType === 'location'
-      ? notebookLocations.some(location => location.id === icon.linkedContentId)
-      : notebookSettlements.some(settlement => settlement.id === icon.linkedContentId);
+      ? notebookLocationIds.has(icon.linkedContentId)
+      : notebookSettlementIds.has(icon.linkedContentId);
 
     if (hasLocal || hasQueryData) {
       return;
@@ -438,8 +438,8 @@ export default function MapStudio() {
     icons,
     activeNotebookId,
     localContentOverrides,
-    notebookLocations,
-    notebookSettlements,
+    notebookLocationIds,
+    notebookSettlementIds,
   ]);
 
   const handleDialogOpenChange = (open: boolean) => {
