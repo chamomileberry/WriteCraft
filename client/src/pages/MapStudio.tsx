@@ -718,11 +718,14 @@ export default function MapStudio() {
 
     const state = history[newIndex];
     if (state) {
-    ctx.putImageData(state.imageData, 0, 0);
-    setIcons(state.icons);
-    setLabels(state.labels);
-    setBorders(state.borders);
-  }, [canRedo, historyIndex, history];
+      ctx.putImageData(state.imageData, 0, 0);
+      setIcons(state.icons);
+      setLabels(state.labels);
+      setBorders(state.borders);
+    }
+    // Call redraw to update the canvas
+    redraw();
+  }, [canRedo, historyIndex, history, redraw]);
 
   // Initialize offscreen canvas for drawing operations
   useEffect(() => {
@@ -1518,15 +1521,3 @@ export default function MapStudio() {
     </>
   );
 }
-      function redraw() {
-          throw new Error("Function not implemented.");
-      }
-
-      function redraw() {
-          throw new Error("Function not implemented.");
-      }
-
-      function redraw() {
-          throw new Error("Function not implemented.");
-      }
-)}
