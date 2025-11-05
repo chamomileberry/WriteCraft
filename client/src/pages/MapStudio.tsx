@@ -408,12 +408,15 @@ export default function MapStudio() {
       return;
     }
 
-    const hasLocal = !!localContentOverrides[icon.linkedContentId];
-    const hasQueryData = icon.linkedContentType === 'location'
-      ? notebookLocationIds.has(icon.linkedContentId)
-      : notebookSettlementIds.has(icon.linkedContentId);
+    // Check if we already have the data in local cache
+    const checkHasData = () => {
+      const hasQueryData = icon.linkedContentType === 'location'
+        ? notebookLocationIds.has(icon.linkedContentId!)
+        : notebookSettlementIds.has(icon.linkedContentId!);
+      return hasQueryData;
+    };
 
-    if (hasLocal || hasQueryData) {
+    if (checkHasData()) {
       return;
     }
 
@@ -426,13 +429,19 @@ export default function MapStudio() {
           : `/api/locations/${icon.linkedContentId}?notebookId=${activeNotebookId}`;
         const response = await apiRequest('GET', endpoint, undefined, { signal: controller.signal });
         const detail = await response.json() as Location | Settlement;
-        setLocalContentOverrides(prev => ({
-          ...prev,
-          [icon.linkedContentId!]: {
-            type: icon.linkedContentType!,
-            data: detail,
-          },
-        }));
+        setLocalContentOverrides(prev => {
+          // Only update if we don't already have this data
+          if (prev[icon.linkedContentId!]) {
+            return prev;
+          }
+          return {
+            ...prev,
+            [icon.linkedContentId!]: {
+              type: icon.linkedContentType!,
+              data: detail,
+            },
+          };
+        });
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
           return;
@@ -446,7 +455,6 @@ export default function MapStudio() {
     hoveredIconId,
     icons,
     activeNotebookId,
-    localContentOverrides,
     notebookLocationIds,
     notebookSettlementIds,
   ]);
