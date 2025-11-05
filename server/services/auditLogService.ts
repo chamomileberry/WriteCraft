@@ -1,7 +1,7 @@
 import { db } from '../db';
-import { auditLogs, userSubscriptions } from '@shared/schema';
+import { auditLogs, userSubscriptions, users } from '@shared/schema';
 import type { InsertAuditLog } from '@shared/schema';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc, sql, inArray } from 'drizzle-orm';
 import type { Request } from 'express';
 
 /**
@@ -103,6 +103,36 @@ export class AuditLogService {
         .limit(params.limit || 100)
         .offset(params.offset || 0);
 
+      const userIds = Array.from(
+        new Set(
+          logs
+            .map(log => log.userId)
+            .filter((id): id is string => typeof id === 'string' && id.length > 0),
+        ),
+      );
+
+      const usersById = new Map<string, { id: string; email: string | null; name: string | null }>();
+
+      if (userIds.length > 0) {
+        const userRecords = await db
+          .select({
+            id: users.id,
+            email: users.email,
+            name: sql<string | null>`concat_ws(' ', ${users.firstName}, ${users.lastName})`.as('name'),
+          })
+          .from(users)
+          .where(inArray(users.id, userIds as [string, ...string[]]));
+
+        for (const user of userRecords) {
+          usersById.set(user.id, user);
+        }
+      }
+
+      const logsWithUsers = logs.map(log => ({
+        ...log,
+        user: log.userId ? usersById.get(log.userId) ?? null : null,
+      }));
+
       // Get total count for pagination
       const totalResult = await db
         .select({ count: sql<number>`count(*)` })
@@ -110,7 +140,7 @@ export class AuditLogService {
         .where(and(...conditions));
 
       return {
-        logs,
+        logs: logsWithUsers,
         total: totalResult[0]?.count || 0,
         limit: params.limit || 100,
         offset: params.offset || 0,

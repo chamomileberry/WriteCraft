@@ -39,29 +39,7 @@ router.get('/audit-logs',
         offset: parseInt(offset as string),
       });
 
-      // Fetch user details for audit logs
-      const logsWithUsers = await Promise.all(
-        result.logs.map(async (log) => {
-          if (!log.userId) {
-            return { ...log, user: null };
-          }
-          
-          const [user] = await db
-            .select({ id: users.id, email: users.email, name: users.name })
-            .from(users)
-            .where(eq(users.id, log.userId))
-            .limit(1);
-          
-          return { ...log, user };
-        })
-      );
-
-      res.json({
-        logs: logsWithUsers,
-        total: result.total,
-        limit: result.limit,
-        offset: result.offset,
-      });
+      res.json(result);
     } catch (error) {
       console.error('[AUDIT LOGS API] Error fetching audit logs:', error);
       res.status(500).json({ error: 'Failed to fetch audit logs' });
