@@ -1,6 +1,6 @@
 # Storage Domain Grouping Strategy
 
-This document proposes consolidating 82 domain methods into **18 focused domain interfaces** that are easier to maintain, test, and understand.
+This document proposes consolidating 82 domain methods into **19 focused domain interfaces** that are easier to maintain, test, and understand.
 
 ## Grouping Principles
 
@@ -11,7 +11,7 @@ This document proposes consolidating 82 domain methods into **18 focused domain 
 
 ---
 
-## Proposed Domain Interfaces (18)
+## Proposed Domain Interfaces (19)
 
 ### 1. **IUserStorage** (User Management)
 **Count:** 2 domains → 1 interface
@@ -134,7 +134,7 @@ interface IContentOrganizationStorage {
   saveItem(item: InsertSavedItem, opts?: StorageOptions): Promise<CreateResult<SavedItem>>;
   unsaveItem(userId: string, itemType: string, itemId: string, notebookId: string | null, opts?: StorageOptions): Promise<DeleteResult>;
   getUserSavedItems(userId: string, notebookId: string | null, filters?: { itemType?: string }, pagination?: PaginationParams, opts?: StorageOptions): Promise<PaginatedResult<SavedItem>>;
-  isItemSaved(userId: string, itemType: string, itemId: string, opts?: StorageOptions): Promise<boolean>;
+  isItemSaved(userId: string, itemType: string, itemId: string, notebookId: string | null, opts?: StorageOptions): Promise<boolean>;
   updateSavedItemData(savedItemId: string, userId: string, itemData: Json, opts?: StorageOptions): Promise<UpdateResult<SavedItem>>;
 
   // Pinned Content
@@ -253,7 +253,7 @@ interface IContentOrganizationStorage {
 ---
 
 ### 14. **ICultureStorage** (Cultures & Societies)
-**Count:** 10 domains → 1 interface
+**Count:** 13 domains → 1 interface
 
 **Includes:**
 - Culture

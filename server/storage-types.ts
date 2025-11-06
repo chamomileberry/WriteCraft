@@ -103,6 +103,10 @@ export interface PaginatedResult<T> {
 /**
  * Helper to create a cursor from a record
  * Implementations should encode stable sort keys (e.g., createdAt + id)
+ *
+ * Note: Uses Node.js Buffer for base64 encoding. This code is server-only
+ * (in server/ directory) and does not run in browsers. For isomorphic code,
+ * consider using btoa()/atob() or a universal base64 library.
  */
 export function createCursor(sortKey: string | number, id: string): Cursor {
   const payload = JSON.stringify({ sortKey, id });
@@ -111,6 +115,10 @@ export function createCursor(sortKey: string | number, id: string): Cursor {
 
 /**
  * Helper to decode a cursor
+ *
+ * Note: Uses Node.js Buffer for base64 decoding. This code is server-only
+ * (in server/ directory) and does not run in browsers. For isomorphic code,
+ * consider using btoa()/atob() or a universal base64 library.
  */
 export function decodeCursor(cursor: Cursor): {
   sortKey: string | number;
@@ -257,6 +265,50 @@ export function validateShape<T>(
     throw AppError.invalidInput(errorMessage, value);
   }
   return value;
+}
+
+/**
+ * Type-safe helper for parsing saved item data
+ *
+ * Usage:
+ * ```typescript
+ * import { parseSavedItemData } from './storage-types';
+ *
+ * // Define a validator for your expected shape
+ * interface CharacterData {
+ *   name: string;
+ *   level: number;
+ * }
+ *
+ * function isCharacterData(value: unknown): value is CharacterData {
+ *   return typeof value === 'object' &&
+ *          value !== null &&
+ *          'name' in value &&
+ *          'level' in value &&
+ *          typeof (value as any).name === 'string' &&
+ *          typeof (value as any).level === 'number';
+ * }
+ *
+ * // Use in your code
+ * const savedItem = await storage.getSavedItem(...);
+ * const data = parseSavedItemData(savedItem, isCharacterData);
+ * console.log(data.name); // TypeScript knows this is a string
+ * ```
+ *
+ * @param item - The saved item containing itemData
+ * @param validator - Type guard function to validate the shape
+ * @returns Typed item data
+ * @throws AppError('invalid_input') if validation fails
+ */
+export function parseSavedItemData<T>(
+  item: { itemData: unknown; itemType: string },
+  validator: (v: unknown) => v is T,
+): T {
+  return validateShape(
+    item.itemData,
+    validator,
+    `Invalid itemData for ${item.itemType}`,
+  );
 }
 
 // ============================================================================

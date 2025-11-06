@@ -325,10 +325,18 @@ export interface ICharacterStorage {
   /**
    * Create a relationship between two family members
    *
+   * Implementation Requirements:
+   * - MUST validate that fromMemberId and toMemberId exist in the same family tree
+   * - MUST validate that the relationship doesn't create a cycle (e.g., person can't be their own ancestor)
+   * - MUST validate that relationship type is valid for the context
+   * - SHOULD check for duplicate relationships
+   *
    * @param relationship - Relationship data (fromMemberId, toMemberId, type)
    * @param opts - Storage options
    * @returns Created relationship wrapped in CreateResult
    * @throws AppError('invalid_input') if relationship creates a cycle or is invalid
+   * @throws AppError('not_found') if either member doesn't exist
+   * @throws AppError('conflict') if relationship already exists
    */
   createFamilyTreeRelationship(
     relationship: InsertFamilyTreeRelationship,

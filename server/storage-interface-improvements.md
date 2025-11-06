@@ -152,7 +152,7 @@ updateSavedItemData(
 
 **After:**
 ```typescript
-import { Json } from './storage-types';
+import { Json, parseSavedItemData } from './storage-types';
 
 updateSavedItemData(
   savedItemId: string,
@@ -161,13 +161,10 @@ updateSavedItemData(
   opts?: StorageOptions
 ): Promise<UpdateResult<SavedItem>>;
 
-// Helper for type-safe item data access
-function parseSavedItemData<T>(
-  item: SavedItem,
-  validator: (v: unknown) => v is T
-): T {
-  return validateShape(item.itemData, validator, `Invalid itemData for ${item.itemType}`);
-}
+// Helper for type-safe item data access (now available in storage-types.ts)
+// Usage:
+const savedItem = await storage.getSavedItem(...);
+const typedData = parseSavedItemData(savedItem, isMyDataShape);
 ```
 
 ### 3. Universal Search

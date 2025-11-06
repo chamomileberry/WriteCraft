@@ -270,6 +270,7 @@ export {
   type SearchResult,
   type Json,
   validateShape,
+  parseSavedItemData,
 } from "./storage-types";
 
 // Types for content mapping
