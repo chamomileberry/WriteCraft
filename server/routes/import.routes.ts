@@ -1,3 +1,16 @@
+/*
+ * TypeScript configuration note:
+ * This file handles dynamic import data from World Anvil and Campfire exports,
+ * which have varying schemas. We use index signatures with `unknown` type for safety,
+ * combined with key normalization and helper functions (extractField, parseArray, getArticleProp)
+ * to provide type-safe access patterns.
+ *
+ * TODO: Remaining property access improvements:
+ * - Replace remaining `article.property` with `getArticleProp(article, 'property')`
+ * - Or add explicit optional properties to WorldAnvilArticle interface for commonly accessed fields
+ * This will resolve noPropertyAccessFromIndexSignature warnings while maintaining type safety.
+ */
+
 import { Router } from "express";
 import multer from "multer";
 import AdmZip from "adm-zip";
@@ -98,21 +111,127 @@ const WORLD_ANVIL_TYPE_MAPPING: { [key: string]: string } = {
   transportation: "transportation",
 };
 
+/**
+ * Core structure for World Anvil/Campfire import articles.
+ *
+ * Only strongly-typed core fields are listed. All other fields from the source
+ * are preserved in the catch-all index signature and accessed via helper functions.
+ *
+ * Key normalization happens at import time via normalizeArticleKeys() to handle
+ * case variants (camelCase/snake_case/PascalCase) from different export formats.
+ */
 interface WorldAnvilArticle {
+  // Core identification - id is optional as it may be assigned during import
   id?: string;
-  uuid?: string;
-  externalId?: string;
   title: string;
-  name?: string;
+
+  // Content fields
   content?: string;
   excerpt?: string;
-  category?: any; // Category is an object with id, title, etc.
-  templateType?: string;
+
+  // Type classification
   entityClass?: string;
+  templateType?: string;
+  template?: { title?: string; [key: string]: unknown };
+  category?: { title?: string; [key: string]: unknown };
+  type?: string;
+
+  // Metadata
   state?: string;
   tags?: string | string[];
-  [key: string]: any;
-  [key: string]: any;
+
+  // Media
+  portrait?: { url?: string; title?: string; [key: string]: unknown };
+  cover?: { url?: string; title?: string; [key: string]: unknown };
+  image?: { url?: string; title?: string; [key: string]: unknown };
+  images?: { portrait?: { url?: string; [key: string]: unknown }; [key: string]: unknown };
+
+  // Campfire-specific data
+  campfireData?: {
+    fullName?: string;
+    bio?: string;
+    physicalTraits?: unknown;
+    personalityTraits?: string[];
+    basicInfo?: Record<string, string>;
+    image?: string;
+    [key: string]: unknown;
+  };
+
+  // Catch-all for all other fields from various export formats
+  // Use unknown instead of any to force type checking at access time
+  [key: string]: unknown;
+}
+
+/**
+ * Safely access a property from WorldAnvilArticle
+ * This helper handles the index signature access pattern for TypeScript strict mode
+ */
+function getArticleProp(article: WorldAnvilArticle, key: string): unknown {
+  return article[key];
+}
+
+/**
+ * Normalizes article keys to camelCase and creates aliases for common variants.
+ * This allows us to handle World Anvil, Campfire, and other export formats
+ * that may use different naming conventions.
+ */
+function normalizeArticleKeys(article: Record<string, unknown>): WorldAnvilArticle {
+  // Key mapping from various formats to canonical camelCase
+  const keyAliases: Record<string, string> = {
+    // ID fields
+    'uuid': 'id',
+    'externalId': 'id',
+    'external_id': 'id',
+
+    // Name variants
+    'name': 'title',
+
+    // Common duplicates (prefer camelCase)
+    'specialabilities': 'specialAbilities',
+    'special_abilities': 'specialAbilities',
+    'skilllsrequired': 'skillsRequired',
+    'skills_required': 'skillsRequired',
+    'commontools': 'commonTools',
+    'common_tools': 'commonTools',
+    'relatedprofessions': 'relatedProfessions',
+    'related_professions': 'relatedProfessions',
+    'guildsorganizations': 'guildsOrganizations',
+    'guilds_organizations': 'guildsOrganizations',
+    'notablefeatures': 'notableFeatures',
+    'notable_features': 'notableFeatures',
+    'pointsofinterest': 'pointsOfInterest',
+    'points_of_interest': 'pointsOfInterest',
+    'naturalresources': 'naturalResources',
+    'natural_resources': 'naturalResources',
+    'builtfrom': 'builtFrom',
+    'built_from': 'builtFrom',
+    'madefrom': 'madeFrom',
+    'made_from': 'madeFrom',
+    'commonphrases': 'commonPhrases',
+    'common_phrases': 'commonPhrases',
+    'spokenin': 'spokenIn',
+    'spoken_in': 'spokenIn',
+    'superiorranks': 'superiorRanks',
+    'superior_ranks': 'superiorRanks',
+    'subordinateranks': 'subordinateRanks',
+    'subordinate_ranks': 'subordinateRanks',
+    'affectedspecies': 'affectedSpecies',
+    'affected_species': 'affectedSpecies',
+    'relatedlaws': 'relatedLaws',
+    'related_laws': 'relatedLaws',
+  };
+
+  const normalized: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(article)) {
+    const normalizedKey = keyAliases[key.toLowerCase()] || key;
+    // Only set if not already present (first occurrence wins)
+    if (!(normalizedKey in normalized)) {
+      normalized[normalizedKey] = value;
+    }
+  }
+
+  return normalized as WorldAnvilArticle;
 }
 
 // Campfire field mapping to WriteCraft character schema
@@ -344,7 +463,8 @@ function parseCampfireHTML(
     },
   };
 
-  return [article];
+  // Normalize keys before returning
+  return [normalizeArticleKeys(article as Record<string, unknown>)];
 }
 
 // Parse Campfire RTF export (convert to HTML then parse)
@@ -355,7 +475,7 @@ async function parseCampfireRTF(
   console.log(`[Campfire RTF] Processing file: ${filename}`);
 
   return new Promise((resolve, reject) => {
-    rtfParser.string(rtfBuffer.toString("utf8"), (err: any, doc: any) => {
+    rtfParser.string(rtfBuffer.toString("utf8"), (err, doc) => {
       if (err) {
         console.error("[Campfire RTF] Parse error:", err);
         reject(new Error(`Failed to parse RTF file: ${filename}`));
@@ -363,16 +483,16 @@ async function parseCampfireRTF(
       }
 
       // Convert RTF document to HTML-like structure
-      const convertToHtml = (content: any[], depth: number = 0): string => {
+      const convertToHtml = (content: import('../types/rtf-parser').RTFContent[], depth: number = 0): string => {
         if (!content) return "";
 
         return content
-          .map((item: any) => {
+          .map((item) => {
             if (typeof item === "string") {
               // Clean up text
               return item.trim();
             }
-            if (item.content) {
+            if (typeof item === "object" && item.content) {
               // Check if this looks like a header (short text, might be bold)
               const text = convertToHtml(item.content, depth + 1);
               const isBold = item.style?.bold || item.style?.b;
@@ -527,7 +647,7 @@ function parseWorldAnvilExport(zipBuffer: Buffer) {
           console.log(
             `[ZIP Parse] Found ${articlesData.length} articles in articles.json (array format)`,
           );
-          articles.push(...articlesData);
+          articles.push(...articlesData.map((a: unknown) => normalizeArticleKeys(a as Record<string, unknown>)));
         } else if (
           articlesData.articles &&
           Array.isArray(articlesData.articles)
@@ -535,7 +655,7 @@ function parseWorldAnvilExport(zipBuffer: Buffer) {
           console.log(
             `[ZIP Parse] Found ${articlesData.articles.length} articles in articles.json (object format)`,
           );
-          articles.push(...articlesData.articles);
+          articles.push(...articlesData.articles.map((a: unknown) => normalizeArticleKeys(a as Record<string, unknown>)));
         } else {
           console.log(
             "[ZIP Parse] articles.json exists but has unexpected format:",
@@ -572,7 +692,7 @@ function parseWorldAnvilExport(zipBuffer: Buffer) {
         try {
           const data = JSON.parse(entry.getData().toString("utf8"));
           if (data.title || data.id || data.name) {
-            articles.push(data);
+            articles.push(normalizeArticleKeys(data as Record<string, unknown>));
             parsed++;
           } else {
             console.log(
@@ -811,7 +931,7 @@ function mapArticleToContent(
   };
 
   // Helper function to parse array fields (comma or newline separated)
-  const parseArray = (value: string | string[] | undefined): string[] => {
+  const parseArray = (value: unknown): string[] => {
     if (!value) return [];
 
     // If already an array, clean and return it
@@ -856,17 +976,17 @@ function mapArticleToContent(
 
   // Helper function to safely extract field with multiple name attempts
   // Checks both top-level article properties (World Anvil) and nested Campfire data
-  const extractField = (article: any, ...fieldNames: string[]): string => {
+  const extractField = (article: WorldAnvilArticle, ...fieldNames: string[]): string => {
     // Step 1: Check top-level article properties (World Anvil format)
     for (const name of fieldNames) {
-      if (article[name] !== undefined && article[name] !== null) {
-        const value = article[name];
+      const value = article[name];
 
+      if (value !== undefined && value !== null) {
         // Handle object values - extract title, name, or label
-        if (typeof value === "object" && !Array.isArray(value)) {
-          const readable =
-            value.title ?? value.name ?? value.label ?? value.value;
-          if (readable) {
+        if (typeof value === "object" && !Array.isArray(value) && value !== null) {
+          const obj = value as Record<string, unknown>;
+          const readable = obj['title'] ?? obj['name'] ?? obj['label'] ?? obj['value'];
+          if (readable !== undefined && readable !== null) {
             return stripBBCode(readable);
           }
           // Fallback to JSON.stringify only if no readable property found
@@ -877,24 +997,30 @@ function mapArticleToContent(
     }
 
     // Step 2: Check Campfire nested data structure (if exists)
-    if (article.campfireData?.basicInfo) {
-      const basicInfo = article.campfireData.basicInfo;
+    if (article.campfireData && typeof article.campfireData === "object") {
+      const campfireData = article.campfireData as Record<string, unknown>;
+      const basicInfo = campfireData['basicInfo'];
 
-      // Try to find matching Campfire field
-      for (const name of fieldNames) {
-        const normalized = name.toLowerCase().replace(/[_\s]/g, "");
-        const campfireVariants = campfireFieldMap[normalized] || [
-          // Also try title case and capitalized versions
-          name.charAt(0).toUpperCase() + name.slice(1),
-          name
-            .split(/[_\s]/)
-            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-            .join(" "),
-        ];
+      if (basicInfo && typeof basicInfo === "object") {
+        const basicInfoObj = basicInfo as Record<string, unknown>;
 
-        for (const variant of campfireVariants) {
-          if (basicInfo[variant] !== undefined && basicInfo[variant] !== null) {
-            return stripBBCode(basicInfo[variant]);
+        // Try to find matching Campfire field
+        for (const name of fieldNames) {
+          const normalized = name.toLowerCase().replace(/[_\s]/g, "");
+          const campfireVariants = campfireFieldMap[normalized] || [
+            // Also try title case and capitalized versions
+            name.charAt(0).toUpperCase() + name.slice(1),
+            name
+              .split(/[_\s]/)
+              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+              .join(" "),
+          ];
+
+          for (const variant of campfireVariants) {
+            const fieldValue = basicInfoObj[variant];
+            if (fieldValue !== undefined && fieldValue !== null) {
+              return stripBBCode(fieldValue);
+            }
           }
         }
       }
@@ -1100,7 +1226,10 @@ function mapArticleToContent(
       ),
 
       // Demographics
-      age: article.age ? parseInt(article.age) : null,
+      age: (() => {
+        const ageValue = getArticleProp(article, 'age');
+        return ageValue && typeof ageValue === 'string' ? parseInt(ageValue) : null;
+      })(),
       gender: extractField(article, "gender", "sex"),
       pronouns: extractField(article, "pronouns"),
       species: extractField(
@@ -1155,7 +1284,10 @@ function mapArticleToContent(
       ),
 
       // Additional traits
-      languages: article.languages ? [stripBBCode(article.languages)] : [],
+      languages: (() => {
+        const lang = getArticleProp(article, 'languages');
+        return lang ? [stripBBCode(lang)] : [];
+      })(),
       religiousBelief: extractField(
         article,
         "deity",
@@ -1271,7 +1403,7 @@ function mapArticleToContent(
 
       // Import tracking
       importSource: importSource,
-      importExternalId: article.id || article.uuid || article.externalId || "",
+      importExternalId: article.id || getArticleProp(article, 'uuid') || getArticleProp(article, 'externalId') || "",
     };
     return characterData;
   } else if (contentType === "species") {
@@ -1318,12 +1450,12 @@ function mapArticleToContent(
         "organization",
       ),
       abilities: parseArray(
-        article.abilities ||
-          article.specialAbilities ||
-          article.specialabilities ||
-          article.powers,
+        getArticleProp(article, 'abilities') ||
+          getArticleProp(article, 'specialAbilities') ||
+          getArticleProp(article, 'specialabilities') ||
+          getArticleProp(article, 'powers'),
       ),
-      weaknesses: parseArray(article.weaknesses || article.vulnerabilities),
+      weaknesses: parseArray(getArticleProp(article, 'weaknesses') || getArticleProp(article, 'vulnerabilities')),
       culturalTraits: extractField(
         article,
         "culturalTraits",
@@ -1401,7 +1533,7 @@ function mapArticleToContent(
         "background",
       ),
       notableFeatures: parseArray(
-        article.notableFeatures || article.notablefeatures || article.features,
+        getArticleProp(article, 'notableFeatures') || getArticleProp(article, 'notablefeatures') || getArticleProp(article, 'features'),
       ),
       landmarks: parseArray(
         article.landmarks ||
