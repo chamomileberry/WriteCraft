@@ -196,31 +196,48 @@ export class StorageFacade implements IStorage {
   private shareRepository = new ShareRepository();
 
   // User methods
-  async getUser(id: string): Promise<User | undefined> {
-    return await this.userRepository.getUser(id);
+  async getUser(
+    id: string,
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<User | undefined> {
+    return await this.userRepository.getUser(id, opts);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return await this.userRepository.getUserByUsername(username);
+  async getUserByUsername(
+    username: string,
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<User | undefined> {
+    return await this.userRepository.getUserByUsername(username, opts);
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    return await this.userRepository.createUser(insertUser);
+  async createUser(
+    insertUser: InsertUser,
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").CreateResult<User>> {
+    return await this.userRepository.createUser(insertUser, opts);
   }
 
-  async upsertUser(user: UpsertUser): Promise<User> {
-    return await this.userRepository.upsertUser(user);
+  async upsertUser(
+    user: UpsertUser,
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<User> {
+    return await this.userRepository.upsertUser(user, opts);
   }
 
   async updateUser(
     id: string,
     updates: Partial<InsertUser>,
-  ): Promise<User | undefined> {
-    return await this.userRepository.updateUser(id, updates);
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").UpdateResult<User>> {
+    return await this.userRepository.updateUser(id, updates, opts);
   }
 
-  async searchUsers(query: string): Promise<User[]> {
-    return await this.userRepository.searchUsers(query);
+  async searchUsers(
+    query: string,
+    pagination?: import("../storage-types").PaginationParams,
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").PaginatedResult<User>> {
+    return await this.userRepository.searchUsers(query, pagination, opts);
   }
 
   // Notebook methods
@@ -2799,27 +2816,17 @@ export class StorageFacade implements IStorage {
   // User preferences methods
   async getUserPreferences(
     userId: string,
+    opts?: import("../storage-types").StorageOptions,
   ): Promise<UserPreferences | undefined> {
-    const [prefs] = await db
-      .select()
-      .from(userPreferences)
-      .where(eq(userPreferences.userId, userId));
-    return prefs || undefined;
+    return await this.userRepository.getUserPreferences(userId, opts);
   }
 
   async upsertUserPreferences(
     userId: string,
     preferences: Partial<InsertUserPreferences>,
+    opts?: import("../storage-types").StorageOptions,
   ): Promise<UserPreferences> {
-    const [result] = await db
-      .insert(userPreferences)
-      .values({ ...preferences, userId })
-      .onConflictDoUpdate({
-        target: userPreferences.userId,
-        set: { ...preferences, updatedAt: new Date() },
-      })
-      .returning();
-    return result;
+    return await this.userRepository.upsertUserPreferences(userId, preferences, opts);
   }
 
   // Conversation summary methods

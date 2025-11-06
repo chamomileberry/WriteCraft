@@ -151,12 +151,12 @@ router.patch(
       });
 
       // Update user with safe data only
-      const updatedUser = await storage.updateUser(targetUserId, safeUpdates);
+      const updateResult = await storage.updateUser(targetUserId, safeUpdates);
 
-      if (!updatedUser) {
+      if (!updateResult.updated || !updateResult.value) {
         return res
-          .status(500)
-          .json({ message: "Failed to update user profile" });
+          .status(404)
+          .json({ message: "User not found or update failed" });
       }
 
       // Log successful update
@@ -166,11 +166,11 @@ router.patch(
 
       // Return updated user data (excluding sensitive fields)
       const safeResponse = {
-        id: updatedUser.id,
-        email: updatedUser.email,
-        firstName: updatedUser.firstName,
-        lastName: updatedUser.lastName,
-        profileImageUrl: updatedUser.profileImageUrl,
+        id: updateResult.value.id,
+        email: updateResult.value.email,
+        firstName: updateResult.value.firstName,
+        lastName: updateResult.value.lastName,
+        profileImageUrl: updateResult.value.profileImageUrl,
       };
 
       res.json(safeResponse);
