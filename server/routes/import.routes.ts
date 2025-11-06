@@ -997,7 +997,7 @@ function mapArticleToContent(
 
       if (value !== undefined && value !== null) {
         // Handle object values - extract title, name, or label
-        if (typeof value === "object" && !Array.isArray(value) && value !== null) {
+        if (typeof value === "object" && !Array.isArray(value)) {
           const obj = value as Record<string, unknown>;
           const readable = obj['title'] ?? obj['name'] ?? obj['label'] ?? obj['value'];
           if (readable !== undefined && readable !== null) {
