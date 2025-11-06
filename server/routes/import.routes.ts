@@ -1,3 +1,16 @@
+/*
+ * TypeScript configuration note:
+ * This file handles dynamic import data from World Anvil and Campfire exports,
+ * which have varying schemas. We use index signatures with `unknown` type for safety,
+ * combined with key normalization and helper functions (extractField, parseArray, getArticleProp)
+ * to provide type-safe access patterns.
+ *
+ * TODO: Remaining property access improvements:
+ * - Replace remaining `article.property` with `getArticleProp(article, 'property')`
+ * - Or add explicit optional properties to WorldAnvilArticle interface for commonly accessed fields
+ * This will resolve noPropertyAccessFromIndexSignature warnings while maintaining type safety.
+ */
+
 import { Router } from "express";
 import multer from "multer";
 import AdmZip from "adm-zip";
@@ -98,17 +111,141 @@ const WORLD_ANVIL_TYPE_MAPPING: { [key: string]: string } = {
   transportation: "transportation",
 };
 
+/**
+ * Core structure for World Anvil/Campfire import articles.
+ *
+ * Only strongly-typed core fields are listed. All other fields from the source
+ * are preserved in the catch-all index signature and accessed via helper functions.
+ *
+ * Key normalization happens at import time via normalizeArticleKeys() to handle
+ * case variants (camelCase/snake_case/PascalCase) from different export formats.
+ */
 interface WorldAnvilArticle {
-  id: string;
+  // Core identification - id is optional as it may be assigned during import
+  id?: string;
   title: string;
+
+  // Content fields
   content?: string;
   excerpt?: string;
-  category?: any; // Category is an object with id, title, etc.
-  templateType?: string;
+
+  // Type classification
   entityClass?: string;
+  templateType?: string;
+  template?: { title?: string; [key: string]: unknown };
+  category?: { title?: string; [key: string]: unknown };
+  type?: string;
+
+  // Metadata
   state?: string;
   tags?: string | string[];
-  [key: string]: any;
+
+  // Media
+  portrait?: { url?: string; title?: string; [key: string]: unknown };
+  cover?: { url?: string; title?: string; [key: string]: unknown };
+  image?: { url?: string; title?: string; [key: string]: unknown };
+  images?: { portrait?: { url?: string; [key: string]: unknown }; [key: string]: unknown };
+
+  // Campfire-specific data
+  campfireData?: {
+    fullName?: string;
+    bio?: string;
+    physicalTraits?: unknown;
+    personalityTraits?: string[];
+    basicInfo?: Record<string, string>;
+    image?: string;
+    [key: string]: unknown;
+  };
+
+  // Catch-all for all other fields from various export formats
+  // Use unknown instead of any to force type checking at access time
+  [key: string]: unknown;
+}
+
+/**
+ * Safely access a property from WorldAnvilArticle
+ * This helper handles the index signature access pattern for TypeScript strict mode
+ */
+function getArticleProp(article: WorldAnvilArticle, key: string): unknown {
+  return article[key];
+}
+
+/**
+ * Try multiple property keys in order, return the first non-nullish value
+ * Useful for handling field name variations (e.g., landmarks vs monuments)
+ */
+function getFirstProp(article: WorldAnvilArticle, ...keys: string[]): unknown {
+  for (const key of keys) {
+    const value = article[key];
+    if (value !== undefined && value !== null) {
+      return value;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Normalizes article keys to camelCase and creates aliases for common variants.
+ * This allows us to handle World Anvil, Campfire, and other export formats
+ * that may use different naming conventions.
+ */
+function normalizeArticleKeys(article: Record<string, unknown>): WorldAnvilArticle {
+  // Key mapping from various formats to canonical camelCase
+  const keyAliases: Record<string, string> = {
+    // ID fields
+    'uuid': 'id',
+    'externalId': 'id',
+    'external_id': 'id',
+
+    // Name variants
+    'name': 'title',
+
+    // Common duplicates (prefer camelCase)
+    'specialabilities': 'specialAbilities',
+    'special_abilities': 'specialAbilities',
+    'skillsrequired': 'skillsRequired',
+    'skills_required': 'skillsRequired',
+    'commontools': 'commonTools',
+    'common_tools': 'commonTools',
+    'relatedprofessions': 'relatedProfessions',
+    'related_professions': 'relatedProfessions',
+    'guildsorganizations': 'guildsOrganizations',
+    'guilds_organizations': 'guildsOrganizations',
+    'notablefeatures': 'notableFeatures',
+    'notable_features': 'notableFeatures',
+    'pointsofinterest': 'pointsOfInterest',
+    'points_of_interest': 'pointsOfInterest',
+    'naturalresources': 'naturalResources',
+    'natural_resources': 'naturalResources',
+    'builtfrom': 'builtFrom',
+    'built_from': 'builtFrom',
+    'madefrom': 'madeFrom',
+    'made_from': 'madeFrom',
+    'commonphrases': 'commonPhrases',
+    'common_phrases': 'commonPhrases',
+    'spokenin': 'spokenIn',
+    'spoken_in': 'spokenIn',
+    'superiorranks': 'superiorRanks',
+    'superior_ranks': 'superiorRanks',
+    'subordinateranks': 'subordinateRanks',
+    'subordinate_ranks': 'subordinateRanks',
+    'affectedspecies': 'affectedSpecies',
+    'affected_species': 'affectedSpecies',
+    'relatedlaws': 'relatedLaws',
+    'related_laws': 'relatedLaws',
+  };
+
+  const normalized: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(article)) {
+    const normalizedKey = keyAliases[key.toLowerCase()] || toCamelCase(key);
+    // Only set if not already present (first occurrence wins)
+    if (!(normalizedKey in normalized)) {
+      normalized[normalizedKey] = value;
+    }
+  }
+
+  return normalized as WorldAnvilArticle;
 }
 
 // Campfire field mapping to WriteCraft character schema
@@ -196,10 +333,10 @@ function parseCampfireHTML(
       let currentEl = physicalHeader.next();
       while (
         currentEl.length &&
-        currentEl.prop("tagName")?.toLowerCase() !== "h3"
+        (currentEl.prop("tagName")?.toLowerCase() ?? "") !== "h3"
       ) {
         const text = currentEl.text().trim();
-        if (text && currentEl.prop("tagName")?.toLowerCase() === "p") {
+        if (text && (currentEl.prop("tagName")?.toLowerCase() ?? "") === "p") {
           // Check if it's a facial or physical feature
           if (
             text.toLowerCase().includes("facial") ||
@@ -236,10 +373,10 @@ function parseCampfireHTML(
       let currentEl = personalityHeader.next();
       while (
         currentEl.length &&
-        currentEl.prop("tagName")?.toLowerCase() !== "h3"
+        (currentEl.prop("tagName")?.toLowerCase() ?? "") !== "h3"
       ) {
         const text = currentEl.text().trim();
-        if (text && currentEl.prop("tagName")?.toLowerCase() === "p") {
+        if (text && (currentEl.prop("tagName")?.toLowerCase() ?? "") === "p") {
           personalityTraits.push(text);
         }
         currentEl = currentEl.next();
@@ -276,9 +413,9 @@ function parseCampfireHTML(
       let currentEl = basicHeader.next();
       while (
         currentEl.length &&
-        currentEl.prop("tagName")?.toLowerCase() !== "h3"
+        (currentEl.prop("tagName")?.toLowerCase() ?? "") !== "h3"
       ) {
-        if (currentEl.prop("tagName")?.toLowerCase() === "p") {
+        if ((currentEl.prop("tagName")?.toLowerCase() ?? "") === "p") {
           const strongEl = currentEl.find("strong").first();
           if (strongEl.length) {
             const label = strongEl.text().replace(":", "").trim();
@@ -340,7 +477,8 @@ function parseCampfireHTML(
     },
   };
 
-  return [article];
+  // Normalize keys before returning
+  return [normalizeArticleKeys(article as Record<string, unknown>)];
 }
 
 // Parse Campfire RTF export (convert to HTML then parse)
@@ -351,7 +489,7 @@ async function parseCampfireRTF(
   console.log(`[Campfire RTF] Processing file: ${filename}`);
 
   return new Promise((resolve, reject) => {
-    rtfParser.string(rtfBuffer.toString("utf8"), (err: any, doc: any) => {
+    rtfParser.string(rtfBuffer.toString("utf8"), (err, doc) => {
       if (err) {
         console.error("[Campfire RTF] Parse error:", err);
         reject(new Error(`Failed to parse RTF file: ${filename}`));
@@ -363,12 +501,12 @@ async function parseCampfireRTF(
         if (!content) return "";
 
         return content
-          .map((item: any) => {
+          .map((item) => {
             if (typeof item === "string") {
               // Clean up text
               return item.trim();
             }
-            if (item.content) {
+            if (typeof item === "object" && item.content) {
               // Check if this looks like a header (short text, might be bold)
               const text = convertToHtml(item.content, depth + 1);
               const isBold = item.style?.bold || item.style?.b;
@@ -380,7 +518,7 @@ async function parseCampfireRTF(
               } else if (text.includes(":")) {
                 // Might be a key-value pair
                 const parts = text.split(":");
-                if (parts[0].length < 50) {
+                if (parts[0] && parts[0].length < 50) {
                   return `<p><strong>${parts[0]}</strong>: ${parts.slice(1).join(":")}</p>`;
                 }
               }
@@ -523,7 +661,7 @@ function parseWorldAnvilExport(zipBuffer: Buffer) {
           console.log(
             `[ZIP Parse] Found ${articlesData.length} articles in articles.json (array format)`,
           );
-          articles.push(...articlesData);
+          articles.push(...articlesData.map((a: unknown) => normalizeArticleKeys(a as Record<string, unknown>)));
         } else if (
           articlesData.articles &&
           Array.isArray(articlesData.articles)
@@ -531,7 +669,7 @@ function parseWorldAnvilExport(zipBuffer: Buffer) {
           console.log(
             `[ZIP Parse] Found ${articlesData.articles.length} articles in articles.json (object format)`,
           );
-          articles.push(...articlesData.articles);
+          articles.push(...articlesData.articles.map((a: unknown) => normalizeArticleKeys(a as Record<string, unknown>)));
         } else {
           console.log(
             "[ZIP Parse] articles.json exists but has unexpected format:",
@@ -568,7 +706,7 @@ function parseWorldAnvilExport(zipBuffer: Buffer) {
         try {
           const data = JSON.parse(entry.getData().toString("utf8"));
           if (data.title || data.id || data.name) {
-            articles.push(data);
+            articles.push(normalizeArticleKeys(data as Record<string, unknown>));
             parsed++;
           } else {
             console.log(
@@ -651,9 +789,7 @@ function mapArticleToContent(
   }
 
   // Helper function to strip World Anvil BBCode tags
-  const stripBBCode = (
-    text: string | number | string[] | object | undefined,
-  ): string => {
+  const stripBBCode = (text: unknown): string => {
     if (!text) return "";
 
     // Normalize all types to string FIRST
@@ -783,6 +919,7 @@ function mapArticleToContent(
     // If no multi-word title found, check for single-word title
     if (
       nameStart === 0 &&
+      parts[0] &&
       singleWordTitles.includes(parts[0].toLowerCase().replace(/\.$/, ""))
     ) {
       honorificTitle = parts[0];
@@ -794,11 +931,11 @@ function mapArticleToContent(
     if (nameParts.length === 0) {
       return { givenName: "", familyName: "", honorificTitle };
     } else if (nameParts.length === 1) {
-      return { givenName: nameParts[0], familyName: "", honorificTitle };
+      return { givenName: nameParts[0] || "", familyName: "", honorificTitle };
     } else {
       // First part is given name, rest is family name
       return {
-        givenName: nameParts[0],
+        givenName: nameParts[0] || "",
         familyName: nameParts.slice(1).join(" "),
         honorificTitle,
       };
@@ -806,7 +943,7 @@ function mapArticleToContent(
   };
 
   // Helper function to parse array fields (comma or newline separated)
-  const parseArray = (value: string | string[] | undefined): string[] => {
+  const parseArray = (value: unknown): string[] => {
     if (!value) return [];
 
     // If already an array, clean and return it
@@ -851,18 +988,18 @@ function mapArticleToContent(
 
   // Helper function to safely extract field with multiple name attempts
   // Checks both top-level article properties (World Anvil) and nested Campfire data
-  const extractField = (article: any, ...fieldNames: string[]): string => {
+  const extractField = (article: WorldAnvilArticle, ...fieldNames: string[]): string => {
     // Step 1: Check top-level article properties (World Anvil format)
     for (const name of fieldNames) {
-      if (article[name] !== undefined && article[name] !== null) {
-        const value = article[name];
+      const value = getArticleProp(article, name);
 
+      if (value !== undefined && value !== null) {
         // Handle object values - extract title, name, or label
         if (typeof value === "object" && !Array.isArray(value)) {
-          const readable =
-            value.title ?? value.name ?? value.label ?? value.value;
-          if (readable) {
-            return stripBBCode(readable);
+          const obj = value as Record<string, unknown>;
+          const readable = obj['title'] ?? obj['name'] ?? obj['label'] ?? obj['value'];
+          if (readable !== undefined && readable !== null) {
+            return stripBBCode(readable as any);
           }
           // Fallback to JSON.stringify only if no readable property found
         }
@@ -872,24 +1009,30 @@ function mapArticleToContent(
     }
 
     // Step 2: Check Campfire nested data structure (if exists)
-    if (article.campfireData?.basicInfo) {
-      const basicInfo = article.campfireData.basicInfo;
+    if (article.campfireData && typeof article.campfireData === "object") {
+      const campfireData = article.campfireData as Record<string, unknown>;
+      const basicInfo = campfireData['basicInfo'];
 
-      // Try to find matching Campfire field
-      for (const name of fieldNames) {
-        const normalized = name.toLowerCase().replace(/[_\s]/g, "");
-        const campfireVariants = campfireFieldMap[normalized] || [
-          // Also try title case and capitalized versions
-          name.charAt(0).toUpperCase() + name.slice(1),
-          name
-            .split(/[_\s]/)
-            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-            .join(" "),
-        ];
+      if (basicInfo && typeof basicInfo === "object") {
+        const basicInfoObj = basicInfo as Record<string, unknown>;
 
-        for (const variant of campfireVariants) {
-          if (basicInfo[variant] !== undefined && basicInfo[variant] !== null) {
-            return stripBBCode(basicInfo[variant]);
+        // Try to find matching Campfire field
+        for (const name of fieldNames) {
+          const normalized = name.toLowerCase().replace(/[_\s]/g, "");
+          const campfireVariants = campfireFieldMap[normalized] || [
+            // Also try title case and capitalized versions
+            name.charAt(0).toUpperCase() + name.slice(1),
+            name
+              .split(/[_\s]/)
+              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+              .join(" "),
+          ];
+
+          for (const variant of campfireVariants) {
+            const fieldValue = basicInfoObj[variant];
+            if (fieldValue !== undefined && fieldValue !== null) {
+              return stripBBCode(fieldValue);
+            }
           }
         }
       }
@@ -1095,7 +1238,10 @@ function mapArticleToContent(
       ),
 
       // Demographics
-      age: article.age ? parseInt(article.age) : null,
+      age: (() => {
+        const ageValue = getArticleProp(article, 'age');
+        return ageValue && typeof ageValue === 'string' ? parseInt(ageValue) : null;
+      })(),
       gender: extractField(article, "gender", "sex"),
       pronouns: extractField(article, "pronouns"),
       species: extractField(
@@ -1150,7 +1296,10 @@ function mapArticleToContent(
       ),
 
       // Additional traits
-      languages: article.languages ? [stripBBCode(article.languages)] : [],
+      languages: (() => {
+        const lang = getArticleProp(article, 'languages');
+        return lang ? [stripBBCode(lang)] : [];
+      })(),
       religiousBelief: extractField(
         article,
         "deity",
@@ -1266,7 +1415,7 @@ function mapArticleToContent(
 
       // Import tracking
       importSource: importSource,
-      importExternalId: article.id || article.uuid || article.externalId || "",
+      importExternalId: article.id || getArticleProp(article, 'uuid') || getArticleProp(article, 'externalId') || "",
     };
     return characterData;
   } else if (contentType === "species") {
@@ -1313,12 +1462,12 @@ function mapArticleToContent(
         "organization",
       ),
       abilities: parseArray(
-        article.abilities ||
-          article.specialAbilities ||
-          article.specialabilities ||
-          article.powers,
+        getArticleProp(article, 'abilities') ||
+          getArticleProp(article, 'specialAbilities') ||
+          getArticleProp(article, 'specialabilities') ||
+          getArticleProp(article, 'powers'),
       ),
-      weaknesses: parseArray(article.weaknesses || article.vulnerabilities),
+      weaknesses: parseArray(getArticleProp(article, 'weaknesses') || getArticleProp(article, 'vulnerabilities')),
       culturalTraits: extractField(
         article,
         "culturalTraits",
@@ -1396,21 +1545,16 @@ function mapArticleToContent(
         "background",
       ),
       notableFeatures: parseArray(
-        article.notableFeatures || article.notablefeatures || article.features,
+        getFirstProp(article, 'notableFeatures', 'notablefeatures', 'features'),
       ),
       landmarks: parseArray(
-        article.landmarks ||
-          article.monuments ||
-          article.pointsOfInterest ||
-          article.pointsofinterest,
+        getFirstProp(article, 'landmarks', 'monuments', 'pointsOfInterest', 'pointsofinterest'),
       ),
       threats: parseArray(
-        article.threats || article.dangers || article.hazards,
+        getFirstProp(article, 'threats', 'dangers', 'hazards'),
       ),
       resources: parseArray(
-        article.resources ||
-          article.naturalResources ||
-          article.naturalresources,
+        getFirstProp(article, 'resources', 'naturalResources', 'naturalresources'),
       ),
       genre: "Fantasy",
       imageUrl:
@@ -1468,9 +1612,9 @@ function mapArticleToContent(
       resources: extractField(article, "resources", "assets", "wealth"),
       goals: extractField(article, "goals", "objectives", "aims", "purpose"),
       history: extractField(article, "history", "background", "origins"),
-      allies: parseArray(article.allies || article.friends || article.partners),
+      allies: parseArray(getFirstProp(article, 'allies', 'friends', 'partners')),
       enemies: parseArray(
-        article.enemies || article.rivals || article.opponents,
+        getFirstProp(article, 'enemies', 'rivals', 'opponents'),
       ),
       genre: "Fantasy",
       imageUrl: article.portrait?.url || article.image?.url || "",
@@ -1496,10 +1640,7 @@ function mapArticleToContent(
         "summary",
       ),
       skillsRequired: parseArray(
-        article.skillsRequired ||
-          article.skillsrequired ||
-          article.skills ||
-          article.requirements,
+        getFirstProp(article, 'skillsRequired', 'skillsrequired', 'skills', 'requirements'),
       ),
       responsibilities: extractField(
         article,
@@ -1549,15 +1690,10 @@ function mapArticleToContent(
         "mental",
       ),
       commonTools: parseArray(
-        article.commonTools ||
-          article.commontools ||
-          article.tools ||
-          article.equipment,
+        getFirstProp(article, 'commonTools', 'commontools', 'tools', 'equipment'),
       ),
       relatedProfessions: parseArray(
-        article.relatedProfessions ||
-          article.relatedprofessions ||
-          article.similar,
+        getFirstProp(article, 'relatedProfessions', 'relatedprofessions', 'similar'),
       ),
       careerProgression: extractField(
         article,
@@ -1567,10 +1703,7 @@ function mapArticleToContent(
       ),
       apprenticeship: extractField(article, "apprenticeship", "apprentice"),
       guildsOrganizations: parseArray(
-        article.guildsOrganizations ||
-          article.guildsorganizations ||
-          article.guilds ||
-          article.organizations,
+        getFirstProp(article, 'guildsOrganizations', 'guildsorganizations', 'guilds', 'organizations'),
       ),
       historicalContext: extractField(
         article,
@@ -1611,7 +1744,7 @@ function mapArticleToContent(
         "excerpt",
       ),
       traditions: parseArray(
-        article.traditions || article.customs || article.practices,
+        getFirstProp(article, 'traditions', 'customs', 'practices'),
       ),
       language: extractField(article, "language", "languages", "tongue"),
       religion: extractField(article, "religion", "faith", "belief", "deity"),
@@ -1624,9 +1757,9 @@ function mapArticleToContent(
       ),
       history: extractField(article, "history", "background", "origins"),
       geography: extractField(article, "geography", "territory", "lands"),
-      values: parseArray(article.values || article.beliefs),
+      values: parseArray(getFirstProp(article, 'values', 'beliefs')),
       customs: parseArray(
-        article.customs || article.practices || article.traditions,
+        getFirstProp(article, 'customs', 'practices', 'traditions'),
       ),
       genre: "Fantasy",
       imageUrl:
@@ -1693,16 +1826,14 @@ function mapArticleToContent(
       geography: extractField(article, "geography", "location", "terrain"),
       climate: extractField(article, "climate", "weather"),
       resources: parseArray(
-        article.resources ||
-          article.naturalResources ||
-          article.naturalresources,
+        getFirstProp(article, 'resources', 'naturalResources', 'naturalresources'),
       ),
-      threats: parseArray(article.threats || article.dangers),
+      threats: parseArray(getFirstProp(article, 'threats', 'dangers')),
       landmarks: parseArray(
-        article.landmarks || article.monuments || article.sites,
+        getFirstProp(article, 'landmarks', 'monuments', 'sites'),
       ),
       districts: parseArray(
-        article.districts || article.quarters || article.wards,
+        getFirstProp(article, 'districts', 'quarters', 'wards'),
       ),
       genre: "Fantasy",
       imageUrl:
@@ -1734,17 +1865,17 @@ function mapArticleToContent(
       ),
       purpose: extractField(article, "purpose", "goal", "intent"),
       participants: extractField(article, "participants", "performers"),
-      requirements: parseArray(article.requirements || article.prerequisites),
-      steps: parseArray(article.steps || article.procedure || article.process),
+      requirements: parseArray(getFirstProp(article, 'requirements', 'prerequisites')),
+      steps: parseArray(getFirstProp(article, 'steps', 'procedure', 'process')),
       duration: extractField(article, "duration", "length", "time"),
       location: extractField(article, "location", "place", "setting"),
       timing: extractField(article, "timing", "when", "schedule"),
       components: parseArray(
-        article.components || article.materials || article.items,
+        getFirstProp(article, 'components', 'materials', 'items'),
       ),
       effects: extractField(article, "effects", "results", "outcome"),
       risks: extractField(article, "risks", "dangers", "warnings"),
-      variations: parseArray(article.variations || article.alternatives),
+      variations: parseArray(getFirstProp(article, 'variations', 'alternatives')),
       genre: "Fantasy",
     };
   } else if (contentType === "law") {
@@ -1765,18 +1896,18 @@ function mapArticleToContent(
       jurisdiction: extractField(article, "jurisdiction", "scope", "territory"),
       authority: extractField(article, "authority", "enforcer", "enforcement"),
       penalties: parseArray(
-        article.penalties || article.punishment || article.sanctions,
+        getFirstProp(article, 'penalties', 'punishment', 'sanctions'),
       ),
-      exceptions: parseArray(article.exceptions || article.exemptions),
-      precedents: parseArray(article.precedents || article.cases),
+      exceptions: parseArray(getFirstProp(article, 'exceptions', 'exemptions')),
+      precedents: parseArray(getFirstProp(article, 'precedents', 'cases')),
       enforcement: extractField(article, "enforcement", "application"),
-      courts: parseArray(article.courts || article.tribunals),
+      courts: parseArray(getFirstProp(article, 'courts', 'tribunals')),
       appeals: extractField(article, "appeals", "appellate"),
       amendments: parseArray(
-        article.amendments || article.changes || article.revisions,
+        getFirstProp(article, 'amendments', 'changes', 'revisions'),
       ),
       relatedLaws: parseArray(
-        article.relatedLaws || article.relatedlaws || article.related,
+        getFirstProp(article, 'relatedLaws', 'relatedlaws', 'related'),
       ),
       controversy: extractField(article, "controversy", "debate", "dispute"),
       publicOpinion: extractField(
@@ -1813,13 +1944,10 @@ function mapArticleToContent(
       value: extractField(article, "value", "cost", "price", "worth"),
       weight: extractField(article, "weight", "mass"),
       properties: parseArray(
-        article.properties || article.traits || article.attributes,
+        getFirstProp(article, 'properties', 'traits', 'attributes'),
       ),
       materials: parseArray(
-        article.materials ||
-          article.composition ||
-          article.madeFrom ||
-          article.madefrom,
+        getFirstProp(article, 'materials', 'composition', 'madeFrom', 'madefrom'),
       ),
       history: extractField(
         article,
@@ -1829,7 +1957,7 @@ function mapArticleToContent(
         "lore",
       ),
       abilities: parseArray(
-        article.abilities || article.powers || article.effects,
+        getFirstProp(article, 'abilities', 'powers', 'effects'),
       ),
       requirements: extractField(article, "requirements", "prerequisites"),
       crafting: extractField(article, "crafting", "creation", "manufacturing"),
@@ -1842,7 +1970,7 @@ function mapArticleToContent(
     return {
       userId,
       notebookId,
-      title: article.title || article.name || "Untitled",
+      title: article.title || getArticleProp(article, 'name') || "Untitled",
       documentType:
         extractField(article, "documentType", "documenttype", "type") ||
         "article",
@@ -1903,10 +2031,7 @@ function mapArticleToContent(
         "population",
       ),
       regions: parseArray(
-        article.regions ||
-          article.spokenIn ||
-          article.spokenin ||
-          article.locations,
+        getFirstProp(article, 'regions', 'spokenIn', 'spokenin', 'locations'),
       ),
       phonology: extractField(article, "phonology", "sounds", "pronunciation"),
       grammar: extractField(article, "grammar", "syntax", "structure"),
@@ -1919,7 +2044,7 @@ function mapArticleToContent(
         "alphabet",
       ),
       commonPhrases: parseArray(
-        article.commonPhrases || article.commonphrases || article.phrases,
+        getFirstProp(article, 'commonPhrases', 'commonphrases', 'phrases'),
       ),
       culturalContext: extractField(
         article,
@@ -1929,7 +2054,7 @@ function mapArticleToContent(
         "content",
       ),
       history: extractField(article, "history", "evolution", "development"),
-      variations: parseArray(article.variations || article.dialects),
+      variations: parseArray(getFirstProp(article, 'variations', 'dialects')),
       difficulty: extractField(
         article,
         "difficulty",
@@ -1961,10 +2086,7 @@ function mapArticleToContent(
       ),
       architecture: extractField(article, "architecture", "style", "design"),
       materials: parseArray(
-        article.materials ||
-          article.construction ||
-          article.builtFrom ||
-          article.builtfrom,
+        getFirstProp(article, 'materials', 'construction', 'builtFrom', 'builtfrom'),
       ),
       purpose: extractField(article, "purpose", "function", "use"),
       capacity: extractField(article, "capacity", "size", "occupancy"),
@@ -2020,7 +2142,7 @@ function mapArticleToContent(
         "summary",
       ),
       properties: parseArray(
-        article.properties || article.characteristics || article.traits,
+        getFirstProp(article, 'properties', 'characteristics', 'traits'),
       ),
       rarity: extractField(article, "rarity", "commonness", "availability"),
       value: extractField(article, "value", "cost", "price", "worth"),
@@ -2032,7 +2154,7 @@ function mapArticleToContent(
         "preparation",
       ),
       uses: parseArray(
-        article.uses || article.applications || article.purposes,
+        getFirstProp(article, 'uses', 'applications', 'purposes'),
       ),
       durability: extractField(article, "durability", "strength", "hardness"),
       appearance: extractField(article, "appearance", "look", "visual"),
@@ -2085,10 +2207,10 @@ function mapArticleToContent(
       cost: extractField(article, "cost", "price", "value"),
       rarity: extractField(article, "rarity", "availability", "commonness"),
       advantages: parseArray(
-        article.advantages || article.benefits || article.pros,
+        getFirstProp(article, 'advantages', 'benefits', 'pros'),
       ),
       disadvantages: parseArray(
-        article.disadvantages || article.drawbacks || article.cons,
+        getFirstProp(article, 'disadvantages', 'drawbacks', 'cons'),
       ),
       culturalSignificance: extractField(
         article,
@@ -2113,13 +2235,16 @@ function mapArticleToContent(
         "excerpt",
         "summary",
       ),
-      hierarchy: article.hierarchy ? parseInt(article.hierarchy) : null,
+      hierarchy: (() => {
+        const h = getArticleProp(article, 'hierarchy');
+        return h && typeof h === 'string' ? parseInt(h) : null;
+      })(),
       authority: extractField(article, "authority", "power", "jurisdiction"),
       responsibilities: parseArray(
-        article.responsibilities || article.duties || article.obligations,
+        getFirstProp(article, 'responsibilities', 'duties', 'obligations'),
       ),
       privileges: parseArray(
-        article.privileges || article.rights || article.benefits,
+        getFirstProp(article, 'privileges', 'rights', 'benefits'),
       ),
       insignia: extractField(article, "insignia", "symbol", "badge", "emblem"),
       requirements: extractField(
@@ -2135,10 +2260,10 @@ function mapArticleToContent(
         "organization",
       ),
       superiorRanks: parseArray(
-        article.superiorRanks || article.superiorranks || article.above,
+        getFirstProp(article, 'superiorRanks', 'superiorranks', 'above'),
       ),
       subordinateRanks: parseArray(
-        article.subordinateRanks || article.subordinateranks || article.below,
+        getFirstProp(article, 'subordinateRanks', 'subordinateranks', 'below'),
       ),
       titleOfAddress: extractField(
         article,
@@ -2177,9 +2302,9 @@ function mapArticleToContent(
         "summary",
       ),
       symptoms: parseArray(
-        article.symptoms || article.signs || article.manifestations,
+        getFirstProp(article, 'symptoms', 'signs', 'manifestations'),
       ),
-      causes: parseArray(article.causes || article.origins || article.triggers),
+      causes: parseArray(getFirstProp(article, 'causes', 'origins', 'triggers')),
       transmission: extractField(
         article,
         "transmission",
@@ -2189,7 +2314,7 @@ function mapArticleToContent(
       duration: extractField(article, "duration", "length", "timeframe"),
       severity: extractField(article, "severity", "seriousness", "intensity"),
       effects: parseArray(
-        article.effects || article.consequences || article.impact,
+        getFirstProp(article, 'effects', 'consequences', 'impact'),
       ),
       treatment: extractField(article, "treatment", "remedy", "therapy"),
       cure: extractField(article, "cure", "healing", "resolution"),
@@ -2200,7 +2325,7 @@ function mapArticleToContent(
         "avoidance",
       ),
       complications: parseArray(
-        article.complications || article.risks || article.dangers,
+        getFirstProp(article, 'complications', 'risks', 'dangers'),
       ),
       mortality: extractField(
         article,
@@ -2216,7 +2341,7 @@ function mapArticleToContent(
         "frequency",
       ),
       affectedSpecies: parseArray(
-        article.affectedSpecies || article.affectedspecies || article.targets,
+        getFirstProp(article, 'affectedSpecies', 'affectedspecies', 'targets'),
       ),
       culturalImpact: extractField(
         article,
@@ -2275,7 +2400,7 @@ router.post(
       if (!notebookId) {
         // Get user's notebooks, use first one or create a default import notebook
         const notebooks = await storage.getUserNotebooks(userId);
-        if (notebooks.length > 0) {
+        if (notebooks.length > 0 && notebooks[0]) {
           notebookId = notebooks[0].id;
           console.log(
             `[Import] Using existing notebook ${notebookId}: ${notebooks[0].name}`,
@@ -2486,6 +2611,11 @@ async function processImport(
 
     for (let i = 0; i < parsed.articles.length; i++) {
       const article = parsed.articles[i];
+
+      if (!article) {
+        console.warn(`[Import ${jobId}] Skipping undefined article at index ${i}`);
+        continue;
+      }
 
       try {
         // Log article structure for first 3 items to understand the data
