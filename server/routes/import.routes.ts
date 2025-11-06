@@ -993,7 +993,7 @@ function mapArticleToContent(
   const extractField = (article: WorldAnvilArticle, ...fieldNames: string[]): string => {
     // Step 1: Check top-level article properties (World Anvil format)
     for (const name of fieldNames) {
-      const value = article[name];
+      const value = getArticleProp(article, name);
 
       if (value !== undefined && value !== null) {
         // Handle object values - extract title, name, or label
