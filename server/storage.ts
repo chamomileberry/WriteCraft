@@ -254,6 +254,24 @@ import {
   sql,
 } from "drizzle-orm";
 
+// Export storage types for improved type safety and error handling
+export {
+  AppError,
+  type AppErrorCode,
+  type StorageOptions,
+  type Cursor,
+  type PaginationParams,
+  type PaginatedResult,
+  createCursor,
+  decodeCursor,
+  type UpdateResult,
+  type DeleteResult,
+  type CreateResult,
+  type SearchResult,
+  type Json,
+  validateShape,
+} from "./storage-types";
+
 // Types for content mapping
 export interface ContentMapping {
   id: string;
