@@ -285,15 +285,32 @@ export interface ContentMapping {
 // Content type storage interface
 export interface IStorage {
   // User methods
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(insertUser: InsertUser): Promise<User>;
-  upsertUser(user: UpsertUser): Promise<User>;
+  getUser(
+    id: string,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<User | undefined>;
+  getUserByUsername(
+    username: string,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<User | undefined>;
+  createUser(
+    insertUser: InsertUser,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<import("./storage-types").CreateResult<User>>;
+  upsertUser(
+    user: UpsertUser,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<User>;
   updateUser(
     id: string,
     updates: Partial<InsertUser>,
-  ): Promise<User | undefined>;
-  searchUsers(query: string): Promise<User[]>;
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<import("./storage-types").UpdateResult<User>>;
+  searchUsers(
+    query: string,
+    pagination?: import("./storage-types").PaginationParams,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<import("./storage-types").PaginatedResult<User>>;
 
   // Notebook methods
   createNotebook(notebook: InsertNotebook): Promise<Notebook>;
@@ -1506,10 +1523,14 @@ export interface IStorage {
   ): Promise<void>;
 
   // User preferences methods
-  getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
+  getUserPreferences(
+    userId: string,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<UserPreferences | undefined>;
   upsertUserPreferences(
     userId: string,
     preferences: Partial<InsertUserPreferences>,
+    opts?: import("./storage-types").StorageOptions,
   ): Promise<UserPreferences>;
 
   // Conversation summary methods
