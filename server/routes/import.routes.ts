@@ -203,7 +203,7 @@ function normalizeArticleKeys(article: Record<string, unknown>): WorldAnvilArtic
     // Common duplicates (prefer camelCase)
     'specialabilities': 'specialAbilities',
     'special_abilities': 'specialAbilities',
-    'skilllsrequired': 'skillsRequired',
+    'skillsrequired': 'skillsRequired',
     'skills_required': 'skillsRequired',
     'commontools': 'commonTools',
     'common_tools': 'commonTools',
