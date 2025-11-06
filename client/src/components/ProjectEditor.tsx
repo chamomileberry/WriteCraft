@@ -203,7 +203,7 @@ const FontSize = Extension.create({
             parseHTML: (element: HTMLElement) =>
               element.style.fontSize.replace(/['"+]/g, ""),
             renderHTML: (attributes: Record<string, unknown>) => {
-              if (!attributes.fontSize) {
+              if (typeof attributes.fontSize !== 'string' || !attributes.fontSize) {
                 return {};
               }
               return {
