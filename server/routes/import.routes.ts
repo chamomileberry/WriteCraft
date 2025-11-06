@@ -1001,7 +1001,7 @@ function mapArticleToContent(
           const obj = value as Record<string, unknown>;
           const readable = obj['title'] ?? obj['name'] ?? obj['label'] ?? obj['value'];
           if (readable !== undefined && readable !== null) {
-            return stripBBCode(readable);
+            return stripBBCode(readable as any);
           }
           // Fallback to JSON.stringify only if no readable property found
         }
