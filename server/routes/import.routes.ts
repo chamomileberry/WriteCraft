@@ -789,9 +789,7 @@ function mapArticleToContent(
   }
 
   // Helper function to strip World Anvil BBCode tags
-  const stripBBCode = (
-    text: string | number | string[] | object | undefined,
-  ): string => {
+  const stripBBCode = (text: unknown): string => {
     if (!text) return "";
 
     // Normalize all types to string FIRST
@@ -1547,7 +1545,7 @@ function mapArticleToContent(
         "background",
       ),
       notableFeatures: parseArray(
-        getArticleProp(article, 'notableFeatures') || getArticleProp(article, 'notablefeatures') || getArticleProp(article, 'features'),
+        getFirstProp(article, 'notableFeatures', 'notablefeatures', 'features'),
       ),
       landmarks: parseArray(
         getFirstProp(article, 'landmarks', 'monuments', 'pointsOfInterest', 'pointsofinterest'),
