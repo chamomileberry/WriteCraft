@@ -99,8 +99,11 @@ const WORLD_ANVIL_TYPE_MAPPING: { [key: string]: string } = {
 };
 
 interface WorldAnvilArticle {
-  id: string;
+  id?: string;
+  uuid?: string;
+  externalId?: string;
   title: string;
+  name?: string;
   content?: string;
   excerpt?: string;
   category?: any; // Category is an object with id, title, etc.
@@ -108,6 +111,141 @@ interface WorldAnvilArticle {
   entityClass?: string;
   state?: string;
   tags?: string | string[];
+  template?: any;
+  type?: string;
+  age?: string;
+  languages?: string;
+  portrait?: any;
+  cover?: any;
+  image?: any;
+  images?: any;
+  campfireData?: any;
+  abilities?: any;
+  specialAbilities?: any;
+  specialabilities?: any;
+  powers?: any;
+  weaknesses?: any;
+  vulnerabilities?: any;
+  notableFeatures?: any;
+  notablefeatures?: any;
+  features?: any;
+  landmarks?: any;
+  monuments?: any;
+  pointsOfInterest?: any;
+  pointsofinterest?: any;
+  threats?: any;
+  dangers?: any;
+  hazards?: any;
+  resources?: any;
+  naturalResources?: any;
+  naturalresources?: any;
+  allies?: any;
+  friends?: any;
+  partners?: any;
+  enemies?: any;
+  rivals?: any;
+  opponents?: any;
+  skillsRequired?: any;
+  skillsrequired?: any;
+  skills?: any;
+  requirements?: any;
+  commonTools?: any;
+  commontools?: any;
+  tools?: any;
+  equipment?: any;
+  relatedProfessions?: any;
+  relatedprofessions?: any;
+  similar?: any;
+  guildsOrganizations?: any;
+  guildsorganizations?: any;
+  guilds?: any;
+  organizations?: any;
+  traditions?: any;
+  customs?: any;
+  practices?: any;
+  values?: any;
+  beliefs?: any;
+  districts?: any;
+  quarters?: any;
+  wards?: any;
+  sites?: any;
+  prerequisites?: any;
+  steps?: any;
+  procedure?: any;
+  process?: any;
+  components?: any;
+  materials?: any;
+  items?: any;
+  variations?: any;
+  alternatives?: any;
+  penalties?: any;
+  punishment?: any;
+  sanctions?: any;
+  exceptions?: any;
+  exemptions?: any;
+  precedents?: any;
+  cases?: any;
+  courts?: any;
+  tribunals?: any;
+  amendments?: any;
+  changes?: any;
+  revisions?: any;
+  relatedLaws?: any;
+  relatedlaws?: any;
+  related?: any;
+  properties?: any;
+  traits?: any;
+  attributes?: any;
+  composition?: any;
+  madeFrom?: any;
+  madefrom?: any;
+  effects?: any;
+  regions?: any;
+  spokenIn?: any;
+  spokenin?: any;
+  locations?: any;
+  commonPhrases?: any;
+  commonphrases?: any;
+  phrases?: any;
+  dialects?: any;
+  construction?: any;
+  builtFrom?: any;
+  builtfrom?: any;
+  characteristics?: any;
+  uses?: any;
+  applications?: any;
+  purposes?: any;
+  advantages?: any;
+  benefits?: any;
+  pros?: any;
+  disadvantages?: any;
+  drawbacks?: any;
+  cons?: any;
+  hierarchy?: any;
+  responsibilities?: any;
+  duties?: any;
+  obligations?: any;
+  privileges?: any;
+  rights?: any;
+  superiorRanks?: any;
+  superiorranks?: any;
+  above?: any;
+  subordinateRanks?: any;
+  subordinateranks?: any;
+  below?: any;
+  symptoms?: any;
+  signs?: any;
+  manifestations?: any;
+  causes?: any;
+  origins?: any;
+  triggers?: any;
+  complications?: any;
+  risks?: any;
+  affectedSpecies?: any;
+  affectedspecies?: any;
+  targets?: any;
+  consequences?: any;
+  impact?: any;
   [key: string]: any;
 }
 
@@ -196,10 +334,10 @@ function parseCampfireHTML(
       let currentEl = physicalHeader.next();
       while (
         currentEl.length &&
-        currentEl.prop("tagName")?.toLowerCase() !== "h3"
+        (currentEl.prop("tagName")?.toLowerCase() ?? "") !== "h3"
       ) {
         const text = currentEl.text().trim();
-        if (text && currentEl.prop("tagName")?.toLowerCase() === "p") {
+        if (text && (currentEl.prop("tagName")?.toLowerCase() ?? "") === "p") {
           // Check if it's a facial or physical feature
           if (
             text.toLowerCase().includes("facial") ||
@@ -236,10 +374,10 @@ function parseCampfireHTML(
       let currentEl = personalityHeader.next();
       while (
         currentEl.length &&
-        currentEl.prop("tagName")?.toLowerCase() !== "h3"
+        (currentEl.prop("tagName")?.toLowerCase() ?? "") !== "h3"
       ) {
         const text = currentEl.text().trim();
-        if (text && currentEl.prop("tagName")?.toLowerCase() === "p") {
+        if (text && (currentEl.prop("tagName")?.toLowerCase() ?? "") === "p") {
           personalityTraits.push(text);
         }
         currentEl = currentEl.next();
@@ -276,9 +414,9 @@ function parseCampfireHTML(
       let currentEl = basicHeader.next();
       while (
         currentEl.length &&
-        currentEl.prop("tagName")?.toLowerCase() !== "h3"
+        (currentEl.prop("tagName")?.toLowerCase() ?? "") !== "h3"
       ) {
-        if (currentEl.prop("tagName")?.toLowerCase() === "p") {
+        if ((currentEl.prop("tagName")?.toLowerCase() ?? "") === "p") {
           const strongEl = currentEl.find("strong").first();
           if (strongEl.length) {
             const label = strongEl.text().replace(":", "").trim();
@@ -380,7 +518,7 @@ async function parseCampfireRTF(
               } else if (text.includes(":")) {
                 // Might be a key-value pair
                 const parts = text.split(":");
-                if (parts[0].length < 50) {
+                if (parts[0] && parts[0].length < 50) {
                   return `<p><strong>${parts[0]}</strong>: ${parts.slice(1).join(":")}</p>`;
                 }
               }
@@ -783,6 +921,7 @@ function mapArticleToContent(
     // If no multi-word title found, check for single-word title
     if (
       nameStart === 0 &&
+      parts[0] &&
       singleWordTitles.includes(parts[0].toLowerCase().replace(/\.$/, ""))
     ) {
       honorificTitle = parts[0];
@@ -794,11 +933,11 @@ function mapArticleToContent(
     if (nameParts.length === 0) {
       return { givenName: "", familyName: "", honorificTitle };
     } else if (nameParts.length === 1) {
-      return { givenName: nameParts[0], familyName: "", honorificTitle };
+      return { givenName: nameParts[0] || "", familyName: "", honorificTitle };
     } else {
       // First part is given name, rest is family name
       return {
-        givenName: nameParts[0],
+        givenName: nameParts[0] || "",
         familyName: nameParts.slice(1).join(" "),
         honorificTitle,
       };
@@ -2275,7 +2414,7 @@ router.post(
       if (!notebookId) {
         // Get user's notebooks, use first one or create a default import notebook
         const notebooks = await storage.getUserNotebooks(userId);
-        if (notebooks.length > 0) {
+        if (notebooks.length > 0 && notebooks[0]) {
           notebookId = notebooks[0].id;
           console.log(
             `[Import] Using existing notebook ${notebookId}: ${notebooks[0].name}`,
@@ -2486,6 +2625,11 @@ async function processImport(
 
     for (let i = 0; i < parsed.articles.length; i++) {
       const article = parsed.articles[i];
+
+      if (!article) {
+        console.warn(`[Import ${jobId}] Skipping undefined article at index ${i}`);
+        continue;
+      }
 
       try {
         // Log article structure for first 3 items to understand the data
