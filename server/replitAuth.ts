@@ -357,13 +357,21 @@ export async function setupAuth(app: Express) {
           return res.json([]);
         }
 
-        const users = await storage.searchUsers(query);
+        // Parse pagination parameters
+        const limit = req.query.limit
+          ? Math.min(parseInt(req.query.limit), 100)
+          : 20;
+        const cursor = req.query.cursor
+          ? { value: req.query.cursor }
+          : undefined;
+
+        const result = await storage.searchUsers(query, { limit, cursor });
 
         // Remove sensitive information and current user from results
         const currentUserId = req.user.claims.sub;
-        const sanitizedUsers = users
-          .filter((u: any) => u.id !== currentUserId)
-          .map((u: any) => ({
+        const sanitizedUsers = result.items
+          .filter((u) => u.id !== currentUserId)
+          .map((u) => ({
             id: u.id,
             email: u.email,
             firstName: u.firstName,

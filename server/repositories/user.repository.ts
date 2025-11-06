@@ -139,34 +139,35 @@ export class UserRepository extends BaseRepository implements IUserStorage {
     const limit = Math.min(pagination?.limit || 20, 100);
     const searchPattern = `%${query.toLowerCase()}%`;
 
-    let dbQuery = db
-      .select()
-      .from(users)
-      .where(
-        or(
-          ilike(users.email, searchPattern),
-          ilike(users.firstName, searchPattern),
-          ilike(users.lastName, searchPattern),
-        ),
-      )
-      .orderBy(desc(users.createdAt), desc(users.id));
+    // Build search filter
+    const searchFilter = or(
+      ilike(users.email, searchPattern),
+      ilike(users.firstName, searchPattern),
+      ilike(users.lastName, searchPattern),
+    );
 
-    // Apply cursor if provided
+    // Build cursor condition if provided
+    let whereCondition = searchFilter;
     if (pagination?.cursor) {
       const { sortKey, id } = decodeCursor(pagination.cursor);
-      dbQuery = dbQuery.where(
-        or(
-          lt(users.createdAt, new Date(sortKey as string)),
-          and(
-            eq(users.createdAt, new Date(sortKey as string)),
-            lt(users.id, id),
-          ),
+      const cursorCondition = or(
+        lt(users.createdAt, new Date(sortKey as string)),
+        and(
+          eq(users.createdAt, new Date(sortKey as string)),
+          lt(users.id, id),
         ),
-      ) as any;
+      );
+      // Combine search filter with cursor condition
+      whereCondition = and(searchFilter, cursorCondition);
     }
 
-    // Fetch limit + 1 to check if there are more results
-    const items = await dbQuery.limit(limit + 1);
+    // Execute query with combined conditions
+    const items = await db
+      .select()
+      .from(users)
+      .where(whereCondition)
+      .orderBy(desc(users.createdAt), desc(users.id))
+      .limit(limit + 1);
 
     const hasMore = items.length > limit;
     const results = hasMore ? items.slice(0, limit) : items;
