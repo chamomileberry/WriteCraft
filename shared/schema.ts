@@ -4160,6 +4160,7 @@ export const insertFeedbackSchema = createInsertSchema(feedback).omit({
 
 export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
 export type Feedback = typeof feedback.$inferSelect;
+export type FeedbackStatus = "new" | "reviewed" | "in-progress" | "resolved" | "closed";
 
 // Conversation Summaries schemas and types
 export const insertConversationSummarySchema = createInsertSchema(

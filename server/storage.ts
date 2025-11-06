@@ -156,6 +156,7 @@ import {
   type InsertConversationSummary,
   type Feedback,
   type InsertFeedback,
+  type FeedbackStatus,
   users,
   characters,
   plots,
@@ -1549,13 +1550,43 @@ export interface IStorage {
   ): Promise<ConversationSummary | undefined>;
 
   // Feedback methods
-  createFeedback(feedbackData: InsertFeedback): Promise<Feedback>;
-  getAllFeedback(): Promise<Feedback[]>;
-  getFeedback(id: string): Promise<Feedback | undefined>;
+  createFeedback(
+    feedbackData: InsertFeedback,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<import("./storage-types").CreateResult<Feedback>>;
+  getAllFeedback(
+    pagination?: import("./storage-types").PaginationParams,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<import("./storage-types").PaginatedResult<Feedback>>;
+  getFeedback(
+    id: string,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<Feedback | undefined>;
+  getUserFeedback(
+    userId: string,
+    pagination?: import("./storage-types").PaginationParams,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<import("./storage-types").PaginatedResult<Feedback>>;
+  getUnreadReplyCount(
+    userId: string,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<number>;
   updateFeedbackStatus(
     id: string,
-    status: string,
-  ): Promise<Feedback | undefined>;
+    status: FeedbackStatus,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<import("./storage-types").UpdateResult<Feedback>>;
+  replyToFeedback(
+    feedbackId: string,
+    reply: string,
+    adminUserId: string,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<import("./storage-types").UpdateResult<Feedback>>;
+  markFeedbackReplyAsRead(
+    feedbackId: string,
+    userId: string,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<import("./storage-types").UpdateResult<Feedback>>;
 }
 
 // Export the storage facade that delegates to modular repositories

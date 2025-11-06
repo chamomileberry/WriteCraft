@@ -171,6 +171,7 @@ import { contentRepository } from "./content.repository";
 import { searchRepository } from "./search.repository";
 import { ImportRepository } from "./import.repository";
 import { ShareRepository } from "./share.repository";
+import { FeedbackRepository } from "./feedback.repository";
 import { db } from "../db";
 import { eq, and, desc, or, ilike, isNull, sql, inArray } from "drizzle-orm";
 import {
@@ -194,6 +195,7 @@ export class StorageFacade implements IStorage {
   private projectRepository = new ProjectRepository();
   private importRepository = new ImportRepository();
   private shareRepository = new ShareRepository();
+  private feedbackRepository = new FeedbackRepository();
 
   // User methods
   async getUser(
@@ -2899,86 +2901,79 @@ export class StorageFacade implements IStorage {
     return updated || undefined;
   }
 
-  // Feedback methods
-  async createFeedback(feedbackData: InsertFeedback): Promise<Feedback> {
-    const [created] = await db
-      .insert(feedback)
-      .values(feedbackData)
-      .returning();
-    return created;
+  // Feedback methods - delegated to FeedbackRepository
+  async createFeedback(
+    feedbackData: InsertFeedback,
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").CreateResult<Feedback>> {
+    return await this.feedbackRepository.createFeedback(feedbackData, opts);
   }
 
-  async getAllFeedback(): Promise<Feedback[]> {
-    return await db.select().from(feedback).orderBy(desc(feedback.createdAt));
+  async getAllFeedback(
+    pagination?: import("../storage-types").PaginationParams,
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").PaginatedResult<Feedback>> {
+    return await this.feedbackRepository.getAllFeedback(pagination, opts);
   }
 
-  async getFeedback(id: string): Promise<Feedback | undefined> {
-    const [result] = await db
-      .select()
-      .from(feedback)
-      .where(eq(feedback.id, id));
-    return result || undefined;
+  async getFeedback(
+    id: string,
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<Feedback | undefined> {
+    return await this.feedbackRepository.getFeedback(id, opts);
   }
 
   async updateFeedbackStatus(
     id: string,
-    status: string,
-  ): Promise<Feedback | undefined> {
-    const [updated] = await db
-      .update(feedback)
-      .set({ status, updatedAt: new Date() })
-      .where(eq(feedback.id, id))
-      .returning();
-    return updated || undefined;
+    status: import("@shared/schema").FeedbackStatus,
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").UpdateResult<Feedback>> {
+    return await this.feedbackRepository.updateFeedbackStatus(id, status, opts);
   }
 
-  async getUserFeedback(userId: string): Promise<Feedback[]> {
-    return await db
-      .select()
-      .from(feedback)
-      .where(eq(feedback.userId, userId))
-      .orderBy(desc(feedback.createdAt));
+  async getUserFeedback(
+    userId: string,
+    pagination?: import("../storage-types").PaginationParams,
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").PaginatedResult<Feedback>> {
+    return await this.feedbackRepository.getUserFeedback(
+      userId,
+      pagination,
+      opts,
+    );
   }
 
   async markFeedbackReplyAsRead(
     feedbackId: string,
     userId: string,
-  ): Promise<Feedback | undefined> {
-    const [updated] = await db
-      .update(feedback)
-      .set({ hasUnreadReply: false, updatedAt: new Date() })
-      .where(and(eq(feedback.id, feedbackId), eq(feedback.userId, userId)))
-      .returning();
-    return updated || undefined;
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").UpdateResult<Feedback>> {
+    return await this.feedbackRepository.markFeedbackReplyAsRead(
+      feedbackId,
+      userId,
+      opts,
+    );
   }
 
-  async getUnreadReplyCount(userId: string): Promise<number> {
-    const [result] = await db
-      .select({ count: sql<number>`COUNT(*)::int` })
-      .from(feedback)
-      .where(
-        and(eq(feedback.userId, userId), eq(feedback.hasUnreadReply, true)),
-      );
-    return result?.count || 0;
+  async getUnreadReplyCount(
+    userId: string,
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<number> {
+    return await this.feedbackRepository.getUnreadReplyCount(userId, opts);
   }
 
   async replyToFeedback(
     feedbackId: string,
     reply: string,
     adminUserId: string,
-  ): Promise<Feedback | undefined> {
-    const [updated] = await db
-      .update(feedback)
-      .set({
-        adminReply: reply,
-        adminRepliedAt: new Date(),
-        adminRepliedBy: adminUserId,
-        hasUnreadReply: true,
-        updatedAt: new Date(),
-      })
-      .where(eq(feedback.id, feedbackId))
-      .returning();
-    return updated || undefined;
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").UpdateResult<Feedback>> {
+    return await this.feedbackRepository.replyToFeedback(
+      feedbackId,
+      reply,
+      adminUserId,
+      opts,
+    );
   }
 
   // Conversation thread methods
