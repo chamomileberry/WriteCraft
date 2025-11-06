@@ -35,18 +35,19 @@ export class FeedbackRepository
       throw AppError.aborted();
     }
 
-    // Validate input
-    if (!feedbackData.userId) {
-      throw AppError.invalidInput("Feedback must have a userId");
-    }
-    if (!feedbackData.type) {
-      throw AppError.invalidInput("Feedback must have a type");
-    }
-    if (!feedbackData.title) {
-      throw AppError.invalidInput("Feedback must have a title");
-    }
-    if (!feedbackData.description) {
-      throw AppError.invalidInput("Feedback must have a description");
+    // Validate required fields
+    const requiredFields: Array<{ field: keyof InsertFeedback; name: string }> =
+      [
+        { field: "userId", name: "userId" },
+        { field: "type", name: "type" },
+        { field: "title", name: "title" },
+        { field: "description", name: "description" },
+      ];
+
+    for (const { field, name } of requiredFields) {
+      if (!feedbackData[field]) {
+        throw AppError.invalidInput(`Feedback must have a ${name}`);
+      }
     }
 
     const [created] = await db
@@ -266,29 +267,29 @@ export class FeedbackRepository
       throw AppError.aborted();
     }
 
-    // First verify ownership
-    const existing = await this.getFeedback(feedbackId, opts);
-    if (!existing) {
-      return { updated: false };
-    }
-
-    if (existing.userId !== userId) {
-      throw AppError.forbidden(
-        "User does not have permission to mark this feedback as read",
-      );
-    }
-
+    // Optimistically attempt the update with ownership check in WHERE clause
     const [updated] = await db
       .update(feedback)
       .set({ hasUnreadReply: false, updatedAt: new Date() })
       .where(and(eq(feedback.id, feedbackId), eq(feedback.userId, userId)))
       .returning();
 
-    if (!updated) {
+    // If update succeeded, return the result
+    if (updated) {
+      return { updated: true, value: updated };
+    }
+
+    // Update failed - determine if it's not_found or forbidden
+    const existing = await this.getFeedback(feedbackId, opts);
+    if (!existing) {
+      // Feedback doesn't exist
       return { updated: false };
     }
 
-    return { updated: true, value: updated };
+    // Feedback exists but user doesn't own it
+    throw AppError.forbidden(
+      "User does not have permission to mark this feedback as read",
+    );
   }
 }
 

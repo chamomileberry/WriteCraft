@@ -21,8 +21,23 @@ router.get("/unread-count", readRateLimiter, async (req: any, res) => {
 router.get("/", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const result = await storage.getUserFeedback(userId);
-    res.json(result.items);
+
+    // Parse pagination parameters from query
+    const limit = req.query.limit
+      ? Math.min(parseInt(req.query.limit, 10), 100)
+      : 20;
+    const cursor = req.query.cursor
+      ? { value: req.query.cursor }
+      : undefined;
+
+    const result = await storage.getUserFeedback(userId, { limit, cursor });
+
+    // Return both items and pagination metadata
+    res.json({
+      items: result.items,
+      nextCursor: result.nextCursor?.value,
+      hasMore: !!result.nextCursor,
+    });
   } catch (error) {
     logger.error("Error fetching user inbox:", error);
     res.status(500).json({ error: "Failed to fetch inbox" });

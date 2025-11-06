@@ -160,6 +160,7 @@ import {
   type InsertConversationSummary,
   type Feedback,
   type InsertFeedback,
+  type FeedbackStatus,
 } from "@shared/schema";
 
 import { UserRepository } from "./user.repository";
@@ -173,6 +174,13 @@ import { ImportRepository } from "./import.repository";
 import { ShareRepository } from "./share.repository";
 import { FeedbackRepository } from "./feedback.repository";
 import { db } from "../db";
+import type {
+  StorageOptions,
+  CreateResult,
+  UpdateResult,
+  PaginatedResult,
+  PaginationParams,
+} from "../storage-types";
 import { eq, and, desc, or, ilike, isNull, sql, inArray } from "drizzle-orm";
 import {
   guides,
@@ -2904,38 +2912,38 @@ export class StorageFacade implements IStorage {
   // Feedback methods - delegated to FeedbackRepository
   async createFeedback(
     feedbackData: InsertFeedback,
-    opts?: import("../storage-types").StorageOptions,
-  ): Promise<import("../storage-types").CreateResult<Feedback>> {
+    opts?: StorageOptions,
+  ): Promise<CreateResult<Feedback>> {
     return await this.feedbackRepository.createFeedback(feedbackData, opts);
   }
 
   async getAllFeedback(
-    pagination?: import("../storage-types").PaginationParams,
-    opts?: import("../storage-types").StorageOptions,
-  ): Promise<import("../storage-types").PaginatedResult<Feedback>> {
+    pagination?: PaginationParams,
+    opts?: StorageOptions,
+  ): Promise<PaginatedResult<Feedback>> {
     return await this.feedbackRepository.getAllFeedback(pagination, opts);
   }
 
   async getFeedback(
     id: string,
-    opts?: import("../storage-types").StorageOptions,
+    opts?: StorageOptions,
   ): Promise<Feedback | undefined> {
     return await this.feedbackRepository.getFeedback(id, opts);
   }
 
   async updateFeedbackStatus(
     id: string,
-    status: import("@shared/schema").FeedbackStatus,
-    opts?: import("../storage-types").StorageOptions,
-  ): Promise<import("../storage-types").UpdateResult<Feedback>> {
+    status: FeedbackStatus,
+    opts?: StorageOptions,
+  ): Promise<UpdateResult<Feedback>> {
     return await this.feedbackRepository.updateFeedbackStatus(id, status, opts);
   }
 
   async getUserFeedback(
     userId: string,
-    pagination?: import("../storage-types").PaginationParams,
-    opts?: import("../storage-types").StorageOptions,
-  ): Promise<import("../storage-types").PaginatedResult<Feedback>> {
+    pagination?: PaginationParams,
+    opts?: StorageOptions,
+  ): Promise<PaginatedResult<Feedback>> {
     return await this.feedbackRepository.getUserFeedback(
       userId,
       pagination,
@@ -2946,8 +2954,8 @@ export class StorageFacade implements IStorage {
   async markFeedbackReplyAsRead(
     feedbackId: string,
     userId: string,
-    opts?: import("../storage-types").StorageOptions,
-  ): Promise<import("../storage-types").UpdateResult<Feedback>> {
+    opts?: StorageOptions,
+  ): Promise<UpdateResult<Feedback>> {
     return await this.feedbackRepository.markFeedbackReplyAsRead(
       feedbackId,
       userId,
@@ -2957,7 +2965,7 @@ export class StorageFacade implements IStorage {
 
   async getUnreadReplyCount(
     userId: string,
-    opts?: import("../storage-types").StorageOptions,
+    opts?: StorageOptions,
   ): Promise<number> {
     return await this.feedbackRepository.getUnreadReplyCount(userId, opts);
   }
@@ -2966,8 +2974,8 @@ export class StorageFacade implements IStorage {
     feedbackId: string,
     reply: string,
     adminUserId: string,
-    opts?: import("../storage-types").StorageOptions,
-  ): Promise<import("../storage-types").UpdateResult<Feedback>> {
+    opts?: StorageOptions,
+  ): Promise<UpdateResult<Feedback>> {
     return await this.feedbackRepository.replyToFeedback(
       feedbackId,
       reply,

@@ -17,8 +17,22 @@ router.get("/", readRateLimiter, async (req: any, res) => {
         .json({ error: "Unauthorized - Admin access required" });
     }
 
-    const result = await storage.getAllFeedback();
-    res.json(result.items);
+    // Parse pagination parameters from query
+    const limit = req.query.limit
+      ? Math.min(parseInt(req.query.limit, 10), 100)
+      : 20;
+    const cursor = req.query.cursor
+      ? { value: req.query.cursor }
+      : undefined;
+
+    const result = await storage.getAllFeedback({ limit, cursor });
+
+    // Return both items and pagination metadata
+    res.json({
+      items: result.items,
+      nextCursor: result.nextCursor?.value,
+      hasMore: !!result.nextCursor,
+    });
   } catch (error) {
     logger.error("Error fetching feedback:", error);
     res.status(500).json({ error: "Failed to fetch feedback" });
