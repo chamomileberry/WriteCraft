@@ -497,7 +497,7 @@ async function parseCampfireRTF(
       }
 
       // Convert RTF document to HTML-like structure
-      const convertToHtml = (content: import('../types/rtf-parser').RTFContent[], depth: number = 0): string => {
+      const convertToHtml = (content: any[], depth: number = 0): string => {
         if (!content) return "";
 
         return content
