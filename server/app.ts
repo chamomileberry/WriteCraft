@@ -1,5 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { createServer, type Server } from "http";
+import * as http from "http";
 import { registerRoutes } from "./routes";
 import { log } from "./vite";
 import { applySecurityMiddleware } from "./app-security";
@@ -9,9 +9,9 @@ import { logger } from "./lib/logger";
 import { setupCollaborationServer } from "./collaboration";
 
 // Track server instance for graceful shutdown
-let serverInstance: Server | null = null;
+let serverInstance: http.Server | null = null;
 
-export function setServerInstance(server: Server) {
+export function setServerInstance(server: http.Server) {
   serverInstance = server;
 }
 
@@ -56,7 +56,7 @@ process.on("unhandledRejection", (reason, promise) => {
   // Capture in Sentry
   Sentry.captureException(reason);
   // Log the error but don't crash the server in production
-  if (process.env.NODE_ENV !== "production") {
+  if (process.env["NODE_ENV"] !== "production") {
     console.error("Stack trace:", reason);
   }
 });
@@ -66,7 +66,7 @@ process.on("uncaughtException", (error) => {
   // Capture in Sentry
   Sentry.captureException(error);
   // Log the error but don't crash in production
-  if (process.env.NODE_ENV !== "production") {
+  if (process.env["NODE_ENV"] !== "production") {
     console.error("Stack trace:", error.stack);
   }
   // In production, you might want to gracefully shutdown
@@ -81,7 +81,7 @@ export async function createApp() {
   const app = express();
 
   // Health check endpoint for deployment monitoring
-  app.get("/health", (req, res) => {
+  app.get("/health", (_req, res) => {
     res.status(200).json({ status: "ok", timestamp: Date.now() });
   });
 
@@ -93,7 +93,7 @@ export async function createApp() {
         ignore: (req) =>
           req.url?.startsWith("/assets") || req.url?.startsWith("/@vite"),
       },
-      customLogLevel: (req, res, err) => {
+      customLogLevel: (_req, res, err) => {
         if (res.statusCode >= 500 || err) return "error";
         if (res.statusCode >= 400) return "warn";
         return "info";
