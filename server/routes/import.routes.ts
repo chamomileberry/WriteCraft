@@ -238,7 +238,7 @@ function normalizeArticleKeys(article: Record<string, unknown>): WorldAnvilArtic
   const normalized: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(article)) {
-    const normalizedKey = keyAliases[key.toLowerCase()] || key;
+    const normalizedKey = keyAliases[key.toLowerCase()] || toCamelCase(key);
     // Only set if not already present (first occurrence wins)
     if (!(normalizedKey in normalized)) {
       normalized[normalizedKey] = value;
