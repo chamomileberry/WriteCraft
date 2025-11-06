@@ -163,6 +163,15 @@ interface SearchResult {
   description?: string;
 }
 
+interface AwarenessState {
+  user?: {
+    id?: string;
+    name?: string;
+    email?: string;
+    color?: string;
+  };
+}
+
 export interface ProjectEditorRef {
   saveContent: () => Promise<void>;
 }
@@ -193,8 +202,8 @@ const FontSize = Extension.create({
             default: null,
             parseHTML: (element: HTMLElement) =>
               element.style.fontSize.replace(/['"+]/g, ""),
-            renderHTML: (attributes: Record<string, any>) => {
-              if (!attributes.fontSize) {
+            renderHTML: (attributes: Record<string, unknown>) => {
+              if (typeof attributes.fontSize !== 'string' || !attributes.fontSize) {
                 return {};
               }
               return {
@@ -210,12 +219,12 @@ const FontSize = Extension.create({
     return {
       setFontSize:
         (fontSize: string) =>
-        ({ chain }: any) => {
+        ({ chain }: { chain: () => ReturnType<Editor["chain"]> }) => {
           return chain().setMark("textStyle", { fontSize: fontSize }).run();
         },
       unsetFontSize:
         () =>
-        ({ chain }: any) => {
+        ({ chain }: { chain: () => ReturnType<Editor["chain"]> }) => {
           return chain()
             .setMark("textStyle", { fontSize: null })
             .removeEmptyTextStyle()
@@ -374,7 +383,7 @@ const ProjectEditor = forwardRef(
           color: string;
         }> = [];
 
-        states.forEach((state: any, clientId: number) => {
+        states.forEach((state: AwarenessState, clientId: number) => {
           if (state.user) {
             users.push({
               id: state.user.id || `user-${clientId}`,
