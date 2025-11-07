@@ -93,12 +93,22 @@ export class ImportRepository extends BaseRepository implements Partial<INoteboo
     const hasMore = items.length > limit;
     const results = hasMore ? items.slice(0, limit) : items;
 
-    const nextCursor = hasMore && results.length > 0
-      ? createCursor(
-          results[results.length - 1].createdAt?.toISOString() || new Date().toISOString(),
-          results[results.length - 1].id
-        )
-      : undefined;
+    // Only generate cursor if there are more items AND the last item has a valid createdAt
+    let nextCursor: { value: string } | undefined = undefined;
+    if (hasMore && results.length > 0) {
+      const lastItem = results[results.length - 1];
+      if (lastItem.createdAt) {
+        nextCursor = createCursor(
+          lastItem.createdAt.toISOString(),
+          lastItem.id
+        );
+      } else {
+        // Log warning if createdAt is missing - this shouldn't happen in normal operation
+        console.warn(
+          `[ImportRepository] Cannot generate cursor: last item has null createdAt (id: ${lastItem.id})`
+        );
+      }
+    }
 
     return {
       items: results,

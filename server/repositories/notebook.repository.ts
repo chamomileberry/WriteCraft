@@ -163,13 +163,22 @@ export class NotebookRepository extends BaseRepository implements Partial<INoteb
     const hasMore = uniqueNotebooks.length > limit;
     const items = hasMore ? uniqueNotebooks.slice(0, limit) : uniqueNotebooks;
 
-    // Create next cursor if there are more items
-    const nextCursor = hasMore && items.length > 0
-      ? createCursor(
-          items[items.length - 1].createdAt?.toISOString() || new Date().toISOString(),
-          items[items.length - 1].id
-        )
-      : undefined;
+    // Only generate cursor if there are more items AND the last item has a valid createdAt
+    let nextCursor: { value: string } | undefined = undefined;
+    if (hasMore && items.length > 0) {
+      const lastItem = items[items.length - 1];
+      if (lastItem.createdAt) {
+        nextCursor = createCursor(
+          lastItem.createdAt.toISOString(),
+          lastItem.id
+        );
+      } else {
+        // Log warning if createdAt is missing - this shouldn't happen in normal operation
+        console.warn(
+          `[NotebookRepository] Cannot generate cursor: last item has null createdAt (id: ${lastItem.id})`
+        );
+      }
+    }
 
     return {
       items,
