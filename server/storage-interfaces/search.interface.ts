@@ -76,44 +76,65 @@ export interface ISearchStorage {
   ): Promise<PaginatedResult<SearchResult>>;
 
   /**
+   * Asserts that content belongs to the specified user and notebook context.
+   * Throws typed AppError with specific reason if validation fails.
+   *
+   * **Recommended**: Use this method for explicit error handling and type narrowing.
+   *
+   * **Notebook Boundary Rules:**
+   * - `notebookId` is a string: Allow content in that notebook OR global content (null)
+   * - `notebookId` is `null`: Only allow global content (content.notebookId must be null)
+   * - `notebookId` is `undefined`: Allow any content the user owns (no notebook filtering)
+   *
+   * @param content - The content entity to validate (or undefined if not found)
+   * @param userId - The user attempting to access the content
+   * @param notebookId - The notebook context (string = specific notebook, null = global only, undefined = any)
+   * @throws {AppError} with code 'not_found' if content is undefined
+   * @throws {AppError} with code 'forbidden' if user doesn't own content
+   * @throws {AppError} with code 'forbidden' if content is in wrong notebook
+   *
+   * @example
+   * ```typescript
+   * // In a notebook context - allows notebook content OR global content
+   * const character = await storage.getCharacter(id, userId, notebookId);
+   * storage.ensureContentOwnership(character, userId, 'notebook123');
+   * // TypeScript now knows character is defined (assertion signature)
+   * console.log(character.name);
+   *
+   * // Global context only - rejects notebook-scoped content
+   * const prompt = await storage.getPrompt(id, userId);
+   * storage.ensureContentOwnership(prompt, userId, null);
+   *
+   * // No notebook filtering - allows any user content
+   * storage.ensureContentOwnership(user, userId, undefined);
+   * ```
+   */
+  ensureContentOwnership<T extends { userId?: string | null; notebookId?: string | null }>(
+    content: T | undefined,
+    userId: string,
+    notebookId?: string | null,
+  ): asserts content is T;
+
+  /**
    * Validates that content belongs to the specified user and notebook.
+   * Returns boolean for backward compatibility with existing code.
    *
-   * This is a critical security method that enforces tenant boundaries.
-   * It should be called before any mutation or sensitive read operation.
-   *
-   * **Rules:**
-   * - Always checks that content.userId === userId
-   * - If notebookId is provided and content.notebookId is not null, they must match
-   * - Global content (content.notebookId === null) can be accessed from any notebook
-   * - Returns false if content is undefined
-   * - Throws AppError with code 'forbidden' if validation fails
+   * **Deprecated**: Use `ensureContentOwnership` for explicit error handling.
+   * This method will be removed once all call sites are migrated.
    *
    * @param content - The content entity to validate (or undefined if not found)
    * @param userId - The user attempting to access the content
    * @param notebookId - The notebook context (optional, null means global only)
-   * @returns true if content passes validation
-   * @throws {AppError} with code 'forbidden' if validation fails
+   * @returns true if content passes validation, false if content is undefined or doesn't belong to user
    *
    * @example
    * ```typescript
-   * // Validate character ownership before update
+   * // Backward compatible usage
    * const character = await storage.getCharacter(id, userId, notebookId);
    * if (!storage.validateContentOwnership(character, userId, notebookId)) {
-   *   // Returns false if character is undefined
-   *   throw new Error('Character not found');
+   *   throw new AppError.forbidden('Unauthorized');
    * }
-   * // If we reach here, character is defined and owned by user
-   *
-   * // Throws AppError('forbidden') if character belongs to different user
-   * storage.validateContentOwnership(character, 'otherUserId', notebookId);
-   *
-   * // Global content (notebookId: null) can be accessed from any notebook
-   * const globalPlot = await storage.getPlot(id, userId, null);
-   * storage.validateContentOwnership(globalPlot, userId, 'anyNotebook'); // ✅ Allowed
-   *
-   * // But notebook-scoped content cannot cross boundaries
-   * const notebookPlot = await storage.getPlot(id, userId, 'notebook1');
-   * storage.validateContentOwnership(notebookPlot, userId, 'notebook2'); // ❌ Throws
+   * // character might still be undefined here (not narrowed)
    * ```
    */
   validateContentOwnership<T extends { userId?: string | null; notebookId?: string | null }>(

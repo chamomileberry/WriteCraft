@@ -249,33 +249,93 @@ export class SearchRepository extends BaseRepository implements ISearchStorage {
   }
 
   /**
-   * Validates that content belongs to the specified user and notebook.
-   * Overrides base implementation to add notebook boundary checking.
+   * Asserts that content belongs to the specified user and notebook context.
+   * Throws typed AppError with specific reason if validation fails.
+   *
+   * **Notebook Boundary Rules:**
+   * - `notebookId` is a string: Allow content in that notebook OR global content (null)
+   * - `notebookId` is `null`: Only allow global content (content.notebookId must be null)
+   * - `notebookId` is `undefined`: Allow any content the user owns (no notebook filtering)
+   *
+   * @throws {AppError} with code 'not_found' if content is undefined
+   * @throws {AppError} with code 'forbidden' if user doesn't own content
+   * @throws {AppError} with code 'forbidden' if content is in wrong notebook
+   *
+   * @example
+   * ```typescript
+   * // In a notebook context - allows notebook content OR global content
+   * ensureContentOwnership(character, userId, 'notebook123');
+   *
+   * // Global context only - rejects notebook-scoped content
+   * ensureContentOwnership(prompt, userId, null);
+   *
+   * // No notebook filtering - allows any user content
+   * ensureContentOwnership(user, userId, undefined);
+   * ```
    */
-  validateContentOwnership<T extends { userId?: string | null; notebookId?: string | null }>(
+  ensureContentOwnership<T extends { userId?: string | null; notebookId?: string | null }>(
     content: T | undefined,
     userId: string,
     notebookId?: string | null,
-  ): boolean {
-    if (!content) return false;
+  ): asserts content is T {
+    if (!content) {
+      throw AppError.notFound('Content not found');
+    }
 
     // Check user ownership
     if (content.userId !== userId) {
       throw AppError.forbidden(`Content does not belong to user ${userId}`);
     }
 
-    // Check notebook scope if both are specified and content is notebook-scoped
-    if (
-      notebookId !== undefined &&
-      content.notebookId !== null &&
-      content.notebookId !== notebookId
-    ) {
-      throw AppError.forbidden(
-        `Content belongs to notebook ${content.notebookId}, not ${notebookId}`
-      );
-    }
+    // Check notebook boundaries
+    if (notebookId !== undefined) {
+      const contentNotebookId = content.notebookId;
 
-    return true;
+      if (notebookId === null) {
+        // Requesting global content only
+        if (contentNotebookId != null) {
+          throw AppError.forbidden(
+            `Content belongs to notebook ${contentNotebookId}, but global content was requested`
+          );
+        }
+      } else {
+        // Requesting specific notebook content
+        // Allow content from the specified notebook OR global content
+        if (contentNotebookId != null && contentNotebookId !== notebookId) {
+          throw AppError.forbidden(
+            `Content belongs to notebook ${contentNotebookId}, not ${notebookId}`
+          );
+        }
+      }
+    }
+  }
+
+  /**
+   * Validates that content belongs to the specified user and notebook.
+   * Returns boolean for backward compatibility with existing code.
+   *
+   * **Deprecated**: Use `ensureContentOwnership` for explicit error handling.
+   * This method will be removed once all call sites are migrated.
+   *
+   * @returns true if content passes validation, false if content is undefined or doesn't belong to user
+   */
+  validateContentOwnership<T extends { userId?: string | null; notebookId?: string | null }>(
+    content: T | undefined,
+    userId: string,
+    notebookId?: string | null,
+  ): boolean {
+    try {
+      this.ensureContentOwnership(content, userId, notebookId);
+      return true;
+    } catch (error) {
+      // Only return false for ownership failures
+      // Re-throw unexpected errors
+      if (error instanceof AppError &&
+          (error.code === 'not_found' || error.code === 'forbidden')) {
+        return false;
+      }
+      throw error;
+    }
   }
 }
 

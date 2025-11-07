@@ -336,7 +336,14 @@ export class StorageFacade implements IStorage {
     return await this.importRepository.updateImportJob(id, updates, opts);
   }
 
-  // Generic content ownership validation
+  // Content ownership validation - explicit error throwing (recommended)
+  ensureContentOwnership<
+    T extends { userId?: string | null; notebookId?: string | null },
+  >(content: T | undefined, userId: string, notebookId?: string | null): asserts content is T {
+    searchRepository.ensureContentOwnership(content, userId, notebookId);
+  }
+
+  // Content ownership validation - boolean return (backward compatibility)
   validateContentOwnership<
     T extends { userId?: string | null; notebookId?: string | null },
   >(content: T | undefined, userId: string, notebookId?: string | null): boolean {

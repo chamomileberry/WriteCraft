@@ -366,7 +366,16 @@ export interface IStorage {
     opts?: import("./storage-types").StorageOptions,
   ): Promise<import("./storage-types").UpdateResult<ImportJob>>;
 
-  // Generic content ownership validation
+  // Content ownership validation - explicit error throwing (recommended)
+  ensureContentOwnership<
+    T extends { userId?: string | null; notebookId?: string | null },
+  >(
+    content: T | undefined,
+    userId: string,
+    notebookId?: string | null,
+  ): asserts content is T;
+
+  // Content ownership validation - boolean return (backward compatibility)
   validateContentOwnership<
     T extends { userId?: string | null; notebookId?: string | null },
   >(

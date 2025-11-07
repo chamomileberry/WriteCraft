@@ -58,14 +58,15 @@ export class CharacterRepository extends BaseRepository {
     updates: UpdateCharacter,
     notebookId: string,
   ): Promise<Character> {
-    // Validate ownership
+    // Validate ownership (using new explicit error API)
     const [existing] = await db
       .select()
       .from(characters)
       .where(eq(characters.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error("Unauthorized: You do not own this content");
-    }
+
+    // New pattern: ensureContentOwnership throws typed AppError and narrows type
+    this.ensureContentOwnership(existing, userId);
+    // TypeScript now knows 'existing' is defined
 
     const whereClause = and(
       eq(characters.id, id),
