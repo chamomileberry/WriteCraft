@@ -21,8 +21,23 @@ router.get("/unread-count", readRateLimiter, async (req: any, res) => {
 router.get("/", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const feedbackList = await storage.getUserFeedback(userId);
-    res.json(feedbackList);
+
+    // Parse pagination parameters from query
+    const limit = req.query.limit
+      ? Math.min(parseInt(req.query.limit, 10), 100)
+      : 20;
+    const cursor = req.query.cursor
+      ? { value: req.query.cursor }
+      : undefined;
+
+    const result = await storage.getUserFeedback(userId, { limit, cursor });
+
+    // Return both items and pagination metadata
+    res.json({
+      items: result.items,
+      nextCursor: result.nextCursor?.value,
+      hasMore: !!result.nextCursor,
+    });
   } catch (error) {
     logger.error("Error fetching user inbox:", error);
     res.status(500).json({ error: "Failed to fetch inbox" });
@@ -35,13 +50,13 @@ router.put("/:id/mark-read", writeRateLimiter, async (req: any, res) => {
     const userId = req.user.claims.sub;
     const feedbackId = req.params.id;
 
-    const updated = await storage.markFeedbackReplyAsRead(feedbackId, userId);
+    const result = await storage.markFeedbackReplyAsRead(feedbackId, userId);
 
-    if (!updated) {
+    if (!result.updated) {
       return res.status(404).json({ error: "Feedback not found" });
     }
 
-    res.json(updated);
+    res.json(result.value);
   } catch (error) {
     logger.error("Error marking feedback as read:", error);
     res.status(500).json({ error: "Failed to mark as read" });

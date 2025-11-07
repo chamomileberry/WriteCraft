@@ -54,10 +54,10 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
       currentPage: referer,
     };
 
-    const feedback = await storage.createFeedback(feedbackData);
+    const result = await storage.createFeedback(feedbackData);
 
-    logger.info(`Feedback created: ${feedback.id} by user ${userId}`);
-    res.status(201).json(feedback);
+    logger.info(`Feedback created: ${result.value.id} by user ${userId}`);
+    res.status(201).json(result.value);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({

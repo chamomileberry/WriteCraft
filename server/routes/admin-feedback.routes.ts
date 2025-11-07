@@ -17,8 +17,22 @@ router.get("/", readRateLimiter, async (req: any, res) => {
         .json({ error: "Unauthorized - Admin access required" });
     }
 
-    const feedbackList = await storage.getAllFeedback();
-    res.json(feedbackList);
+    // Parse pagination parameters from query
+    const limit = req.query.limit
+      ? Math.min(parseInt(req.query.limit, 10), 100)
+      : 20;
+    const cursor = req.query.cursor
+      ? { value: req.query.cursor }
+      : undefined;
+
+    const result = await storage.getAllFeedback({ limit, cursor });
+
+    // Return both items and pagination metadata
+    res.json({
+      items: result.items,
+      nextCursor: result.nextCursor?.value,
+      hasMore: !!result.nextCursor,
+    });
   } catch (error) {
     logger.error("Error fetching feedback:", error);
     res.status(500).json({ error: "Failed to fetch feedback" });
@@ -43,14 +57,14 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
     const { status } = updateSchema.parse(req.body);
     const feedbackId = req.params.id;
 
-    const updated = await storage.updateFeedbackStatus(feedbackId, status);
+    const result = await storage.updateFeedbackStatus(feedbackId, status);
 
-    if (!updated) {
+    if (!result.updated) {
       return res.status(404).json({ error: "Feedback not found" });
     }
 
     logger.info(`Feedback ${feedbackId} status updated to ${status}`);
-    res.json(updated);
+    res.json(result.value);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
@@ -86,20 +100,20 @@ router.post("/:id/reply", writeRateLimiter, async (req: any, res) => {
     const { reply } = replySchema.parse(req.body);
     const feedbackId = req.params.id;
 
-    const updated = await storage.replyToFeedback(
+    const result = await storage.replyToFeedback(
       feedbackId,
       reply,
       req.user.claims.sub,
     );
 
-    if (!updated) {
+    if (!result.updated) {
       return res.status(404).json({ error: "Feedback not found" });
     }
 
     logger.info(
       `Admin ${req.user.claims.sub} replied to feedback ${feedbackId}`,
     );
-    res.json(updated);
+    res.json(result.value);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
