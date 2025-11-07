@@ -372,6 +372,7 @@ export interface IStorage {
   >(
     content: T | undefined,
     userId: string,
+    notebookId?: string | null,
   ): boolean;
 
   // Character methods
@@ -1418,7 +1419,16 @@ export interface IStorage {
   ): Promise<void>;
 
   // Universal search method
-  searchAllContent(userId: string, query: string): Promise<any[]>;
+  searchAllContent(
+    userId: string,
+    query: string,
+    filters?: {
+      notebookId?: string | null;
+      kinds?: import("./storage-types").SearchResult['kind'][];
+    },
+    pagination?: import("./storage-types").PaginationParams,
+    opts?: import("./storage-types").StorageOptions
+  ): Promise<import("./storage-types").PaginatedResult<import("./storage-types").SearchResult>>;
 
   // Project links methods
   createProjectLink(link: InsertProjectLink): Promise<ProjectLink>;

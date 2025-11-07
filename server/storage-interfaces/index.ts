@@ -6,6 +6,7 @@
  */
 
 export type { INotebookStorage } from "./notebook.interface";
+export type { ISearchStorage } from "./search.interface";
 
 // Future exports (to be implemented):
 // export type { IUserStorage } from "./user.interface";
@@ -24,5 +25,4 @@ export type { INotebookStorage } from "./notebook.interface";
 // export type { IGovernanceStorage } from "./governance.interface";
 // export type { IGeographyStorage } from "./geography.interface";
 // export type { IHistoryStorage } from "./history.interface";
-// export type { ISearchStorage } from "./search.interface";
 // export type { IFeedbackStorage } from "./feedback.interface";

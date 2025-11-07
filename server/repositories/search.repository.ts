@@ -1,9 +1,19 @@
 import { BaseRepository } from "./base.repository";
 import { db } from "../db";
 import { projects, savedItems, notebooks, type Project } from "@shared/schema";
-import { eq, and, sql, inArray, desc } from "drizzle-orm";
+import { eq, and, sql, inArray, desc, or, lt } from "drizzle-orm";
+import type { ISearchStorage } from "../storage-interfaces/search.interface";
+import {
+  type SearchResult,
+  type PaginatedResult,
+  type PaginationParams,
+  type StorageOptions,
+  createCursor,
+  decodeCursor,
+  AppError,
+} from "../storage-types";
 
-export class SearchRepository extends BaseRepository {
+export class SearchRepository extends BaseRepository implements ISearchStorage {
   async searchProjects(userId: string, query: string): Promise<Project[]> {
     const trimmedQuery = query.trim();
     if (!trimmedQuery) {
@@ -43,147 +53,229 @@ export class SearchRepository extends BaseRepository {
       .orderBy(desc(sql`ts_rank(${projects.searchVector}, ${searchQuery})`));
   }
 
-  async searchAllContent(userId: string, query: string): Promise<any[]> {
-    const trimmedQuery = query.trim();
-    if (!trimmedQuery) {
-      return [];
+  async searchAllContent(
+    userId: string,
+    query: string,
+    filters?: {
+      notebookId?: string | null;
+      kinds?: SearchResult['kind'][];
+    },
+    pagination?: PaginationParams,
+    opts?: StorageOptions
+  ): Promise<PaginatedResult<SearchResult>> {
+    // Check for cancellation
+    if (opts?.signal?.aborted) {
+      throw AppError.aborted();
     }
 
-    const results: any[] = [];
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) {
+      return {
+        items: [],
+        nextCursor: undefined,
+      };
+    }
+
+    // Determine pagination settings
+    const limit = Math.min(pagination?.limit || 20, 100);
+    const results: SearchResult[] = [];
 
     try {
-      const projectResults = await this.searchProjects(userId, trimmedQuery);
-      projectResults.forEach((item) => {
-        results.push({
-          id: item.id,
-          title: item.title,
-          type: "project",
-          subtitle: item.status,
-          description: item.excerpt || item.content?.substring(0, 100) + "...",
-        });
-      });
+      // Search projects if not filtered out
+      if (!filters?.kinds || filters.kinds.includes("project")) {
+        const projectResults = await this.searchProjects(userId, trimmedQuery);
+
+        for (const item of projectResults) {
+          // Apply notebook filter
+          if (filters?.notebookId !== undefined) {
+            // If looking for global content only (null), skip
+            // If looking for specific notebook, skip (projects don't have notebookId yet)
+            continue;
+          }
+
+          results.push({
+            id: item.id,
+            userId: userId,
+            notebookId: null, // Projects are currently global
+            name: item.title,
+            description: item.excerpt || item.content?.substring(0, 100) || null,
+            kind: "project",
+          });
+        }
+      }
+
+      // Check for cancellation
+      if (opts?.signal?.aborted) {
+        throw AppError.aborted();
+      }
+
+      // Search saved items
+      const conditions = [
+        eq(savedItems.userId, userId),
+        sql`${savedItems.itemData}::text ILIKE ${"%" + trimmedQuery + "%"}`,
+      ];
+
+      // Apply notebook filter
+      if (filters?.notebookId !== undefined) {
+        if (filters.notebookId === null) {
+          conditions.push(sql`${savedItems.notebookId} IS NULL`);
+        } else {
+          conditions.push(eq(savedItems.notebookId, filters.notebookId));
+        }
+      }
 
       const savedItemResults = await db
         .select()
         .from(savedItems)
-        .where(
-          and(
-            eq(savedItems.userId, userId),
-            sql`${savedItems.itemData}::text ILIKE ${"%" + trimmedQuery + "%"}`,
-          ),
-        )
-        .limit(50);
-
-      const notebookIds = Array.from(
-        new Set(
-          savedItemResults
-            .map((item) => item.notebookId)
-            .filter((id): id is string => Boolean(id)),
-        ),
-      );
-      const notebooksMap = new Map<string, string>();
-
-      if (notebookIds.length > 0) {
-        const notebooksData = await db
-          .select()
-          .from(notebooks)
-          .where(
-            and(
-              eq(notebooks.userId, userId),
-              inArray(notebooks.id, notebookIds),
-            ),
-          );
-
-        notebooksData.forEach((notebook) => {
-          notebooksMap.set(notebook.id, notebook.name);
-        });
-      }
+        .where(and(...conditions))
+        .limit(100); // Get more than needed for filtering
 
       for (const savedItem of savedItemResults) {
-        const itemData = savedItem.itemData as any;
-        let title = "Untitled";
-        let subtitle = "";
-        let description = "";
-
-        if (itemData.name) {
-          title = itemData.name;
-        } else if (itemData.givenName || itemData.familyName) {
-          title =
-            [itemData.givenName, itemData.familyName]
-              .filter(Boolean)
-              .join(" ") || "Untitled Character";
-        } else if (itemData.title) {
-          title = itemData.title;
+        // Apply kind filter
+        if (filters?.kinds && !filters.kinds.includes(savedItem.itemType as SearchResult['kind'])) {
+          continue;
         }
 
-        subtitle =
-          (savedItem.notebookId
-            ? notebooksMap.get(savedItem.notebookId)
-            : null) || "Unknown Notebook";
+        const itemData = savedItem.itemData as any;
+        let name = "Untitled";
+        let description = "";
 
+        // Extract name
+        if (itemData.name) {
+          name = itemData.name;
+        } else if (itemData.givenName || itemData.familyName) {
+          name =
+            [itemData.givenName, itemData.familyName]
+              .filter(Boolean)
+              .join(" ") || "Untitled";
+        } else if (itemData.title) {
+          name = itemData.title;
+        }
+
+        // Extract description based on type
         switch (savedItem.itemType) {
           case "character":
-            description = itemData.occupation || "Character";
+            description = itemData.occupation || "";
             if (itemData.backstory) {
-              description += " • " + itemData.backstory.substring(0, 80);
+              description += (description ? " • " : "") + itemData.backstory.substring(0, 100);
             }
             break;
           case "location":
-            description = itemData.locationType || "Location";
+            description = itemData.locationType || "";
             if (itemData.description) {
-              description += " • " + itemData.description.substring(0, 80);
+              description += (description ? " • " : "") + itemData.description.substring(0, 100);
             }
             break;
           case "weapon":
-            description = itemData.weaponType || "Weapon";
+            description = itemData.weaponType || "";
             if (itemData.description) {
-              description += " • " + itemData.description.substring(0, 80);
+              description += (description ? " • " : "") + itemData.description.substring(0, 100);
             }
             break;
           case "organization":
-            description = itemData.organizationType || "Organization";
+            description = itemData.organizationType || "";
             if (itemData.purpose) {
-              description += " • " + itemData.purpose.substring(0, 80);
+              description += (description ? " • " : "") + itemData.purpose.substring(0, 100);
             }
             break;
           case "species":
-            description = itemData.classification || "Species";
+            description = itemData.classification || "";
             if (itemData.physicalDescription) {
-              description +=
-                " • " + itemData.physicalDescription.substring(0, 80);
+              description += (description ? " • " : "") + itemData.physicalDescription.substring(0, 100);
             }
             break;
           default:
-            description =
-              savedItem.itemType.charAt(0).toUpperCase() +
-              savedItem.itemType.slice(1);
             if (itemData.description) {
-              description += " • " + itemData.description.substring(0, 80);
+              description = itemData.description.substring(0, 100);
             }
         }
 
         results.push({
           id: savedItem.itemId,
-          title: title,
-          type: savedItem.itemType,
-          subtitle: subtitle,
-          description:
-            description +
-            (description && description.includes("•") ? "..." : ""),
+          userId: userId,
           notebookId: savedItem.notebookId,
-        });
+          name: name,
+          description: description || null,
+          kind: savedItem.itemType,
+        } as SearchResult);
       }
     } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
       console.error("Error in universal search:", error);
+      throw AppError.invalidInput("Search query failed", error);
     }
 
+    // Remove duplicates (same id and kind)
     const uniqueResults = results.filter(
       (result, index, self) =>
         index ===
-        self.findIndex((r) => r.id === result.id && r.type === result.type),
+        self.findIndex((r) => r.id === result.id && r.kind === result.kind),
     );
 
-    return uniqueResults.slice(0, 20);
+    // Apply cursor pagination
+    let filteredResults = uniqueResults;
+
+    if (pagination?.cursor) {
+      try {
+        const { sortKey, id } = decodeCursor(pagination.cursor);
+        // For search results, we use name as sortKey
+        const cursorIndex = filteredResults.findIndex(
+          r => r.name === sortKey && r.id === id
+        );
+        if (cursorIndex !== -1) {
+          filteredResults = filteredResults.slice(cursorIndex + 1);
+        }
+      } catch (error) {
+        // Invalid cursor, ignore and start from beginning
+        console.warn("Invalid cursor provided to search:", error);
+      }
+    }
+
+    // Take limit + 1 to determine if there are more results
+    const hasMore = filteredResults.length > limit;
+    const items = filteredResults.slice(0, limit);
+
+    // Generate next cursor if there are more results
+    const nextCursor = hasMore && items.length > 0
+      ? createCursor(items[items.length - 1].name, items[items.length - 1].id)
+      : undefined;
+
+    return {
+      items,
+      nextCursor,
+    };
+  }
+
+  /**
+   * Validates that content belongs to the specified user and notebook.
+   * Overrides base implementation to add notebook boundary checking.
+   */
+  validateContentOwnership<T extends { userId?: string | null; notebookId?: string | null }>(
+    content: T | undefined,
+    userId: string,
+    notebookId?: string | null,
+  ): boolean {
+    if (!content) return false;
+
+    // Check user ownership
+    if (content.userId !== userId) {
+      throw AppError.forbidden(`Content does not belong to user ${userId}`);
+    }
+
+    // Check notebook scope if both are specified and content is notebook-scoped
+    if (
+      notebookId !== undefined &&
+      content.notebookId !== null &&
+      content.notebookId !== notebookId
+    ) {
+      throw AppError.forbidden(
+        `Content belongs to notebook ${content.notebookId}, not ${notebookId}`
+      );
+    }
+
+    return true;
   }
 }
 
