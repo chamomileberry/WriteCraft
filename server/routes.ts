@@ -342,7 +342,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Parse pagination
         const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
-        const cursor = req.query.cursor as string | undefined;
+        const cursorValue = req.query.cursor as string | undefined;
+        const cursor = cursorValue ? { value: cursorValue } : undefined;
 
         const result = await storage.searchAllContent(
           userId,
@@ -351,7 +352,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           { limit, cursor }
         );
 
-        res.json(result);
+        // Unwrap cursor for JSON response (API clients expect string, not { value: string })
+        res.json({
+          items: result.items,
+          nextCursor: result.nextCursor?.value,
+        });
       } catch (error) {
         console.error("Error searching content:", error);
         res.status(500).json({ error: "Failed to search content" });
