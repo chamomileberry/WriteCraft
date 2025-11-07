@@ -115,7 +115,7 @@ export class SearchRepository extends BaseRepository implements ISearchStorage {
         sql`${savedItems.itemData}::text ILIKE ${"%" + trimmedQuery + "%"}`,
       ];
 
-      // Apply notebook filter
+      // Apply notebook filter at database level
       if (filters?.notebookId !== undefined) {
         if (filters.notebookId === null) {
           conditions.push(sql`${savedItems.notebookId} IS NULL`);
@@ -124,21 +124,33 @@ export class SearchRepository extends BaseRepository implements ISearchStorage {
         }
       }
 
+      // Apply kinds filter at database level (more efficient than in-memory filtering)
+      if (filters?.kinds && filters.kinds.length > 0) {
+        // Filter by "project" is handled separately, so exclude it from saved items
+        const savedItemKinds = filters.kinds.filter(k => k !== "project");
+        if (savedItemKinds.length > 0) {
+          conditions.push(inArray(savedItems.itemType, savedItemKinds));
+        } else {
+          // All kinds are "project" only, skip saved items query entirely
+          return {
+            items: results,
+            nextCursor: undefined,
+          };
+        }
+      }
+
+      // Fetch more than needed since we're merging with projects and may have duplicates
+      // Use limit * 2 to have a buffer for deduplication and merging
+      const fetchLimit = Math.min(limit * 2, 100);
       const savedItemResults = await db
         .select()
         .from(savedItems)
         .where(and(...conditions))
-        .limit(100); // Get more than needed for filtering
+        .limit(fetchLimit);
 
       for (const savedItem of savedItemResults) {
-        // Apply kind filter
-        if (filters?.kinds && !filters.kinds.includes(savedItem.itemType as SearchResult['kind'])) {
-          continue;
-        }
-
         const itemData = savedItem.itemData as any;
         let name = "Untitled";
-        let description = "";
 
         // Extract name
         if (itemData.name) {
@@ -152,42 +164,37 @@ export class SearchRepository extends BaseRepository implements ISearchStorage {
           name = itemData.title;
         }
 
+        // Helper to append description parts with separator
+        const appendDescription = (base: string, addition: string | undefined): string => {
+          if (!addition) return base;
+          return base ? `${base} • ${addition.substring(0, 100)}` : addition.substring(0, 100);
+        };
+
         // Extract description based on type
+        let description = "";
         switch (savedItem.itemType) {
           case "character":
             description = itemData.occupation || "";
-            if (itemData.backstory) {
-              description += (description ? " • " : "") + itemData.backstory.substring(0, 100);
-            }
+            description = appendDescription(description, itemData.backstory);
             break;
           case "location":
             description = itemData.locationType || "";
-            if (itemData.description) {
-              description += (description ? " • " : "") + itemData.description.substring(0, 100);
-            }
+            description = appendDescription(description, itemData.description);
             break;
           case "weapon":
             description = itemData.weaponType || "";
-            if (itemData.description) {
-              description += (description ? " • " : "") + itemData.description.substring(0, 100);
-            }
+            description = appendDescription(description, itemData.description);
             break;
           case "organization":
             description = itemData.organizationType || "";
-            if (itemData.purpose) {
-              description += (description ? " • " : "") + itemData.purpose.substring(0, 100);
-            }
+            description = appendDescription(description, itemData.purpose);
             break;
           case "species":
             description = itemData.classification || "";
-            if (itemData.physicalDescription) {
-              description += (description ? " • " : "") + itemData.physicalDescription.substring(0, 100);
-            }
+            description = appendDescription(description, itemData.physicalDescription);
             break;
           default:
-            if (itemData.description) {
-              description = itemData.description.substring(0, 100);
-            }
+            description = itemData.description ? itemData.description.substring(0, 100) : "";
         }
 
         results.push({
