@@ -251,61 +251,88 @@ export class StorageFacade implements IStorage {
   }
 
   // Notebook methods
-  async createNotebook(notebook: InsertNotebook): Promise<Notebook> {
-    return await this.notebookRepository.createNotebook(notebook);
+  async createNotebook(
+    notebook: InsertNotebook,
+    opts?: StorageOptions,
+  ): Promise<CreateResult<Notebook>> {
+    return await this.notebookRepository.createNotebook(notebook, opts);
   }
 
-  async getNotebook(id: string, userId: string): Promise<Notebook | undefined> {
-    return await this.notebookRepository.getNotebook(id, userId);
+  async getNotebook(
+    id: string,
+    userId: string,
+    opts?: StorageOptions,
+  ): Promise<Notebook | undefined> {
+    return await this.notebookRepository.getNotebook(id, userId, opts);
   }
 
-  async getUserNotebooks(userId: string): Promise<Notebook[]> {
-    return await this.notebookRepository.getUserNotebooks(userId);
+  async getUserNotebooks(
+    userId: string,
+    pagination?: PaginationParams,
+    opts?: StorageOptions,
+  ): Promise<PaginatedResult<Notebook>> {
+    return await this.notebookRepository.getUserNotebooks(userId, pagination, opts);
   }
 
   async updateNotebook(
     id: string,
     userId: string,
     updates: UpdateNotebook,
-  ): Promise<Notebook | undefined> {
-    return await this.notebookRepository.updateNotebook(id, userId, updates);
+    opts?: StorageOptions,
+  ): Promise<UpdateResult<Notebook>> {
+    return await this.notebookRepository.updateNotebook(id, userId, updates, opts);
   }
 
-  async deleteNotebook(id: string, userId: string): Promise<void> {
-    await this.notebookRepository.deleteNotebook(id, userId);
+  async deleteNotebook(
+    id: string,
+    userId: string,
+    opts?: StorageOptions,
+  ): Promise<DeleteResult> {
+    return await this.notebookRepository.deleteNotebook(id, userId, opts);
   }
 
   async validateNotebookOwnership(
     notebookId: string,
     userId: string,
+    opts?: StorageOptions,
   ): Promise<boolean> {
     return await this.notebookRepository.validateNotebookOwnership(
       notebookId,
       userId,
+      opts,
     );
   }
 
   // Import Job methods
-  async createImportJob(job: InsertImportJob): Promise<ImportJob> {
-    return await this.importRepository.createImportJob(job);
+  async createImportJob(
+    job: InsertImportJob,
+    opts?: StorageOptions,
+  ): Promise<CreateResult<ImportJob>> {
+    return await this.importRepository.createImportJob(job, opts);
   }
 
   async getImportJob(
     id: string,
     userId: string,
+    opts?: StorageOptions,
   ): Promise<ImportJob | undefined> {
-    return await this.importRepository.getImportJob(id, userId);
+    return await this.importRepository.getImportJob(id, userId, opts);
   }
 
-  async getUserImportJobs(userId: string): Promise<ImportJob[]> {
-    return await this.importRepository.getUserImportJobs(userId);
+  async getUserImportJobs(
+    userId: string,
+    pagination?: PaginationParams,
+    opts?: StorageOptions,
+  ): Promise<PaginatedResult<ImportJob>> {
+    return await this.importRepository.getUserImportJobs(userId, pagination, opts);
   }
 
   async updateImportJob(
     id: string,
     updates: UpdateImportJob,
-  ): Promise<ImportJob | undefined> {
-    return await this.importRepository.updateImportJob(id, updates);
+    opts?: StorageOptions,
+  ): Promise<UpdateResult<ImportJob>> {
+    return await this.importRepository.updateImportJob(id, updates, opts);
   }
 
   // Generic content ownership validation

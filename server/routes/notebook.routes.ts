@@ -5,6 +5,7 @@ import { z } from "zod";
 import { validateInput } from "../security/middleware";
 import { requireFeature } from "../middleware/featureGate";
 import { readRateLimiter, writeRateLimiter } from "../security/rateLimiters";
+import { AppError } from "../storage-types";
 
 const router = Router();
 
@@ -24,23 +25,29 @@ router.get("/", readRateLimiter, async (req: any, res) => {
     });
 
     const userId = req.user.claims.sub;
-    const notebooks = await storage.getUserNotebooks(userId);
+    const result = await storage.getUserNotebooks(userId);
 
     console.log("[notebook.routes] Successfully fetched notebooks:", {
       userId,
-      count: notebooks.length,
-      notebookIds: notebooks.map((n: any) => n.id),
+      count: result.items.length,
+      notebookIds: result.items.map((n: any) => n.id),
+      hasMore: !!result.nextCursor,
     });
 
-    res.json(notebooks);
+    res.json(result);
   } catch (error) {
     console.error("[notebook.routes] Error fetching notebooks:", error);
-    if (error instanceof Error && error.message.includes("Unauthorized")) {
-      const userId = req.user?.claims?.sub || "unknown";
-      console.warn(
-        `[Security] Unauthorized notebook operation - userId: ${userId}`,
-      );
-      return res.status(404).json({ error: "Not found" });
+    if (error instanceof AppError) {
+      if (error.code === "aborted") {
+        return res.status(408).json({ error: "Request timeout" });
+      }
+      if (error.code === "forbidden") {
+        const userId = req.user?.claims?.sub || "unknown";
+        console.warn(
+          `[Security] Unauthorized notebook operation - userId: ${userId}`,
+        );
+        return res.status(404).json({ error: "Not found" });
+      }
     }
     res.status(500).json({ error: "Failed to fetch notebooks" });
   }
@@ -57,10 +64,18 @@ router.post(
       const userId = req.user.claims.sub;
       const notebookData = { ...req.body, userId };
 
-      const savedNotebook = await storage.createNotebook(notebookData);
-      res.json(savedNotebook);
+      const result = await storage.createNotebook(notebookData);
+      res.status(201).json(result.value);
     } catch (error) {
       console.error("Error creating notebook:", error);
+      if (error instanceof AppError) {
+        if (error.code === "invalid_input") {
+          return res.status(400).json({ error: error.message });
+        }
+        if (error.code === "aborted") {
+          return res.status(408).json({ error: "Request timeout" });
+        }
+      }
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
       res.status(500).json({ error: errorMessage });
@@ -93,29 +108,34 @@ router.put(
       const userId = req.user.claims.sub;
       const updateData = { ...req.body, userId };
 
-      const updatedNotebook = await storage.updateNotebook(
+      const result = await storage.updateNotebook(
         req.params.id,
         userId,
         updateData,
       );
 
-      if (!updatedNotebook) {
+      if (!result.updated || !result.value) {
         return res.status(404).json({ error: "Notebook not found" });
       }
 
-      res.json(updatedNotebook);
+      res.json(result.value);
     } catch (error) {
       console.error("Error updating notebook:", error);
+      if (error instanceof AppError) {
+        if (error.code === "forbidden") {
+          const userId = req.user?.claims?.sub || "unknown";
+          const notebookId = req.params.id || "unknown";
+          console.warn(
+            `[Security] Unauthorized notebook operation - userId: ${userId}, notebookId: ${notebookId}`,
+          );
+          return res.status(404).json({ error: "Not found" });
+        }
+        if (error.code === "aborted") {
+          return res.status(408).json({ error: "Request timeout" });
+        }
+      }
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
-      if (error instanceof Error && error.message.includes("Unauthorized")) {
-        const userId = req.user?.claims?.sub || "unknown";
-        const notebookId = req.params.id || "unknown";
-        console.warn(
-          `[Security] Unauthorized notebook operation - userId: ${userId}, notebookId: ${notebookId}`,
-        );
-        return res.status(404).json({ error: "Not found" });
-      }
       res.status(500).json({ error: errorMessage });
     }
   },
@@ -125,23 +145,29 @@ router.put(
 router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    await storage.deleteNotebook(req.params.id, userId);
-    res.json({ success: true });
-  } catch (error) {
-    console.error("Error deleting notebook:", error);
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error occurred";
-    if (
-      error instanceof Error &&
-      (error.message.includes("Unauthorized") ||
-        error.message.includes("Notebook not found"))
-    ) {
-      const userId = req.user?.claims?.sub || "unknown";
-      console.warn(
-        `[Security] Unauthorized notebook deletion attempt - userId: ${userId}, notebookId: ${req.params.id}`,
-      );
+    const result = await storage.deleteNotebook(req.params.id, userId);
+
+    if (!result.deleted) {
       return res.status(404).json({ error: "Notebook not found" });
     }
+
+    res.status(204).send();
+  } catch (error) {
+    console.error("Error deleting notebook:", error);
+    if (error instanceof AppError) {
+      if (error.code === "forbidden") {
+        const userId = req.user?.claims?.sub || "unknown";
+        console.warn(
+          `[Security] Unauthorized notebook deletion attempt - userId: ${userId}, notebookId: ${req.params.id}`,
+        );
+        return res.status(404).json({ error: "Notebook not found" });
+      }
+      if (error.code === "aborted") {
+        return res.status(408).json({ error: "Request timeout" });
+      }
+    }
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
     res.status(500).json({ error: errorMessage });
   }
 });

@@ -2513,7 +2513,7 @@ router.post(
       );
 
       // Create import job
-      const job = await storage.createImportJob({
+      const jobResult = await storage.createImportJob({
         userId,
         notebookId,
         source: importSource,
@@ -2525,7 +2525,7 @@ router.post(
 
       // Start processing in background
       processImport(
-        job.id,
+        jobResult.value.id,
         { articles: allArticles, totalItems: allArticles.length },
         userId,
         notebookId,
@@ -2533,7 +2533,7 @@ router.post(
       ).catch(console.error);
 
       res.json({
-        jobId: job.id,
+        jobId: jobResult.value.id,
         totalItems: allArticles.length,
         status: "processing",
       });
@@ -2951,8 +2951,8 @@ router.get("/status/:jobId", readRateLimiter, async (req: any, res) => {
 router.get("/history", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const jobs = await storage.getUserImportJobs(userId);
-    res.json(jobs);
+    const result = await storage.getUserImportJobs(userId);
+    res.json(result);
   } catch (error) {
     console.error("Import history error:", error);
     res.status(500).json({
