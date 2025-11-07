@@ -2399,22 +2399,22 @@ router.post(
 
       if (!notebookId) {
         // Get user's notebooks, use first one or create a default import notebook
-        const notebooks = await storage.getUserNotebooks(userId);
-        if (notebooks.length > 0 && notebooks[0]) {
-          notebookId = notebooks[0].id;
+        const result = await storage.getUserNotebooks(userId);
+        if (result.items.length > 0 && result.items[0]) {
+          notebookId = result.items[0].id;
           console.log(
-            `[Import] Using existing notebook ${notebookId}: ${notebooks[0].name}`,
+            `[Import] Using existing notebook ${notebookId}: ${result.items[0].name}`,
           );
         } else {
           // Create a default import notebook
-          const defaultNotebook = await storage.createNotebook({
+          const createResult = await storage.createNotebook({
             userId,
             name: "Imported Content",
             description: "Content imported from World Anvil",
           });
-          notebookId = defaultNotebook.id;
+          notebookId = createResult.value.id;
           console.log(
-            `[Import] Created new notebook ${notebookId}: ${defaultNotebook.name}`,
+            `[Import] Created new notebook ${notebookId}: ${createResult.value.name}`,
           );
         }
       }
