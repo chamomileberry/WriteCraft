@@ -314,28 +314,57 @@ export interface IStorage {
   ): Promise<import("./storage-types").PaginatedResult<User>>;
 
   // Notebook methods
-  createNotebook(notebook: InsertNotebook): Promise<Notebook>;
-  getNotebook(id: string, userId: string): Promise<Notebook | undefined>;
-  getUserNotebooks(userId: string): Promise<Notebook[]>;
+  createNotebook(
+    notebook: InsertNotebook,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<import("./storage-types").CreateResult<Notebook>>;
+  getNotebook(
+    id: string,
+    userId: string,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<Notebook | undefined>;
+  getUserNotebooks(
+    userId: string,
+    pagination?: import("./storage-types").PaginationParams,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<import("./storage-types").PaginatedResult<Notebook>>;
   updateNotebook(
     id: string,
     userId: string,
     updates: UpdateNotebook,
-  ): Promise<Notebook | undefined>;
-  deleteNotebook(id: string, userId: string): Promise<void>;
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<import("./storage-types").UpdateResult<Notebook>>;
+  deleteNotebook(
+    id: string,
+    userId: string,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<import("./storage-types").DeleteResult>;
   validateNotebookOwnership(
     notebookId: string,
     userId: string,
+    opts?: import("./storage-types").StorageOptions,
   ): Promise<boolean>;
 
   // Import Job methods
-  createImportJob(job: InsertImportJob): Promise<ImportJob>;
-  getImportJob(id: string, userId: string): Promise<ImportJob | undefined>;
-  getUserImportJobs(userId: string): Promise<ImportJob[]>;
+  createImportJob(
+    job: InsertImportJob,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<import("./storage-types").CreateResult<ImportJob>>;
+  getImportJob(
+    id: string,
+    userId: string,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<ImportJob | undefined>;
+  getUserImportJobs(
+    userId: string,
+    pagination?: import("./storage-types").PaginationParams,
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<import("./storage-types").PaginatedResult<ImportJob>>;
   updateImportJob(
     id: string,
     updates: UpdateImportJob,
-  ): Promise<ImportJob | undefined>;
+    opts?: import("./storage-types").StorageOptions,
+  ): Promise<import("./storage-types").UpdateResult<ImportJob>>;
 
   // Generic content ownership validation
   validateContentOwnership<
