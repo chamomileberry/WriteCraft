@@ -67,16 +67,12 @@ export class ImportRepository extends BaseRepository implements Partial<INoteboo
 
     const limit = Math.min(pagination?.limit || 20, 100);
 
-    let query = db
-      .select()
-      .from(importJobs)
-      .where(eq(importJobs.userId, userId))
-      .orderBy(desc(importJobs.createdAt), desc(importJobs.id));
+    const conditions = [eq(importJobs.userId, userId)];
 
     // Apply cursor if provided
     if (pagination?.cursor) {
       const { sortKey, id } = decodeCursor(pagination.cursor);
-      query = query.where(
+      conditions.push(
         or(
           lt(importJobs.createdAt, new Date(sortKey as string)),
           and(
@@ -86,6 +82,12 @@ export class ImportRepository extends BaseRepository implements Partial<INoteboo
         )
       );
     }
+
+    let query = db
+      .select()
+      .from(importJobs)
+      .where(and(...conditions))
+      .orderBy(desc(importJobs.createdAt), desc(importJobs.id));
 
     // Fetch limit + 1 to check if there are more results
     const items = await query.limit(limit + 1);

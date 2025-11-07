@@ -94,16 +94,12 @@ export class NotebookRepository extends BaseRepository implements Partial<INoteb
     const limit = Math.min(pagination?.limit || 20, 100);
 
     // Build owned notebooks query
-    let ownedQuery = db
-      .select()
-      .from(notebooks)
-      .where(eq(notebooks.userId, userId))
-      .orderBy(desc(notebooks.createdAt), desc(notebooks.id));
+    const conditions = [eq(notebooks.userId, userId)];
 
     // Apply cursor if provided
     if (pagination?.cursor) {
       const { sortKey, id } = decodeCursor(pagination.cursor);
-      ownedQuery = ownedQuery.where(
+      conditions.push(
         or(
           lt(notebooks.createdAt, new Date(sortKey as string)),
           and(
@@ -113,6 +109,12 @@ export class NotebookRepository extends BaseRepository implements Partial<INoteb
         )
       );
     }
+
+    let ownedQuery = db
+      .select()
+      .from(notebooks)
+      .where(and(...conditions))
+      .orderBy(desc(notebooks.createdAt), desc(notebooks.id));
 
     const ownedNotebooks = await ownedQuery.limit(limit + 1);
 
