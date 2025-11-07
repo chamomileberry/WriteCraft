@@ -2399,22 +2399,22 @@ router.post(
 
       if (!notebookId) {
         // Get user's notebooks, use first one or create a default import notebook
-        const notebooks = await storage.getUserNotebooks(userId);
-        if (notebooks.length > 0 && notebooks[0]) {
-          notebookId = notebooks[0].id;
+        const result = await storage.getUserNotebooks(userId);
+        if (result.items.length > 0 && result.items[0]) {
+          notebookId = result.items[0].id;
           console.log(
-            `[Import] Using existing notebook ${notebookId}: ${notebooks[0].name}`,
+            `[Import] Using existing notebook ${notebookId}: ${result.items[0].name}`,
           );
         } else {
           // Create a default import notebook
-          const defaultNotebook = await storage.createNotebook({
+          const createResult = await storage.createNotebook({
             userId,
             name: "Imported Content",
             description: "Content imported from World Anvil",
           });
-          notebookId = defaultNotebook.id;
+          notebookId = createResult.value.id;
           console.log(
-            `[Import] Created new notebook ${notebookId}: ${defaultNotebook.name}`,
+            `[Import] Created new notebook ${notebookId}: ${createResult.value.name}`,
           );
         }
       }
@@ -2513,7 +2513,7 @@ router.post(
       );
 
       // Create import job
-      const job = await storage.createImportJob({
+      const jobResult = await storage.createImportJob({
         userId,
         notebookId,
         source: importSource,
@@ -2525,7 +2525,7 @@ router.post(
 
       // Start processing in background
       processImport(
-        job.id,
+        jobResult.value.id,
         { articles: allArticles, totalItems: allArticles.length },
         userId,
         notebookId,
@@ -2533,7 +2533,7 @@ router.post(
       ).catch(console.error);
 
       res.json({
-        jobId: job.id,
+        jobId: jobResult.value.id,
         totalItems: allArticles.length,
         status: "processing",
       });
@@ -2947,14 +2947,43 @@ router.get("/status/:jobId", readRateLimiter, async (req: any, res) => {
   }
 });
 
-// Get all import jobs for user
+// Get all import jobs for user (backward compatible - returns array)
 router.get("/history", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const jobs = await storage.getUserImportJobs(userId);
-    res.json(jobs);
+    const result = await storage.getUserImportJobs(userId);
+    // Return array for backward compatibility
+    res.json(result.items);
   } catch (error) {
     console.error("Import history error:", error);
+    res.status(500).json({
+      error:
+        error instanceof Error ? error.message : "Failed to get import history",
+    });
+  }
+});
+
+// Get all import jobs for user with pagination support
+router.get("/history/paginated", readRateLimiter, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+
+    // Parse pagination params from query string
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+    const cursor = req.query.cursor ? { value: req.query.cursor as string } : undefined;
+
+    const pagination = limit || cursor ? { limit, cursor } : undefined;
+    const result = await storage.getUserImportJobs(userId, pagination);
+
+    console.log("[import.routes] Successfully fetched paginated import jobs:", {
+      userId,
+      count: result.items.length,
+      hasMore: !!result.nextCursor,
+    });
+
+    res.json(result);
+  } catch (error) {
+    console.error("Import history paginated error:", error);
     res.status(500).json({
       error:
         error instanceof Error ? error.message : "Failed to get import history",

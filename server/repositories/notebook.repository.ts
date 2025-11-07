@@ -7,19 +7,54 @@ import {
   users,
 } from "@shared/schema";
 import { db } from "../db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, lt, or } from "drizzle-orm";
 import { BaseRepository } from "./base.repository";
+import {
+  type StorageOptions,
+  type CreateResult,
+  type UpdateResult,
+  type DeleteResult,
+  type PaginationParams,
+  type PaginatedResult,
+  AppError,
+  createCursor,
+  decodeCursor,
+} from "../storage-types";
+import type { INotebookStorage } from "../storage-interfaces/notebook.interface";
 
-export class NotebookRepository extends BaseRepository {
-  async createNotebook(notebook: InsertNotebook): Promise<Notebook> {
+export class NotebookRepository extends BaseRepository implements Partial<INotebookStorage> {
+  async createNotebook(
+    notebook: InsertNotebook,
+    opts?: StorageOptions,
+  ): Promise<CreateResult<Notebook>> {
+    // Check for cancellation
+    if (opts?.signal?.aborted) {
+      throw AppError.aborted();
+    }
+
+    // Validate input
+    if (!notebook.userId || !notebook.name) {
+      throw AppError.invalidInput('Notebook must have userId and name');
+    }
+
     const [newNotebook] = await db
       .insert(notebooks)
       .values(notebook)
       .returning();
-    return newNotebook;
+
+    return { value: newNotebook };
   }
 
-  async getNotebook(id: string, userId: string): Promise<Notebook | undefined> {
+  async getNotebook(
+    id: string,
+    userId: string,
+    opts?: StorageOptions,
+  ): Promise<Notebook | undefined> {
+    // Check for cancellation
+    if (opts?.signal?.aborted) {
+      throw AppError.aborted();
+    }
+
     const [notebook] = await db
       .select()
       .from(notebooks)
@@ -46,12 +81,42 @@ export class NotebookRepository extends BaseRepository {
     return sharedNotebook?.notebook || undefined;
   }
 
-  async getUserNotebooks(userId: string): Promise<Notebook[]> {
-    const ownedNotebooks = await db
+  async getUserNotebooks(
+    userId: string,
+    pagination?: PaginationParams,
+    opts?: StorageOptions,
+  ): Promise<PaginatedResult<Notebook>> {
+    // Check for cancellation
+    if (opts?.signal?.aborted) {
+      throw AppError.aborted();
+    }
+
+    const limit = Math.min(pagination?.limit || 20, 100);
+
+    // Build owned notebooks query
+    const conditions = [eq(notebooks.userId, userId)];
+
+    // Apply cursor if provided
+    if (pagination?.cursor) {
+      const { sortKey, id } = decodeCursor(pagination.cursor);
+      conditions.push(
+        or(
+          lt(notebooks.createdAt, new Date(sortKey as string)),
+          and(
+            eq(notebooks.createdAt, new Date(sortKey as string)),
+            lt(notebooks.id, id)
+          )
+        )
+      );
+    }
+
+    let ownedQuery = db
       .select()
       .from(notebooks)
-      .where(eq(notebooks.userId, userId))
-      .orderBy(desc(notebooks.createdAt));
+      .where(and(...conditions))
+      .orderBy(desc(notebooks.createdAt), desc(notebooks.id));
+
+    const ownedNotebooks = await ownedQuery.limit(limit + 1);
 
     const sharedNotebooks = await db
       .select({
@@ -96,53 +161,104 @@ export class NotebookRepository extends BaseRepository {
       return dateB - dateA;
     });
 
-    return uniqueNotebooks;
+    // Check if there are more results
+    const hasMore = uniqueNotebooks.length > limit;
+    const items = hasMore ? uniqueNotebooks.slice(0, limit) : uniqueNotebooks;
+
+    // Only generate cursor if there are more items AND the last item has a valid createdAt
+    let nextCursor: { value: string } | undefined = undefined;
+    if (hasMore && items.length > 0) {
+      const lastItem = items[items.length - 1];
+      if (lastItem.createdAt) {
+        nextCursor = createCursor(
+          lastItem.createdAt.toISOString(),
+          lastItem.id
+        );
+      } else {
+        // Log warning if createdAt is missing - this shouldn't happen in normal operation
+        console.warn(
+          `[NotebookRepository] Cannot generate cursor: last item has null createdAt (id: ${lastItem.id})`
+        );
+      }
+    }
+
+    return {
+      items,
+      nextCursor,
+    };
   }
 
   async updateNotebook(
     id: string,
     userId: string,
     updates: UpdateNotebook,
-  ): Promise<Notebook | undefined> {
+    opts?: StorageOptions,
+  ): Promise<UpdateResult<Notebook>> {
+    // Check for cancellation
+    if (opts?.signal?.aborted) {
+      throw AppError.aborted();
+    }
+
     const [updatedNotebook] = await db
       .update(notebooks)
       .set(updates)
       .where(and(eq(notebooks.id, id), eq(notebooks.userId, userId)))
       .returning();
-    return updatedNotebook || undefined;
+
+    if (!updatedNotebook) {
+      return { updated: false };
+    }
+
+    return { updated: true, value: updatedNotebook };
   }
 
-  async deleteNotebook(id: string, userId: string): Promise<void> {
+  async deleteNotebook(
+    id: string,
+    userId: string,
+    opts?: StorageOptions,
+  ): Promise<DeleteResult> {
+    // Check for cancellation
+    if (opts?.signal?.aborted) {
+      throw AppError.aborted();
+    }
+
     const [existing] = await db
       .select()
       .from(notebooks)
       .where(eq(notebooks.id, id));
+
     if (!existing) {
-      throw new Error("Notebook not found");
-    }
-    if (existing.userId !== userId) {
-      throw new Error("Unauthorized: You do not own this notebook");
+      return { deleted: false };
     }
 
-    await db
+    if (existing.userId !== userId) {
+      throw AppError.forbidden("You do not own this notebook");
+    }
+
+    const result = await db
       .delete(notebooks)
-      .where(and(eq(notebooks.id, id), eq(notebooks.userId, userId)));
+      .where(and(eq(notebooks.id, id), eq(notebooks.userId, userId)))
+      .returning();
+
+    return { deleted: result.length > 0 };
   }
 
   async validateNotebookOwnership(
     notebookId: string,
     userId: string,
+    opts?: StorageOptions,
   ): Promise<boolean> {
+    // Check for cancellation
+    if (opts?.signal?.aborted) {
+      throw AppError.aborted();
+    }
+
     const [notebook] = await db
       .select()
       .from(notebooks)
       .where(and(eq(notebooks.id, notebookId), eq(notebooks.userId, userId)))
       .limit(1);
 
-    if (notebook) {
-      return true;
-    }
-
-    return false;
+    return !!notebook;
   }
 }
