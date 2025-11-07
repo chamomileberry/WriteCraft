@@ -9,7 +9,7 @@ import { AppError } from "../storage-types";
 
 const router = Router();
 
-// Get all notebooks for a user
+// Get all notebooks for a user (backward compatible - returns array)
 router.get("/", readRateLimiter, async (req: any, res) => {
   try {
     console.log("[notebook.routes] GET / - Fetching notebooks", {
@@ -34,9 +34,47 @@ router.get("/", readRateLimiter, async (req: any, res) => {
       hasMore: !!result.nextCursor,
     });
 
-    res.json(result);
+    // Return array for backward compatibility
+    res.json(result.items);
   } catch (error) {
     console.error("[notebook.routes] Error fetching notebooks:", error);
+    if (error instanceof AppError) {
+      if (error.code === "aborted") {
+        return res.status(408).json({ error: "Request timeout" });
+      }
+      if (error.code === "forbidden") {
+        const userId = req.user?.claims?.sub || "unknown";
+        console.warn(
+          `[Security] Unauthorized notebook operation - userId: ${userId}`,
+        );
+        return res.status(404).json({ error: "Not found" });
+      }
+    }
+    res.status(500).json({ error: "Failed to fetch notebooks" });
+  }
+});
+
+// Get all notebooks for a user with pagination support
+router.get("/paginated", readRateLimiter, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+
+    // Parse pagination params from query string
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+    const cursor = req.query.cursor ? { value: req.query.cursor as string } : undefined;
+
+    const pagination = limit || cursor ? { limit, cursor } : undefined;
+    const result = await storage.getUserNotebooks(userId, pagination);
+
+    console.log("[notebook.routes] Successfully fetched paginated notebooks:", {
+      userId,
+      count: result.items.length,
+      hasMore: !!result.nextCursor,
+    });
+
+    res.json(result);
+  } catch (error) {
+    console.error("[notebook.routes] Error fetching paginated notebooks:", error);
     if (error instanceof AppError) {
       if (error.code === "aborted") {
         return res.status(408).json({ error: "Request timeout" });

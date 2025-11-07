@@ -2947,14 +2947,43 @@ router.get("/status/:jobId", readRateLimiter, async (req: any, res) => {
   }
 });
 
-// Get all import jobs for user
+// Get all import jobs for user (backward compatible - returns array)
 router.get("/history", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const result = await storage.getUserImportJobs(userId);
-    res.json(result);
+    // Return array for backward compatibility
+    res.json(result.items);
   } catch (error) {
     console.error("Import history error:", error);
+    res.status(500).json({
+      error:
+        error instanceof Error ? error.message : "Failed to get import history",
+    });
+  }
+});
+
+// Get all import jobs for user with pagination support
+router.get("/history/paginated", readRateLimiter, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+
+    // Parse pagination params from query string
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+    const cursor = req.query.cursor ? { value: req.query.cursor as string } : undefined;
+
+    const pagination = limit || cursor ? { limit, cursor } : undefined;
+    const result = await storage.getUserImportJobs(userId, pagination);
+
+    console.log("[import.routes] Successfully fetched paginated import jobs:", {
+      userId,
+      count: result.items.length,
+      hasMore: !!result.nextCursor,
+    });
+
+    res.json(result);
+  } catch (error) {
+    console.error("Import history paginated error:", error);
     res.status(500).json({
       error:
         error instanceof Error ? error.message : "Failed to get import history",
