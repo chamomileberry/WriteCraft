@@ -119,7 +119,7 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
         .json({ error: "notebookId query parameter is required" });
     }
 
-    const plant = await storage.getPlant(req.params.id, userId, notebookId);
+  const plant = await storage.getPlant(req.params['id'], userId, notebookId);
     if (!plant) {
       return res.status(404).json({ error: "Plant not found" });
     }
@@ -143,7 +143,7 @@ router.patch("/:id", writeRateLimiter, async (req: any, res) => {
 
     const validatedUpdates = updatePlantSchema.parse(req.body);
     const updatedPlant = await storage.updatePlant(
-      req.params.id,
+      req.params['id'],
       userId,
       validatedUpdates,
       notebookId,
@@ -184,7 +184,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
 
     const validatedUpdates = updatePlantSchema.parse(req.body);
     const updatedPlant = await storage.updatePlant(
-      req.params.id,
+      req.params['id'],
       userId,
       validatedUpdates,
       notebookId,
@@ -223,7 +223,7 @@ router.delete("/:id", writeRateLimiter, async (req: any, res) => {
         .json({ error: "notebookId query parameter is required" });
     }
 
-    await storage.deletePlant(req.params.id, userId, notebookId);
+  await storage.deletePlant(req.params['id'], userId, notebookId);
     res.json({ success: true });
   } catch (error) {
     console.error("Error deleting plant:", error);
@@ -255,7 +255,7 @@ router.post("/:id/generate-article", aiRateLimiter, async (req: any, res) => {
     const { generateArticleForContent } = await import("../article-generation");
     const updatedPlant = await generateArticleForContent(
       "plants",
-      req.params.id,
+      req.params['id'],
       userId,
       notebookId,
     );

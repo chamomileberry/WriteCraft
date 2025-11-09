@@ -62,10 +62,10 @@ router.get("/", readRateLimiter, async (req: any, res) => {
 router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const folder = await storage.getFolder(req.params.id, userId);
+  const folder = await storage.getFolder(req.params['id'], userId);
     if (!folder) {
       console.warn(
-        `[Security] Unauthorized folder access attempt - userId: ${userId}, folderId: ${req.params.id}`,
+  `[Security] Unauthorized folder access attempt - userId: ${userId}, folderId: ${req.params['id']}`,
       );
       return res.status(404).json({ error: "Folder not found" });
     }
@@ -83,7 +83,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
 
     const validatedUpdates = insertFolderSchema.partial().parse(folderData);
     const updatedFolder = await storage.updateFolder(
-      req.params.id,
+  req.params['id'],
       userId,
       validatedUpdates,
     );
@@ -116,7 +116,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
 router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    await storage.deleteFolder(req.params.id, userId);
+  await storage.deleteFolder(req.params['id'], userId);
     res.json({ success: true });
   } catch (error) {
     console.error("Error deleting folder:", error);

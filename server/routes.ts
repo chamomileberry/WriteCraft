@@ -141,12 +141,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/security", securityRoutes);
 
   // Register security test endpoints (development only)
-  if (process.env.NODE_ENV !== "production") {
-    const { default: securityTestRoutes } = await import(
-      "./security/test-endpoints"
-    );
-    app.use("/api", securityTestRoutes);
-  }
+      if (process.env["NODE_ENV"] !== "production") {
+        const { default: securityTestRoutes } = await import(
+          "./security/test-endpoints"
+        );
+        app.use("/api", securityTestRoutes);
+      }
 
   // Register modular domain-specific routes
   registerDomainRoutes(app);
@@ -329,20 +329,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const userId = req.user.claims.sub;
-        const query = (req.query.q as string) || "";
+  const query = (req.query['q'] as string) || "";
 
         // Parse filters
-        const notebookId = req.query.notebookId
-          ? (req.query.notebookId === "null" ? null : req.query.notebookId as string)
+        const notebookId = req.query['notebookId']
+          ? (req.query['notebookId'] === "null" ? null : req.query['notebookId'] as string)
           : undefined;
 
-        const kinds = req.query.kinds
-          ? (Array.isArray(req.query.kinds) ? req.query.kinds : [req.query.kinds])
-          : (req.query.type ? [req.query.type as string] : undefined); // Support legacy 'type' param
+        const kinds = req.query['kinds']
+          ? (Array.isArray(req.query['kinds']) ? req.query['kinds'] : [req.query['kinds']])
+          : (req.query['type'] ? [req.query['type'] as string] : undefined); // Support legacy 'type' param
 
         // Parse pagination
-        const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
-        const cursorValue = req.query.cursor as string | undefined;
+  const limit = req.query['limit'] ? parseInt(req.query['limit'] as string, 10) : undefined;
+  const cursorValue = req.query['cursor'] as string | undefined;
         const cursor = cursorValue ? { value: cursorValue } : undefined;
 
         const result = await storage.searchAllContent(
@@ -373,8 +373,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const userId = req.user.claims.sub;
-        const notebookId = req.query.notebookId as string;
-        const category = req.query.category as string;
+  const notebookId = req.query['notebookId'] as string;
+  const category = req.query['category'] as string;
 
         if (!notebookId) {
           return res.status(400).json({ error: "Notebook ID is required" });
@@ -498,8 +498,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const userId = req.user.claims.sub;
-        const pinnedId = req.params.id;
-        const notebookId = req.query.notebookId as string;
+  const pinnedId = req.params['id'];
+  const notebookId = req.query['notebookId'] as string;
 
         if (!notebookId) {
           return res.status(400).json({ error: "Notebook ID is required" });
@@ -594,7 +594,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const userId = req.user.claims.sub;
-        const { id } = req.params;
+  const { id } = req.params; // keep destructured id (no index access needed here)
         const { userId: _ignored, ...updates } = req.body;
         const note = await storage.updateNote(id, userId, updates);
         res.json(note);
@@ -1335,7 +1335,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const userId = req.user.claims.sub;
         const { id } = req.params;
-        const { notebookId } = req.query;
+    const { notebookId } = req.query;
 
         logger.debug("[GET /api/timelines/:id] Fetching timeline:", {
           id,
@@ -1454,7 +1454,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: any, res) => {
       try {
         const userId = req.user.claims.sub;
-        const { id } = req.params;
+  const { id } = req.params;
         const updates = req.body;
 
         const event = await storage.updateTimelineEvent(id, userId, updates);
@@ -1618,7 +1618,7 @@ function generateRandomName(): string {
     "River",
     "Storm",
   ];
-  return names[Math.floor(Math.random() * names.length)];
+  return names[Math.floor(Math.random() * names.length)] ?? "";
 }
 
 function generateRandomSetup(): string {
@@ -1629,7 +1629,7 @@ function generateRandomSetup(): string {
     "A time traveler accidentally changes history and must find a way to set things right",
     "In a society where emotions are illegal, a rebel group fights to restore humanity's right to feel",
   ];
-  return setups[Math.floor(Math.random() * setups.length)];
+  return setups[Math.floor(Math.random() * setups.length)] ?? "";
 }
 
 function generateRandomTheme(): string {
@@ -1641,7 +1641,7 @@ function generateRandomTheme(): string {
     "Power corrupts",
     "Identity and self-discovery",
   ];
-  return themes[Math.floor(Math.random() * themes.length)];
+  return themes[Math.floor(Math.random() * themes.length)] ?? "";
 }
 
 function generateRandomConflict(): string {
@@ -1652,7 +1652,7 @@ function generateRandomConflict(): string {
     "Man vs. technology",
     "Man vs. fate",
   ];
-  return conflicts[Math.floor(Math.random() * conflicts.length)];
+  return conflicts[Math.floor(Math.random() * conflicts.length)] ?? "";
 }
 
 function getRandomGenre(): string {
@@ -1666,12 +1666,12 @@ function getRandomGenre(): string {
     "Historical Fiction",
     "Literary Fiction",
   ];
-  return genres[Math.floor(Math.random() * genres.length)];
+  return genres[Math.floor(Math.random() * genres.length)] ?? "";
 }
 
 function getRandomDifficulty(): string {
   const difficulties = ["Beginner", "Intermediate", "Advanced"];
-  return difficulties[Math.floor(Math.random() * difficulties.length)];
+  return difficulties[Math.floor(Math.random() * difficulties.length)] ?? "Beginner";
 }
 
 function getRandomPromptType(): string {
@@ -1683,12 +1683,18 @@ function getRandomPromptType(): string {
     "First Line",
     "What If",
   ];
-  return types[Math.floor(Math.random() * types.length)];
+  return types[Math.floor(Math.random() * types.length)] ?? "";
 }
 
 function getRandomWordCount(): number {
-  const wordCounts = [100, 250, 500, 1000, 1500, 2000];
-  return wordCounts[Math.floor(Math.random() * wordCounts.length)];
+  const wordCounts = [100, 250, 500, 1000, 1500, 2000] as const;
+  const index = Math.floor(Math.random() * wordCounts.length);
+  const choice = wordCounts[index];
+  if (choice !== undefined) {
+    return choice;
+  }
+  // Fallback to first element; should never happen
+  return wordCounts[0];
 }
 
 function generateRandomNames(
@@ -1743,7 +1749,7 @@ function generateRandomConflictTitle(): string {
     "Echoes of War",
     "The Final Choice",
   ];
-  return titles[Math.floor(Math.random() * titles.length)];
+  return titles[Math.floor(Math.random() * titles.length)] ?? "";
 }
 
 function generateRandomConflictType(): string {
@@ -1755,7 +1761,7 @@ function generateRandomConflictType(): string {
     "Supernatural",
     "Moral",
   ];
-  return types[Math.floor(Math.random() * types.length)];
+  return types[Math.floor(Math.random() * types.length)] ?? "";
 }
 
 function generateRandomConflictDescription(): string {
@@ -1766,7 +1772,7 @@ function generateRandomConflictDescription(): string {
     "A power struggle that reveals the true nature of those involved",
     "A secret that, once revealed, changes everything",
   ];
-  return descriptions[Math.floor(Math.random() * descriptions.length)];
+  return descriptions[Math.floor(Math.random() * descriptions.length)] ?? "";
 }
 
 function generateRandomStakes(): string {
@@ -1777,7 +1783,7 @@ function generateRandomStakes(): string {
     "Everything they've worked for could be lost",
     "The very fabric of reality might be torn apart",
   ];
-  return stakes[Math.floor(Math.random() * stakes.length)];
+  return stakes[Math.floor(Math.random() * stakes.length)] ?? "";
 }
 
 function generateRandomObstacles(): string {
@@ -1788,7 +1794,7 @@ function generateRandomObstacles(): string {
     "Limited resources and impossible odds",
     "Conflicting loyalties that create difficult choices",
   ];
-  return obstacles[Math.floor(Math.random() * obstacles.length)];
+  return obstacles[Math.floor(Math.random() * obstacles.length)] ?? "";
 }
 
 function generateRandomResolutions(): string {
@@ -1799,7 +1805,7 @@ function generateRandomResolutions(): string {
     "A clever plan that turns weakness into strength",
     "Learning that some conflicts can only be resolved through understanding",
   ];
-  return resolutions[Math.floor(Math.random() * resolutions.length)];
+  return resolutions[Math.floor(Math.random() * resolutions.length)] ?? "";
 }
 
 function generateRandomEmotionalImpact(): string {
@@ -1810,7 +1816,7 @@ function generateRandomEmotionalImpact(): string {
     "Challenges long-held beliefs and assumptions",
     "Creates lasting change in how characters see the world",
   ];
-  return impacts[Math.floor(Math.random() * impacts.length)];
+  return impacts[Math.floor(Math.random() * impacts.length)] ?? "";
 }
 
 function generateRandomThemeTitle(): string {
@@ -1823,7 +1829,7 @@ function generateRandomThemeTitle(): string {
     "Finding Hope in Despair",
     "The Burden of Legacy",
   ];
-  return titles[Math.floor(Math.random() * titles.length)];
+  return titles[Math.floor(Math.random() * titles.length)] ?? "";
 }
 
 function generateRandomThemeDescription(): string {
@@ -1834,7 +1840,7 @@ function generateRandomThemeDescription(): string {
     "The transformative power of relationships and connection",
     "The price we pay for the choices we make",
   ];
-  return descriptions[Math.floor(Math.random() * descriptions.length)];
+  return descriptions[Math.floor(Math.random() * descriptions.length)] ?? "";
 }
 
 function generateRandomCoreMessage(): string {
@@ -1845,7 +1851,7 @@ function generateRandomCoreMessage(): string {
     "The greatest battles are fought within our own hearts",
     "Hope can survive in even the darkest circumstances",
   ];
-  return messages[Math.floor(Math.random() * messages.length)];
+  return messages[Math.floor(Math.random() * messages.length)] ?? "";
 }
 
 function generateRandomSymbolicElements(): string {
@@ -1856,7 +1862,7 @@ function generateRandomSymbolicElements(): string {
     "Gardens representing growth and nurturing",
     "Mirrors reflecting self-discovery and truth",
   ];
-  return elements[Math.floor(Math.random() * elements.length)];
+  return elements[Math.floor(Math.random() * elements.length)] ?? "";
 }
 
 function generateRandomThematicQuestions(): string {
@@ -1867,7 +1873,7 @@ function generateRandomThematicQuestions(): string {
     "Can love survive betrayal?",
     "What price are we willing to pay for our dreams?",
   ];
-  return questions[Math.floor(Math.random() * questions.length)];
+  return questions[Math.floor(Math.random() * questions.length)] ?? "";
 }
 
 function generateRandomThematicConflicts(): string {
@@ -1878,7 +1884,7 @@ function generateRandomThematicConflicts(): string {
     "Safety versus adventure and growth",
     "Truth versus comfortable illusions",
   ];
-  return conflicts[Math.floor(Math.random() * conflicts.length)];
+  return conflicts[Math.floor(Math.random() * conflicts.length)] ?? "";
 }
 
 function generateRandomLiteraryExamples(): string {
@@ -1889,7 +1895,7 @@ function generateRandomLiteraryExamples(): string {
     "Echoing Frodo's burden and the corrupting power of the Ring",
     "Parallel to Scout Finch's loss of innocence",
   ];
-  return examples[Math.floor(Math.random() * examples.length)];
+  return examples[Math.floor(Math.random() * examples.length)] ?? "";
 }
 
 function generateRandomMoodName(): string {
@@ -1902,7 +1908,7 @@ function generateRandomMoodName(): string {
     "Nostalgic Warmth",
     "Mysterious Allure",
   ];
-  return names[Math.floor(Math.random() * names.length)];
+  return names[Math.floor(Math.random() * names.length)] ?? "";
 }
 
 function generateRandomMoodDescription(): string {
@@ -1915,7 +1921,7 @@ function generateRandomMoodDescription(): string {
     "A comfortable familiarity that feels like coming home",
     "An intriguing ambiance that draws you deeper into the story",
   ];
-  return descriptions[Math.floor(Math.random() * descriptions.length)];
+  return descriptions[Math.floor(Math.random() * descriptions.length)] ?? "";
 }
 
 function generateRandomEmotionalTone(): string {
@@ -1928,7 +1934,7 @@ function generateRandomEmotionalTone(): string {
     "Tense",
     "Romantic",
   ];
-  return tones[Math.floor(Math.random() * tones.length)];
+  return tones[Math.floor(Math.random() * tones.length)] ?? "";
 }
 
 function generateRandomSensoryDetails(): string {
@@ -1939,7 +1945,7 @@ function generateRandomSensoryDetails(): string {
     "Cool morning mist and fresh pine",
     "The warmth of sunlight through autumn leaves",
   ];
-  return details[Math.floor(Math.random() * details.length)];
+  return details[Math.floor(Math.random() * details.length)] ?? "";
 }
 
 function generateRandomColorAssociations(): string {
@@ -1950,7 +1956,7 @@ function generateRandomColorAssociations(): string {
     "Soft greens and cream",
     "Dusky rose and charcoal",
   ];
-  return colors[Math.floor(Math.random() * colors.length)];
+  return colors[Math.floor(Math.random() * colors.length)] ?? "";
 }
 
 function generateRandomWeatherElements(): string {
@@ -1961,7 +1967,7 @@ function generateRandomWeatherElements(): string {
     "Starlit night",
     "Autumn breeze",
   ];
-  return weather[Math.floor(Math.random() * weather.length)];
+  return weather[Math.floor(Math.random() * weather.length)] ?? "";
 }
 
 function generateRandomLightingEffects(): string {
@@ -1972,7 +1978,7 @@ function generateRandomLightingEffects(): string {
     "Cool, ethereal illumination",
     "Flickering, unstable light",
   ];
-  return lighting[Math.floor(Math.random() * lighting.length)];
+  return lighting[Math.floor(Math.random() * lighting.length)] ?? "";
 }
 
 function generateRandomSoundscape(): string {
@@ -1983,5 +1989,5 @@ function generateRandomSoundscape(): string {
     "Soft instrumental music",
     "Echoing footsteps in empty halls",
   ];
-  return sounds[Math.floor(Math.random() * sounds.length)];
+  return sounds[Math.floor(Math.random() * sounds.length)] ?? "";
 }

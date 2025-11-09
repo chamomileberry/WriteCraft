@@ -77,7 +77,7 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
         .json({ error: "notebookId query parameter is required" });
     }
 
-    const law = await storage.getLaw(req.params.id, userId, notebookId);
+  const law = await storage.getLaw(req.params['id'], userId, notebookId);
     if (!law) {
       return res.status(404).json({ error: "Law not found" });
     }
@@ -93,7 +93,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
     const userId = req.user.claims.sub;
     const validatedUpdates = insertLawSchema.parse(req.body);
     const updatedLaw = await storage.updateLaw(
-      req.params.id,
+  req.params['id'],
       userId,
       validatedUpdates,
     );
@@ -109,7 +109,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
       error instanceof Error ? error.message : "Unknown error occurred";
     if (error instanceof Error && error.message.includes("Unauthorized")) {
       const userId = req.user?.claims?.sub || "unknown";
-      const lawId = req.params.id || "unknown";
+  const lawId = req.params['id'] || "unknown";
       console.warn(
         `[Security] Unauthorized law operation - userId: ${userId}, lawId: ${lawId}`,
       );
@@ -122,7 +122,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
 router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    await storage.deleteLaw(req.params.id, userId);
+  await storage.deleteLaw(req.params['id'], userId);
     res.json({ success: true });
   } catch (error) {
     console.error("Error deleting law:", error);

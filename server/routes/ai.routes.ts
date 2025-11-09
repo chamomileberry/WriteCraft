@@ -17,7 +17,7 @@ import { aiRateLimiter, aiChatRateLimiter } from "../security/rateLimiters";
 const router = Router();
 
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+  apiKey: getEnvOptional('ANTHROPIC_API_KEY'),
 });
 
 router.post(
@@ -819,7 +819,7 @@ Your responses should be:
 
       // Make AI call using conversation format
       const anthropic = new Anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY,
+        apiKey: getEnvOptional('ANTHROPIC_API_KEY'),
       });
 
       const model = modelSelector.selectModel(operationType);

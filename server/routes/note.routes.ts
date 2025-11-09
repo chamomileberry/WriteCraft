@@ -48,10 +48,10 @@ router.get("/", readRateLimiter, async (req: any, res) => {
 router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const note = await storage.getNote(req.params.id, userId);
+  const note = await storage.getNote(req.params['id'], userId);
     if (!note) {
       console.warn(
-        `[Security] Unauthorized note access attempt - userId: ${userId}, noteId: ${req.params.id}`,
+  `[Security] Unauthorized note access attempt - userId: ${userId}, noteId: ${req.params['id']}`,
       );
       return res.status(404).json({ error: "Note not found" });
     }
@@ -68,7 +68,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
 
     const validatedUpdates = insertNoteSchema.partial().parse(req.body);
     const updatedNote = await storage.updateNote(
-      req.params.id,
+      req.params['id'],
       userId,
       validatedUpdates,
     );
@@ -101,7 +101,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
 router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    await storage.deleteNote(req.params.id, userId);
+  await storage.deleteNote(req.params['id'], userId);
     res.json({ success: true });
   } catch (error) {
     console.error("Error deleting note:", error);

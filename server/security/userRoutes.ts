@@ -87,7 +87,7 @@ router.patch(
   async (req: any, res) => {
     try {
       const authenticatedUserId = req.user.claims.sub;
-      const targetUserId = req.params.id;
+  const targetUserId = req.params['id'];
 
       // Security check: Users can only update their own profile
       if (authenticatedUserId !== targetUserId) {
@@ -203,7 +203,7 @@ router.patch(
   async (req: any, res) => {
     try {
       const adminUserId = req.user.claims.sub;
-      const targetUserId = req.params.id;
+  const targetUserId = req.params['id'];
       const { isAdmin } = req.body;
 
       // Validate input
@@ -274,7 +274,7 @@ router.get(
   async (req: any, res) => {
     try {
       const authenticatedUserId = req.user.claims.sub;
-      const requestedUserId = req.params.id;
+  const requestedUserId = req.params['id'];
 
       // Users can only view their own profile (unless admin)
       const [requestingUser] = await db
@@ -335,7 +335,7 @@ router.delete(
   async (req: any, res) => {
     try {
       const authenticatedUserId = req.user.claims.sub;
-      const targetUserId = req.params.id;
+  const targetUserId = req.params['id'];
 
       // Users can only delete their own account
       if (authenticatedUserId !== targetUserId) {

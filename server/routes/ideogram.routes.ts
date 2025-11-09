@@ -9,14 +9,14 @@ import { imageGenerationRateLimiter } from "../security/rateLimiters";
 const router = Router();
 
 // Validate API token is configured - fail fast on startup
-if (!process.env.REPLICATE_API_TOKEN) {
+if (!getEnvOptional('REPLICATE_API_TOKEN')) {
   throw new Error(
     "[Ideogram] REPLICATE_API_TOKEN environment variable is not set - cannot initialize Replicate client",
   );
 }
 
 const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN,
+  auth: getEnvOptional('REPLICATE_API_TOKEN'),
 });
 
 const generateImageSchema = z.object({
@@ -60,7 +60,7 @@ function sizeToAspectRatio(size: string): string {
 
 router.post("/generate", imageGenerationRateLimiter, async (req: any, res) => {
   try {
-    if (!process.env.REPLICATE_API_TOKEN) {
+    if (!getEnvOptional('REPLICATE_API_TOKEN')) {
       return res.status(500).json({
         error:
           "Image generation service is not configured. Please contact support.",

@@ -14,8 +14,8 @@ export async function getRedisClient(): Promise<RedisClient> {
 
   // Use Replit Redis URL if available, otherwise use default local connection
   const redisUrl =
-    process.env.REDIS_URL ||
-    process.env.REPLIT_DB_URL ||
+    getEnvOptional('REDIS_URL') ||
+    getEnvOptional('REPLIT_DB_URL') ||
     "redis://localhost:6379";
 
   redisClient = createClient({
@@ -105,7 +105,7 @@ export class InMemoryStore extends Map<string, any> {
     this.ttlMap.set(key, timeout);
   }
 
-  async get(key: string): Promise<any> {
+  override async get(key: string): Promise<any> {
     return super.get(key);
   }
 

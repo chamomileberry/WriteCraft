@@ -77,7 +77,7 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
         .json({ error: "notebookId query parameter is required" });
     }
 
-    const policy = await storage.getPolicy(req.params.id, userId, notebookId);
+  const policy = await storage.getPolicy(req.params['id'], userId, notebookId);
     if (!policy) {
       return res.status(404).json({ error: "Policy not found" });
     }
@@ -93,7 +93,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
     const userId = req.user.claims.sub;
     const validatedUpdates = insertPolicySchema.parse(req.body);
     const updatedPolicy = await storage.updatePolicy(
-      req.params.id,
+      req.params['id'],
       userId,
       validatedUpdates,
     );
@@ -122,13 +122,13 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
 router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    await storage.deletePolicy(req.params.id, userId);
+  await storage.deletePolicy(req.params['id'], userId);
     res.json({ success: true });
   } catch (error) {
     console.error("Error deleting policy:", error);
     if (error instanceof Error && error.message.includes("Unauthorized")) {
       const userId = req.user?.claims?.sub || "unknown";
-      const policyId = req.params.id || "unknown";
+  const policyId = req.params['id'] || "unknown";
       console.warn(
         `[Security] Unauthorized policy operation - userId: ${userId}, policyId: ${policyId}`,
       );

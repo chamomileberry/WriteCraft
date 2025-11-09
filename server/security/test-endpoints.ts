@@ -13,7 +13,7 @@ const router = Router();
  */
 
 // Only enable these endpoints in non-production environments
-if (process.env.NODE_ENV !== "production") {
+if (getEnvOptional('NODE_ENV') !== "production") {
   /**
    * Test endpoint to verify row-level security
    */
@@ -203,7 +203,7 @@ if (process.env.NODE_ENV !== "production") {
     "/security-test/data-exposure/:resource",
     secureAuthentication,
     async (req: any, res) => {
-      const resource = req.params.resource;
+  const resource = req.params['resource'];
       const userId = req.user.claims.sub;
 
       // Test different resource types for data exposure
@@ -252,7 +252,7 @@ if (process.env.NODE_ENV !== "production") {
   router.get("/security-test/audit", requireAdmin, async (req: any, res) => {
     const audit = {
       timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV,
+      environment: getEnvOptional('NODE_ENV'),
       securityFeatures: {
         rateLimiting: true,
         csrfProtection: true,
@@ -260,7 +260,7 @@ if (process.env.NODE_ENV !== "production") {
         xssProtection: true,
         rowLevelSecurity: true,
         adminFieldProtection: true,
-        testModeBypassProtection: process.env.NODE_ENV === "production",
+        testModeBypassProtection: getEnvOptional('NODE_ENV') === "production",
         securityHeaders: true,
         inputSanitization: true,
         auditLogging: true,

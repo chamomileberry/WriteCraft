@@ -8,9 +8,18 @@ import {
   savedItems,
 } from "@shared/schema";
 import { eq, and, or, desc, isNull, isNotNull, inArray } from "drizzle-orm";
+import {
+  AppError,
+  type StorageOptions,
+} from "../storage-types";
 
 export class CharacterRepository extends BaseRepository {
-  async createCharacter(character: InsertCharacter): Promise<Character> {
+  async createCharacter(
+    character: InsertCharacter,
+    opts?: StorageOptions,
+  ): Promise<Character> {
+    if (opts?.signal?.aborted) throw AppError.aborted();
+
     // Ensure description field is included if provided
     const characterData = {
       ...character,
@@ -20,6 +29,7 @@ export class CharacterRepository extends BaseRepository {
       .insert(characters)
       .values(characterData)
       .returning();
+    if (!newCharacter) throw AppError.invalidInput("Failed to create character");
     return newCharacter;
   }
 
@@ -27,7 +37,10 @@ export class CharacterRepository extends BaseRepository {
     id: string,
     userId: string,
     notebookId: string,
+    opts?: StorageOptions,
   ): Promise<Character | undefined> {
+    if (opts?.signal?.aborted) throw AppError.aborted();
+
     const whereClause = and(
       eq(characters.id, id),
       eq(characters.userId, userId),
@@ -40,7 +53,10 @@ export class CharacterRepository extends BaseRepository {
   async getUserCharacters(
     userId: string,
     notebookId: string,
+    opts?: StorageOptions,
   ): Promise<Character[]> {
+    if (opts?.signal?.aborted) throw AppError.aborted();
+
     const whereClause = and(
       eq(characters.userId, userId),
       eq(characters.notebookId, notebookId),
@@ -57,7 +73,10 @@ export class CharacterRepository extends BaseRepository {
     userId: string,
     updates: UpdateCharacter,
     notebookId: string,
+    opts?: StorageOptions,
   ): Promise<Character> {
+    if (opts?.signal?.aborted) throw AppError.aborted();
+
     // Validate ownership (using new explicit error API)
     const [existing] = await db
       .select()
@@ -78,6 +97,10 @@ export class CharacterRepository extends BaseRepository {
       .set(updates)
       .where(whereClause)
       .returning();
+    if (!updatedCharacter) {
+      // If update didn't occur, determine reason
+      throw AppError.notFound("Character not found for update", id as any);
+    }
     return updatedCharacter;
   }
 
@@ -85,17 +108,22 @@ export class CharacterRepository extends BaseRepository {
     id: string,
     userId: string,
     notebookId: string,
+    opts?: StorageOptions,
   ): Promise<void> {
+    if (opts?.signal?.aborted) throw AppError.aborted();
+
     // Validate ownership and notebook association
     const [existing] = await db
       .select()
       .from(characters)
       .where(eq(characters.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error("Unauthorized: You do not own this content");
+    try {
+      this.ensureContentOwnership(existing, userId);
+    } catch (err) {
+      throw err;
     }
     if (!existing || existing.notebookId !== notebookId) {
-      throw new Error("Character not found in the specified notebook");
+      throw AppError.notFound("Character", id);
     }
 
     const whereClause = and(
@@ -109,11 +137,14 @@ export class CharacterRepository extends BaseRepository {
   async getCharactersWithIssues(
     userId: string,
     notebookId: string,
+    opts?: StorageOptions,
   ): Promise<{
     missingFamilyName: Character[];
     missingDescription: Character[];
     missingImage: Character[];
   }> {
+    if (opts?.signal?.aborted) throw AppError.aborted();
+
     const baseQuery = and(
       eq(characters.userId, userId),
       eq(characters.notebookId, notebookId),
@@ -166,7 +197,9 @@ export class CharacterRepository extends BaseRepository {
   async bulkDeleteCharactersWithIssues(
     userId: string,
     notebookId: string,
+    opts?: StorageOptions,
   ): Promise<{ deletedCount: number }> {
+    if (opts?.signal?.aborted) throw AppError.aborted();
     // Get all characters with issues
     const baseQuery = and(
       eq(characters.userId, userId),
@@ -216,27 +249,28 @@ export class CharacterRepository extends BaseRepository {
     function levenshteinDistance(str1: string, str2: string): number {
       const len1 = str1.length;
       const len2 = str2.length;
-      const matrix: number[][] = [];
 
-      for (let i = 0; i <= len1; i++) {
-        matrix[i] = [i];
-      }
+      // Initialize matrix with dimensions (len1+1) x (len2+1)
+      const matrix: number[][] = Array.from({ length: len1 + 1 }, (_, i) =>
+        Array.from({ length: len2 + 1 }, (_, j) => (j === 0 ? i : 0))
+      );
       for (let j = 0; j <= len2; j++) {
-        matrix[0][j] = j;
+        matrix[0]![j] = j;
       }
 
       for (let i = 1; i <= len1; i++) {
         for (let j = 1; j <= len2; j++) {
           const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
-          matrix[i][j] = Math.min(
-            matrix[i - 1][j] + 1,
-            matrix[i][j - 1] + 1,
-            matrix[i - 1][j - 1] + cost,
+          matrix[i]![j]! = Math.min(
+            matrix[i - 1]![j]! + 1,
+            matrix[i]![j - 1]! + 1,
+            matrix[i - 1]![j - 1]! + cost,
           );
         }
       }
 
-      return matrix[len1][len2];
+      // matrix[len1][len2] is guaranteed to be a number
+      return matrix[len1]![len2]!;
     }
 
     // Helper function to calculate similarity score
@@ -270,9 +304,9 @@ export class CharacterRepository extends BaseRepository {
       )
       .orderBy(characters.givenName);
 
-    // Filter characters with at least a given name or family name
+    // Filter characters with at least a given name or family name and narrow type
     const validCharacters = allCharacters.filter(
-      (c) => c.givenName || c.familyName,
+      (c): c is Character => !!c && (!!c.givenName || !!c.familyName),
     );
 
     // Find similar characters using Levenshtein distance
@@ -282,12 +316,14 @@ export class CharacterRepository extends BaseRepository {
 
     for (let i = 0; i < validCharacters.length; i++) {
       const char1 = validCharacters[i];
+      if (!char1) continue;
       const name1 = getDisplayName(char1);
 
       if (!name1) continue;
 
       for (let j = i + 1; j < validCharacters.length; j++) {
         const char2 = validCharacters[j];
+        if (!char2) continue;
         const name2 = getDisplayName(char2);
 
         if (!name2) continue;

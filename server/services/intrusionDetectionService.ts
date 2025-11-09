@@ -35,42 +35,42 @@ export type AlertType =
 export class IntrusionDetectionService {
   // Thresholds for auto-blocking (configurable via environment variables)
   private static readonly BRUTE_FORCE_THRESHOLD = parseInt(
-    process.env.IDS_BRUTE_FORCE_THRESHOLD || "5",
+    getEnvOptional('IDS_BRUTE_FORCE_THRESHOLD') || "5",
   );
   private static readonly BRUTE_FORCE_WINDOW_MINUTES = parseInt(
-    process.env.IDS_BRUTE_FORCE_WINDOW_MIN || "15",
+    getEnvOptional('IDS_BRUTE_FORCE_WINDOW_MIN') || "15",
   );
   private static readonly BRUTE_FORCE_BLOCK_MINUTES = parseInt(
-    process.env.IDS_BRUTE_FORCE_BLOCK_MIN || "240",
+    getEnvOptional('IDS_BRUTE_FORCE_BLOCK_MIN') || "240",
   );
 
   private static readonly RATE_LIMIT_THRESHOLD = parseInt(
-    process.env.IDS_RATE_LIMIT_THRESHOLD || "10",
+    getEnvOptional('IDS_RATE_LIMIT_THRESHOLD') || "10",
   );
   private static readonly RATE_LIMIT_WINDOW_MINUTES = parseInt(
-    process.env.IDS_RATE_LIMIT_WINDOW_MIN || "15",
+    getEnvOptional('IDS_RATE_LIMIT_WINDOW_MIN') || "15",
   );
   private static readonly RATE_LIMIT_BLOCK_MINUTES = parseInt(
-    process.env.IDS_RATE_LIMIT_BLOCK_MIN || "120",
+    getEnvOptional('IDS_RATE_LIMIT_BLOCK_MIN') || "120",
   );
 
   private static readonly INJECTION_THRESHOLD = parseInt(
-    process.env.IDS_INJECTION_THRESHOLD || "3",
+    getEnvOptional('IDS_INJECTION_THRESHOLD') || "3",
   );
   private static readonly INJECTION_WINDOW_MINUTES = parseInt(
-    process.env.IDS_INJECTION_WINDOW_MIN || "60",
+    getEnvOptional('IDS_INJECTION_WINDOW_MIN') || "60",
   );
   private static readonly INJECTION_BLOCK_MINUTES = parseInt(
-    process.env.IDS_INJECTION_BLOCK_MIN || "1440",
+    getEnvOptional('IDS_INJECTION_BLOCK_MIN') || "1440",
   );
 
   // IDS mode configuration
   // AUTO_BLOCKING is opt-in to prevent false positives in production
   private static readonly AUTO_BLOCKING_ENABLED =
-    process.env.ENABLE_IDS === "true";
+    getEnvOptional('ENABLE_IDS') === "true";
   // Dry run mode: detect and log but don't auto-block (for testing thresholds)
   private static readonly DRY_RUN_MODE =
-    process.env.ENABLE_IDS_DRY_RUN === "true";
+    getEnvOptional('ENABLE_IDS_DRY_RUN') === "true";
 
   /**
    * Log an intrusion attempt
@@ -612,20 +612,27 @@ export class IntrusionDetectionService {
 
         // Simple CIDR check for /24 ranges (can be expanded for full CIDR support)
         if (entry.ipAddress.includes("/")) {
-          const [network, bits] = entry.ipAddress.split("/");
-          const prefixLength = parseInt(bits);
+          const parts = entry.ipAddress.split("/");
+          const network = parts[0];
+          const bits = parts[1];
+
+          if (!bits) continue;
+
+          const prefixLength = parseInt(bits, 10);
 
           // For /24 networks, compare first 3 octets
           if (prefixLength === 24) {
-            const networkPrefix = network.split(".").slice(0, 3).join(".");
-            const ipPrefix = ipAddress.split(".").slice(0, 3).join(".");
-            if (networkPrefix === ipPrefix) {
-              return true;
+            if (network) {
+              const networkPrefix = network.split(".").slice(0, 3).join(".");
+              const ipPrefix = ipAddress.split(".").slice(0, 3).join(".");
+              if (networkPrefix === ipPrefix) {
+                return true;
+              }
             }
           }
 
           // For /16 networks, compare first 2 octets
-          if (prefixLength === 16) {
+          if (prefixLength === 16 && network) {
             const networkPrefix = network.split(".").slice(0, 2).join(".");
             const ipPrefix = ipAddress.split(".").slice(0, 2).join(".");
             if (networkPrefix === ipPrefix) {

@@ -81,7 +81,7 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
         .json({ error: "notebookId query parameter is required" });
     }
 
-    const faction = await storage.getFaction(req.params.id, userId, notebookId);
+  const faction = await storage.getFaction(req.params['id'], userId, notebookId);
     if (!faction) {
       return res.status(404).json({ error: "Faction not found" });
     }
@@ -105,7 +105,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
 
     const validatedUpdates = insertFactionSchema.parse(req.body);
     const updatedFaction = await storage.updateFaction(
-      req.params.id,
+      req.params['id'],
       userId,
       validatedUpdates,
       notebookId,
@@ -144,7 +144,7 @@ router.delete("/:id", writeRateLimiter, async (req: any, res) => {
         .json({ error: "notebookId query parameter is required" });
     }
 
-    await storage.deleteFaction(req.params.id, userId, notebookId);
+  await storage.deleteFaction(req.params['id'], userId, notebookId);
     res.json({ success: true });
   } catch (error) {
     console.error("Error deleting faction:", error);

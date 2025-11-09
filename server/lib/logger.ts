@@ -1,10 +1,10 @@
 import pino from "pino";
 
-const isDevelopment = process.env.NODE_ENV === "development";
+const isDevelopment = getEnvOptional('NODE_ENV') === "development";
 
 // Create Pino logger instance with appropriate configuration
 export const logger = pino({
-  level: process.env.LOG_LEVEL || (isDevelopment ? "debug" : "info"),
+  level: getEnvOptional('LOG_LEVEL') || (isDevelopment ? "debug" : "info"),
 
   // Pretty print in development, JSON in production
   transport: isDevelopment
@@ -21,8 +21,8 @@ export const logger = pino({
 
   // Base context for all logs
   base: {
-    env: process.env.NODE_ENV,
-    version: process.env.npm_package_version || "unknown",
+    env: getEnvOptional('NODE_ENV'),
+  version: process.env['npm_package_version'] || "unknown",
   },
 
   // Redact sensitive fields

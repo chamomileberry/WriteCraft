@@ -262,7 +262,10 @@ export class ContentRepository extends BaseRepository {
   // ========== PLOT METHODS ==========
   async createPlot(plot: InsertPlot): Promise<Plot> {
     const [newPlot] = await db.insert(plots).values(plot).returning();
-    return newPlot;
+    if (!newPlot) {
+      throw new Error("Failed to create plot");
+    }
+    return newPlot as Plot;
   }
 
   async getPlot(
@@ -294,6 +297,9 @@ export class ContentRepository extends BaseRepository {
   // ========== PROMPT METHODS ==========
   async createPrompt(prompt: InsertPrompt): Promise<Prompt> {
     const [newPrompt] = await db.insert(prompts).values(prompt).returning();
+    if (!newPrompt) {
+      throw new Error("Failed to create prompt");
+    }
     return newPrompt;
   }
 
@@ -337,6 +343,9 @@ export class ContentRepository extends BaseRepository {
       .insert(locations)
       .values(location)
       .returning();
+    if (!newLocation) {
+      throw new Error("Failed to create location");
+    }
     return newLocation;
   }
 
@@ -395,6 +404,9 @@ export class ContentRepository extends BaseRepository {
         ),
       )
       .returning();
+    if (!updatedLocation) {
+      throw new Error("Failed to update location");
+    }
     return updatedLocation;
   }
 
@@ -424,6 +436,9 @@ export class ContentRepository extends BaseRepository {
   // ========== SETTING METHODS ==========
   async createSetting(setting: InsertSetting): Promise<Setting> {
     const [newSetting] = await db.insert(settings).values(setting).returning();
+    if (!newSetting) {
+      throw new Error("Failed to create setting");
+    }
     return newSetting;
   }
 
@@ -475,12 +490,18 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(settings.id, id))
       .returning();
+    if (!updatedSetting) {
+      throw new Error("Failed to update setting");
+    }
     return updatedSetting;
   }
 
   // ========== ITEM METHODS ==========
   async createItem(item: InsertItem): Promise<Item> {
     const [newItem] = await db.insert(items).values(item).returning();
+    if (!newItem) {
+      throw new Error("Failed to create item");
+    }
     return newItem;
   }
 
@@ -531,6 +552,9 @@ export class ContentRepository extends BaseRepository {
         ),
       )
       .returning();
+    if (!updatedItem) {
+      throw new Error("Failed to update item");
+    }
     return updatedItem;
   }
 
@@ -565,6 +589,9 @@ export class ContentRepository extends BaseRepository {
       .insert(organizations)
       .values(organization)
       .returning();
+    if (!newOrganization) {
+      throw new Error("Failed to create organization");
+    }
     return newOrganization;
   }
 
@@ -626,6 +653,9 @@ export class ContentRepository extends BaseRepository {
         ),
       )
       .returning();
+    if (!updatedOrganization) {
+      throw new Error("Failed to update organization");
+    }
     return updatedOrganization;
   }
 
@@ -658,6 +688,9 @@ export class ContentRepository extends BaseRepository {
       .insert(creatures)
       .values(creature)
       .returning();
+    if (!newCreature) {
+      throw new Error("Failed to create creature");
+    }
     return newCreature;
   }
 
@@ -709,6 +742,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(creatures.id, id))
       .returning();
+    if (!updatedCreature) {
+      throw new Error("Failed to update creature");
+    }
     return updatedCreature;
   }
 
@@ -718,6 +754,9 @@ export class ContentRepository extends BaseRepository {
       .insert(species)
       .values(speciesData)
       .returning();
+    if (!newSpecies) {
+      throw new Error("Failed to create species");
+    }
     return newSpecies;
   }
 
@@ -777,6 +816,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(species.id, id))
       .returning();
+    if (!updatedSpecies) {
+      throw new Error("Failed to update species");
+    }
     return updatedSpecies;
   }
 
@@ -794,6 +836,9 @@ export class ContentRepository extends BaseRepository {
   // ========== CULTURE METHODS ==========
   async createCulture(culture: InsertCulture): Promise<Culture> {
     const [newCulture] = await db.insert(cultures).values(culture).returning();
+    if (!newCulture) {
+      throw new Error("Failed to create culture");
+    }
     return newCulture;
   }
 
@@ -849,6 +894,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(whereClause)
       .returning();
+    if (!updatedCulture) {
+      throw new Error("Failed to update culture");
+    }
     return updatedCulture;
   }
 
@@ -878,6 +926,9 @@ export class ContentRepository extends BaseRepository {
       .insert(documents)
       .values(document)
       .returning();
+    if (!newDocument) {
+      throw new Error("Failed to create document");
+    }
     return newDocument;
   }
 
@@ -929,6 +980,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(documents.id, id))
       .returning();
+    if (!updatedDocument) {
+      throw new Error("Failed to update document");
+    }
     return updatedDocument;
   }
 
@@ -946,6 +1000,9 @@ export class ContentRepository extends BaseRepository {
   // ========== FOOD METHODS ==========
   async createFood(food: InsertFood): Promise<Food> {
     const [newFood] = await db.insert(foods).values(food).returning();
+    if (!newFood) {
+      throw new Error("Failed to create food");
+    }
     return newFood;
   }
 
@@ -989,6 +1046,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(foods.id, id))
       .returning();
+    if (!updatedFood) {
+      throw new Error("Failed to update food");
+    }
     return updatedFood;
   }
 
@@ -1006,6 +1066,9 @@ export class ContentRepository extends BaseRepository {
       .insert(languages)
       .values(language)
       .returning();
+    if (!newLanguage) {
+      throw new Error("Failed to create language");
+    }
     return newLanguage;
   }
 
@@ -1057,6 +1120,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(languages.id, id))
       .returning();
+    if (!updatedLanguage) {
+      throw new Error("Failed to update language");
+    }
     return updatedLanguage;
   }
 
@@ -1077,6 +1143,9 @@ export class ContentRepository extends BaseRepository {
       .insert(religions)
       .values(religion)
       .returning();
+    if (!newReligion) {
+      throw new Error("Failed to create religion");
+    }
     return newReligion;
   }
 
@@ -1128,6 +1197,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(religions.id, id))
       .returning();
+    if (!updatedReligion) {
+      throw new Error("Failed to update religion");
+    }
     return updatedReligion;
   }
 
@@ -1148,6 +1220,9 @@ export class ContentRepository extends BaseRepository {
       .insert(technologies)
       .values(technology)
       .returning();
+    if (!newTechnology) {
+      throw new Error("Failed to create technology");
+    }
     return newTechnology;
   }
 
@@ -1202,6 +1277,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(technologies.id, id))
       .returning();
+    if (!updatedTechnology) {
+      throw new Error("Failed to update technology");
+    }
     return updatedTechnology;
   }
 
@@ -1217,62 +1295,68 @@ export class ContentRepository extends BaseRepository {
   }
 
   // ========== WEAPON METHODS ==========
-  async createWeapon(weapon: InsertWeapon): Promise<Weapon> {
-    const [newWeapon] = await db.insert(weapons).values(weapon).returning();
-    return newWeapon;
-  }
-
-  async getWeapon(
-    id: string,
-    userId: string,
-    notebookId: string,
-  ): Promise<Weapon | undefined> {
-    const whereClause = and(
-      eq(weapons.id, id),
-      eq(weapons.userId, userId),
-      eq(weapons.notebookId, notebookId),
-    );
-    const [weapon] = await db.select().from(weapons).where(whereClause);
-    return weapon || undefined;
-  }
-
-  async getUserWeapons(userId: string, notebookId: string): Promise<Weapon[]> {
-    const whereClause = and(
-      eq(weapons.userId, userId),
-      eq(weapons.notebookId, notebookId),
-    );
-    return await db
-      .select()
-      .from(weapons)
-      .where(whereClause)
-      .orderBy(desc(weapons.createdAt));
-  }
-
-  async updateWeapon(
-    id: string,
-    userId: string,
-    notebookId: string,
-    updates: Partial<InsertWeapon>,
-  ): Promise<Weapon> {
-    const [existing] = await db
-      .select()
-      .from(weapons)
-      .where(eq(weapons.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error("Unauthorized: You do not own this content");
+    async createWeapon(weapon: InsertWeapon): Promise<Weapon> {
+      const [newWeapon] = await db.insert(weapons).values(weapon).returning();
+      if (!newWeapon) {
+        throw new Error("Failed to create weapon");
+      }
+      return newWeapon as Weapon;
     }
-    const whereClause = and(
-      eq(weapons.id, id),
-      eq(weapons.userId, userId),
-      eq(weapons.notebookId, notebookId),
-    );
-    const [updatedWeapon] = await db
-      .update(weapons)
-      .set(updates)
-      .where(whereClause)
-      .returning();
-    return updatedWeapon;
-  }
+  
+    async getWeapon(
+      id: string,
+      userId: string,
+      notebookId: string,
+    ): Promise<Weapon | undefined> {
+      const whereClause = and(
+        eq(weapons.id, id),
+        eq(weapons.userId, userId),
+        eq(weapons.notebookId, notebookId),
+      );
+      const [weapon] = await db.select().from(weapons).where(whereClause);
+      return weapon || undefined;
+    }
+  
+    async getUserWeapons(userId: string, notebookId: string): Promise<Weapon[]> {
+      const whereClause = and(
+        eq(weapons.userId, userId),
+        eq(weapons.notebookId, notebookId),
+      );
+      return await db
+        .select()
+        .from(weapons)
+        .where(whereClause)
+        .orderBy(desc(weapons.createdAt));
+    }
+  
+    async updateWeapon(
+      id: string,
+      userId: string,
+      notebookId: string,
+      updates: Partial<InsertWeapon>,
+    ): Promise<Weapon> {
+      const [existing] = await db
+        .select()
+        .from(weapons)
+        .where(eq(weapons.id, id));
+      if (!this.validateContentOwnership(existing, userId)) {
+        throw new Error("Unauthorized: You do not own this content");
+      }
+      const whereClause = and(
+        eq(weapons.id, id),
+        eq(weapons.userId, userId),
+        eq(weapons.notebookId, notebookId),
+      );
+      const [updatedWeapon] = await db
+        .update(weapons)
+        .set(updates)
+        .where(whereClause)
+        .returning();
+      if (!updatedWeapon) {
+        throw new Error("Failed to update weapon");
+      }
+      return updatedWeapon as Weapon;
+    }
 
   async deleteWeapon(
     id: string,
@@ -1300,6 +1384,9 @@ export class ContentRepository extends BaseRepository {
       .insert(professions)
       .values(profession)
       .returning();
+    if (!newProfession) {
+      throw new Error("Failed to create profession");
+    }
     return newProfession;
   }
 
@@ -1354,6 +1441,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(professions.id, id))
       .returning();
+    if (!updatedProfession) {
+      throw new Error("Failed to update profession");
+    }
     return updatedProfession;
   }
 
@@ -1371,6 +1461,9 @@ export class ContentRepository extends BaseRepository {
   // ========== RANK METHODS ==========
   async createRank(rank: InsertRank): Promise<Rank> {
     const [newRank] = await db.insert(ranks).values(rank).returning();
+    if (!newRank) {
+      throw new Error("Failed to create rank");
+    }
     return newRank;
   }
 
@@ -1414,6 +1507,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(ranks.id, id))
       .returning();
+    if (!updatedRank) {
+      throw new Error("Failed to update rank");
+    }
     return updatedRank;
   }
 
@@ -1431,6 +1527,9 @@ export class ContentRepository extends BaseRepository {
       .insert(conditions)
       .values(condition)
       .returning();
+    if (!newCondition) {
+      throw new Error("Failed to create condition");
+    }
     return newCondition;
   }
 
@@ -1485,6 +1584,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(conditions.id, id))
       .returning();
+    if (!updatedCondition) {
+      throw new Error("Failed to update condition");
+    }
     return updatedCondition;
   }
 
@@ -1502,6 +1604,9 @@ export class ContentRepository extends BaseRepository {
   // ========== PLANT METHODS ==========
   async createPlant(plant: InsertPlant): Promise<Plant> {
     const [newPlant] = await db.insert(plants).values(plant).returning();
+    if (!newPlant) {
+      throw new Error("Failed to create plant");
+    }
     return newPlant;
   }
 
@@ -1551,6 +1656,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(whereClause)
       .returning();
+    if (!updatedPlant) {
+      throw new Error("Failed to update plant");
+    }
     return updatedPlant;
   }
 
@@ -1579,6 +1687,9 @@ export class ContentRepository extends BaseRepository {
       .insert(descriptions)
       .values(description)
       .returning();
+    if (!newDescription) {
+      throw new Error("Failed to create description");
+    }
     return newDescription;
   }
 
@@ -1628,6 +1739,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(descriptions.id, id))
       .returning();
+    if (!updatedDescription) {
+      throw new Error("Failed to update description");
+    }
     return updatedDescription;
   }
 
@@ -1648,6 +1762,9 @@ export class ContentRepository extends BaseRepository {
       .insert(ethnicities)
       .values(ethnicity)
       .returning();
+    if (!newEthnicity) {
+      throw new Error("Failed to create ethnicity");
+    }
     return newEthnicity;
   }
 
@@ -1702,6 +1819,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(ethnicities.id, id))
       .returning();
+    if (!updatedEthnicity) {
+      throw new Error("Failed to update ethnicity");
+    }
     return updatedEthnicity;
   }
 
@@ -1719,6 +1839,9 @@ export class ContentRepository extends BaseRepository {
   // ========== DRINK METHODS ==========
   async createDrink(drink: InsertDrink): Promise<Drink> {
     const [newDrink] = await db.insert(drinks).values(drink).returning();
+    if (!newDrink) {
+      throw new Error("Failed to create drink");
+    }
     return newDrink;
   }
 
@@ -1762,6 +1885,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(drinks.id, id))
       .returning();
+    if (!updatedDrink) {
+      throw new Error("Failed to update drink");
+    }
     return updatedDrink;
   }
 
@@ -1776,6 +1902,9 @@ export class ContentRepository extends BaseRepository {
   // ========== ARMOR METHODS ==========
   async createArmor(armorData: InsertArmor): Promise<Armor> {
     const [newArmor] = await db.insert(armor).values(armorData).returning();
+    if (!newArmor) {
+      throw new Error("Failed to create armor");
+    }
     return newArmor;
   }
 
@@ -1819,6 +1948,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(armor.id, id))
       .returning();
+    if (!updatedArmor) {
+      throw new Error("Failed to update armor");
+    }
     return updatedArmor;
   }
 
@@ -1836,6 +1968,9 @@ export class ContentRepository extends BaseRepository {
       .insert(accessories)
       .values(accessory)
       .returning();
+    if (!newAccessory) {
+      throw new Error("Failed to create accessory");
+    }
     return newAccessory;
   }
 
@@ -1890,6 +2025,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(accessories.id, id))
       .returning();
+    if (!updatedAccessory) {
+      throw new Error("Failed to update accessory");
+    }
     return updatedAccessory;
   }
 
@@ -1910,6 +2048,9 @@ export class ContentRepository extends BaseRepository {
       .insert(clothing)
       .values(clothingData)
       .returning();
+    if (!newClothing) {
+      throw new Error("Failed to create clothing");
+    }
     return newClothing;
   }
 
@@ -1961,6 +2102,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(clothing.id, id))
       .returning();
+    if (!updatedClothing) {
+      throw new Error("Failed to update clothing");
+    }
     return updatedClothing;
   }
 
@@ -1981,6 +2125,9 @@ export class ContentRepository extends BaseRepository {
       .insert(materials)
       .values(material)
       .returning();
+    if (!newMaterial) {
+      throw new Error("Failed to create material");
+    }
     return newMaterial;
   }
 
@@ -2032,6 +2179,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(materials.id, id))
       .returning();
+    if (!updatedMaterial) {
+      throw new Error("Failed to update material");
+    }
     return updatedMaterial;
   }
 
@@ -2052,6 +2202,9 @@ export class ContentRepository extends BaseRepository {
       .insert(settlements)
       .values(settlement)
       .returning();
+    if (!newSettlement) {
+      throw new Error("Failed to create settlement");
+    }
     return newSettlement;
   }
 
@@ -2106,6 +2259,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(settlements.id, id))
       .returning();
+    if (!updatedSettlement) {
+      throw new Error("Failed to update settlement");
+    }
     return updatedSettlement;
   }
 
@@ -2123,6 +2279,9 @@ export class ContentRepository extends BaseRepository {
   // ========== SOCIETY METHODS ==========
   async createSociety(society: InsertSociety): Promise<Society> {
     const [newSociety] = await db.insert(societies).values(society).returning();
+    if (!newSociety) {
+      throw new Error("Failed to create society");
+    }
     return newSociety;
   }
 
@@ -2174,6 +2333,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(societies.id, id))
       .returning();
+    if (!updatedSociety) {
+      throw new Error("Failed to update society");
+    }
     return updatedSociety;
   }
 
@@ -2191,6 +2353,9 @@ export class ContentRepository extends BaseRepository {
   // ========== FACTION METHODS ==========
   async createFaction(faction: InsertFaction): Promise<Faction> {
     const [newFaction] = await db.insert(factions).values(faction).returning();
+    if (!newFaction) {
+      throw new Error("Failed to create faction");
+    }
     return newFaction;
   }
 
@@ -2243,6 +2408,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(whereClause)
       .returning();
+    if (!updatedFaction) {
+      throw new Error("Failed to update faction");
+    }
     return updatedFaction;
   }
 
@@ -2274,6 +2442,9 @@ export class ContentRepository extends BaseRepository {
       .insert(militaryUnits)
       .values(militaryUnit)
       .returning();
+    if (!newMilitaryUnit) {
+      throw new Error("Failed to create military unit");
+    }
     return newMilitaryUnit;
   }
 
@@ -2328,6 +2499,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(militaryUnits.id, id))
       .returning();
+    if (!updatedMilitaryUnit) {
+      throw new Error("Failed to update military unit");
+    }
     return updatedMilitaryUnit;
   }
 
@@ -2345,6 +2519,9 @@ export class ContentRepository extends BaseRepository {
   // ========== MYTH METHODS ==========
   async createMyth(myth: InsertMyth): Promise<Myth> {
     const [newMyth] = await db.insert(myths).values(myth).returning();
+    if (!newMyth) {
+      throw new Error("Failed to create myth");
+    }
     return newMyth;
   }
 
@@ -2388,6 +2565,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(myths.id, id))
       .returning();
+    if (!updatedMyth) {
+      throw new Error("Failed to update myth");
+    }
     return updatedMyth;
   }
 
@@ -2402,6 +2582,9 @@ export class ContentRepository extends BaseRepository {
   // ========== LEGEND METHODS ==========
   async createLegend(legend: InsertLegend): Promise<Legend> {
     const [newLegend] = await db.insert(legends).values(legend).returning();
+    if (!newLegend) {
+      throw new Error("Failed to create legend");
+    }
     return newLegend;
   }
 
@@ -2450,6 +2633,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(legends.id, id))
       .returning();
+    if (!updatedLegend) {
+      throw new Error("Failed to update legend");
+    }
     return updatedLegend;
   }
 
@@ -2467,6 +2653,9 @@ export class ContentRepository extends BaseRepository {
   // ========== EVENT METHODS ==========
   async createEvent(event: InsertEvent): Promise<Event> {
     const [newEvent] = await db.insert(events).values(event).returning();
+    if (!newEvent) {
+      throw new Error("Failed to create event");
+    }
     return newEvent;
   }
 
@@ -2510,6 +2699,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(events.id, id))
       .returning();
+    if (!updatedEvent) {
+      throw new Error("Failed to update event");
+    }
     return updatedEvent;
   }
 
@@ -2524,6 +2716,9 @@ export class ContentRepository extends BaseRepository {
   // ========== SPELL METHODS ==========
   async createSpell(spell: InsertSpell): Promise<Spell> {
     const [newSpell] = await db.insert(spells).values(spell).returning();
+    if (!newSpell) {
+      throw new Error("Failed to create spell");
+    }
     return newSpell;
   }
 
@@ -2567,6 +2762,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(spells.id, id))
       .returning();
+    if (!updatedSpell) {
+      throw new Error("Failed to update spell");
+    }
     return updatedSpell;
   }
 
@@ -2584,6 +2782,9 @@ export class ContentRepository extends BaseRepository {
       .insert(resources)
       .values(resource)
       .returning();
+    if (!newResource) {
+      throw new Error("Failed to create resource");
+    }
     return newResource;
   }
 
@@ -2635,6 +2836,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(resources.id, id))
       .returning();
+    if (!updatedResource) {
+      throw new Error("Failed to update resource");
+    }
     return updatedResource;
   }
 
@@ -2655,7 +2859,10 @@ export class ContentRepository extends BaseRepository {
       .insert(buildings)
       .values(building)
       .returning();
-    return newBuilding;
+    if (!newBuilding) {
+      throw new Error("Failed to create building");
+    }
+    return newBuilding as Building;
   }
 
   async getBuilding(
@@ -2706,6 +2913,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(buildings.id, id))
       .returning();
+    if (!updatedBuilding) {
+      throw new Error("Failed to update building");
+    }
     return updatedBuilding;
   }
 
@@ -2721,58 +2931,64 @@ export class ContentRepository extends BaseRepository {
   }
 
   // ========== ANIMAL METHODS ==========
-  async createAnimal(animal: InsertAnimal): Promise<Animal> {
-    const [newAnimal] = await db.insert(animals).values(animal).returning();
-    return newAnimal;
-  }
-
-  async getAnimal(
-    id: string,
-    userId: string,
-    notebookId: string,
-  ): Promise<Animal | undefined> {
-    const [animal] = await db
-      .select()
-      .from(animals)
-      .where(
-        and(
-          eq(animals.id, id),
-          eq(animals.userId, userId),
-          eq(animals.notebookId, notebookId),
-        ),
-      );
-    return animal || undefined;
-  }
-
-  async getUserAnimals(userId: string, notebookId: string): Promise<Animal[]> {
-    return await db
-      .select()
-      .from(animals)
-      .where(
-        and(eq(animals.userId, userId), eq(animals.notebookId, notebookId)),
-      )
-      .orderBy(desc(animals.createdAt));
-  }
-
-  async updateAnimal(
-    id: string,
-    userId: string,
-    updates: Partial<InsertAnimal>,
-  ): Promise<Animal> {
-    const [existing] = await db
-      .select()
-      .from(animals)
-      .where(eq(animals.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error("Unauthorized: You do not own this content");
+      async createAnimal(animal: InsertAnimal): Promise<Animal> {
+        const [newAnimal] = await db.insert(animals).values(animal).returning();
+        if (!newAnimal) {
+          throw new Error("Failed to create animal");
+        }
+        return newAnimal as Animal;
+      }
+  
+    async getAnimal(
+      id: string,
+      userId: string,
+      notebookId: string,
+    ): Promise<Animal | undefined> {
+      const [animal] = await db
+        .select()
+        .from(animals)
+        .where(
+          and(
+            eq(animals.id, id),
+            eq(animals.userId, userId),
+            eq(animals.notebookId, notebookId),
+          ),
+        );
+      return animal || undefined;
     }
-    const [updatedAnimal] = await db
-      .update(animals)
-      .set(updates)
-      .where(eq(animals.id, id))
-      .returning();
-    return updatedAnimal;
-  }
+  
+    async getUserAnimals(userId: string, notebookId: string): Promise<Animal[]> {
+      return await db
+        .select()
+        .from(animals)
+        .where(
+          and(eq(animals.userId, userId), eq(animals.notebookId, notebookId)),
+        )
+        .orderBy(desc(animals.createdAt));
+    }
+  
+    async updateAnimal(
+      id: string,
+      userId: string,
+      updates: Partial<InsertAnimal>,
+    ): Promise<Animal> {
+      const [existing] = await db
+        .select()
+        .from(animals)
+        .where(eq(animals.id, id));
+      if (!this.validateContentOwnership(existing, userId)) {
+        throw new Error("Unauthorized: You do not own this content");
+      }
+      const [updatedAnimal] = await db
+        .update(animals)
+        .set(updates)
+        .where(eq(animals.id, id))
+        .returning();
+      if (!updatedAnimal) {
+        throw new Error("Failed to update animal");
+      }
+      return updatedAnimal as Animal;
+    }
 
   async deleteAnimal(id: string, userId: string): Promise<void> {
     const [existing] = await db
@@ -2793,6 +3009,9 @@ export class ContentRepository extends BaseRepository {
       .insert(transportation)
       .values(transportData)
       .returning();
+    if (!newTransportation) {
+      throw new Error("Failed to create transportation");
+    }
     return newTransportation;
   }
 
@@ -2847,7 +3066,10 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(transportation.id, id))
       .returning();
-    return updatedTransportation;
+    if (!updatedTransportation) {
+      throw new Error("Failed to update transportation");
+    }
+    return updatedTransportation as Transportation;
   }
 
   async deleteTransportation(id: string, userId: string): Promise<void> {
@@ -2867,6 +3089,9 @@ export class ContentRepository extends BaseRepository {
       .insert(naturalLaws)
       .values(naturalLaw)
       .returning();
+    if (!newNaturalLaw) {
+      throw new Error("Failed to create natural law");
+    }
     return newNaturalLaw;
   }
 
@@ -2921,7 +3146,10 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(naturalLaws.id, id))
       .returning();
-    return updatedNaturalLaw;
+    if (!updatedNaturalLaw) {
+      throw new Error("Failed to update natural law");
+    }
+    return updatedNaturalLaw as NaturalLaw;
   }
 
   async deleteNaturalLaw(id: string, userId: string): Promise<void> {
@@ -2941,6 +3169,9 @@ export class ContentRepository extends BaseRepository {
       .insert(traditions)
       .values(tradition)
       .returning();
+    if (!newTradition) {
+      throw new Error("Failed to create tradition");
+    }
     return newTradition;
   }
 
@@ -2995,7 +3226,10 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(traditions.id, id))
       .returning();
-    return updatedTradition;
+    if (!updatedTradition) {
+      throw new Error("Failed to update tradition");
+    }
+    return updatedTradition as Tradition;
   }
 
   async deleteTradition(id: string, userId: string): Promise<void> {
@@ -3012,7 +3246,10 @@ export class ContentRepository extends BaseRepository {
   // ========== RITUAL METHODS ==========
   async createRitual(ritual: InsertRitual): Promise<Ritual> {
     const [newRitual] = await db.insert(rituals).values(ritual).returning();
-    return newRitual;
+    if (!newRitual) {
+      throw new Error("Failed to create ritual");
+    }
+    return newRitual as Ritual;
   }
 
   async getRitual(
@@ -3060,6 +3297,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(rituals.id, id))
       .returning();
+    if (!updatedRitual) {
+      throw new Error("Failed to update ritual");
+    }
     return updatedRitual;
   }
 
@@ -3081,6 +3321,9 @@ export class ContentRepository extends BaseRepository {
         .insert(savedItems)
         .values(savedItem)
         .returning();
+      if (!newSavedItem) {
+        throw new Error("Failed to save item");
+      }
       return newSavedItem;
     } catch (error: any) {
       if (error?.code === "23505" || error?.message?.includes("unique")) {
@@ -3164,6 +3407,9 @@ export class ContentRepository extends BaseRepository {
   // ========== NAME METHODS ==========
   async createName(name: InsertName): Promise<GeneratedName> {
     const [newName] = await db.insert(names).values(name).returning();
+    if (!newName) {
+      throw new Error("Failed to create name");
+    }
     return newName;
   }
 
@@ -3210,6 +3456,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(names.id, id))
       .returning();
+    if (!updatedName) {
+      throw new Error("Failed to update name");
+    }
     return updatedName;
   }
 
@@ -3224,6 +3473,9 @@ export class ContentRepository extends BaseRepository {
   // ========== THEME METHODS ==========
   async createTheme(theme: InsertTheme): Promise<Theme> {
     const [newTheme] = await db.insert(themes).values(theme).returning();
+    if (!newTheme) {
+      throw new Error("Failed to create theme");
+    }
     return newTheme;
   }
 
@@ -3267,6 +3519,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(themes.id, id))
       .returning();
+    if (!updatedTheme) {
+      throw new Error("Failed to update theme");
+    }
     return updatedTheme;
   }
 
@@ -3281,6 +3536,9 @@ export class ContentRepository extends BaseRepository {
   // ========== MOOD METHODS ==========
   async createMood(mood: InsertMood): Promise<Mood> {
     const [newMood] = await db.insert(moods).values(mood).returning();
+    if (!newMood) {
+      throw new Error("Failed to create mood");
+    }
     return newMood;
   }
 
@@ -3324,6 +3582,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(moods.id, id))
       .returning();
+    if (!updatedMood) {
+      throw new Error("Failed to update mood");
+    }
     return updatedMood;
   }
 
@@ -3341,6 +3602,9 @@ export class ContentRepository extends BaseRepository {
       .insert(conflicts)
       .values(conflict)
       .returning();
+    if (!newConflict) {
+      throw new Error("Failed to create conflict");
+    }
     return newConflict;
   }
 
@@ -3392,6 +3656,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(conflicts.id, id))
       .returning();
+    if (!updatedConflict) {
+      throw new Error("Failed to update conflict");
+    }
     return updatedConflict;
   }
 
@@ -3409,6 +3676,9 @@ export class ContentRepository extends BaseRepository {
   // ========== GUIDE METHODS ==========
   async createGuide(guide: InsertGuide): Promise<Guide> {
     const [newGuide] = await db.insert(guides).values(guide).returning();
+    if (!newGuide) {
+      throw new Error("Failed to create guide");
+    }
     return newGuide;
   }
 
@@ -3453,6 +3723,9 @@ export class ContentRepository extends BaseRepository {
       .insert(guideCategories)
       .values(category)
       .returning();
+    if (!newCategory) {
+      throw new Error("Failed to create guide category");
+    }
     return newCategory;
   }
 
@@ -3552,6 +3825,9 @@ export class ContentRepository extends BaseRepository {
       .insert(guideReferences)
       .values(reference)
       .returning();
+    if (!newReference) {
+      throw new Error("Failed to create guide reference");
+    }
     return newReference;
   }
 
@@ -3601,6 +3877,9 @@ export class ContentRepository extends BaseRepository {
       .insert(timelines)
       .values(timeline)
       .returning();
+    if (!newTimeline) {
+      throw new Error("Failed to create timeline");
+    }
     return newTimeline;
   }
 
@@ -3652,6 +3931,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(timelines.id, id))
       .returning();
+    if (!updatedTimeline) {
+      throw new Error("Failed to update timeline");
+    }
     return updatedTimeline;
   }
 
@@ -3674,6 +3956,9 @@ export class ContentRepository extends BaseRepository {
       .insert(timelineEvents)
       .values(event)
       .returning();
+    if (!newEvent) {
+      throw new Error("Failed to create timeline event");
+    }
     return newEvent;
   }
 
@@ -3802,6 +4087,9 @@ export class ContentRepository extends BaseRepository {
       .insert(timelineRelationships)
       .values(relationship)
       .returning();
+    if (!newRelationship) {
+      throw new Error("Failed to create timeline relationship");
+    }
     return newRelationship;
   }
 
@@ -3882,6 +4170,9 @@ export class ContentRepository extends BaseRepository {
       .insert(ceremonies)
       .values(ceremony)
       .returning();
+    if (!newCeremony) {
+      throw new Error("Failed to create ceremony");
+    }
     return newCeremony;
   }
 
@@ -3936,6 +4227,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(ceremonies.id, id))
       .returning();
+    if (!updatedCeremony) {
+      throw new Error("Failed to update ceremony");
+    }
     return updatedCeremony;
   }
 
@@ -3953,6 +4247,9 @@ export class ContentRepository extends BaseRepository {
   // ========== MAP METHODS ==========
   async createMap(map: InsertMap): Promise<Map> {
     const [newMap] = await db.insert(maps).values(map).returning();
+    if (!newMap) {
+      throw new Error("Failed to create map");
+    }
     return newMap;
   }
 
@@ -3996,6 +4293,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(maps.id, id))
       .returning();
+    if (!updatedMap) {
+      throw new Error("Failed to update map");
+    }
     return updatedMap;
   }
 
@@ -4010,6 +4310,9 @@ export class ContentRepository extends BaseRepository {
   // ========== MUSIC METHODS ==========
   async createMusic(musicData: InsertMusic): Promise<Music> {
     const [newMusic] = await db.insert(music).values(musicData).returning();
+    if (!newMusic) {
+      throw new Error("Failed to create music");
+    }
     return newMusic;
   }
 
@@ -4053,6 +4356,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(music.id, id))
       .returning();
+    if (!updatedMusic) {
+      throw new Error("Failed to update music");
+    }
     return updatedMusic;
   }
 
@@ -4067,6 +4373,9 @@ export class ContentRepository extends BaseRepository {
   // ========== DANCE METHODS ==========
   async createDance(dance: InsertDance): Promise<Dance> {
     const [newDance] = await db.insert(dances).values(dance).returning();
+    if (!newDance) {
+      throw new Error("Failed to create dance");
+    }
     return newDance;
   }
 
@@ -4110,6 +4419,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(dances.id, id))
       .returning();
+    if (!updatedDance) {
+      throw new Error("Failed to update dance");
+    }
     return updatedDance;
   }
 
@@ -4122,10 +4434,13 @@ export class ContentRepository extends BaseRepository {
   }
 
   // ========== LAW METHODS ==========
-  async createLaw(law: InsertLaw): Promise<Law> {
-    const [newLaw] = await db.insert(laws).values(law).returning();
-    return newLaw;
-  }
+    async createLaw(law: InsertLaw): Promise<Law> {
+      const [newLaw] = await db.insert(laws).values(law).returning();
+      if (!newLaw) {
+        throw new Error("Failed to create law");
+      }
+      return newLaw as Law;
+    }
 
   async getLaw(
     id: string,
@@ -4167,6 +4482,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(laws.id, id))
       .returning();
+    if (!updatedLaw) {
+      throw new Error("Failed to update law");
+    }
     return updatedLaw;
   }
 
@@ -4181,6 +4499,9 @@ export class ContentRepository extends BaseRepository {
   // ========== POLICY METHODS ==========
   async createPolicy(policy: InsertPolicy): Promise<Policy> {
     const [newPolicy] = await db.insert(policies).values(policy).returning();
+    if (!newPolicy) {
+      throw new Error("Failed to create policy");
+    }
     return newPolicy;
   }
 
@@ -4229,6 +4550,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(policies.id, id))
       .returning();
+    if (!updatedPolicy) {
+      throw new Error("Failed to update policy");
+    }
     return updatedPolicy;
   }
 
@@ -4246,6 +4570,9 @@ export class ContentRepository extends BaseRepository {
   // ========== POTION METHODS ==========
   async createPotion(potion: InsertPotion): Promise<Potion> {
     const [newPotion] = await db.insert(potions).values(potion).returning();
+    if (!newPotion) {
+      throw new Error("Failed to create potion");
+    }
     return newPotion;
   }
 
@@ -4294,6 +4621,9 @@ export class ContentRepository extends BaseRepository {
       .set(updates)
       .where(eq(potions.id, id))
       .returning();
+    if (!updatedPotion) {
+      throw new Error("Failed to update potion");
+    }
     return updatedPotion;
   }
 
@@ -4310,8 +4640,11 @@ export class ContentRepository extends BaseRepository {
 
   // ========== FOLDER METHODS ==========
   async createFolder(folder: InsertFolder): Promise<Folder> {
-    const result = await db.insert(folders).values(folder).returning();
-    return result[0];
+    const [newFolder] = await db.insert(folders).values(folder).returning();
+    if (!newFolder) {
+      throw new Error("Failed to create folder");
+    }
+    return newFolder;
   }
 
   async getFolder(id: string, userId: string): Promise<Folder | undefined> {
@@ -4379,6 +4712,9 @@ export class ContentRepository extends BaseRepository {
   // ========== NOTE METHODS ==========
   async createNote(note: InsertNote): Promise<Note> {
     const [newNote] = await db.insert(notes).values(note).returning();
+    if (!newNote) {
+      throw new Error("Failed to create note");
+    }
     return newNote;
   }
 
@@ -4462,6 +4798,9 @@ export class ContentRepository extends BaseRepository {
         guideId: null,
       })
       .returning();
+    if (!newNote) {
+      throw new Error("Failed to create quick note");
+    }
     return newNote;
   }
 
@@ -4534,6 +4873,9 @@ export class ContentRepository extends BaseRepository {
       .insert(chatMessages)
       .values(chatMessage)
       .returning();
+    if (!newMessage) {
+      throw new Error("Failed to create chat message");
+    }
     return newMessage;
   }
 
@@ -4629,6 +4971,9 @@ export class ContentRepository extends BaseRepository {
         throw new Error("Notebook not found or access denied");
       }
       const [newPin] = await db.insert(pinnedContent).values(pin).returning();
+      if (!newPin) {
+        throw new Error("Failed to pin content");
+      }
       return newPin;
     } catch (error: any) {
       if (error?.code === "23505" || error?.message?.includes("unique")) {
@@ -4729,6 +5074,9 @@ export class ContentRepository extends BaseRepository {
   // ========== CANVAS METHODS ==========
   async createCanvas(canvas: InsertCanvas): Promise<Canvas> {
     const [result] = await db.insert(canvases).values(canvas).returning();
+    if (!result) {
+      throw new Error("Failed to create canvas");
+    }
     return result;
   }
 
@@ -4771,6 +5119,9 @@ export class ContentRepository extends BaseRepository {
       .set({ ...updates, updatedAt: new Date() })
       .where(and(eq(canvases.id, id), eq(canvases.userId, userId)))
       .returning();
+    if (!updated) {
+      throw new Error("Canvas not found or unauthorized");
+    }
     return updated;
   }
 

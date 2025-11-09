@@ -2,20 +2,20 @@ import * as Sentry from "@sentry/node";
 // Profiling integration disabled to reduce memory consumption during startup
 // import { nodeProfilingIntegration } from "@sentry/profiling-node";
 
-const sentryDsn = process.env.SENTRY_DSN;
+const sentryDsn = getEnvOptional('SENTRY_DSN');
 
 // Sentry initialization runs immediately when this module is imported
 Sentry.init({
   dsn: sentryDsn,
   enabled: !!sentryDsn,
-  environment: process.env.NODE_ENV || "development",
-  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+  environment: getEnvOptional('NODE_ENV') || "development",
+  tracesSampleRate: getEnvOptional('NODE_ENV') === "production" ? 0.1 : 1.0,
   // Profiling disabled to prevent memory exhaustion during deployment
   // Can be re-enabled with Reserved VM deployment if needed
   integrations: [
     // nodeProfilingIntegration(),
   ],
-  // profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+  // profilesSampleRate: getEnvOptional('NODE_ENV') === 'production' ? 0.1 : 1.0,
 
   beforeSend(event, hint) {
     if (event.breadcrumbs) {

@@ -48,11 +48,11 @@ router.get("/overview", readRateLimiter, requireAdmin, async (req, res) => {
  */
 router.get("/alerts", readRateLimiter, requireAdmin, async (req, res) => {
   try {
-    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
+    const limit = Math.min(parseInt(req.query['limit'] as string) || 50, 100);
     const acknowledgedFilter =
-      req.query.acknowledged === "true"
+      req.query['acknowledged'] === "true"
         ? true
-        : req.query.acknowledged === "false"
+        : req.query['acknowledged'] === "false"
           ? false
           : undefined;
 
@@ -105,7 +105,7 @@ router.get(
   requireAdmin,
   async (req, res) => {
     try {
-      const limit = Math.min(parseInt(req.query.limit as string) || 100, 200);
+  const limit = Math.min(parseInt(req.query['limit'] as string) || 100, 200);
 
       const attempts = await IntrusionDetectionService.getRecentAttempts(limit);
 

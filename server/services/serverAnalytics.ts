@@ -8,8 +8,8 @@ class ServerAnalytics {
     // Use POSTHOG_* vars for server-side (VITE_* vars are only for client)
     // Fall back to VITE_* vars for backwards compatibility if POSTHOG_* not set
     const apiKey =
-      process.env.POSTHOG_API_KEY || process.env.VITE_POSTHOG_API_KEY;
-    const host = process.env.POSTHOG_HOST || process.env.VITE_POSTHOG_HOST;
+      getEnvOptional('POSTHOG_API_KEY') || getEnvOptional('VITE_POSTHOG_API_KEY');
+    const host = getEnvOptional('POSTHOG_HOST') || getEnvOptional('VITE_POSTHOG_HOST');
 
     if (apiKey && host) {
       try {

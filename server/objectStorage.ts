@@ -42,7 +42,7 @@ export class ObjectStorageService {
   constructor() {}
 
   getPublicObjectSearchPaths(): Array<string> {
-    const pathsStr = process.env.PUBLIC_OBJECT_SEARCH_PATHS || "";
+    const pathsStr = getEnvOptional('PUBLIC_OBJECT_SEARCH_PATHS') || "";
     const paths = Array.from(
       new Set(
         pathsStr
@@ -61,7 +61,7 @@ export class ObjectStorageService {
   }
 
   getPrivateObjectDir(): string {
-    const dir = process.env.PRIVATE_OBJECT_DIR || "";
+    const dir = getEnvOptional('PRIVATE_OBJECT_DIR') || "";
     if (!dir) {
       throw new Error(
         "PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' " +

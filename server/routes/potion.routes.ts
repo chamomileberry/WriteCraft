@@ -78,7 +78,7 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
         .json({ error: "notebookId query parameter is required" });
     }
 
-    const potion = await storage.getPotion(req.params.id, userId, notebookId);
+  const potion = await storage.getPotion(req.params['id'], userId, notebookId);
     if (!potion) {
       return res.status(404).json({ error: "Potion not found" });
     }
@@ -94,7 +94,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
     const userId = req.user.claims.sub;
     const validatedUpdates = insertPotionSchema.parse(req.body);
     const updatedPotion = await storage.updatePotion(
-      req.params.id,
+      req.params['id'],
       userId,
       validatedUpdates,
     );
@@ -124,7 +124,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
 router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    await storage.deletePotion(req.params.id, userId);
+  await storage.deletePotion(req.params['id'], userId);
     res.json({ success: true });
   } catch (error) {
     console.error("Error deleting potion:", error);
