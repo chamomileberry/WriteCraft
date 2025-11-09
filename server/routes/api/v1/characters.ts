@@ -10,6 +10,7 @@ import {
   readRateLimiter,
   writeRateLimiter,
 } from "../../../security/rateLimiters";
+import { AppError } from "../../../storage-types";
 
 const router = Router();
 
@@ -19,12 +20,18 @@ router.use(addRateLimitHeaders);
 
 /**
  * List all characters for the authenticated user
- * GET /api/v1/characters?notebookId=<id>
+ * GET /api/v1/characters?notebookId=<id>&limit=<num>&cursor=<cursor>
  */
 router.get("/", readRateLimiter, async (req: ApiAuthRequest, res) => {
   try {
     const userId = req.apiKey!.userId;
     const notebookId = req.query.notebookId as string;
+    const limit = req.query.limit
+      ? parseInt(req.query.limit as string, 10)
+      : undefined;
+    const cursor = req.query.cursor
+      ? { value: req.query.cursor as string }
+      : undefined;
 
     if (!notebookId) {
       return res.status(400).json({
@@ -32,13 +39,32 @@ router.get("/", readRateLimiter, async (req: ApiAuthRequest, res) => {
       });
     }
 
-    const characters = await storage.getUserCharacters(userId, notebookId);
+    const result = await storage.getUserCharacters(
+      userId,
+      notebookId,
+      { limit, cursor },
+    );
 
     res.json({
-      characters,
-      count: characters.length,
+      characters: result.items,
+      count: result.items.length,
+      nextCursor: result.nextCursor?.value,
     });
   } catch (error) {
+    if (error instanceof AppError) {
+      const statusMap: Record<string, number> = {
+        not_found: 404,
+        forbidden: 403,
+        conflict: 409,
+        invalid_input: 400,
+        aborted: 503,
+      };
+      return res.status(statusMap[error.code] || 500).json({
+        error: error.message,
+        code: error.code,
+      });
+    }
+
     console.error("Error fetching characters:", error);
     res.status(500).json({
       error: "Failed to fetch characters",
@@ -76,6 +102,20 @@ router.get("/:id", readRateLimiter, async (req: ApiAuthRequest, res) => {
 
     res.json(character);
   } catch (error) {
+    if (error instanceof AppError) {
+      const statusMap: Record<string, number> = {
+        not_found: 404,
+        forbidden: 403,
+        conflict: 409,
+        invalid_input: 400,
+        aborted: 503,
+      };
+      return res.status(statusMap[error.code] || 500).json({
+        error: error.message,
+        code: error.code,
+      });
+    }
+
     console.error("Error fetching character:", error);
     res.status(500).json({
       error: "Failed to fetch character",
@@ -95,13 +135,27 @@ router.post(
     try {
       const userId = req.apiKey!.userId;
 
-      const character = await storage.createCharacter({
+      const result = await storage.createCharacter({
         ...req.body,
         userId,
       });
 
-      res.status(201).json(character);
+      res.status(201).json(result.value);
     } catch (error) {
+      if (error instanceof AppError) {
+        const statusMap: Record<string, number> = {
+          not_found: 404,
+          forbidden: 403,
+          conflict: 409,
+          invalid_input: 400,
+          aborted: 503,
+        };
+        return res.status(statusMap[error.code] || 500).json({
+          error: error.message,
+          code: error.code,
+        });
+      }
+
       console.error("Error creating character:", error);
       res.status(500).json({
         error: "Failed to create character",
@@ -130,21 +184,35 @@ router.patch(
         });
       }
 
-      const character = await storage.updateCharacter(
+      const result = await storage.updateCharacter(
         characterId,
         userId,
-        req.body,
         notebookId,
+        req.body,
       );
 
-      if (!character) {
+      if (!result.updated) {
         return res.status(404).json({
           error: "Character not found",
         });
       }
 
-      res.json(character);
+      res.json(result.value);
     } catch (error) {
+      if (error instanceof AppError) {
+        const statusMap: Record<string, number> = {
+          not_found: 404,
+          forbidden: 403,
+          conflict: 409,
+          invalid_input: 400,
+          aborted: 503,
+        };
+        return res.status(statusMap[error.code] || 500).json({
+          error: error.message,
+          code: error.code,
+        });
+      }
+
       console.error("Error updating character:", error);
       res.status(500).json({
         error: "Failed to update character",
@@ -173,10 +241,30 @@ router.delete(
         });
       }
 
-      await storage.deleteCharacter(characterId, userId, notebookId);
+      const result = await storage.deleteCharacter(characterId, userId, notebookId);
+
+      if (!result.deleted) {
+        return res.status(404).json({
+          error: "Character not found",
+        });
+      }
 
       res.status(204).send();
     } catch (error) {
+      if (error instanceof AppError) {
+        const statusMap: Record<string, number> = {
+          not_found: 404,
+          forbidden: 403,
+          conflict: 409,
+          invalid_input: 400,
+          aborted: 503,
+        };
+        return res.status(statusMap[error.code] || 500).json({
+          error: error.message,
+          code: error.code,
+        });
+      }
+
       console.error("Error deleting character:", error);
       res.status(500).json({
         error: "Failed to delete character",

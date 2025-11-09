@@ -7,117 +7,243 @@ import {
   characters,
   savedItems,
 } from "@shared/schema";
-import { eq, and, or, desc, isNull, isNotNull, inArray } from "drizzle-orm";
+import { eq, and, or, desc, isNull, isNotNull, inArray, lt } from "drizzle-orm";
+import {
+  AppError,
+  type StorageOptions,
+  type PaginationParams,
+  type PaginatedResult,
+  type CreateResult,
+  type UpdateResult,
+  type DeleteResult,
+  createCursor,
+  decodeCursor,
+} from "../storage-types";
 
 export class CharacterRepository extends BaseRepository {
-  async createCharacter(character: InsertCharacter): Promise<Character> {
+  async createCharacter(
+    character: InsertCharacter,
+    opts?: StorageOptions,
+  ): Promise<CreateResult<Character>> {
+    // Check for cancellation
+    if (opts?.signal?.aborted) {
+      throw AppError.aborted();
+    }
+
+    // Validate input
+    if (!character.userId) {
+      throw AppError.invalidInput("Character must have userId");
+    }
+
     // Ensure description field is included if provided
     const characterData = {
       ...character,
       description: character.description || character.backstory || "", // Fallback to backstory if no description
     };
+
     const [newCharacter] = await db
       .insert(characters)
       .values(characterData)
       .returning();
-    return newCharacter;
+
+    return { value: newCharacter };
   }
 
   async getCharacter(
     id: string,
     userId: string,
-    notebookId: string,
+    notebookId: string | null,
+    opts?: StorageOptions,
   ): Promise<Character | undefined> {
-    const whereClause = and(
+    // Check for cancellation
+    if (opts?.signal?.aborted) {
+      throw AppError.aborted();
+    }
+
+    const conditions = [
       eq(characters.id, id),
       eq(characters.userId, userId),
-      eq(characters.notebookId, notebookId),
-    );
-    const [character] = await db.select().from(characters).where(whereClause);
+    ];
+
+    // If notebookId is specified, filter by it
+    // If null, only return global characters (notebookId IS NULL)
+    if (notebookId !== undefined) {
+      conditions.push(
+        notebookId === null
+          ? isNull(characters.notebookId)
+          : eq(characters.notebookId, notebookId),
+      );
+    }
+
+    const [character] = await db
+      .select()
+      .from(characters)
+      .where(and(...conditions));
+
     return character || undefined;
   }
 
   async getUserCharacters(
     userId: string,
-    notebookId: string,
-  ): Promise<Character[]> {
-    const whereClause = and(
-      eq(characters.userId, userId),
-      eq(characters.notebookId, notebookId),
-    );
-    return await db
+    notebookId: string | null,
+    pagination?: PaginationParams,
+    opts?: StorageOptions,
+  ): Promise<PaginatedResult<Character>> {
+    // Check for cancellation
+    if (opts?.signal?.aborted) {
+      throw AppError.aborted();
+    }
+
+    const limit = Math.min(pagination?.limit || 20, 100);
+
+    const conditions = [eq(characters.userId, userId)];
+
+    // If notebookId is specified, filter by it
+    if (notebookId !== undefined) {
+      conditions.push(
+        notebookId === null
+          ? isNull(characters.notebookId)
+          : eq(characters.notebookId, notebookId),
+      );
+    }
+
+    let query = db
       .select()
       .from(characters)
-      .where(whereClause)
-      .orderBy(desc(characters.createdAt));
+      .where(and(...conditions))
+      .orderBy(desc(characters.createdAt), desc(characters.id));
+
+    // Apply cursor if provided
+    if (pagination?.cursor) {
+      const { sortKey, id } = decodeCursor(pagination.cursor);
+      query = query.where(
+        or(
+          lt(characters.createdAt, new Date(sortKey as string)),
+          and(
+            eq(characters.createdAt, new Date(sortKey as string)),
+            lt(characters.id, id),
+          ),
+        ),
+      ) as any;
+    }
+
+    // Fetch limit + 1 to check if there are more results
+    const items = await query.limit(limit + 1);
+
+    const hasMore = items.length > limit;
+    const results = hasMore ? items.slice(0, limit) : items;
+
+    const nextCursor =
+      hasMore && results.length > 0
+        ? createCursor(
+            results[results.length - 1].createdAt.toISOString(),
+            results[results.length - 1].id,
+          )
+        : undefined;
+
+    return {
+      items: results,
+      nextCursor,
+    };
   }
 
   async updateCharacter(
     id: string,
     userId: string,
+    notebookId: string | null,
     updates: UpdateCharacter,
-    notebookId: string,
-  ): Promise<Character> {
-    // Validate ownership (using new explicit error API)
-    const [existing] = await db
-      .select()
-      .from(characters)
-      .where(eq(characters.id, id));
+    opts?: StorageOptions,
+  ): Promise<UpdateResult<Character>> {
+    // Check for cancellation
+    if (opts?.signal?.aborted) {
+      throw AppError.aborted();
+    }
 
-    // New pattern: ensureContentOwnership throws typed AppError and narrows type
-    this.ensureContentOwnership(existing, userId);
-    // TypeScript now knows 'existing' is defined
-
-    const whereClause = and(
+    const conditions = [
       eq(characters.id, id),
       eq(characters.userId, userId),
-      eq(characters.notebookId, notebookId),
-    );
+    ];
+
+    // If notebookId is specified, filter by it
+    if (notebookId !== undefined) {
+      conditions.push(
+        notebookId === null
+          ? isNull(characters.notebookId)
+          : eq(characters.notebookId, notebookId),
+      );
+    }
+
     const [updatedCharacter] = await db
       .update(characters)
       .set(updates)
-      .where(whereClause)
+      .where(and(...conditions))
       .returning();
-    return updatedCharacter;
+
+    if (!updatedCharacter) {
+      return { updated: false };
+    }
+
+    return { updated: true, value: updatedCharacter };
   }
 
   async deleteCharacter(
     id: string,
     userId: string,
-    notebookId: string,
-  ): Promise<void> {
-    // Validate ownership and notebook association
-    const [existing] = await db
-      .select()
-      .from(characters)
-      .where(eq(characters.id, id));
-    if (!this.validateContentOwnership(existing, userId)) {
-      throw new Error("Unauthorized: You do not own this content");
-    }
-    if (!existing || existing.notebookId !== notebookId) {
-      throw new Error("Character not found in the specified notebook");
+    notebookId: string | null,
+    opts?: StorageOptions,
+  ): Promise<DeleteResult> {
+    // Check for cancellation
+    if (opts?.signal?.aborted) {
+      throw AppError.aborted();
     }
 
-    const whereClause = and(
+    const conditions = [
       eq(characters.id, id),
       eq(characters.userId, userId),
-      eq(characters.notebookId, notebookId),
-    );
-    await db.delete(characters).where(whereClause);
+    ];
+
+    // If notebookId is specified, filter by it
+    if (notebookId !== undefined) {
+      conditions.push(
+        notebookId === null
+          ? isNull(characters.notebookId)
+          : eq(characters.notebookId, notebookId),
+      );
+    }
+
+    const result = await db
+      .delete(characters)
+      .where(and(...conditions))
+      .returning();
+
+    return { deleted: result.length > 0 };
   }
 
   async getCharactersWithIssues(
     userId: string,
-    notebookId: string,
+    notebookId: string | null,
+    opts?: StorageOptions,
   ): Promise<{
     missingFamilyName: Character[];
     missingDescription: Character[];
     missingImage: Character[];
   }> {
-    const baseQuery = and(
-      eq(characters.userId, userId),
-      eq(characters.notebookId, notebookId),
-    );
+    // Check for cancellation
+    if (opts?.signal?.aborted) {
+      throw AppError.aborted();
+    }
+
+    const conditions = [eq(characters.userId, userId)];
+
+    if (notebookId !== undefined) {
+      conditions.push(
+        notebookId === null
+          ? isNull(characters.notebookId)
+          : eq(characters.notebookId, notebookId),
+      );
+    }
+
+    const baseQuery = and(...conditions);
 
     // Characters with given name but missing family name
     const missingFamilyName = await db
@@ -165,13 +291,26 @@ export class CharacterRepository extends BaseRepository {
 
   async bulkDeleteCharactersWithIssues(
     userId: string,
-    notebookId: string,
+    notebookId: string | null,
+    opts?: StorageOptions,
   ): Promise<{ deletedCount: number }> {
+    // Check for cancellation
+    if (opts?.signal?.aborted) {
+      throw AppError.aborted();
+    }
+
     // Get all characters with issues
-    const baseQuery = and(
-      eq(characters.userId, userId),
-      eq(characters.notebookId, notebookId),
-    );
+    const conditions = [eq(characters.userId, userId)];
+
+    if (notebookId !== undefined) {
+      conditions.push(
+        notebookId === null
+          ? isNull(characters.notebookId)
+          : eq(characters.notebookId, notebookId),
+      );
+    }
+
+    const baseQuery = and(...conditions);
 
     // Build condition for characters with any issue
     const issuesCondition = or(
@@ -210,8 +349,13 @@ export class CharacterRepository extends BaseRepository {
 
   async getPotentialDuplicates(
     userId: string,
-    notebookId: string,
+    notebookId: string | null,
+    opts?: StorageOptions,
   ): Promise<Character[][]> {
+    // Check for cancellation
+    if (opts?.signal?.aborted) {
+      throw AppError.aborted();
+    }
     // Helper function to calculate Levenshtein distance
     function levenshteinDistance(str1: string, str2: string): number {
       const len1 = str1.length;
@@ -259,15 +403,20 @@ export class CharacterRepository extends BaseRepository {
     }
 
     // Get all characters for the user's notebook
+    const conditions = [eq(characters.userId, userId)];
+
+    if (notebookId !== undefined) {
+      conditions.push(
+        notebookId === null
+          ? isNull(characters.notebookId)
+          : eq(characters.notebookId, notebookId),
+      );
+    }
+
     const allCharacters = await db
       .select()
       .from(characters)
-      .where(
-        and(
-          eq(characters.userId, userId),
-          eq(characters.notebookId, notebookId),
-        ),
-      )
+      .where(and(...conditions))
       .orderBy(characters.givenName);
 
     // Filter characters with at least a given name or family name
