@@ -1847,7 +1847,7 @@ export class StorageFacade implements IStorage {
     treeId: string,
     userId: string,
     opts?: import("../storage-types").StorageOptions,
-  ): Promise<FamilyTreeMember[]> {
+  ): Promise<import("./family-tree.repository").FamilyTreeMemberWithCharacter[]> {
     return await this.familyTreeRepository.getFamilyTreeMembers(
       treeId,
       userId,

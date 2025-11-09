@@ -107,28 +107,32 @@ export class CharacterRepository extends BaseRepository {
       );
     }
 
-    let query = db
-      .select()
-      .from(characters)
-      .where(and(...conditions))
-      .orderBy(desc(characters.createdAt), desc(characters.id));
+    // Build cursor conditions if provided
+    const cursorConditions = pagination?.cursor
+      ? (() => {
+          const { sortKey, id } = decodeCursor(pagination.cursor);
+          return or(
+            lt(characters.createdAt, new Date(sortKey as string)),
+            and(
+              eq(characters.createdAt, new Date(sortKey as string)),
+              lt(characters.id, id),
+            ),
+          );
+        })()
+      : undefined;
 
-    // Apply cursor if provided
-    if (pagination?.cursor) {
-      const { sortKey, id } = decodeCursor(pagination.cursor);
-      query = query.where(
-        or(
-          lt(characters.createdAt, new Date(sortKey as string)),
-          and(
-            eq(characters.createdAt, new Date(sortKey as string)),
-            lt(characters.id, id),
-          ),
-        ),
-      ) as any;
-    }
+    // Combine ownership conditions with cursor conditions
+    const allConditions = cursorConditions
+      ? and(...conditions, cursorConditions)
+      : and(...conditions);
 
     // Fetch limit + 1 to check if there are more results
-    const items = await query.limit(limit + 1);
+    const items = await db
+      .select()
+      .from(characters)
+      .where(allConditions)
+      .orderBy(desc(characters.createdAt), desc(characters.id))
+      .limit(limit + 1);
 
     const hasMore = items.length > limit;
     const results = hasMore ? items.slice(0, limit) : items;

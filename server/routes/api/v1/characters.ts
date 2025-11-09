@@ -10,7 +10,7 @@ import {
   readRateLimiter,
   writeRateLimiter,
 } from "../../../security/rateLimiters";
-import { AppError } from "../../../storage-types";
+import { errorHandler } from "../../../middleware/errorHandler";
 
 const router = Router();
 
@@ -19,25 +19,47 @@ router.use(apiAuthMiddleware);
 router.use(addRateLimitHeaders);
 
 /**
- * List all characters for the authenticated user
- * GET /api/v1/characters?notebookId=<id>&limit=<num>&cursor=<cursor>
+ * Helper to safely extract a single string from query parameter
+ * Handles both string and string[] cases
  */
-router.get("/", readRateLimiter, async (req: ApiAuthRequest, res) => {
+function getQueryString(
+  value: string | string[] | undefined,
+): string | undefined {
+  if (Array.isArray(value)) {
+    return value[0]; // Take first value if array
+  }
+  return value;
+}
+
+/**
+ * Helper to parse notebookId from query parameter
+ * Returns null for "null" string or undefined, otherwise returns the string value
+ */
+function parseNotebookId(value: string | undefined): string | null | undefined {
+  if (value === undefined) return undefined;
+  if (value === "null" || value === "") return null;
+  return value;
+}
+
+/**
+ * List all characters for the authenticated user
+ * GET /api/v1/characters?notebookId=<id|null>&limit=<num>&cursor=<cursor>
+ *
+ * Query parameters:
+ * - notebookId: Notebook ID or "null" for global characters (optional, defaults to undefined for all)
+ * - limit: Number of results per page (optional, default 20, max 100)
+ * - cursor: Pagination cursor from previous response (optional)
+ */
+router.get("/", readRateLimiter, async (req: ApiAuthRequest, res, next) => {
   try {
     const userId = req.apiKey!.userId;
-    const notebookId = req.query.notebookId as string;
-    const limit = req.query.limit
-      ? parseInt(req.query.limit as string, 10)
-      : undefined;
-    const cursor = req.query.cursor
-      ? { value: req.query.cursor as string }
-      : undefined;
+    const notebookIdRaw = getQueryString(req.query.notebookId);
+    const notebookId = parseNotebookId(notebookIdRaw);
+    const limitStr = getQueryString(req.query.limit);
+    const cursorStr = getQueryString(req.query.cursor);
 
-    if (!notebookId) {
-      return res.status(400).json({
-        error: "notebookId query parameter is required",
-      });
-    }
+    const limit = limitStr ? parseInt(limitStr, 10) : undefined;
+    const cursor = cursorStr ? { value: cursorStr } : undefined;
 
     const result = await storage.getUserCharacters(
       userId,
@@ -51,42 +73,23 @@ router.get("/", readRateLimiter, async (req: ApiAuthRequest, res) => {
       nextCursor: result.nextCursor?.value,
     });
   } catch (error) {
-    if (error instanceof AppError) {
-      const statusMap: Record<string, number> = {
-        not_found: 404,
-        forbidden: 403,
-        conflict: 409,
-        invalid_input: 400,
-        aborted: 503,
-      };
-      return res.status(statusMap[error.code] || 500).json({
-        error: error.message,
-        code: error.code,
-      });
-    }
-
-    console.error("Error fetching characters:", error);
-    res.status(500).json({
-      error: "Failed to fetch characters",
-    });
+    next(error);
   }
 });
 
 /**
  * Get a specific character by ID
- * GET /api/v1/characters/:id?notebookId=<id>
+ * GET /api/v1/characters/:id?notebookId=<id|null>
+ *
+ * Query parameters:
+ * - notebookId: Notebook ID or "null" for global characters (optional)
  */
-router.get("/:id", readRateLimiter, async (req: ApiAuthRequest, res) => {
+router.get("/:id", readRateLimiter, async (req: ApiAuthRequest, res, next) => {
   try {
     const userId = req.apiKey!.userId;
     const characterId = req.params.id;
-    const notebookId = req.query.notebookId as string;
-
-    if (!notebookId) {
-      return res.status(400).json({
-        error: "notebookId query parameter is required",
-      });
-    }
+    const notebookIdRaw = getQueryString(req.query.notebookId);
+    const notebookId = parseNotebookId(notebookIdRaw);
 
     const character = await storage.getCharacter(
       characterId,
@@ -102,36 +105,21 @@ router.get("/:id", readRateLimiter, async (req: ApiAuthRequest, res) => {
 
     res.json(character);
   } catch (error) {
-    if (error instanceof AppError) {
-      const statusMap: Record<string, number> = {
-        not_found: 404,
-        forbidden: 403,
-        conflict: 409,
-        invalid_input: 400,
-        aborted: 503,
-      };
-      return res.status(statusMap[error.code] || 500).json({
-        error: error.message,
-        code: error.code,
-      });
-    }
-
-    console.error("Error fetching character:", error);
-    res.status(500).json({
-      error: "Failed to fetch character",
-    });
+    next(error);
   }
 });
 
 /**
  * Create a new character
  * POST /api/v1/characters
+ *
+ * Body should include character data with optional notebookId (null for global)
  */
 router.post(
   "/",
   writeRateLimiter,
   requireScope("write"),
-  async (req: ApiAuthRequest, res) => {
+  async (req: ApiAuthRequest, res, next) => {
     try {
       const userId = req.apiKey!.userId;
 
@@ -142,47 +130,28 @@ router.post(
 
       res.status(201).json(result.value);
     } catch (error) {
-      if (error instanceof AppError) {
-        const statusMap: Record<string, number> = {
-          not_found: 404,
-          forbidden: 403,
-          conflict: 409,
-          invalid_input: 400,
-          aborted: 503,
-        };
-        return res.status(statusMap[error.code] || 500).json({
-          error: error.message,
-          code: error.code,
-        });
-      }
-
-      console.error("Error creating character:", error);
-      res.status(500).json({
-        error: "Failed to create character",
-      });
+      next(error);
     }
   },
 );
 
 /**
  * Update a character
- * PATCH /api/v1/characters/:id?notebookId=<id>
+ * PATCH /api/v1/characters/:id?notebookId=<id|null>
+ *
+ * Query parameters:
+ * - notebookId: Notebook ID or "null" for global characters (optional)
  */
 router.patch(
   "/:id",
   writeRateLimiter,
   requireScope("write"),
-  async (req: ApiAuthRequest, res) => {
+  async (req: ApiAuthRequest, res, next) => {
     try {
       const userId = req.apiKey!.userId;
       const characterId = req.params.id;
-      const notebookId = req.query.notebookId as string;
-
-      if (!notebookId) {
-        return res.status(400).json({
-          error: "notebookId query parameter is required",
-        });
-      }
+      const notebookIdRaw = getQueryString(req.query.notebookId);
+      const notebookId = parseNotebookId(notebookIdRaw);
 
       const result = await storage.updateCharacter(
         characterId,
@@ -199,49 +168,34 @@ router.patch(
 
       res.json(result.value);
     } catch (error) {
-      if (error instanceof AppError) {
-        const statusMap: Record<string, number> = {
-          not_found: 404,
-          forbidden: 403,
-          conflict: 409,
-          invalid_input: 400,
-          aborted: 503,
-        };
-        return res.status(statusMap[error.code] || 500).json({
-          error: error.message,
-          code: error.code,
-        });
-      }
-
-      console.error("Error updating character:", error);
-      res.status(500).json({
-        error: "Failed to update character",
-      });
+      next(error);
     }
   },
 );
 
 /**
  * Delete a character
- * DELETE /api/v1/characters/:id?notebookId=<id>
+ * DELETE /api/v1/characters/:id?notebookId=<id|null>
+ *
+ * Query parameters:
+ * - notebookId: Notebook ID or "null" for global characters (optional)
  */
 router.delete(
   "/:id",
   writeRateLimiter,
   requireScope("write"),
-  async (req: ApiAuthRequest, res) => {
+  async (req: ApiAuthRequest, res, next) => {
     try {
       const userId = req.apiKey!.userId;
       const characterId = req.params.id;
-      const notebookId = req.query.notebookId as string;
+      const notebookIdRaw = getQueryString(req.query.notebookId);
+      const notebookId = parseNotebookId(notebookIdRaw);
 
-      if (!notebookId) {
-        return res.status(400).json({
-          error: "notebookId query parameter is required",
-        });
-      }
-
-      const result = await storage.deleteCharacter(characterId, userId, notebookId);
+      const result = await storage.deleteCharacter(
+        characterId,
+        userId,
+        notebookId,
+      );
 
       if (!result.deleted) {
         return res.status(404).json({
@@ -251,26 +205,12 @@ router.delete(
 
       res.status(204).send();
     } catch (error) {
-      if (error instanceof AppError) {
-        const statusMap: Record<string, number> = {
-          not_found: 404,
-          forbidden: 403,
-          conflict: 409,
-          invalid_input: 400,
-          aborted: 503,
-        };
-        return res.status(statusMap[error.code] || 500).json({
-          error: error.message,
-          code: error.code,
-        });
-      }
-
-      console.error("Error deleting character:", error);
-      res.status(500).json({
-        error: "Failed to delete character",
-      });
+      next(error);
     }
   },
 );
+
+// Apply error handler middleware last
+router.use(errorHandler);
 
 export default router;

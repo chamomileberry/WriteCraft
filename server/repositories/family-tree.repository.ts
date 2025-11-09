@@ -27,6 +27,22 @@ import {
   decodeCursor,
 } from "../storage-types";
 
+/**
+ * Family tree member with populated character data
+ */
+export type FamilyTreeMemberWithCharacter = FamilyTreeMember & {
+  character: {
+    id: string;
+    givenName: string | null;
+    familyName: string | null;
+    middleName: string | null;
+    nickname: string | null;
+    imageUrl: string | null;
+    dateOfBirth: string | null;
+    dateOfDeath: string | null;
+  } | null;
+};
+
 export class FamilyTreeRepository extends BaseRepository {
   // Family Tree methods
   async createFamilyTree(
@@ -127,28 +143,32 @@ export class FamilyTreeRepository extends BaseRepository {
       );
     }
 
-    let query = db
-      .select()
-      .from(familyTrees)
-      .where(and(...conditions))
-      .orderBy(desc(familyTrees.createdAt), desc(familyTrees.id));
+    // Build cursor conditions if provided
+    const cursorConditions = pagination?.cursor
+      ? (() => {
+          const { sortKey, id } = decodeCursor(pagination.cursor);
+          return or(
+            lt(familyTrees.createdAt, new Date(sortKey as string)),
+            and(
+              eq(familyTrees.createdAt, new Date(sortKey as string)),
+              lt(familyTrees.id, id),
+            ),
+          );
+        })()
+      : undefined;
 
-    // Apply cursor if provided
-    if (pagination?.cursor) {
-      const { sortKey, id } = decodeCursor(pagination.cursor);
-      query = query.where(
-        or(
-          lt(familyTrees.createdAt, new Date(sortKey as string)),
-          and(
-            eq(familyTrees.createdAt, new Date(sortKey as string)),
-            lt(familyTrees.id, id),
-          ),
-        ),
-      ) as any;
-    }
+    // Combine ownership conditions with cursor conditions
+    const allConditions = cursorConditions
+      ? and(...conditions, cursorConditions)
+      : and(...conditions);
 
     // Fetch limit + 1 to check if there are more results
-    const items = await query.limit(limit + 1);
+    const items = await db
+      .select()
+      .from(familyTrees)
+      .where(allConditions)
+      .orderBy(desc(familyTrees.createdAt), desc(familyTrees.id))
+      .limit(limit + 1);
 
     const hasMore = items.length > limit;
     const results = hasMore ? items.slice(0, limit) : items;
@@ -274,7 +294,7 @@ export class FamilyTreeRepository extends BaseRepository {
     treeId: string,
     userId: string,
     opts?: StorageOptions,
-  ): Promise<FamilyTreeMember[]> {
+  ): Promise<FamilyTreeMemberWithCharacter[]> {
     // Check for cancellation
     if (opts?.signal?.aborted) {
       throw AppError.aborted();
@@ -297,7 +317,7 @@ export class FamilyTreeRepository extends BaseRepository {
       .orderBy(desc(familyTreeMembers.createdAt));
 
     // Reshape the data to nest character inside member
-    const members = rows.map((row) => ({
+    const members: FamilyTreeMemberWithCharacter[] = rows.map((row) => ({
       ...row.family_tree_members,
       character: row.characters
         ? {
@@ -311,7 +331,7 @@ export class FamilyTreeRepository extends BaseRepository {
             dateOfDeath: row.characters.dateOfDeath,
           }
         : null,
-    })) as any;
+    }));
 
     return members;
   }
