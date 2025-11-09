@@ -25,6 +25,7 @@ export class CharacterRepository extends BaseRepository {
       ...character,
       description: character.description || character.backstory || "", // Fallback to backstory if no description
     };
+
     const [newCharacter] = await db
       .insert(characters)
       .values(characterData)
@@ -44,9 +45,23 @@ export class CharacterRepository extends BaseRepository {
     const whereClause = and(
       eq(characters.id, id),
       eq(characters.userId, userId),
-      eq(characters.notebookId, notebookId),
-    );
-    const [character] = await db.select().from(characters).where(whereClause);
+    ];
+
+    // If notebookId is specified, filter by it
+    // If null, only return global characters (notebookId IS NULL)
+    if (notebookId !== undefined) {
+      conditions.push(
+        notebookId === null
+          ? isNull(characters.notebookId)
+          : eq(characters.notebookId, notebookId),
+      );
+    }
+
+    const [character] = await db
+      .select()
+      .from(characters)
+      .where(and(...conditions));
+
     return character || undefined;
   }
 
@@ -64,13 +79,31 @@ export class CharacterRepository extends BaseRepository {
     return await db
       .select()
       .from(characters)
-      .where(whereClause)
-      .orderBy(desc(characters.createdAt));
+      .where(allConditions)
+      .orderBy(desc(characters.createdAt), desc(characters.id))
+      .limit(limit + 1);
+
+    const hasMore = items.length > limit;
+    const results = hasMore ? items.slice(0, limit) : items;
+
+    const nextCursor =
+      hasMore && results.length > 0
+        ? createCursor(
+            results[results.length - 1].createdAt.toISOString(),
+            results[results.length - 1].id,
+          )
+        : undefined;
+
+    return {
+      items: results,
+      nextCursor,
+    };
   }
 
   async updateCharacter(
     id: string,
     userId: string,
+    notebookId: string | null,
     updates: UpdateCharacter,
     notebookId: string,
     opts?: StorageOptions,
@@ -87,15 +120,24 @@ export class CharacterRepository extends BaseRepository {
     this.ensureContentOwnership(existing, userId);
     // TypeScript now knows 'existing' is defined
 
-    const whereClause = and(
+    const conditions = [
       eq(characters.id, id),
       eq(characters.userId, userId),
-      eq(characters.notebookId, notebookId),
-    );
+    ];
+
+    // If notebookId is specified, filter by it
+    if (notebookId !== undefined) {
+      conditions.push(
+        notebookId === null
+          ? isNull(characters.notebookId)
+          : eq(characters.notebookId, notebookId),
+      );
+    }
+
     const [updatedCharacter] = await db
       .update(characters)
       .set(updates)
-      .where(whereClause)
+      .where(and(...conditions))
       .returning();
     if (!updatedCharacter) {
       // If update didn't occur, determine reason
@@ -126,12 +168,26 @@ export class CharacterRepository extends BaseRepository {
       throw AppError.notFound("Character", id);
     }
 
-    const whereClause = and(
+    const conditions = [
       eq(characters.id, id),
       eq(characters.userId, userId),
-      eq(characters.notebookId, notebookId),
-    );
-    await db.delete(characters).where(whereClause);
+    ];
+
+    // If notebookId is specified, filter by it
+    if (notebookId !== undefined) {
+      conditions.push(
+        notebookId === null
+          ? isNull(characters.notebookId)
+          : eq(characters.notebookId, notebookId),
+      );
+    }
+
+    const result = await db
+      .delete(characters)
+      .where(and(...conditions))
+      .returning();
+
+    return { deleted: result.length > 0 };
   }
 
   async getCharactersWithIssues(
@@ -201,10 +257,17 @@ export class CharacterRepository extends BaseRepository {
   ): Promise<{ deletedCount: number }> {
     if (opts?.signal?.aborted) throw AppError.aborted();
     // Get all characters with issues
-    const baseQuery = and(
-      eq(characters.userId, userId),
-      eq(characters.notebookId, notebookId),
-    );
+    const conditions = [eq(characters.userId, userId)];
+
+    if (notebookId !== undefined) {
+      conditions.push(
+        notebookId === null
+          ? isNull(characters.notebookId)
+          : eq(characters.notebookId, notebookId),
+      );
+    }
+
+    const baseQuery = and(...conditions);
 
     // Build condition for characters with any issue
     const issuesCondition = or(
@@ -243,8 +306,13 @@ export class CharacterRepository extends BaseRepository {
 
   async getPotentialDuplicates(
     userId: string,
-    notebookId: string,
+    notebookId: string | null,
+    opts?: StorageOptions,
   ): Promise<Character[][]> {
+    // Check for cancellation
+    if (opts?.signal?.aborted) {
+      throw AppError.aborted();
+    }
     // Helper function to calculate Levenshtein distance
     function levenshteinDistance(str1: string, str2: string): number {
       const len1 = str1.length;
@@ -293,15 +361,20 @@ export class CharacterRepository extends BaseRepository {
     }
 
     // Get all characters for the user's notebook
+    const conditions = [eq(characters.userId, userId)];
+
+    if (notebookId !== undefined) {
+      conditions.push(
+        notebookId === null
+          ? isNull(characters.notebookId)
+          : eq(characters.notebookId, notebookId),
+      );
+    }
+
     const allCharacters = await db
       .select()
       .from(characters)
-      .where(
-        and(
-          eq(characters.userId, userId),
-          eq(characters.notebookId, notebookId),
-        ),
-      )
+      .where(and(...conditions))
       .orderBy(characters.givenName);
 
     // Filter characters with at least a given name or family name and narrow type

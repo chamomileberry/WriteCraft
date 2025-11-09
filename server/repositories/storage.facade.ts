@@ -351,50 +351,75 @@ export class StorageFacade implements IStorage {
   }
 
   // Character methods
-  async createCharacter(character: InsertCharacter): Promise<Character> {
-    return await this.characterRepository.createCharacter(character);
+  async createCharacter(
+    character: InsertCharacter,
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").CreateResult<Character>> {
+    return await this.characterRepository.createCharacter(character, opts);
   }
 
   async getCharacter(
     id: string,
     userId: string,
-    notebookId: string,
+    notebookId: string | null,
+    opts?: import("../storage-types").StorageOptions,
   ): Promise<Character | undefined> {
-    return await this.characterRepository.getCharacter(id, userId, notebookId);
+    return await this.characterRepository.getCharacter(
+      id,
+      userId,
+      notebookId,
+      opts,
+    );
   }
 
   async getUserCharacters(
     userId: string,
-    notebookId: string,
-  ): Promise<Character[]> {
-    return await this.characterRepository.getUserCharacters(userId, notebookId);
+    notebookId: string | null,
+    pagination?: import("../storage-types").PaginationParams,
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").PaginatedResult<Character>> {
+    return await this.characterRepository.getUserCharacters(
+      userId,
+      notebookId,
+      pagination,
+      opts,
+    );
   }
 
   async updateCharacter(
     id: string,
     userId: string,
+    notebookId: string | null,
     updates: UpdateCharacter,
-    notebookId: string,
-  ): Promise<Character> {
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").UpdateResult<Character>> {
     return await this.characterRepository.updateCharacter(
       id,
       userId,
-      updates,
       notebookId,
+      updates,
+      opts,
     );
   }
 
   async deleteCharacter(
     id: string,
     userId: string,
-    notebookId: string,
-  ): Promise<void> {
-    await this.characterRepository.deleteCharacter(id, userId, notebookId);
+    notebookId: string | null,
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").DeleteResult> {
+    return await this.characterRepository.deleteCharacter(
+      id,
+      userId,
+      notebookId,
+      opts,
+    );
   }
 
   async getCharactersWithIssues(
     userId: string,
-    notebookId: string,
+    notebookId: string | null,
+    opts?: import("../storage-types").StorageOptions,
   ): Promise<{
     missingFamilyName: Character[];
     missingDescription: Character[];
@@ -403,16 +428,19 @@ export class StorageFacade implements IStorage {
     return await this.characterRepository.getCharactersWithIssues(
       userId,
       notebookId,
+      opts,
     );
   }
 
   async getPotentialDuplicates(
     userId: string,
-    notebookId: string,
+    notebookId: string | null,
+    opts?: import("../storage-types").StorageOptions,
   ): Promise<Character[][]> {
     return await this.characterRepository.getPotentialDuplicates(
       userId,
       notebookId,
+      opts,
     );
   }
 
@@ -1742,71 +1770,102 @@ export class StorageFacade implements IStorage {
   }
 
   // Family Tree methods
-  async createFamilyTree(familyTree: InsertFamilyTree): Promise<FamilyTree> {
-    return await this.familyTreeRepository.createFamilyTree(familyTree);
+  async createFamilyTree(
+    familyTree: InsertFamilyTree,
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").CreateResult<FamilyTree>> {
+    return await this.familyTreeRepository.createFamilyTree(familyTree, opts);
   }
 
   async getFamilyTree(
     id: string,
     userId: string,
-    notebookId: string,
+    notebookId: string | null,
+    opts?: import("../storage-types").StorageOptions,
   ): Promise<FamilyTree | undefined> {
     return await this.familyTreeRepository.getFamilyTree(
       id,
       userId,
       notebookId,
+      opts,
     );
   }
 
   async getUserFamilyTrees(
     userId: string,
-    notebookId: string,
-  ): Promise<FamilyTree[]> {
+    notebookId: string | null,
+    pagination?: import("../storage-types").PaginationParams,
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").PaginatedResult<FamilyTree>> {
     return await this.familyTreeRepository.getUserFamilyTrees(
       userId,
       notebookId,
+      pagination,
+      opts,
     );
   }
 
   async updateFamilyTree(
     id: string,
     userId: string,
+    notebookId: string | null,
     updates: Partial<InsertFamilyTree>,
-  ): Promise<FamilyTree> {
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").UpdateResult<FamilyTree>> {
     return await this.familyTreeRepository.updateFamilyTree(
       id,
       userId,
+      notebookId,
       updates,
+      opts,
     );
   }
 
-  async deleteFamilyTree(id: string, userId: string): Promise<void> {
-    await this.familyTreeRepository.deleteFamilyTree(id, userId);
+  async deleteFamilyTree(
+    id: string,
+    userId: string,
+    notebookId: string | null,
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").DeleteResult> {
+    return await this.familyTreeRepository.deleteFamilyTree(
+      id,
+      userId,
+      notebookId,
+      opts,
+    );
   }
 
   // Family Tree Member methods
   async createFamilyTreeMember(
     member: InsertFamilyTreeMember,
-  ): Promise<FamilyTreeMember> {
-    return await this.familyTreeRepository.createFamilyTreeMember(member);
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").CreateResult<FamilyTreeMember>> {
+    return await this.familyTreeRepository.createFamilyTreeMember(member, opts);
   }
 
   async getFamilyTreeMembers(
     treeId: string,
     userId: string,
-  ): Promise<FamilyTreeMember[]> {
-    return await this.familyTreeRepository.getFamilyTreeMembers(treeId, userId);
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("./family-tree.repository").FamilyTreeMemberWithCharacter[]> {
+    return await this.familyTreeRepository.getFamilyTreeMembers(
+      treeId,
+      userId,
+      opts,
+    );
   }
 
   async updateFamilyTreeMember(
     id: string,
     userId: string,
     updates: Partial<InsertFamilyTreeMember>,
-  ): Promise<FamilyTreeMember> {
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").UpdateResult<FamilyTreeMember>> {
     return await this.familyTreeRepository.updateFamilyTreeMember(
       id,
       userId,
       updates,
+      opts,
     );
   }
 
@@ -1814,26 +1873,36 @@ export class StorageFacade implements IStorage {
     id: string,
     userId: string,
     treeId: string,
-  ): Promise<void> {
-    await this.familyTreeRepository.deleteFamilyTreeMember(id, userId, treeId);
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").DeleteResult> {
+    return await this.familyTreeRepository.deleteFamilyTreeMember(
+      id,
+      userId,
+      treeId,
+      opts,
+    );
   }
 
   // Family Tree Relationship methods
   async createFamilyTreeRelationship(
     relationship: InsertFamilyTreeRelationship,
-  ): Promise<FamilyTreeRelationship> {
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").CreateResult<FamilyTreeRelationship>> {
     return await this.familyTreeRepository.createFamilyTreeRelationship(
       relationship,
+      opts,
     );
   }
 
   async getFamilyTreeRelationships(
     treeId: string,
     userId: string,
+    opts?: import("../storage-types").StorageOptions,
   ): Promise<FamilyTreeRelationship[]> {
     return await this.familyTreeRepository.getFamilyTreeRelationships(
       treeId,
       userId,
+      opts,
     );
   }
 
@@ -1841,11 +1910,13 @@ export class StorageFacade implements IStorage {
     id: string,
     userId: string,
     updates: Partial<InsertFamilyTreeRelationship>,
-  ): Promise<FamilyTreeRelationship> {
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").UpdateResult<FamilyTreeRelationship>> {
     return await this.familyTreeRepository.updateFamilyTreeRelationship(
       id,
       userId,
       updates,
+      opts,
     );
   }
 
@@ -1853,11 +1924,13 @@ export class StorageFacade implements IStorage {
     id: string,
     userId: string,
     treeId: string,
-  ): Promise<void> {
-    await this.familyTreeRepository.deleteFamilyTreeRelationship(
+    opts?: import("../storage-types").StorageOptions,
+  ): Promise<import("../storage-types").DeleteResult> {
+    return await this.familyTreeRepository.deleteFamilyTreeRelationship(
       id,
       userId,
       treeId,
+      opts,
     );
   }
 
