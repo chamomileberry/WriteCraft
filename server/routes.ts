@@ -330,16 +330,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const userId = req.user.claims.sub;
         const query = (req.query.q as string) || "";
-        const typeFilter = (req.query.type as string) || ""; // Optional type filter
 
-        const searchResults = await storage.searchAllContent(userId, query);
+        // Parse filters
+        const notebookId = req.query.notebookId
+          ? (req.query.notebookId === "null" ? null : req.query.notebookId as string)
+          : undefined;
 
-        // Filter by type if specified
-        const filteredResults = typeFilter
-          ? searchResults.filter((result) => result.type === typeFilter)
-          : searchResults;
+        const kinds = req.query.kinds
+          ? (Array.isArray(req.query.kinds) ? req.query.kinds : [req.query.kinds])
+          : (req.query.type ? [req.query.type as string] : undefined); // Support legacy 'type' param
 
-        res.json(filteredResults);
+        // Parse pagination
+        const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+        const cursorValue = req.query.cursor as string | undefined;
+        const cursor = cursorValue ? { value: cursorValue } : undefined;
+
+        const result = await storage.searchAllContent(
+          userId,
+          query,
+          { notebookId, kinds },
+          { limit, cursor }
+        );
+
+        // Unwrap cursor for JSON response (API clients expect string, not { value: string })
+        res.json({
+          items: result.items,
+          nextCursor: result.nextCursor?.value,
+        });
       } catch (error) {
         console.error("Error searching content:", error);
         res.status(500).json({ error: "Failed to search content" });

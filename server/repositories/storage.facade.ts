@@ -180,6 +180,7 @@ import type {
   UpdateResult,
   PaginatedResult,
   PaginationParams,
+  SearchResult,
 } from "../storage-types";
 import { eq, and, desc, or, ilike, isNull, sql, inArray } from "drizzle-orm";
 import {
@@ -335,12 +336,18 @@ export class StorageFacade implements IStorage {
     return await this.importRepository.updateImportJob(id, updates, opts);
   }
 
-  // Generic content ownership validation
+  // Content ownership validation - explicit error throwing (recommended)
+  ensureContentOwnership<
+    T extends { userId?: string | null; notebookId?: string | null },
+  >(content: T | undefined, userId: string, notebookId?: string | null): asserts content is T {
+    searchRepository.ensureContentOwnership(content, userId, notebookId);
+  }
+
+  // Content ownership validation - boolean return (backward compatibility)
   validateContentOwnership<
     T extends { userId?: string | null; notebookId?: string | null },
-  >(content: T | undefined, userId: string): boolean {
-    if (!content) return false;
-    return content.userId === userId;
+  >(content: T | undefined, userId: string, notebookId?: string | null): boolean {
+    return searchRepository.validateContentOwnership(content, userId, notebookId);
   }
 
   // Character methods
@@ -2505,8 +2512,17 @@ export class StorageFacade implements IStorage {
   }
 
   // Universal search method
-  async searchAllContent(userId: string, query: string): Promise<any[]> {
-    return await searchRepository.searchAllContent(userId, query);
+  async searchAllContent(
+    userId: string,
+    query: string,
+    filters?: {
+      notebookId?: string | null;
+      kinds?: SearchResult['kind'][];
+    },
+    pagination?: PaginationParams,
+    opts?: StorageOptions
+  ): Promise<PaginatedResult<SearchResult>> {
+    return await searchRepository.searchAllContent(userId, query, filters, pagination, opts);
   }
 
   // Project links methods
