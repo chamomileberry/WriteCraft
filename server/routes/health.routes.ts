@@ -13,7 +13,7 @@ router.get("/", readRateLimiter, (req, res) => {
   res.json({
     status: "ok",
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || "development",
+    environment: getEnvOptional('NODE_ENV') || "development",
   });
 });
 
@@ -47,7 +47,7 @@ router.get("/db", readRateLimiter, async (req, res) => {
  */
 router.get("/detailed", readRateLimiter, async (req, res) => {
   // Only allow in development or for authenticated admins
-  const isDevelopment = process.env.NODE_ENV === "development";
+  const isDevelopment = getEnvOptional('NODE_ENV') === "development";
   const isAdmin = req.user && (req.user as any).role === "admin";
 
   if (!isDevelopment && !isAdmin) {
@@ -70,8 +70,8 @@ router.get("/detailed", readRateLimiter, async (req, res) => {
     res.json({
       status: "ok",
       timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || "development",
-      version: process.env.npm_package_version || "unknown",
+      environment: getEnvOptional('NODE_ENV') || "development",
+  version: process.env['npm_package_version'] || "unknown",
       database: {
         status: "connected",
         latency: `${dbLatency}ms`,
@@ -86,8 +86,8 @@ router.get("/detailed", readRateLimiter, async (req, res) => {
         nodeVersion: process.version,
       },
       services: {
-        sentry: !!process.env.SENTRY_DSN,
-        redis: !!process.env.REDIS_URL,
+        sentry: !!getEnvOptional('SENTRY_DSN'),
+        redis: !!getEnvOptional('REDIS_URL'),
       },
     });
   } catch (error) {

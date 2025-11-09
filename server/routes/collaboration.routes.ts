@@ -11,9 +11,15 @@ const router = Router();
 router.get(
   "/rooms/:resourceType/:resourceId/users",
   collaborationRateLimiter,
-  async (req: Request, res: Response) => {
+  async (
+    req: Request<{ resourceType: string; resourceId: string }>,
+    res: Response,
+  ) => {
     try {
       const { resourceType, resourceId } = req.params;
+      if (!resourceId) {
+        return res.status(400).json({ message: "Missing resourceId" });
+      }
       const userId = (req as any).user.id;
 
       // Verify user has access to this resource
@@ -95,13 +101,15 @@ router.get(
   },
 );
 
-// Get project activity log
 router.get(
   "/projects/:projectId/activity",
   collaborationRateLimiter,
-  async (req: Request, res: Response) => {
+  async (req: Request<{ projectId: string }>, res: Response) => {
     try {
       const { projectId } = req.params;
+      if (!projectId) {
+        return res.status(400).json({ message: "Missing projectId" });
+      }
       const userId = (req as any).user?.id;
 
       if (!userId) {
@@ -151,24 +159,24 @@ router.get(
   },
 );
 
-// Get project versions
 router.get(
   "/projects/:projectId/versions",
   collaborationRateLimiter,
-  async (req: Request, res: Response) => {
+  async (req: Request<{ projectId: string }>, res: Response) => {
     try {
       const { projectId } = req.params;
-      const userId = (req as any).user?.id;
+      if (!projectId) {
+        return res.status(400).json({ message: "Missing projectId" });
+      }
 
+      const userId = (req as any).user?.id;
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      // Check access
       const project = await db.query.projects.findFirst({
         where: eq(projects.id, projectId),
       });
-
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
       }
@@ -182,12 +190,10 @@ router.get(
             eq(shares.userId, userId),
           ),
         }));
-
       if (!hasAccess) {
         return res.status(403).json({ message: "Access denied" });
       }
 
-      // Get versions
       const { projectVersions } = await import("../../shared/schema");
       const { desc } = await import("drizzle-orm");
       const versions = await db.query.projectVersions.findMany({
@@ -206,13 +212,16 @@ router.get(
   },
 );
 
-// Create manual snapshot
 router.post(
   "/projects/:projectId/versions",
   collaborationRateLimiter,
-  async (req: Request, res: Response) => {
+  async (req: Request<{ projectId: string }>, res: Response) => {
     try {
       const { projectId } = req.params;
+      if (!projectId) {
+        return res.status(400).json({ message: "Missing projectId" });
+      }
+
       const { label } = req.body;
       const userId = (req as any).user?.id;
       const user = (req as any).user;
@@ -252,6 +261,7 @@ router.post(
       const { projectVersions, projectActivity } = await import(
         "../../shared/schema"
       );
+      const { desc } = await import("drizzle-orm");
 
       // Get the latest version number
       const latestVersion = await db.query.projectVersions.findFirst({
@@ -275,6 +285,10 @@ router.post(
         })
         .returning();
 
+      if (!version) {
+        throw new Error("Failed to create version");
+      }
+
       // Log activity
       await db.insert(projectActivity).values({
         projectId,
@@ -295,35 +309,38 @@ router.post(
   },
 );
 
-// Restore version
 router.post(
   "/projects/:projectId/versions/:versionId/restore",
   collaborationRateLimiter,
-  async (req: Request, res: Response) => {
+  async (
+    req: Request<{ projectId: string; versionId: string }>,
+    res: Response,
+  ) => {
     try {
       const { projectId, versionId } = req.params;
+      if (!projectId) {
+        return res.status(400).json({ message: "Missing projectId" });
+      }
       const userId = (req as any).user?.id;
       const user = (req as any).user;
-      const userName = user
-        ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email
-        : "Unknown";
+      const userName =
+        user
+          ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email
+          : "Unknown";
 
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      // Check if user is owner
       const project = await db.query.projects.findFirst({
         where: eq(projects.id, projectId),
       });
-
       if (!project || project.userId !== userId) {
         return res
           .status(403)
           .json({ message: "Only owner can restore versions" });
       }
 
-      // Get version
       const { projectVersions, projectActivity } = await import(
         "../../shared/schema"
       );
@@ -333,12 +350,10 @@ router.post(
           eq(projectVersions.projectId, projectId),
         ),
       });
-
       if (!version) {
         return res.status(404).json({ message: "Version not found" });
       }
 
-      // Restore content
       await db
         .update(projects)
         .set({
@@ -347,7 +362,6 @@ router.post(
         })
         .where(eq(projects.id, projectId));
 
-      // Log activity
       await db.insert(projectActivity).values({
         projectId,
         userId,
@@ -367,31 +381,30 @@ router.post(
   },
 );
 
-// Get pending changes
 router.get(
   "/projects/:projectId/pending-changes",
   collaborationRateLimiter,
-  async (req: Request, res: Response) => {
+  async (req: Request<{ projectId: string }>, res: Response) => {
     try {
       const { projectId } = req.params;
-      const userId = (req as any).user?.id;
+      if (!projectId) {
+        return res.status(400).json({ message: "Missing projectId" });
+      }
 
+      const userId = (req as any).user?.id;
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      // Check if user is owner
       const project = await db.query.projects.findFirst({
         where: eq(projects.id, projectId),
       });
-
       if (!project || project.userId !== userId) {
         return res
           .status(403)
           .json({ message: "Only owner can view pending changes" });
       }
 
-      // Get pending changes
       const { pendingChanges } = await import("../../shared/schema");
       const { desc } = await import("drizzle-orm");
       const changes = await db.query.pendingChanges.findMany({
@@ -404,10 +417,7 @@ router.get(
 
       res.json({ changes });
     } catch (error: any) {
-      console.error(
-        "[Collaboration API] Error fetching pending changes:",
-        error,
-      );
+      console.error("[Collaboration API] Error fetching pending changes:", error);
       res
         .status(500)
         .json({ message: error.message || "Failed to fetch pending changes" });
@@ -419,35 +429,38 @@ router.get(
 router.post(
   "/projects/:projectId/pending-changes/:changeId/:action",
   collaborationRateLimiter,
-  async (req: Request, res: Response) => {
+  async (
+    req: Request<{
+      projectId: string;
+      changeId: string;
+      action: "approve" | "reject";
+    }>,
+    res: Response,
+  ) => {
     try {
       const { projectId, changeId, action } = req.params;
+      if (!projectId) {
+        return res.status(400).json({ message: "Missing projectId" });
+      }
       const userId = (req as any).user?.id;
       const user = (req as any).user;
-      const userName = user
-        ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email
-        : "Unknown";
-
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
+      const userName =
+        user
+          ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email
+          : "Unknown";
 
-      if (action !== "approve" && action !== "reject") {
-        return res.status(400).json({ message: "Invalid action" });
-      }
-
-      // Check if user is owner
       const project = await db.query.projects.findFirst({
         where: eq(projects.id, projectId),
       });
-
       if (!project || project.userId !== userId) {
         return res
           .status(403)
           .json({ message: "Only owner can approve/reject changes" });
       }
 
-      // Get change
       const { pendingChanges, projectActivity } = await import(
         "../../shared/schema"
       );
@@ -457,12 +470,10 @@ router.post(
           eq(pendingChanges.projectId, projectId),
         ),
       });
-
       if (!change) {
         return res.status(404).json({ message: "Change not found" });
       }
 
-      // Update status
       const newStatus = action === "approve" ? "approved" : "rejected";
       await db
         .update(pendingChanges)
@@ -473,7 +484,6 @@ router.post(
         })
         .where(eq(pendingChanges.id, changeId));
 
-      // Log activity
       await db.insert(projectActivity).values({
         projectId,
         userId,
@@ -492,5 +502,3 @@ router.post(
     }
   },
 );
-
-export default router;

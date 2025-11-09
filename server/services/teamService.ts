@@ -403,7 +403,7 @@ export class TeamService {
       AND date = ${today}
     `);
 
-    return Number(result.rows[0]?.total || 0);
+  return Number(result.rows[0]?.['total'] || 0);
   }
 
   /**

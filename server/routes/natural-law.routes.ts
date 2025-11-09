@@ -50,7 +50,7 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
 router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const notebookId = req.query.notebookId as string;
+  const notebookId = req.query['notebookId'] as string;
 
     if (!notebookId) {
       return res
@@ -69,7 +69,7 @@ router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
 router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const notebookId = req.query.notebookId as string;
+  const notebookId = req.query['notebookId'] as string;
 
     if (!notebookId) {
       return res
@@ -78,7 +78,7 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
     }
 
     const naturalLaw = await storage.getNaturalLaw(
-      req.params.id,
+      req.params['id'],
       userId,
       notebookId,
     );
@@ -126,13 +126,13 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
 router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    await storage.deleteNaturalLaw(req.params.id, userId);
+  await storage.deleteNaturalLaw(req.params['id'], userId);
     res.json({ success: true });
   } catch (error) {
     console.error("Error deleting natural law:", error);
     if (error instanceof Error && error.message.includes("Unauthorized")) {
       const userId = req.user?.claims?.sub || "unknown";
-      const naturalLawId = req.params.id || "unknown";
+  const naturalLawId = req.params['id'] || "unknown";
       console.warn(
         `[Security] Unauthorized natural-law operation - userId: ${userId}, naturalLawId: ${naturalLawId}`,
       );

@@ -101,7 +101,7 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
     const [condition] = await db
       .select()
       .from(conditions)
-      .where(eq(conditions.id, req.params.id));
+  .where(eq(conditions.id, req.params['id']));
 
     // Validate ownership - return 404 if not found or doesn't belong to user
     if (!condition || condition.userId !== userId) {
@@ -120,7 +120,7 @@ router.patch("/:id", writeRateLimiter, async (req: any, res) => {
     const userId = req.user.claims.sub;
     const updates = insertConditionSchema.partial().parse(req.body);
     const updatedCondition = await storage.updateCondition(
-      req.params.id,
+  req.params['id'],
       userId,
       updates,
     );
@@ -148,7 +148,7 @@ router.patch("/:id", writeRateLimiter, async (req: any, res) => {
 router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    await storage.deleteCondition(req.params.id, userId);
+  await storage.deleteCondition(req.params['id'], userId);
     res.json({ message: "Condition deleted successfully" });
   } catch (error) {
     console.error("Error deleting condition:", error);

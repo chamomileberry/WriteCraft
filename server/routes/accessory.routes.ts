@@ -70,7 +70,7 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
     }
 
     const accessory = await storage.getAccessory(
-      req.params.id,
+  req.params['id'],
       userId,
       notebookId,
     );
@@ -89,7 +89,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
     const userId = req.user.claims.sub;
     const validatedUpdates = insertAccessorySchema.parse(req.body);
     const updatedAccessory = await storage.updateAccessory(
-      req.params.id,
+  req.params['id'],
       userId,
       validatedUpdates,
     );
@@ -110,7 +110,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
 router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    await storage.deleteAccessory(req.params.id, userId);
+  await storage.deleteAccessory(req.params['id'], userId);
     res.json({ success: true });
   } catch (error) {
     console.error("Error deleting accessory:", error);

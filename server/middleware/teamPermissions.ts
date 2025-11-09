@@ -94,7 +94,7 @@ export async function getUserTeamRole(
       return null;
     }
 
-    return membership[0].role as TeamRole;
+    return membership[0]?.role as TeamRole;
   } catch (error) {
     console.error("[TEAM PERMISSIONS] Failed to get user role:", error);
     return null;
@@ -119,7 +119,7 @@ export async function getUserTeamSubscription(
       )
       .limit(1);
 
-    return subscription.length > 0 ? subscription[0].id : null;
+    return subscription.length > 0 && subscription[0] ? subscription[0].id : null;
   } catch (error) {
     console.error("[TEAM PERMISSIONS] Failed to get team subscription:", error);
     return null;
@@ -347,7 +347,7 @@ export function logTeamActivity(
 
       if (teamSubscription && userId) {
         // Extract resource info from request if not provided
-        const finalResourceId = resourceId || req.params.id;
+  const finalResourceId = resourceId || req.params['id'];
         const finalResourceName = resourceName || req.body?.name;
 
         await teamService.logActivity({

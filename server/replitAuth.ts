@@ -18,15 +18,15 @@ import {
   profileRateLimiter,
 } from "./security/rateLimiters";
 
-if (!process.env.REPLIT_DOMAINS) {
+if (!getEnvOptional('REPLIT_DOMAINS')) {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");
 }
 
 const getOidcConfig = memoize(
   async () => {
     return await client.discovery(
-      new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
-      process.env.REPL_ID!,
+      new URL(getEnvOptional('ISSUER_URL') ?? "https://replit.com/oidc"),
+      getEnvOptional('REPL_ID')!,
     );
   },
   { maxAge: 3600 * 1000 },
@@ -67,7 +67,7 @@ export async function getSession(): Promise<RequestHandler[]> {
     const connectPg = (await import("connect-pg-simple")).default;
     const pgStore = connectPg(session);
     sessionStore = new pgStore({
-      conString: process.env.DATABASE_URL,
+      conString: getEnvOptional('DATABASE_URL'),
       createTableIfMissing: false,
       ttl: sessionTtl,
       tableName: "sessions",
@@ -76,7 +76,7 @@ export async function getSession(): Promise<RequestHandler[]> {
   }
 
   const sessionMiddleware = session({
-    secret: process.env.SESSION_SECRET!,
+    secret: getEnvOptional('SESSION_SECRET')!,
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
@@ -141,8 +141,13 @@ async function upsertUser(claims: any) {
 export async function setupAuth(app: Express) {
   app.set("trust proxy", 1);
 
-  const [conditionalSessionMiddleware, conditionalCsrfMiddleware] =
-    await getSession();
+  const sessionMiddlewares = await getSession();
+  const conditionalSessionMiddleware = sessionMiddlewares[0];
+  const conditionalCsrfMiddleware = sessionMiddlewares[1];
+
+  if (!conditionalSessionMiddleware || !conditionalCsrfMiddleware) {
+    throw new Error("Failed to initialize session middlewares");
+  }
 
   // Apply session middleware (conditionally skips static assets)
   app.use(conditionalSessionMiddleware);
@@ -175,7 +180,7 @@ export async function setupAuth(app: Express) {
     verified(null, user);
   };
 
-  for (const domain of process.env.REPLIT_DOMAINS!.split(",")) {
+  for (const domain of getEnvOptional('REPLIT_DOMAINS')!.split(",")) {
     const strategy = new Strategy(
       {
         name: `replitauth:${domain}`,
@@ -263,7 +268,7 @@ export async function setupAuth(app: Express) {
   // - Falls back to blocking if Referer is missing (defense-in-depth)
   app.get("/api/logout", sessionRateLimiter, (req, res) => {
     // CSRF Protection: Validate Referer header
-    const referer = req.headers.referer || req.headers.referrer;
+    const referer = req.headers.referer || req.headers["referrer"];
     const host = req.headers.host;
 
     // Allow logout only if:
@@ -271,7 +276,13 @@ export async function setupAuth(app: Express) {
     // 2. OR user is not authenticated (no CSRF risk)
     if (referer) {
       try {
-        const refererUrl = new URL(referer);
+        // Ensure referer is a string (not an array)
+        const refererString = Array.isArray(referer) ? referer[0] : referer;
+        if (!refererString) {
+          console.warn(`[SECURITY] Empty referer header in logout`);
+          return res.status(403).json({ message: "Invalid request origin" });
+        }
+        const refererUrl = new URL(refererString);
         const requestHost = host?.split(":")[0]; // Remove port if present
         const refererHost = refererUrl.hostname;
 
@@ -316,7 +327,7 @@ export async function setupAuth(app: Express) {
 
       res.redirect(
         client.buildEndSessionUrl(config, {
-          client_id: process.env.REPL_ID!,
+          client_id: getEnvOptional('REPL_ID')!,
           post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
         }).href,
       );
@@ -352,17 +363,17 @@ export async function setupAuth(app: Express) {
     userSearchRateLimiter,
     async (req: any, res) => {
       try {
-        const query = req.query.q;
+  const query = req.query['q'];
         if (typeof query !== "string" || query.length < 2) {
           return res.json([]);
         }
 
         // Parse pagination parameters
-        const limit = req.query.limit
-          ? Math.min(parseInt(req.query.limit), 100)
+        const limit = req.query['limit']
+          ? Math.min(parseInt(req.query['limit'] as string, 10), 100)
           : 20;
-        const cursor = req.query.cursor
-          ? { value: req.query.cursor }
+        const cursor = req.query['cursor']
+          ? { value: req.query['cursor'] as string }
           : undefined;
 
         const result = await storage.searchUsers(query, { limit, cursor });
@@ -390,7 +401,7 @@ export async function setupAuth(app: Express) {
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   // SECURITY: Block test mode bypass in production
-  if (process.env.NODE_ENV === "production" && req.headers["x-test-user-id"]) {
+  if (getEnvOptional('NODE_ENV') === "production" && req.headers["x-test-user-id"]) {
     console.error(
       `[SECURITY CRITICAL] Test mode bypass attempt in production - IP: ${req.ip}, User-Agent: ${req.headers["user-agent"]}`,
     );
@@ -410,7 +421,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   }
 
   // Enhanced test mode validation - only in actual test environment
-  if (process.env.NODE_ENV === "test" && req.headers["x-test-user-id"]) {
+  if (getEnvOptional('NODE_ENV') === "test" && req.headers["x-test-user-id"]) {
     const testUserId = req.headers["x-test-user-id"] as string;
 
     // Validate test user ID format to prevent injection

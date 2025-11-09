@@ -14,11 +14,11 @@ import {
 
 const router = Router();
 
-if (!process.env.STRIPE_SECRET_KEY) {
+if (!getEnvOptional('STRIPE_SECRET_KEY')) {
   throw new Error("Missing required Stripe secret: STRIPE_SECRET_KEY");
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+const stripe = new Stripe(getEnvOptional('STRIPE_SECRET_KEY'), {
   apiVersion: "2025-09-30.clover",
 });
 
@@ -768,7 +768,7 @@ router.post("/webhook", async (req, res) => {
   const sig = req.headers["stripe-signature"] as string;
 
   // Critical: Fail fast if webhook secret is not configured
-  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+  if (!getEnvOptional('STRIPE_WEBHOOK_SECRET')) {
     console.error(
       "[Stripe] STRIPE_WEBHOOK_SECRET is not configured - webhook verification cannot proceed",
     );
@@ -782,7 +782,7 @@ router.post("/webhook", async (req, res) => {
     event = stripe.webhooks.constructEvent(
       req.body,
       sig,
-      process.env.STRIPE_WEBHOOK_SECRET,
+      getEnvOptional('STRIPE_WEBHOOK_SECRET'),
     );
   } catch (err: any) {
     console.error(

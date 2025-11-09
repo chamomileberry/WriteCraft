@@ -6,14 +6,14 @@ const router = Router();
 
 // Diagnostic endpoint to check Sentry configuration
 router.get("/check-config", readRateLimiter, (req, res) => {
-  const sentryDsn = process.env.SENTRY_DSN;
+  const sentryDsn = getEnvOptional('SENTRY_DSN');
   const isEnabled = !!sentryDsn;
 
   res.json({
     sentryConfigured: isEnabled,
     dsnPresent: isEnabled,
     dsnPreview: sentryDsn ? `${sentryDsn.substring(0, 30)}...` : "NOT SET",
-    environment: process.env.NODE_ENV || "development",
+    environment: getEnvOptional('NODE_ENV') || "development",
     message: isEnabled
       ? "Sentry DSN is configured and Sentry should be active"
       : "SENTRY_DSN environment variable is not set. Please add it to Replit Secrets.",
@@ -87,8 +87,8 @@ router.get("/test-capture", readRateLimiter, async (req, res) => {
       success: true,
       message: "Exception manually captured and sent to Sentry",
       eventId,
-      sentryDsn: process.env.SENTRY_DSN
-        ? `${process.env.SENTRY_DSN.substring(0, 50)}...`
+      sentryDsn: getEnvOptional('SENTRY_DSN')
+        ? `${getEnvOptional('SENTRY_DSN').substring(0, 50)}...`
         : "NOT SET",
       instructions:
         "Check your Sentry dashboard. Look for event ID: " +

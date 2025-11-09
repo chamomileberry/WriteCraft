@@ -255,7 +255,7 @@ router.post(
 
       // Get the existing character data for context
       const existingCharacter = await storage.getCharacter(
-        req.params.id,
+        req.params['id'],
         userId,
         notebookId,
       );
@@ -396,7 +396,7 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
     }
 
     const character = await storage.getCharacter(
-      req.params.id,
+      req.params['id'],
       userId,
       notebookId,
     );
@@ -428,7 +428,7 @@ router.patch("/:id", writeRateLimiter, async (req: any, res) => {
     const updatesWithUserId = { ...validatedUpdates, userId };
 
     const updatedCharacter = await storage.updateCharacter(
-      req.params.id,
+      req.params['id'],
       userId,
       updatesWithUserId,
       notebookId,
@@ -465,7 +465,7 @@ router.patch("/:id", writeRateLimiter, async (req: any, res) => {
       const userId = req.user?.claims?.sub || "unknown";
       const notebookId = req.query.notebookId || "unknown";
       console.warn(
-        `[Security] Unauthorized character update attempt - userId: ${userId}, characterId: ${req.params.id}, notebookId: ${notebookId}`,
+  `[Security] Unauthorized character update attempt - userId: ${userId}, characterId: ${req.params['id']}, notebookId: ${notebookId}`,
       );
       return res.status(404).json({ error: "Character not found" });
     }
@@ -485,7 +485,7 @@ router.delete("/:id", writeRateLimiter, async (req: any, res) => {
         .json({ error: "notebookId query parameter is required" });
     }
 
-    await storage.deleteCharacter(req.params.id, userId, notebookId);
+  await storage.deleteCharacter(req.params['id'], userId, notebookId);
     res.status(204).send();
   } catch (error) {
     console.error("Error deleting character:", error);
@@ -499,7 +499,7 @@ router.delete("/:id", writeRateLimiter, async (req: any, res) => {
       const userId = req.user?.claims?.sub || "unknown";
       const notebookId = req.query.notebookId || "unknown";
       console.warn(
-        `[Security] Unauthorized character deletion attempt - userId: ${userId}, characterId: ${req.params.id}, notebookId: ${notebookId}`,
+  `[Security] Unauthorized character deletion attempt - userId: ${userId}, characterId: ${req.params['id']}, notebookId: ${notebookId}`,
       );
       return res.status(404).json({ error: "Character not found" });
     }
@@ -522,7 +522,7 @@ router.post("/:id/generate-article", aiRateLimiter, async (req: any, res) => {
     // Use centralized secure article generation service
     const updatedCharacter = await generateArticleForContent(
       "characters",
-      req.params.id,
+      req.params['id'],
       userId,
       notebookId,
     );
@@ -536,7 +536,7 @@ router.post("/:id/generate-article", aiRateLimiter, async (req: any, res) => {
       const userId = req.user?.claims?.sub || "unknown";
       const notebookId = req.query.notebookId || "unknown";
       console.warn(
-        `[Security] Unauthorized article generation attempt - userId: ${userId}, characterId: ${req.params.id}, notebookId: ${notebookId}`,
+        `[Security] Unauthorized article generation attempt - userId: ${userId}, characterId: ${req.params['id']}, notebookId: ${notebookId}`,
       );
       return res.status(404).json({ error: "Character not found" });
     }

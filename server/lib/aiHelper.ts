@@ -12,7 +12,7 @@ import { modelSelector, type OperationType } from "../services/modelSelector";
 import { promptCache } from "./promptCache";
 
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+  apiKey: getEnvOptional('ANTHROPIC_API_KEY'),
 });
 
 export interface CachedAICallOptions {

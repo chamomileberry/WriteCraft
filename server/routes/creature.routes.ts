@@ -86,7 +86,7 @@ router.post(
       if (error instanceof Error && error.message.includes("Unauthorized")) {
         const userId = req.user?.claims?.sub || "unknown";
         const notebookId =
-          req.query.notebookId || req.body.notebookId || "unknown";
+          req.query['notebookId'] || req.body.notebookId || "unknown";
         console.warn(
           `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
         );
@@ -100,7 +100,7 @@ router.post(
 router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const notebookId = req.query.notebookId as string;
+  const notebookId = req.query['notebookId'] as string;
 
     if (!notebookId) {
       return res
@@ -119,7 +119,7 @@ router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
 router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const notebookId = req.query.notebookId as string;
+  const notebookId = req.query['notebookId'] as string;
 
     if (!notebookId) {
       return res
@@ -128,7 +128,7 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
     }
 
     const creature = await storage.getCreature(
-      req.params.id,
+      req.params['id'],
       userId,
       notebookId,
     );
@@ -163,7 +163,7 @@ router.patch(
       if (error instanceof Error && error.message.includes("Unauthorized")) {
         const userId = req.user?.claims?.sub || "unknown";
         const notebookId =
-          req.query.notebookId || req.body.notebookId || "unknown";
+          req.query['notebookId'] || req.body.notebookId || "unknown";
         console.warn(
           `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
         );

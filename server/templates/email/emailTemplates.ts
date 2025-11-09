@@ -499,7 +499,7 @@ export function renderTeamInvitationEmail(data: TeamEmailData): {
   html: string;
   text: string;
 } {
-  const appUrl = process.env.APP_URL || "https://writecraft.app";
+  const appUrl = getEnvOptional('APP_URL') || "https://writecraft.app";
   const inviteUrl = data.inviteToken
     ? `${appUrl}/team/invite/${data.inviteToken}`
     : `${appUrl}/teams`;

@@ -7,7 +7,7 @@ const router = Router();
 // Pexels API search endpoint
 router.get("/search", imageSearchRateLimiter, async (req, res) => {
   try {
-    const apiKey = process.env.PEXELS_API_KEY;
+    const apiKey = getEnvOptional('PEXELS_API_KEY');
 
     if (!apiKey) {
       return res.status(500).json({
@@ -15,9 +15,9 @@ router.get("/search", imageSearchRateLimiter, async (req, res) => {
       });
     }
 
-    const query = (req.query.query as string) || "nature";
-    const page = parseInt(req.query.page as string) || 1;
-    const perPage = parseInt(req.query.per_page as string) || 15;
+  const query = (req.query['query'] as string) || "nature";
+  const page = parseInt(req.query['page'] as string) || 1;
+  const perPage = parseInt(req.query['per_page'] as string) || 15;
 
     const response = await fetch(
       `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&page=${page}&per_page=${perPage}`,
@@ -72,7 +72,7 @@ router.get("/search", imageSearchRateLimiter, async (req, res) => {
 // Get curated photos (for homepage/default view)
 router.get("/curated", imageSearchRateLimiter, async (req, res) => {
   try {
-    const apiKey = process.env.PEXELS_API_KEY;
+    const apiKey = getEnvOptional('PEXELS_API_KEY');
 
     if (!apiKey) {
       return res.status(500).json({
@@ -80,8 +80,8 @@ router.get("/curated", imageSearchRateLimiter, async (req, res) => {
       });
     }
 
-    const page = parseInt(req.query.page as string) || 1;
-    const perPage = parseInt(req.query.per_page as string) || 15;
+  const page = parseInt(req.query['page'] as string) || 1;
+  const perPage = parseInt(req.query['per_page'] as string) || 15;
 
     const response = await fetch(
       `https://api.pexels.com/v1/curated?page=${page}&per_page=${perPage}`,

@@ -2,11 +2,7 @@ import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import * as schema from "@shared/schema";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
-}
-
-const sql = neon(process.env.DATABASE_URL);
+// DATABASE_URL is required at runtime. Use the typed helper so TS knows it's present.
+const databaseUrl = getEnv('DATABASE_URL');
+const sql = neon(databaseUrl);
 export const db = drizzle(sql, { schema });

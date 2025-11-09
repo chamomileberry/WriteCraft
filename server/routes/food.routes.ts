@@ -106,7 +106,7 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
         .json({ error: "notebookId query parameter is required" });
     }
 
-    const food = await storage.getFood(req.params.id, userId, notebookId);
+  const food = await storage.getFood(req.params['id'], userId, notebookId);
     if (!food) {
       return res.status(404).json({ error: "Food not found" });
     }
@@ -122,7 +122,7 @@ router.patch("/:id", writeRateLimiter, async (req: any, res) => {
     const userId = req.user.claims.sub;
     const updates = insertFoodSchema.partial().parse(req.body);
     const updatedFood = await storage.updateFood(
-      req.params.id,
+  req.params['id'],
       userId,
       updates,
     );
@@ -150,7 +150,7 @@ router.patch("/:id", writeRateLimiter, async (req: any, res) => {
 router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    await storage.deleteFood(req.params.id, userId);
+  await storage.deleteFood(req.params['id'], userId);
     res.status(204).send();
   } catch (error) {
     console.error("Error deleting food:", error);

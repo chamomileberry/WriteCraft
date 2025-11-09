@@ -8,7 +8,7 @@ export async function getRedisClient() {
     return redisClient;
   }
 
-  const redisUrl = process.env.REDIS_URL;
+  const redisUrl = getEnvOptional('REDIS_URL');
 
   if (!redisUrl) {
     // Only show warning once to reduce log noise

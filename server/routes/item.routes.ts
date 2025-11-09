@@ -149,7 +149,7 @@ router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     // Extract userId from authentication headers for security (ignore client-supplied userId)
     const userId = req.user.claims.sub;
-    const notebookId = req.query.notebookId as string;
+  const notebookId = req.query['notebookId'] as string;
 
     if (!notebookId) {
       return res
@@ -168,7 +168,7 @@ router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
 router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const notebookId = req.query.notebookId as string;
+  const notebookId = req.query['notebookId'] as string;
 
     if (!notebookId) {
       return res
@@ -176,7 +176,7 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
         .json({ error: "notebookId query parameter is required" });
     }
 
-    const item = await storage.getItem(req.params.id, userId, notebookId);
+  const item = await storage.getItem(req.params['id'], userId, notebookId);
     if (!item) {
       return res.status(404).json({ error: "Item not found" });
     }

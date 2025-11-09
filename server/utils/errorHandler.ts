@@ -108,7 +108,7 @@ export function sanitizeError(error: any, context?: string): SanitizedError {
     logger.warn(`Sanitized sensitive error in ${context}:`, originalMessage);
     return {
       error: "Error",
-      message: SAFE_ERROR_MESSAGES.serverError,
+      message: SAFE_ERROR_MESSAGES['serverError'] ?? "Internal server error. Our team has been notified.",
     };
   }
 
@@ -121,7 +121,7 @@ export function sanitizeError(error: any, context?: string): SanitizedError {
   ) {
     return {
       error: "Not Found",
-      message: SAFE_ERROR_MESSAGES.notFound,
+      message: SAFE_ERROR_MESSAGES['notFound'] ?? "The requested resource was not found.",
     };
   }
 
@@ -131,7 +131,7 @@ export function sanitizeError(error: any, context?: string): SanitizedError {
   ) {
     return {
       error: "Unauthorized",
-      message: SAFE_ERROR_MESSAGES.unauthorized,
+      message: SAFE_ERROR_MESSAGES['unauthorized'] ?? "Authentication required. Please log in.",
     };
   }
 
@@ -141,7 +141,7 @@ export function sanitizeError(error: any, context?: string): SanitizedError {
   ) {
     return {
       error: "Forbidden",
-      message: SAFE_ERROR_MESSAGES.forbidden,
+      message: SAFE_ERROR_MESSAGES['forbidden'] ?? "You do not have permission to perform this action.",
     };
   }
 
@@ -151,7 +151,7 @@ export function sanitizeError(error: any, context?: string): SanitizedError {
   ) {
     return {
       error: "Rate Limit Exceeded",
-      message: SAFE_ERROR_MESSAGES.rateLimit,
+      message: SAFE_ERROR_MESSAGES['rateLimit'] ?? "Too many requests. Please try again later.",
     };
   }
 
@@ -162,14 +162,14 @@ export function sanitizeError(error: any, context?: string): SanitizedError {
   ) {
     return {
       error: "Payment Error",
-      message: SAFE_ERROR_MESSAGES.payment,
+      message: SAFE_ERROR_MESSAGES['payment'] ?? "Payment processing failed. Please check your payment details.",
     };
   }
 
   if (lowerMessage.includes("subscription")) {
     return {
       error: "Subscription Error",
-      message: SAFE_ERROR_MESSAGES.subscription,
+      message: SAFE_ERROR_MESSAGES['subscription'] ?? "Subscription operation failed. Please try again or contact support.",
     };
   }
 
@@ -180,14 +180,14 @@ export function sanitizeError(error: any, context?: string): SanitizedError {
   ) {
     return {
       error: "AI Service Error",
-      message: SAFE_ERROR_MESSAGES.aiGeneration,
+      message: SAFE_ERROR_MESSAGES['aiGeneration'] ?? "AI generation service is temporarily unavailable. Please try again.",
     };
   }
 
   if (lowerMessage.includes("invalid") || lowerMessage.includes("validation")) {
     return {
       error: "Validation Error",
-      message: SAFE_ERROR_MESSAGES.validation,
+      message: SAFE_ERROR_MESSAGES['validation'] ?? "Invalid request data. Please check your input and try again.",
     };
   }
 
@@ -206,7 +206,7 @@ export function sanitizeError(error: any, context?: string): SanitizedError {
   // Fallback to generic error
   return {
     error: "Error",
-    message: SAFE_ERROR_MESSAGES.generic,
+    message: SAFE_ERROR_MESSAGES['generic'] ?? "An error occurred. Please try again.",
   };
 }
 

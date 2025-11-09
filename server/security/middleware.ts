@@ -39,7 +39,7 @@ export const secureAuthentication: RequestHandler = async (
   try {
     // Block test mode bypass in production
     if (
-      process.env.NODE_ENV === "production" &&
+      getEnvOptional('NODE_ENV') === "production" &&
       req.headers["x-test-user-id"]
     ) {
       console.error(
@@ -49,7 +49,7 @@ export const secureAuthentication: RequestHandler = async (
     }
 
     // Only allow test mode in actual test environment with additional checks
-    if (process.env.NODE_ENV === "test" && req.headers["x-test-user-id"]) {
+    if (getEnvOptional('NODE_ENV') === "test" && req.headers["x-test-user-id"]) {
       // Additional validation for test mode
       const testUserId = req.headers["x-test-user-id"] as string;
 
@@ -277,7 +277,7 @@ export const generateCSPNonce: RequestHandler = (
 ) => {
   // Generate a cryptographically secure random nonce
   const nonce = crypto.randomBytes(16).toString("base64");
-  res.locals.cspNonce = nonce;
+  res.locals['cspNonce'] = nonce;
   next();
 };
 
@@ -289,7 +289,7 @@ export const securityHeaders: RequestHandler = (
   res: Response,
   next: NextFunction,
 ) => {
-  const isDevelopment = process.env.NODE_ENV === "development";
+  const isDevelopment = getEnvOptional('NODE_ENV') === "development";
 
   // Prevent clickjacking - Allow Replit preview in development
   // In development, omit X-Frame-Options to allow CSP frame-ancestors to handle it
@@ -327,7 +327,7 @@ export const securityHeaders: RequestHandler = (
   res.removeHeader("X-Powered-By");
 
   // Get the nonce for this request
-  const nonce = res.locals.cspNonce;
+  const nonce = res.locals['cspNonce'];
 
   // Content Security Policy with nonce-based script execution
   // In development, we need to allow 'unsafe-eval' and 'unsafe-inline' for Vite HMR
@@ -649,16 +649,16 @@ export function enforceRowLevelSecurity(
       // Try multiple common locations
       const paramName = options?.paramName || "id";
       resourceId =
-        req.params[paramName] ||
-        req.params.id ||
+      req.params[paramName] ||
+        req.params['id'] ||
         req.params[`${resourceType}Id`] ||
         req.query[paramName] ||
-        req.query.id ||
+        req.query['id'] ||
         req.body?.id ||
         null;
     }
 
-    const notebookId = req.query.notebookId || req.body?.notebookId;
+  const notebookId = req.query['notebookId'] || req.body?.notebookId;
 
     // Log access attempt
     console.log(

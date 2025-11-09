@@ -7,33 +7,18 @@ import {
   characters,
   savedItems,
 } from "@shared/schema";
-import { eq, and, or, desc, isNull, isNotNull, inArray, lt } from "drizzle-orm";
+import { eq, and, or, desc, isNull, isNotNull, inArray } from "drizzle-orm";
 import {
   AppError,
   type StorageOptions,
-  type PaginationParams,
-  type PaginatedResult,
-  type CreateResult,
-  type UpdateResult,
-  type DeleteResult,
-  createCursor,
-  decodeCursor,
 } from "../storage-types";
 
 export class CharacterRepository extends BaseRepository {
   async createCharacter(
     character: InsertCharacter,
     opts?: StorageOptions,
-  ): Promise<CreateResult<Character>> {
-    // Check for cancellation
-    if (opts?.signal?.aborted) {
-      throw AppError.aborted();
-    }
-
-    // Validate input
-    if (!character.userId) {
-      throw AppError.invalidInput("Character must have userId");
-    }
+  ): Promise<Character> {
+    if (opts?.signal?.aborted) throw AppError.aborted();
 
     // Ensure description field is included if provided
     const characterData = {
@@ -45,22 +30,19 @@ export class CharacterRepository extends BaseRepository {
       .insert(characters)
       .values(characterData)
       .returning();
-
-    return { value: newCharacter };
+    if (!newCharacter) throw AppError.invalidInput("Failed to create character");
+    return newCharacter;
   }
 
   async getCharacter(
     id: string,
     userId: string,
-    notebookId: string | null,
+    notebookId: string,
     opts?: StorageOptions,
   ): Promise<Character | undefined> {
-    // Check for cancellation
-    if (opts?.signal?.aborted) {
-      throw AppError.aborted();
-    }
+    if (opts?.signal?.aborted) throw AppError.aborted();
 
-    const conditions = [
+    const whereClause = and(
       eq(characters.id, id),
       eq(characters.userId, userId),
     ];
@@ -85,49 +67,16 @@ export class CharacterRepository extends BaseRepository {
 
   async getUserCharacters(
     userId: string,
-    notebookId: string | null,
-    pagination?: PaginationParams,
+    notebookId: string,
     opts?: StorageOptions,
-  ): Promise<PaginatedResult<Character>> {
-    // Check for cancellation
-    if (opts?.signal?.aborted) {
-      throw AppError.aborted();
-    }
+  ): Promise<Character[]> {
+    if (opts?.signal?.aborted) throw AppError.aborted();
 
-    const limit = Math.min(pagination?.limit || 20, 100);
-
-    const conditions = [eq(characters.userId, userId)];
-
-    // If notebookId is specified, filter by it
-    if (notebookId !== undefined) {
-      conditions.push(
-        notebookId === null
-          ? isNull(characters.notebookId)
-          : eq(characters.notebookId, notebookId),
-      );
-    }
-
-    // Build cursor conditions if provided
-    const cursorConditions = pagination?.cursor
-      ? (() => {
-          const { sortKey, id } = decodeCursor(pagination.cursor);
-          return or(
-            lt(characters.createdAt, new Date(sortKey as string)),
-            and(
-              eq(characters.createdAt, new Date(sortKey as string)),
-              lt(characters.id, id),
-            ),
-          );
-        })()
-      : undefined;
-
-    // Combine ownership conditions with cursor conditions
-    const allConditions = cursorConditions
-      ? and(...conditions, cursorConditions)
-      : and(...conditions);
-
-    // Fetch limit + 1 to check if there are more results
-    const items = await db
+    const whereClause = and(
+      eq(characters.userId, userId),
+      eq(characters.notebookId, notebookId),
+    );
+    return await db
       .select()
       .from(characters)
       .where(allConditions)
@@ -156,12 +105,20 @@ export class CharacterRepository extends BaseRepository {
     userId: string,
     notebookId: string | null,
     updates: UpdateCharacter,
+    notebookId: string,
     opts?: StorageOptions,
-  ): Promise<UpdateResult<Character>> {
-    // Check for cancellation
-    if (opts?.signal?.aborted) {
-      throw AppError.aborted();
-    }
+  ): Promise<Character> {
+    if (opts?.signal?.aborted) throw AppError.aborted();
+
+    // Validate ownership (using new explicit error API)
+    const [existing] = await db
+      .select()
+      .from(characters)
+      .where(eq(characters.id, id));
+
+    // New pattern: ensureContentOwnership throws typed AppError and narrows type
+    this.ensureContentOwnership(existing, userId);
+    // TypeScript now knows 'existing' is defined
 
     const conditions = [
       eq(characters.id, id),
@@ -182,23 +139,33 @@ export class CharacterRepository extends BaseRepository {
       .set(updates)
       .where(and(...conditions))
       .returning();
-
     if (!updatedCharacter) {
-      return { updated: false };
+      // If update didn't occur, determine reason
+      throw AppError.notFound("Character not found for update", id as any);
     }
-
-    return { updated: true, value: updatedCharacter };
+    return updatedCharacter;
   }
 
   async deleteCharacter(
     id: string,
     userId: string,
-    notebookId: string | null,
+    notebookId: string,
     opts?: StorageOptions,
-  ): Promise<DeleteResult> {
-    // Check for cancellation
-    if (opts?.signal?.aborted) {
-      throw AppError.aborted();
+  ): Promise<void> {
+    if (opts?.signal?.aborted) throw AppError.aborted();
+
+    // Validate ownership and notebook association
+    const [existing] = await db
+      .select()
+      .from(characters)
+      .where(eq(characters.id, id));
+    try {
+      this.ensureContentOwnership(existing, userId);
+    } catch (err) {
+      throw err;
+    }
+    if (!existing || existing.notebookId !== notebookId) {
+      throw AppError.notFound("Character", id);
     }
 
     const conditions = [
@@ -225,29 +192,19 @@ export class CharacterRepository extends BaseRepository {
 
   async getCharactersWithIssues(
     userId: string,
-    notebookId: string | null,
+    notebookId: string,
     opts?: StorageOptions,
   ): Promise<{
     missingFamilyName: Character[];
     missingDescription: Character[];
     missingImage: Character[];
   }> {
-    // Check for cancellation
-    if (opts?.signal?.aborted) {
-      throw AppError.aborted();
-    }
+    if (opts?.signal?.aborted) throw AppError.aborted();
 
-    const conditions = [eq(characters.userId, userId)];
-
-    if (notebookId !== undefined) {
-      conditions.push(
-        notebookId === null
-          ? isNull(characters.notebookId)
-          : eq(characters.notebookId, notebookId),
-      );
-    }
-
-    const baseQuery = and(...conditions);
+    const baseQuery = and(
+      eq(characters.userId, userId),
+      eq(characters.notebookId, notebookId),
+    );
 
     // Characters with given name but missing family name
     const missingFamilyName = await db
@@ -295,14 +252,10 @@ export class CharacterRepository extends BaseRepository {
 
   async bulkDeleteCharactersWithIssues(
     userId: string,
-    notebookId: string | null,
+    notebookId: string,
     opts?: StorageOptions,
   ): Promise<{ deletedCount: number }> {
-    // Check for cancellation
-    if (opts?.signal?.aborted) {
-      throw AppError.aborted();
-    }
-
+    if (opts?.signal?.aborted) throw AppError.aborted();
     // Get all characters with issues
     const conditions = [eq(characters.userId, userId)];
 
@@ -364,27 +317,28 @@ export class CharacterRepository extends BaseRepository {
     function levenshteinDistance(str1: string, str2: string): number {
       const len1 = str1.length;
       const len2 = str2.length;
-      const matrix: number[][] = [];
 
-      for (let i = 0; i <= len1; i++) {
-        matrix[i] = [i];
-      }
+      // Initialize matrix with dimensions (len1+1) x (len2+1)
+      const matrix: number[][] = Array.from({ length: len1 + 1 }, (_, i) =>
+        Array.from({ length: len2 + 1 }, (_, j) => (j === 0 ? i : 0))
+      );
       for (let j = 0; j <= len2; j++) {
-        matrix[0][j] = j;
+        matrix[0]![j] = j;
       }
 
       for (let i = 1; i <= len1; i++) {
         for (let j = 1; j <= len2; j++) {
           const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
-          matrix[i][j] = Math.min(
-            matrix[i - 1][j] + 1,
-            matrix[i][j - 1] + 1,
-            matrix[i - 1][j - 1] + cost,
+          matrix[i]![j]! = Math.min(
+            matrix[i - 1]![j]! + 1,
+            matrix[i]![j - 1]! + 1,
+            matrix[i - 1]![j - 1]! + cost,
           );
         }
       }
 
-      return matrix[len1][len2];
+      // matrix[len1][len2] is guaranteed to be a number
+      return matrix[len1]![len2]!;
     }
 
     // Helper function to calculate similarity score
@@ -423,9 +377,9 @@ export class CharacterRepository extends BaseRepository {
       .where(and(...conditions))
       .orderBy(characters.givenName);
 
-    // Filter characters with at least a given name or family name
+    // Filter characters with at least a given name or family name and narrow type
     const validCharacters = allCharacters.filter(
-      (c) => c.givenName || c.familyName,
+      (c): c is Character => !!c && (!!c.givenName || !!c.familyName),
     );
 
     // Find similar characters using Levenshtein distance
@@ -435,12 +389,14 @@ export class CharacterRepository extends BaseRepository {
 
     for (let i = 0; i < validCharacters.length; i++) {
       const char1 = validCharacters[i];
+      if (!char1) continue;
       const name1 = getDisplayName(char1);
 
       if (!name1) continue;
 
       for (let j = i + 1; j < validCharacters.length; j++) {
         const char2 = validCharacters[j];
+        if (!char2) continue;
         const name2 = getDisplayName(char2);
 
         if (!name2) continue;

@@ -12,9 +12,9 @@ export class BaseRepository {
    */
   ensureContentOwnership<
     T extends { userId?: string | null; notebookId?: string | null },
-  >(content: T | undefined, userId: string): asserts content is T {
+  >(content: T | undefined, userId: string, resourceId: string = 'unknown'): asserts content is T {
     if (!content) {
-      throw AppError.notFound('Content not found');
+      throw AppError.notFound('Content', resourceId);
     }
 
     if (content.userId !== userId) {

@@ -77,7 +77,7 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
         .json({ error: "notebookId query parameter is required" });
     }
 
-    const music = await storage.getMusic(req.params.id, userId, notebookId);
+  const music = await storage.getMusic(req.params['id'], userId, notebookId);
     if (!music) {
       return res.status(404).json({ error: "Music not found" });
     }
@@ -93,7 +93,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
     const userId = req.user.claims.sub;
     const validatedUpdates = insertMusicSchema.parse(req.body);
     const updatedMusic = await storage.updateMusic(
-      req.params.id,
+  req.params['id'],
       userId,
       validatedUpdates,
     );
@@ -109,7 +109,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
       error instanceof Error ? error.message : "Unknown error occurred";
     if (error instanceof Error && error.message.includes("Unauthorized")) {
       const userId = req.user?.claims?.sub || "unknown";
-      const musicId = req.params.id || "unknown";
+  const musicId = req.params['id'] || "unknown";
       console.warn(
         `[Security] Unauthorized music operation - userId: ${userId}, musicId: ${musicId}`,
       );
@@ -122,13 +122,13 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
 router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    await storage.deleteMusic(req.params.id, userId);
+  await storage.deleteMusic(req.params['id'], userId);
     res.json({ success: true });
   } catch (error) {
     console.error("Error deleting music:", error);
     if (error instanceof Error && error.message.includes("Unauthorized")) {
       const userId = req.user?.claims?.sub || "unknown";
-      const musicId = req.params.id || "unknown";
+  const musicId = req.params['id'] || "unknown";
       console.warn(
         `[Security] Unauthorized music operation - userId: ${userId}, musicId: ${musicId}`,
       );

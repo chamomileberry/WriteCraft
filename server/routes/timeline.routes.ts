@@ -48,7 +48,7 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
     if (error instanceof Error && error.message.includes("Unauthorized")) {
       const userId = req.user?.claims?.sub || "unknown";
       const notebookId =
-        req.query.notebookId || req.body.notebookId || "unknown";
+        req.query['notebookId'] || req.body.notebookId || "unknown";
       console.warn(
         `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
       );
@@ -64,7 +64,8 @@ router.get("/", readRateLimiter, async (req: any, res) => {
     const userId = req.user.claims.sub;
 
     // First, get all user notebooks
-    const notebooks = await storage.getUserNotebooks(userId);
+    const notebooksResult = await storage.getUserNotebooks(userId);
+    const notebooks = notebooksResult.items; // Access the array of notebooks
 
     // Then get timelines from all notebooks
     const allTimelines = [];
@@ -83,7 +84,7 @@ router.get("/", readRateLimiter, async (req: any, res) => {
 router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const notebookId = req.query.notebookId as string;
+  const notebookId = req.query['notebookId'] as string;
 
     if (!notebookId) {
       return res
@@ -102,7 +103,7 @@ router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
 router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const notebookId = req.query.notebookId as string;
+  const notebookId = req.query['notebookId'] as string;
 
     if (!notebookId) {
       return res
@@ -111,7 +112,7 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
     }
 
     const timeline = await storage.getTimeline(
-      req.params.id,
+      req.params['id'],
       userId,
       notebookId,
     );
@@ -146,7 +147,7 @@ router.patch("/:id", writeRateLimiter, async (req: any, res) => {
     if (error instanceof Error && error.message.includes("Unauthorized")) {
       const userId = req.user?.claims?.sub || "unknown";
       const notebookId =
-        req.query.notebookId || req.body.notebookId || "unknown";
+        req.query['notebookId'] || req.body.notebookId || "unknown";
       console.warn(
         `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
       );
@@ -159,7 +160,7 @@ router.patch("/:id", writeRateLimiter, async (req: any, res) => {
 router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    await storage.deleteTimeline(req.params.id, userId);
+  await storage.deleteTimeline(req.params['id'], userId);
     res.json({ success: true });
   } catch (error) {
     console.error("Error deleting timeline:", error);

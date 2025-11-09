@@ -16,8 +16,8 @@ import {
  * so that req.body exists for sanitization and IDS
  */
 export function applySecurityMiddleware(app: Express): void {
-  const isDevelopment = process.env.NODE_ENV === "development";
-  const enableIDS = process.env.ENABLE_IDS === "true"; // Opt-in IDS (disabled by default)
+  const isDevelopment = getEnvOptional('NODE_ENV') === "development";
+  const enableIDS = getEnvOptional('ENABLE_IDS') === "true"; // Opt-in IDS (disabled by default)
 
   // Generate CSP nonce for each request (MUST be before securityHeaders)
   app.use(generateCSPNonce);

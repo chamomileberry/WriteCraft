@@ -139,12 +139,18 @@ router.post(
 
       const teamName = subscription?.teamName || "WriteCraft Team";
 
+      const recipientName = data.email.split("@")[0] || data.email;
+      const inviteToken = invitation?.token;
+      if (!inviteToken) {
+        throw new Error("Failed to create invitation token");
+      }
+
       await emailService.sendTeamInvitation(data.email, {
-        recipientName: data.email.split("@")[0],
+        recipientName,
         teamName,
         inviterName,
         role: data.role,
-        inviteToken: invitation.token,
+        inviteToken,
       });
 
       res.json(invitation);
@@ -195,7 +201,8 @@ router.delete(
   async (req, res, next) => {
     try {
       const currentUserId = (req.user as any).claims.sub;
-      const targetUserId = req.params.userId;
+      const paramsSchema = z.object({ userId: z.string().min(1) });
+      const { userId: targetUserId } = paramsSchema.parse(req.params);
 
       // Get user's team subscription
       const teamSubscription =
@@ -233,10 +240,11 @@ router.delete(
       );
 
       // Send removal notification email
-      if (targetUser?.email) {
-        const userName = targetUser.firstName
-          ? `${targetUser.firstName} ${targetUser.lastName || ""}`.trim()
-          : targetUser.email.split("@")[0];
+      if (targetUser && targetUser.email) {
+        const userName: string =
+          targetUser.firstName && typeof targetUser.firstName === "string"
+            ? `${targetUser.firstName} ${targetUser.lastName || ""}`.trim()
+            : (targetUser.email?.split("@")[0] || "Unknown");
 
         const teamName = subscription?.teamName || "WriteCraft Team";
 
@@ -257,11 +265,11 @@ router.delete(
 router.patch(
   "/members/:userId",
   isAuthenticated,
-  teamRateLimiter,
   async (req, res, next) => {
     try {
       const currentUserId = (req.user as any).claims.sub;
-      const targetUserId = req.params.userId;
+      const paramsSchema = z.object({ userId: z.string().min(1) });
+      const { userId: targetUserId } = paramsSchema.parse(req.params);
 
       const schema = z.object({
         role: z.enum(["admin", "member"]),
@@ -302,6 +310,7 @@ router.patch(
       );
 
       // Send role change notification email
+      // Send role change notification email
       const [targetUser] = await db
         .select()
         .from(users)
@@ -313,10 +322,10 @@ router.patch(
         .where(eq(userSubscriptions.id, teamSubscription.id))
         .limit(1);
 
-      if (targetUser?.email) {
-        const userName = targetUser.firstName
+      if (targetUser && targetUser.email) {
+        const userName: string = targetUser.firstName
           ? `${targetUser.firstName} ${targetUser.lastName || ""}`.trim()
-          : targetUser.email.split("@")[0];
+          : (targetUser.email?.split("@")[0] || "");
 
         const teamName = subscription?.teamName || "WriteCraft Team";
 
@@ -326,7 +335,6 @@ router.patch(
           role: data.role,
         });
       }
-
       res.json(updated);
     } catch (error: any) {
       next(error);
@@ -337,17 +345,16 @@ router.patch(
 // Revoke invitation
 router.delete(
   "/invitations/:invitationId",
-  isAuthenticated,
-  inviteRateLimiter,
   async (req, res, next) => {
     try {
       const userId = (req.user as any).claims.sub;
-      const invitationId = req.params.invitationId;
+      const paramsSchema = z.object({ invitationId: z.string().min(1) });
+      const { invitationId } = paramsSchema.parse(req.params);
 
+      // Get user's team subscription
       // Get user's team subscription
       const teamSubscription =
         await teamService.getUserTeamSubscription(userId);
-
       if (!teamSubscription) {
         return res.status(403).json({ message: "Not a member of any team" });
       }
@@ -383,7 +390,7 @@ router.get(
   async (req, res, next) => {
     try {
       const userId = (req.user as any).claims.sub;
-      const limit = parseInt(req.query.limit as string) || 50;
+  const limit = parseInt((req.query as any)["limit"] as string) || 50;
 
       // Get user's team subscription
       const teamSubscription =

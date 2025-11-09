@@ -60,19 +60,19 @@ class EmailService {
 
   constructor() {
     // Default "from" address
-    this.from = process.env.EMAIL_FROM || "WriteCraft <admin@writecraft.app>";
+    this.from = getEnvOptional('EMAIL_FROM') || "WriteCraft <admin@writecraft.app>";
 
     // Test mode: if true, emails are logged instead of sent
-    this.testMode = process.env.EMAIL_TEST_MODE === "true";
+    this.testMode = getEnvOptional('EMAIL_TEST_MODE') === "true";
 
     this.initializeTransporter();
   }
 
   private initializeTransporter() {
-    const smtpHost = process.env.SMTP_HOST;
-    const smtpPort = process.env.SMTP_PORT;
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPass = process.env.SMTP_PASS;
+    const smtpHost = getEnvOptional('SMTP_HOST');
+    const smtpPort = getEnvOptional('SMTP_PORT');
+    const smtpUser = getEnvOptional('SMTP_USER');
+    const smtpPass = getEnvOptional('SMTP_PASS');
 
     if (this.testMode) {
       logger.info(

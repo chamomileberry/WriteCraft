@@ -86,7 +86,7 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
       return res.status(400).json({ error: "Notebook ID is required" });
     }
 
-    const weapon = await storage.getWeapon(req.params.id, userId, notebookId);
+  const weapon = await storage.getWeapon(req.params['id'], userId, notebookId);
     if (!weapon) {
       return res.status(404).json({ error: "Weapon not found" });
     }
@@ -109,7 +109,7 @@ router.patch("/:id", writeRateLimiter, async (req: any, res) => {
 
     const updates = insertWeaponSchema.partial().parse(req.body);
     const updatedWeapon = await storage.updateWeapon(
-      req.params.id,
+      req.params['id'],
       userId,
       notebookId,
       updates,
@@ -147,7 +147,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
 
     const updates = insertWeaponSchema.partial().parse(req.body);
     const updatedWeapon = await storage.updateWeapon(
-      req.params.id,
+      req.params['id'],
       userId,
       notebookId,
       updates,
@@ -183,7 +183,7 @@ router.delete("/:id", writeRateLimiter, async (req: any, res) => {
       return res.status(400).json({ error: "Notebook ID is required" });
     }
 
-    await storage.deleteWeapon(req.params.id, userId, notebookId);
+  await storage.deleteWeapon(req.params['id'], userId, notebookId);
     res.status(204).send();
   } catch (error) {
     console.error("Error deleting weapon:", error);

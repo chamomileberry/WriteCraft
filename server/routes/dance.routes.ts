@@ -38,7 +38,7 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
     if (error instanceof Error && error.message.includes("Unauthorized")) {
       const userId = req.user?.claims?.sub || "unknown";
       const notebookId =
-        req.query.notebookId || req.body.notebookId || "unknown";
+        req.query['notebookId'] || req.body.notebookId || "unknown";
       console.warn(
         `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
       );
@@ -51,7 +51,7 @@ router.post("/", writeRateLimiter, async (req: any, res) => {
 router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const notebookId = req.query.notebookId as string;
+  const notebookId = req.query['notebookId'] as string;
 
     if (!notebookId) {
       return res
@@ -70,7 +70,7 @@ router.get("/user/:userId?", readRateLimiter, async (req: any, res) => {
 router.get("/:id", readRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const notebookId = req.query.notebookId as string;
+  const notebookId = req.query['notebookId'] as string;
 
     if (!notebookId) {
       return res
@@ -78,7 +78,7 @@ router.get("/:id", readRateLimiter, async (req: any, res) => {
         .json({ error: "notebookId query parameter is required" });
     }
 
-    const dance = await storage.getDance(req.params.id, userId, notebookId);
+  const dance = await storage.getDance(req.params['id'], userId, notebookId);
     if (!dance) {
       return res.status(404).json({ error: "Dance not found" });
     }
@@ -94,7 +94,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
     const userId = req.user.claims.sub;
     const validatedUpdates = insertDanceSchema.parse(req.body);
     const updatedDance = await storage.updateDance(
-      req.params.id,
+  req.params['id'],
       userId,
       validatedUpdates,
     );
@@ -111,7 +111,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
     if (error instanceof Error && error.message.includes("Unauthorized")) {
       const userId = req.user?.claims?.sub || "unknown";
       const notebookId =
-        req.query.notebookId || req.body.notebookId || "unknown";
+        req.query['notebookId'] || req.body.notebookId || "unknown";
       console.warn(
         `[Security] Unauthorized operation - userId: ${userId}, notebookId: ${notebookId}`,
       );
@@ -124,7 +124,7 @@ router.put("/:id", writeRateLimiter, async (req: any, res) => {
 router.delete("/:id", writeRateLimiter, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    await storage.deleteDance(req.params.id, userId);
+  await storage.deleteDance(req.params['id'], userId);
     res.json({ success: true });
   } catch (error) {
     console.error("Error deleting dance:", error);

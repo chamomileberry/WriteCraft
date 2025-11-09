@@ -3,8 +3,8 @@
  * Conditionally logs based on environment
  */
 
-const isDevelopment = process.env.NODE_ENV === "development";
-const isProduction = process.env.NODE_ENV === "production";
+const isDevelopment = getEnvOptional('NODE_ENV') === "development";
+const isProduction = getEnvOptional('NODE_ENV') === "production";
 
 /**
  * Interface for structured logging context

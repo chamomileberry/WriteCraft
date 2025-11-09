@@ -56,7 +56,7 @@ router.post("/", writeRateLimiter, async (req: Request, res: Response) => {
     }
 
     // Check if this is a legitimate violation or just development noise
-    const isDevelopment = process.env.NODE_ENV === "development";
+    const isDevelopment = getEnvOptional('NODE_ENV') === "development";
     const isViteHMR =
       blockedUri?.includes("/@vite") || blockedUri?.includes("/__vite");
 
