@@ -454,12 +454,12 @@ function generateFallbackCharacter(
     22 + (Math.abs(hashString(`${genre}-${gender}-${ethnicity}-age`)) % 38); // 22-60
 
   const fullName = fallbackNames[nameIndex];
-  const [givenName, ...familyNameParts] = fullName.split(" ");
+  const [givenName, ...familyNameParts] = (fullName ?? "").split(" ");
   const familyName = familyNameParts.join(" ") || "Unknown";
 
   return {
     // Core required fields
-    givenName,
+    givenName: givenName ?? "",
     familyName,
     age,
     gender: gender || "non-binary",
@@ -472,9 +472,9 @@ function generateFallbackCharacter(
     identifyingMarks: "small scar on left hand from childhood accident",
     physicalDescription:
       "Medium height with an approachable presence. Their expressive eyes often reflect deep thought, and they carry themselves with quiet confidence. A small scar on their left hand tells of childhood adventures.",
-    occupation: occupations[occupationIndex],
-    personality: personalityTraits[personalityIndex],
-    backstory: backstories[backstoryIndex],
+    occupation: occupations[occupationIndex] ?? "unknown occupation",
+    personality: personalityTraits[personalityIndex] ?? [],
+    backstory: backstories[backstoryIndex] ?? "",
     motivation:
       "To find balance between personal aspirations and the needs of those they care about",
     flaw: "Tendency to overthink decisions, sometimes missing opportunities while analyzing every angle",
@@ -650,8 +650,8 @@ TASK: ${promptText} that fits perfectly with this character's established identi
       messages: [{ role: "user", content: userPrompt }],
     });
 
-    const content = response.content[0];
-    if (content.type !== "text") {
+    const content = response.content?.[0];
+    if (!content || content.type !== "text") {
       throw new Error("Unexpected response format from Anthropic API");
     }
 
@@ -767,7 +767,7 @@ function generateFallbackFieldContent(
   const seed = fullName || fieldName;
   const index = Math.abs(hashString(seed + fieldName)) % options.length;
 
-  return options[index];
+  return options[index] ?? "";
 }
 
 export async function generateSettingWithAI(
@@ -960,7 +960,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     console.log("Received response from Anthropic API for creature");
 
     const content = response.content[0];
-    if (content.type !== "text") {
+    if (!content || content.type !== "text") {
       throw new Error("Unexpected response format from Anthropic API");
     }
 
@@ -1076,7 +1076,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     console.log("Received response from Anthropic API for plant");
 
     const content = response.content[0];
-    if (content.type !== "text") {
+    if (!content || content.type !== "text") {
       throw new Error("Unexpected response format from Anthropic API");
     }
 
@@ -1206,7 +1206,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     });
 
     const content = response.content[0];
-    if (content.type !== "text") {
+    if (!content || content.type !== "text") {
       throw new Error("Unexpected response type from AI");
     }
 
@@ -1296,7 +1296,7 @@ Please analyze the specific text within the context of the larger work. Consider
     });
 
     const content = response.content[0];
-    if (content.type !== "text") {
+    if (!content || content.type !== "text") {
       throw new Error("Unexpected response format from Anthropic API");
     }
 
@@ -1362,7 +1362,7 @@ Provide only the rephrased text, no explanations or additional formatting.${styl
     });
 
     const content = response.content[0];
-    if (content.type !== "text") {
+    if (!content || content.type !== "text") {
       throw new Error("Unexpected response format from Anthropic API");
     }
 
@@ -1420,7 +1420,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     });
 
     const content = response.content[0];
-    if (content.type !== "text") {
+    if (!content || content.type !== "text") {
       throw new Error("Unexpected response format from Anthropic API");
     }
 
@@ -1469,7 +1469,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     });
 
     const content = response.content[0];
-    if (content.type !== "text") {
+    if (!content || content.type !== "text") {
       throw new Error("Unexpected response format from Anthropic API");
     }
 
@@ -1511,7 +1511,7 @@ Provide only the definition, no additional formatting or explanations.`;
     });
 
     const content = response.content[0];
-    if (content.type !== "text") {
+    if (!content || content.type !== "text") {
       throw new Error("Unexpected response format from Anthropic API");
     }
 
@@ -1564,7 +1564,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or for
     });
 
     const content = response.content[0];
-    if (content.type !== "text") {
+    if (!content || content.type !== "text") {
       throw new Error("Unexpected response format from Anthropic API");
     }
 
@@ -1610,7 +1610,7 @@ Provide only the improved text, no explanations or additional formatting.${style
     });
 
     const content = response.content[0];
-    if (content.type !== "text") {
+    if (!content || content.type !== "text") {
       throw new Error("Unexpected response format from Anthropic API");
     }
 
@@ -2247,7 +2247,7 @@ export async function conversationalChat(
     }
   }
 
-  let systemPrompt =
+  let systemPrompt: string =
     `You are an expert writing assistant and creative companion for writers using WriteCraft - the kind of mentor every writer wishes they had. You're knowledgeable but never condescending, encouraging but honest, and genuinely excited about helping stories come to life.
 
 WRITECRAFT INTEGRATION - YOU CAN UPDATE NOTEBOOKS:
@@ -2257,11 +2257,7 @@ WRITECRAFT INTEGRATION - YOU CAN UPDATE NOTEBOOKS:
 When a writer asks "update my character" or "add this to my notebook," you accomplish this through WriteCraft's **entity detection system**. This is NOT a hypothetical feature - it's running right now as part of your integration.
 
 **The Technical Reality:**
-1. You are connected to WriteCraft's ` /
-      api /
-      ai /
-      detect -
-    entities` endpoint
+1. You are connected to WriteCraft's /api/ai/detect-entities endpoint
 2. After EVERY assistant message you send, the system automatically:
    - Extracts character names, traits, backstory, motivations from your response
    - Identifies locations, plot points, and worldbuilding details you discussed
@@ -2530,8 +2526,8 @@ When a writer asks you to save character details:
 Remember: You ARE integrated with WriteCraft's notebook system. When you discuss characters, locations, or plot points comprehensively, the platform will automatically offer to save them. Your job is to help develop these elements through conversation-the system handles the technical saving. Engage in genuine dialogue, show curiosity about their vision, and guide them to discover solutions rather than just prescribing fixes.`;
 
   // Add style instruction dynamically
-  const styleInstruction = await getBannedPhrasesInstruction();
-  systemPrompt += styleInstruction;
+    const styleInstruction = await getBannedPhrasesInstruction();
+    systemPrompt += styleInstruction;
 
   // Add context if editor content is available
   if (editorContent && documentTitle) {
@@ -2737,14 +2733,16 @@ Use this context to provide more relevant and specific advice about their curren
     // Check for significant time gaps (> 1 hour) to detect new sessions
     const timeGaps: string[] = [];
     for (let i = 1; i < recentHistory.length; i++) {
-      const prevTime = recentHistory[i - 1].timestamp;
-      const currTime = recentHistory[i].timestamp;
+      const prevTime = recentHistory[i - 1]?.timestamp;
+      const currTime = recentHistory[i]?.timestamp;
 
       if (prevTime && currTime) {
         const prevDate = new Date(prevTime);
         const currDate = new Date(currTime);
+        const prevTimeMs = Number(prevDate.getTime());
+        const currTimeMs = Number(currDate.getTime());
         const hoursDiff =
-          (currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60);
+          (currTimeMs - prevTimeMs) / (1000 * 60 * 60);
 
         if (hoursDiff > 1) {
           const readableGap =
@@ -2803,7 +2801,6 @@ Use this context to provide more relevant and specific advice about their curren
       userId: userId,
       systemPrompt,
       userPrompt: message,
-      conversationHistory: messages.slice(0, -1), // Exclude current message
       maxTokens: 2048,
       textLength: editorContent?.length || 0,
       enableCaching: true,
@@ -3107,7 +3104,7 @@ Tags:`;
     });
 
     const responseText =
-      response.content[0].type === "text"
+      response.content[0]?.type === "text"
         ? response.content[0].text.trim()
         : "[]";
 
